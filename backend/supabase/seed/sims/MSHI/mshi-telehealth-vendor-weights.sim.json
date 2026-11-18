@@ -1,0 +1,914 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "mshi-telehealth-vendor-weights",
+  "title": "The cheapest platform can't talk to our EHR",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "telehealth vendor scoring sheet, Bayview Family Health Network (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Chief operating officer, Janet Cole",
+          "text": "Vendor C scores highest, mostly on price. The board approves the contract at 16:00. Sign off on the scoring?",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "seen",
+          "label": "Pattern",
+          "text": "The weights don't follow the strategic plan's priorities.",
+          "when": "not isNull(lookAt) and not fixed",
+          "severity": "warning"
+        },
+        {
+          "id": "lock",
+          "label": "Board",
+          "text": "16:00: the board voted on the scoring as it stood.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [],
+      "code": [
+        {
+          "id": "code",
+          "label": "scoring sheet",
+          "language": "text",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "Weights: price 50%, features 30%, support 20%  ->  C 82, B 74, A 69",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c1",
+              "text": "Must-haves from the plan: EHR integration, interpreter and screen-reader access (fail = out)",
+              "when": "fix == \"plan\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c2",
+              "text": "Weights: integration 30%, access 25%, total 5-year cost 25%, support 20%  ->  B 81, A 72; C excluded",
+              "when": "fix == \"plan\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c3",
+              "text": "Keep weights; add integration as a tie-breaker",
+              "when": "fix == \"tie\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c4",
+              "text": "Keep weights; ask C to promise integration in a later release",
+              "when": "fix == \"promise\"",
+              "mark": "\"warning\""
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Board vote",
+          "value": "16:00"
+        }
+      ]
+    }
+  },
+  "objective": "Strategic planning for health IT and digital health: setting a future-state vision and priorities, SWOT analysis, and choosing a vendor that fits the organization's goals",
+  "secondaryObjectives": [
+    "Setting goals and priorities and making decisions",
+    "Leading change and acting as a change agent"
+  ],
+  "sources": [
+    {
+      "cite": "HealthIT.gov FAQ, What factors should I consider when selecting a vendor?",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.healthit.gov/faq/what-factors-should-i-consider-when-selecting-vendor",
+      "note": "Read 2026-11-17 through a summarizing fetch. 'Understand if and how a vendor's product will accomplish the key goals of the practice', testing it against your own scenarios; clarify full pricing including 'implementation assistance, training, interfaces'; weigh the 'Ability to integrate with other products' and 'Privacy and security capabilities'; consider vendor viability and site visits."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Every organization, person, count and deadline is invented teaching data; tool output is an authored rendering in the tool style."
+    }
+  ],
+  "brief": {
+    "situation": "You lead the telehealth selection at Bayview Family Health Network (fictional). The strategic plan's future-state vision puts two priorities first: visits documented in the EHR without double entry, and access for patients who need interpreters or use screen readers. The scoring sheet weights price at 50%. Vendor C wins on price but has no EHR integration and no built-in interpreter support. The board votes at 16:00. It is 15:05.",
+    "handover": [
+      "SWOT from the plan: weakness: staff time lost to double entry; threat: patients leaving for competitors with better access.",
+      "Vendors A and B integrate with the EHR; only B meets the accessibility requirements in a demo."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: look, change, check or ship. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "15:05",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "The deadline is an invented teaching value."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "plan",
+        "tie",
+        "promise"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "c0",
+        "c1",
+        "c2"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "k0",
+        "k1",
+        "k2"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "(fix == \"plan\")"
+    },
+    "correct": {
+      "expr": "(fix == \"plan\" or fix == \"promise\")"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "look",
+        "change",
+        "check",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "look": {
+      "label": "Compare the scoring criteria with the strategic plan's priorities and test each vendor on our own scenarios",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "output": "criteria trace to the plan; B passes both must-haves"
+            }
+          ],
+          "else": [
+            {
+              "output": "plan priorities: integration, access\nsheet: neither is a criterion; price is 50%\nscenario test: C needs re-typing every visit note; no interpreter join"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "finding": "The choice follows the strategy."
+            }
+          ],
+          "else": [
+            {
+              "finding": "The sheet measures what is easy to compare, not what the plan says the organization needs; the cheapest platform fails both priorities."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Change the scoring",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "plan",
+              "label": "Make the plan's priorities must-haves and weight the rest from the plan, using 5-year total cost"
+            },
+            {
+              "value": "tie",
+              "label": "Keep the weights; use integration only as a tie-breaker"
+            },
+            {
+              "value": "promise",
+              "label": "Choose C if it promises integration in a later release"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: {f}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "check": {
+      "label": "Trace every criterion to the plan, and rerun the scenario tests for the recommended vendor",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"plan\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "B recommended: passes integration and access; 5-year cost within budget\n2 passed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"tie\"",
+              "then": [
+                {
+                  "output": "C 82 still first\n1 failed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"promise\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "integration unproven; access fails\n1 passed, 1 failed"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "0 of 2 priorities scored\n1 failed"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Send the recommendation to the board",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "if": "correct",
+          "then": [
+            {
+              "output": "Sent: B, with the plan-based scoring and 5-year cost."
+            }
+          ],
+          "else": [
+            {
+              "output": "Sent: a choice that works against the plan."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why the scoring picked the wrong vendor",
+              "options": [
+                {
+                  "value": "c0",
+                  "label": "Its weights rewarded price and ignored the plan's two priorities, integration and access"
+                },
+                {
+                  "value": "c1",
+                  "label": "Vendor C lied in its demo"
+                },
+                {
+                  "value": "c2",
+                  "label": "Price always matters most"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know the recommendation fits",
+              "options": [
+                {
+                  "value": "k0",
+                  "label": "Every criterion traces to the plan and the vendor passes our own scenario tests"
+                },
+                {
+                  "value": "k1",
+                  "label": "The board likes vendor B"
+                },
+                {
+                  "value": "k2",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "16:00: the board voted on the scoring as it stood.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the COO: why the scoring was wrong, what you changed, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "A vendor choice should follow the future-state vision and priorities; the SWOT named double entry and access as the issues, but the sheet weighted price at 50% and scored neither.",
+          "modelAnswer": "Weights ignored the plan."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "Plan priorities as must-haves, remaining weights from the plan, and 5-year total cost rather than sticker price; a tie-breaker or a roadmap promise leaves the priorities unmet.",
+          "modelAnswer": "Must-haves from the plan; B."
+        },
+        {
+          "label": "How you know",
+          "criteria": "Each criterion traces to the plan and B passes our own scenario tests.",
+          "modelAnswer": "Traced; scenarios pass."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-333)",
+          "checkedAt": "2026-11-17",
+          "note": "The case's deadline; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Shipping nothing ships nothing wrong, but the deadline passes without the fix.",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "wrongSent": {
+      "label": "Off-strategy choice sent",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "The network buys a platform that adds double entry and shuts out patients who need access support."
+    },
+    "notSent": {
+      "label": "Nothing shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "The board deferred the vote."
+    },
+    "right": {
+      "label": "Right, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and fixed and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "The network chooses the platform that delivers its strategy."
+    },
+    "gaps": {
+      "label": "Right, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The result is right, but it went late, unchecked, before you looked, or with a weaker fix."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Compared the scoring with the plan and tested vendors on our scenarios before deciding",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked before acting."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Scored vendors against the strategic plan",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed",
+            "score": "met",
+            "why": "Criteria and weights traced to the strategic plan."
+          },
+          {
+            "when": "fix == \"promise\"",
+            "score": "partial",
+            "why": "A roadmap promise is not a capability; access is still missing."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{fix == \"tie\" ? \"There is no tie: C still wins on price and fails both priorities.\" : \"The scoring still ignores the plan's priorities.\"}"
+          }
+        ]
+      },
+      {
+        "id": "shipped",
+        "label": "Shipped nothing wrong",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sentAs != \"wrong\"",
+            "score": "met",
+            "why": "Nothing wrong shipped."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Shipped a wrong result."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Criteria traced and scenario tests passed after the last change, before the vote",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "Checked after the last change, before shipping."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Checked, but it failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"c0\" and checkDoc == \"k0\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"c0\" or checkDoc == \"k0\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rightK",
+        "label": "Right result shipped",
+        "value": "sentAs == \"right\" ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "altered",
+        "label": "Rows changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until shipped",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 14"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "Neither priority is scored; C fails both."
+      },
+      {
+        "at": "4-9 min",
+        "text": "Must-haves and plan-based weights."
+      },
+      {
+        "at": "9-12 min",
+        "text": "Traced; B passes."
+      },
+      {
+        "at": "12-14 min",
+        "text": "Send."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: strategy decides the criteria",
+        "body": "Selection criteria come from the vision and priorities, and vendors are tested on your own scenarios."
+      },
+      "gaps": {
+        "headline": "Right, with gaps",
+        "body": "The result is right; it went late, unchecked, before you looked, or with a weaker fix than the cause called for."
+      },
+      "wrongSent": {
+        "headline": "Off-strategy choice",
+        "body": "A promise or a tie-breaker cannot fix weights that ignore the plan."
+      },
+      "notSent": {
+        "headline": "Nothing shipped",
+        "body": "Safe, but the deadline passed without the fix."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "The plan's future-state vision puts EHR integration and access first, and the SWOT names double entry and lost patients as the risks, yet the scoring weights price at 50% and scores neither. Make the two priorities must-haves, weight the rest from the plan, and use 5-year total cost. Test vendors on our own scenarios: C fails both, B passes. A tie-breaker leaves C on top; a roadmap promise is not a capability."
+  }
+}

@@ -1,0 +1,908 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pydata-notebook-deleted-filter-cell",
+  "title": "81% in the notebook, 64% from scratch",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "completion.ipynb, the course completion analysis, Lakeview Adult Education (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Program director, Sam Okonkwo",
+          "text": "The grant report says our completion rate is 81%. A colleague reran your notebook and got 64%. The report is due to the funder at 15:00.",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "seen",
+          "label": "Pattern",
+          "text": "Your kernel and a fresh kernel give different numbers from the same notebook.",
+          "when": "not isNull(lookAt) and not fixed",
+          "severity": "warning"
+        },
+        {
+          "id": "lock",
+          "label": "Funder",
+          "text": "15:00: the grant report deadline passed.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [],
+      "code": [
+        {
+          "id": "code",
+          "label": "completion.ipynb",
+          "language": "Python",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "[7] df = pd.read_csv('enrollments.csv')"
+            },
+            {
+              "id": "c1",
+              "text": "[3] rate = df['completed'].mean()   # ran before [7], against a df filtered in a deleted cell",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c2",
+              "text": "Restart kernel; cells run in order 1..9",
+              "when": "fix == \"rerun\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c3",
+              "text": "[1] df = pd.read_csv('enrollments.csv')   [2] rate = df['completed'].mean()",
+              "when": "fix == \"rerun\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c4",
+              "text": "Rerun cell [3] only",
+              "when": "fix == \"one\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c5",
+              "text": "Copy the deleted filter back: df = df[df.weeks_attended >= 2]",
+              "when": "fix == \"filter\"",
+              "mark": "\"warning\""
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Report due",
+          "value": "15:00"
+        }
+      ]
+    }
+  },
+  "objective": "Recognize hidden state from out-of-order cells, and restart and run all before trusting a result",
+  "secondaryObjectives": [
+    "Decide what belongs in a notebook and what belongs in a module or script"
+  ],
+  "sources": [
+    {
+      "cite": "Data Programming with Python (course site), Getting started: Kernel State",
+      "checkedAt": "2026-11-17",
+      "url": "https://dataprogpy.github.io/getting-started/colab/kernel-state",
+      "note": "Read 2026-11-17 through a summarizing fetch. Notebook memory 'persists throughout your session based on the sequence of cell executions'; 'You must explicitly re-run all dependent cells'; after a cell is deleted 'The Kernel remembers the temporary_variable ... even though the defining cell is gone'; restart and run all 'perfectly simulates running your notebook from a completely clean slate' and is recommended before finalizing work. A course page about Colab; Jupyter behaves the same way (author's statement)."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Every organization, person, count and deadline is invented teaching data; tool output is an authored rendering in the tool style."
+    }
+  ],
+  "brief": {
+    "situation": "You wrote completion.ipynb at Lakeview Adult Education (fictional). Your open notebook shows a completion rate of 81%. A colleague who opened the same file and ran it top to bottom got 64%. The grant report is due at 15:00. It is 14:05.",
+    "handover": [
+      "You deleted some exploratory cells yesterday.",
+      "The funder defines completion over all enrolled learners."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: look, change, check or ship. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "14:05",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "The deadline is an invented teaching value."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "rerun",
+        "one",
+        "filter"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "c0",
+        "c1",
+        "c2"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "k0",
+        "k1",
+        "k2"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "(fix == \"rerun\")"
+    },
+    "correct": {
+      "expr": "(fix == \"rerun\")"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "look",
+        "change",
+        "check",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "look": {
+      "label": "Compare the execution counts with cell order, and print len(df) in your kernel and in a fresh one",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "output": "execution counts 1..9 in order; len(df) = 1,570 in both"
+            }
+          ],
+          "else": [
+            {
+              "output": "cells ran in order 7, 3, 12, 9; a deleted cell (run as 5) filtered df\nyour kernel: len(df) = 1,240; fresh kernel: len(df) = 1,570"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "finding": "The notebook gives the same answer from a clean start."
+            }
+          ],
+          "else": [
+            {
+              "finding": "Your kernel still holds a DataFrame filtered by a cell you deleted; the notebook as saved cannot produce 81%."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Decide how to get a trustworthy number",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "rerun",
+              "label": "Restart the kernel and run all cells in order; report the result"
+            },
+            {
+              "value": "one",
+              "label": "Rerun the rate cell in your current kernel"
+            },
+            {
+              "value": "filter",
+              "label": "Restore the deleted filter (two or more weeks attended) and rerun all"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: {f}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "check": {
+      "label": "Have the colleague run the saved notebook from a fresh kernel and compare",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"rerun\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "fresh kernel: 64.1%; colleague's run: 64.1%\n2 passed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"one\"",
+              "then": [
+                {
+                  "output": "81.2%; fresh kernel 64.1%\n1 failed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"filter\"",
+              "then": [
+                {
+                  "output": "81.2% from scratch, over 1,240 of 1,570 enrolled\n1 failed (funder counts all enrolled)"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "your 81.2% vs their 64.1%\n1 failed"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Send the completion rate for the grant report",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "if": "correct",
+          "then": [
+            {
+              "output": "Sent: 64.1% of 1,570 enrolled."
+            }
+          ],
+          "else": [
+            {
+              "output": "Sent: 81% that the notebook cannot reproduce."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why the two runs differed",
+              "options": [
+                {
+                  "value": "c0",
+                  "label": "Your kernel held a DataFrame filtered by a deleted cell, and cells had run out of order"
+                },
+                {
+                  "value": "c1",
+                  "label": "Your colleague has a different CSV"
+                },
+                {
+                  "value": "c2",
+                  "label": "pandas changed versions"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know the number is right",
+              "options": [
+                {
+                  "value": "k0",
+                  "label": "A fresh kernel run all gives 64.1% for both of you, over all enrolled learners"
+                },
+                {
+                  "value": "k1",
+                  "label": "The rate looks reasonable"
+                },
+                {
+                  "value": "k2",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "15:00: the grant report deadline passed.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the director: why the numbers differed, what you did, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Kernel state persists in execution order, not cell order; a deleted filter cell's result was still in memory.",
+          "modelAnswer": "Hidden state from a deleted cell."
+        },
+        {
+          "label": "What you did",
+          "criteria": "Restart and run all, and report that result; rerunning one cell keeps the hidden state; restoring the filter changes the definition the funder uses.",
+          "modelAnswer": "Restart and run all."
+        },
+        {
+          "label": "How you know",
+          "criteria": "A colleague's fresh run gives the same number.",
+          "modelAnswer": "64.1% twice."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-333)",
+          "checkedAt": "2026-11-17",
+          "note": "The case's deadline; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Shipping nothing ships nothing wrong, but the deadline passes without the fix.",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "wrongSent": {
+      "label": "Unreproducible rate sent",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "The funder receives a number the analysis cannot reproduce."
+    },
+    "notSent": {
+      "label": "Nothing shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "No wrong figure, but the report missed the deadline."
+    },
+    "right": {
+      "label": "Right, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and fixed and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "The funder gets a rate anyone can reproduce from the notebook."
+    },
+    "gaps": {
+      "label": "Right, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The result is right, but it went late, unchecked, before you looked, or with a weaker fix."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Compared execution order and kernel state before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked before acting."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Trusted only a restart-and-run-all result",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed",
+            "score": "met",
+            "why": "Restarted and ran all cells in order."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{fix == \"one\" ? \"The kernel still holds the filtered DataFrame: 81% again.\" : fix == \"filter\" ? \"Reproducible, but it excludes learners the funder counts.\" : \"The number still comes from hidden state.\"}"
+          }
+        ]
+      },
+      {
+        "id": "shipped",
+        "label": "Shipped nothing wrong",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sentAs != \"wrong\"",
+            "score": "met",
+            "why": "Nothing wrong shipped."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Shipped a wrong result."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "A fresh-kernel run matched after the last change, before sending",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "Checked after the last change, before shipping."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Checked, but it failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"c0\" and checkDoc == \"k0\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"c0\" or checkDoc == \"k0\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rightK",
+        "label": "Right result shipped",
+        "value": "sentAs == \"right\" ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "altered",
+        "label": "Rows changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until shipped",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 14"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "Execution counts out of order; len(df) differs."
+      },
+      {
+        "at": "4-9 min",
+        "text": "Restart and run all."
+      },
+      {
+        "at": "9-12 min",
+        "text": "Colleague matches."
+      },
+      {
+        "at": "12-14 min",
+        "text": "Send."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: the saved notebook is the analysis",
+        "body": "A kernel remembers everything you ran, including cells you deleted. Restart and run all before trusting a number."
+      },
+      "gaps": {
+        "headline": "Right, with gaps",
+        "body": "The result is right; it went late, unchecked, before you looked, or with a weaker fix than the cause called for."
+      },
+      "wrongSent": {
+        "headline": "Unreproducible figure",
+        "body": "A rerun in the same kernel repeats the hidden state; a new filter changes the question."
+      },
+      "notSent": {
+        "headline": "Nothing shipped",
+        "body": "Safe, but the deadline passed without the fix."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "Two people, one notebook, two numbers: the difference is kernel state. Execution counts are out of order and len(df) differs, because a deleted cell filtered the DataFrame and the kernel still holds it. Restart the kernel, run all cells in order, and report that result. Rerunning one cell keeps the hidden state; restoring the filter makes it reproducible but excludes learners the funder counts."
+  }
+}

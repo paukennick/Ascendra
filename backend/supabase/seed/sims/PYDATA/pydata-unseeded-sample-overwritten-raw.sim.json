@@ -1,0 +1,931 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pydata-unseeded-sample-overwritten-raw",
+  "title": "The auditor can't get your numbers",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "survey/, the household survey sample and estimate, Eastmoor Housing Association (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Internal auditor, Carla Mendes",
+          "text": "I reran your analysis and got a different sample, and the raw file has 300 fewer rows than your report says. Sign-off is at 17:00.",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "seen",
+          "label": "Pattern",
+          "text": "Each run draws different households, and the raw file has been changed.",
+          "when": "not isNull(lookAt) and not fixed",
+          "severity": "warning"
+        },
+        {
+          "id": "lock",
+          "label": "Audit sign-off",
+          "text": "17:00: the audit sign-off passed.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [],
+      "code": [
+        {
+          "id": "code",
+          "label": "survey/run.py",
+          "language": "Python",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "df = clean(pd.read_csv('raw.csv')); df.to_csv('raw.csv')   # overwrites the raw data",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c1",
+              "text": "idx = np.random.choice(len(df), 400, replace=False)   # unseeded",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c2",
+              "text": "raw/ re-downloaded and made read-only; cleaned data written to work/clean.csv",
+              "when": "fix == \"full\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c3",
+              "text": "rng = np.random.default_rng(20261117); idx = rng.choice(len(df), 400, replace=False)",
+              "when": "fix == \"full\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c4",
+              "text": "requirements.txt pins numpy and pandas; make all runs every step from raw/",
+              "when": "fix == \"full\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c5",
+              "text": "np.random.seed(1)",
+              "when": "fix == \"seed\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c6",
+              "text": "idx = np.random.choice(len(df), 400, replace=False)",
+              "when": "fix == \"seed\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c7",
+              "text": "send the auditor last week's sample.csv",
+              "when": "fix == \"send\"",
+              "mark": "\"warning\""
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Sign-off",
+          "value": "17:00"
+        }
+      ]
+    }
+  },
+  "objective": "Make an analysis rerunnable: raw data kept read-only, pinned versions, seeds and a run-all step",
+  "secondaryObjectives": [
+    "Generate reproducible random numbers with a seeded Generator"
+  ],
+  "sources": [
+    {
+      "cite": "NumPy documentation (stable), Random Generator",
+      "checkedAt": "2026-11-17",
+      "url": "https://numpy.org/doc/stable/reference/random/generator",
+      "note": "Read 2026-11-17 through a summarizing fetch. default_rng is 'the recommended constructor'; with None 'fresh, unpredictable entropy will be pulled from the OS'; with an int seed the same numbers are generated after a restart; 'Generator does not provide a version compatibility guarantee', so pin the NumPy version too."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Every organization, person, count and deadline is invented teaching data; tool output is an authored rendering in the tool style."
+    }
+  ],
+  "brief": {
+    "situation": "You ran the tenant survey analysis at Eastmoor Housing Association (fictional). The script samples 400 households with np.random and cleans data by overwriting raw.csv in place. The auditor's rerun drew a different sample, and raw.csv no longer matches your report. Sign-off is at 17:00. It is 16:05.",
+    "handover": [
+      "The original export is still in the housing system and can be downloaded again.",
+      "Your report used NumPy 2.3."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: look, change, check or ship. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "16:05",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "The deadline is an invented teaching value."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "full",
+        "seed",
+        "send"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "c0",
+        "c1",
+        "c2"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "k0",
+        "k1",
+        "k2"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "(fix == \"full\")"
+    },
+    "correct": {
+      "expr": "(fix == \"full\" or fix == \"seed\")"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "look",
+        "change",
+        "check",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "look": {
+      "label": "Run the script twice and compare samples; diff raw.csv with the housing system export",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "output": "two runs: identical 400 households; raw/ matches the export"
+            }
+          ],
+          "else": [
+            {
+              "output": "run 1 and run 2 share 39 of 400 households\nraw.csv: 4,612 rows; system export: 4,912 rows"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "finding": "Same inputs, same steps, same sample."
+            }
+          ],
+          "else": [
+            {
+              "finding": "The sample is unseeded, and the cleaning step overwrote the raw data, so nobody can rerun from the start."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Change the analysis setup",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "full",
+              "label": "Restore raw data read-only, write cleaned data elsewhere, seed a default_rng Generator, pin versions, one run-all command"
+            },
+            {
+              "value": "seed",
+              "label": "Add np.random.seed(1) and rerun on the current raw.csv"
+            },
+            {
+              "value": "send",
+              "label": "Send the auditor last week's sample file"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: {f}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "check": {
+      "label": "Have the auditor run the run-all command on a clean machine",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"full\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "auditor's machine reproduces 400 households and the estimate exactly\n3 passed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"seed\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "repeatable sample; still 4,612 rows, not 4,912\n2 passed, 1 failed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"send\"",
+              "then": [
+                {
+                  "output": "auditor cannot regenerate sample.csv\n1 failed"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "different sample; different estimate\n1 failed"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Submit the analysis for audit sign-off",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "if": "correct",
+          "then": [
+            {
+              "output": "Signed off: reproduced independently."
+            }
+          ],
+          "else": [
+            {
+              "output": "Submitted: not reproducible."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why the auditor could not reproduce it",
+              "options": [
+                {
+                  "value": "c0",
+                  "label": "The sample was unseeded and the raw file had been overwritten by the cleaning step"
+                },
+                {
+                  "value": "c1",
+                  "label": "The auditor used Excel"
+                },
+                {
+                  "value": "c2",
+                  "label": "The survey changed"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know it is reproducible",
+              "options": [
+                {
+                  "value": "k0",
+                  "label": "The auditor's clean-machine run gives the same sample and estimate"
+                },
+                {
+                  "value": "k1",
+                  "label": "My rerun matches"
+                },
+                {
+                  "value": "k2",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "17:00: the audit sign-off passed.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the auditor: why it did not reproduce, what you changed, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Unseeded sampling draws fresh entropy each run, and overwriting raw.csv destroyed the starting point.",
+          "modelAnswer": "No seed, no raw data."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "Raw data restored and read-only, cleaned data written elsewhere, default_rng with a fixed seed, pinned versions, and one run-all command; a seed alone still starts from changed data.",
+          "modelAnswer": "Raw read-only, seeded Generator, pins."
+        },
+        {
+          "label": "How you know",
+          "criteria": "The auditor's clean run reproduces sample and estimate.",
+          "modelAnswer": "Identical on a clean machine."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-333)",
+          "checkedAt": "2026-11-17",
+          "note": "The case's deadline; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Shipping nothing ships nothing wrong, but the deadline passes without the fix.",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "wrongSent": {
+      "label": "Unreproducible analysis submitted",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "The survey estimate fails audit."
+    },
+    "notSent": {
+      "label": "Nothing shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "Nothing wrong submitted, but sign-off slipped."
+    },
+    "right": {
+      "label": "Right, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and fixed and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "The auditor reproduces the sample and the estimate independently."
+    },
+    "gaps": {
+      "label": "Right, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The result is right, but it went late, unchecked, before you looked, or with a weaker fix."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Compared two runs and the raw file before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked before acting."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Made the analysis rerunnable from raw data",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed",
+            "score": "met",
+            "why": "Read-only raw data, a seeded Generator, pinned versions and a run-all step."
+          },
+          {
+            "when": "fix == \"seed\"",
+            "score": "partial",
+            "why": "Sampling repeats now, but from the already-cleaned file, and the report's numbers still can't be traced to the export."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{fix == \"send\" ? \"Shows a result, not how it was made.\" : \"The analysis still cannot be rerun from raw data.\"}"
+          }
+        ]
+      },
+      {
+        "id": "shipped",
+        "label": "Shipped nothing wrong",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sentAs != \"wrong\"",
+            "score": "met",
+            "why": "Nothing wrong shipped."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Shipped a wrong result."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "A clean-machine run reproduced the results after the last change, before sign-off",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "Checked after the last change, before shipping."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Checked, but it failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"c0\" and checkDoc == \"k0\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"c0\" or checkDoc == \"k0\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rightK",
+        "label": "Right result shipped",
+        "value": "sentAs == \"right\" ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "altered",
+        "label": "Rows changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until shipped",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 14"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "Runs differ; raw.csv short by 300 rows."
+      },
+      {
+        "at": "4-9 min",
+        "text": "Restore raw, seed, pin, run-all."
+      },
+      {
+        "at": "9-12 min",
+        "text": "Auditor reproduces."
+      },
+      {
+        "at": "12-14 min",
+        "text": "Submit."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: rerunnable from the start",
+        "body": "Reproducible means another person, on another machine, gets the same result from the raw data."
+      },
+      "gaps": {
+        "headline": "Right, with gaps",
+        "body": "The result is right; it went late, unchecked, before you looked, or with a weaker fix than the cause called for."
+      },
+      "wrongSent": {
+        "headline": "Not reproducible",
+        "body": "An output file is not an analysis; a seed on altered data reproduces the wrong thing."
+      },
+      "notSent": {
+        "headline": "Nothing shipped",
+        "body": "Safe, but the deadline passed without the fix."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "The auditor cannot reproduce two things: the sample, which is unseeded, and the starting data, which the cleaning step overwrote. Restore raw data from the housing system and make it read-only, write cleaned data elsewhere, draw the sample from default_rng with a fixed seed, pin NumPy and pandas, and give one run-all command. A seed alone repeats sampling from altered data; sending last week's file shows nothing about how it was made."
+  }
+}

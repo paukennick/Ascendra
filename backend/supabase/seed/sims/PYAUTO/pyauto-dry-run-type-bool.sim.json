@@ -1,0 +1,987 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pyauto-dry-run-type-bool",
+  "title": "--dry-run False, and nothing was deleted",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "cleanup.py, the nightly media cleanup on the upload server, Tidewell Photo Lab (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Operations lead, Rui Costa",
+          "text": "The upload disk is at 96%. The cleanup ran with --dry-run False, said it would delete 41,200 old files, and deleted none. The disk fills by about 13:00.",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "seen",
+          "label": "Pattern",
+          "text": "Every run reports dry run, whatever value --dry-run gets.",
+          "when": "not isNull(lookAt) and not fixed",
+          "severity": "warning"
+        },
+        {
+          "id": "altered",
+          "label": "Data",
+          "text": "Recent processed uploads were deleted by hand.",
+          "when": "rowsAlteredOutsideFix > 0",
+          "severity": "error"
+        },
+        {
+          "id": "lock",
+          "label": "Uploads",
+          "text": "13:00: the upload disk is full and customer uploads fail.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [],
+      "code": [
+        {
+          "id": "code",
+          "label": "cleanup.py",
+          "language": "Python",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "p = argparse.ArgumentParser()"
+            },
+            {
+              "id": "c1",
+              "text": "p.add_argument('--dry-run', type=bool, default=True)",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c2",
+              "text": "p.add_argument('--dry-run', action='store_true')",
+              "when": "fix == \"flag\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c3",
+              "text": "p.add_argument('--dry-run', type=str, default='True')",
+              "when": "fix == \"str\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c4",
+              "text": "p.add_argument('--dry-run', type=int, default=1)",
+              "when": "fix == \"int\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c5",
+              "text": "args = p.parse_args()"
+            },
+            {
+              "id": "c6",
+              "text": "delete_old(days=30, dry_run=args.dry_run)"
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Disk full",
+          "value": "13:00"
+        },
+        {
+          "id": "alteredRows",
+          "label": "Changed outside the fix",
+          "value": "{rowsAlteredOutsideFix}"
+        }
+      ]
+    }
+  },
+  "objective": "Build a command-line interface with argparse: positional arguments, options, defaults, types and choices",
+  "secondaryObjectives": [
+    "Structure a script with a main() function, the if __name__ == \"__main__\" guard and an exit status"
+  ],
+  "sources": [
+    {
+      "cite": "Python 3.15 documentation, argparse",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.python.org/library/argparse",
+      "note": "Read 2026-11-17 through a summarizing fetch. 'By default, the parser reads command-line arguments in as simple strings'; type= performs the conversion, and a failed conversion is reported as an error; invalid choices print usage and exit with status 2. That type=bool turns any non-empty string, including 'False', into True is the language's bool() rule, stated as the author's; action='store_true' is the documented flag form (not quoted in the summary)."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Every organization, person, count and deadline is invented teaching data; tool output is an authored rendering in the tool style."
+    }
+  ],
+  "brief": {
+    "situation": "You maintain cleanup.py at Tidewell Photo Lab (fictional). It deletes processed uploads older than 30 days. Operations ran it with --dry-run False this morning; it listed 41,200 files and deleted none. The upload disk is at 96% and fills by about 13:00. It is 12:05.",
+    "handover": [
+      "The flag was added last month as add_argument('--dry-run', type=bool, default=True)."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: look, change, check or ship. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "12:05",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "The deadline is an invented teaching value."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "flag",
+        "str",
+        "int"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "c0",
+        "c1",
+        "c2"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "k0",
+        "k1",
+        "k2"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "(fix == \"flag\") and rowsAlteredOutsideFix == 0"
+    },
+    "correct": {
+      "expr": "(fix == \"flag\" or fix == \"int\") and rowsAlteredOutsideFix == 0"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "look",
+        "change",
+        "destroy",
+        "check",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "look": {
+      "label": "Print args.dry_run for --dry-run False, --dry-run 0 and no flag",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "output": "(no flag) -> False\n--dry-run -> True"
+            }
+          ],
+          "else": [
+            {
+              "output": "--dry-run False  -> True\n--dry-run 0      -> True\n(no flag)        -> True"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "finding": "The flag is off unless given."
+            }
+          ],
+          "else": [
+            {
+              "finding": "argparse hands type the string 'False', and bool('False') is True: any non-empty string is true."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Change how --dry-run is declared",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "flag",
+              "label": "A real flag: action='store_true' (present means dry run); the scheduler drops the word False"
+            },
+            {
+              "value": "str",
+              "label": "Read it as text and compare with 'True'"
+            },
+            {
+              "value": "int",
+              "label": "Read it as an integer: --dry-run 0 for a real run"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: {f}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "destroy": {
+      "label": "Delete the whole processed folder by hand to free space now",
+      "group": "Change the data",
+      "available": "not busy and rowsAlteredOutsideFix == 0",
+      "why": "Already done.",
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "add": "rowsAlteredOutsideFix",
+          "by": "58300"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "output": "removed 58,300 files (all processed uploads, including last week's)"
+        },
+        {
+          "log": "Uploads under 30 days old, still being picked up by customers, are gone.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "check": {
+      "label": "Run the tests: no flag deletes, --dry-run only lists, and a 31-day-old file is the oldest kept boundary",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"flag\" and rowsAlteredOutsideFix == 0",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "no flag: deletes; --dry-run: lists only\n3 passed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"str\"",
+              "then": [
+                {
+                  "output": "--dry-run true -> real run (expected dry run)\n1 failed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"int\" and rowsAlteredOutsideFix == 0",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "--dry-run 0 deletes; --dry-run 1 lists\n3 passed (--dry-run False now exits 2)"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "no flag: lists only (expected delete)\n1 failed"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Deploy cleanup.py and run it for real",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "if": "correct",
+          "then": [
+            {
+              "output": "Deleted 41,200 files older than 30 days; disk at 61%."
+            }
+          ],
+          "else": [
+            {
+              "output": "Ran; the disk is still filling."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why nothing was deleted",
+              "options": [
+                {
+                  "value": "c0",
+                  "label": "type=bool turns any non-empty string, including 'False', into True"
+                },
+                {
+                  "value": "c1",
+                  "label": "The files were locked"
+                },
+                {
+                  "value": "c2",
+                  "label": "The disk was read-only"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know it works",
+              "options": [
+                {
+                  "value": "k0",
+                  "label": "Tests show no flag deletes and --dry-run only lists"
+                },
+                {
+                  "value": "k1",
+                  "label": "The disk usage dropped"
+                },
+                {
+                  "value": "k2",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "13:00: the upload disk is full and customer uploads fail.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For operations: why nothing was deleted, what you changed, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "argparse passes option values as strings; type=bool calls bool() on the string, and every non-empty string is true, so 'False' became True.",
+          "modelAnswer": "bool('False') is True."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "Declare a flag with action='store_true' and drop the value from the scheduler; text or integer parsing is fragile; deleting by hand removes files the policy keeps.",
+          "modelAnswer": "action='store_true'."
+        },
+        {
+          "label": "How you know",
+          "criteria": "Tests for no flag, the flag, and the age boundary, after the change.",
+          "modelAnswer": "All pass; 41,200 deleted."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-333)",
+          "checkedAt": "2026-11-17",
+          "note": "The case's deadline; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Shipping nothing ships nothing wrong, but the deadline passes without the fix.",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "altered": {
+      "label": "Recent uploads deleted",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and rowsAlteredOutsideFix > 0",
+      "narrative": "Customers who have not collected last week's photos will find them gone."
+    },
+    "wrongSent": {
+      "label": "Cleanup still wrong",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "The disk fills and customer uploads start failing."
+    },
+    "notSent": {
+      "label": "Nothing shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "Nothing was deleted wrongly, but the disk filled at 13:00."
+    },
+    "right": {
+      "label": "Right, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and fixed and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "The cleanup deletes what the policy says, and --dry-run means what it says."
+    },
+    "gaps": {
+      "label": "Right, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The result is right, but it went late, unchecked, before you looked, or with a weaker fix."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "altered",
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Checked what args.dry_run really was before changing code",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked before acting."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Declared --dry-run as a store_true flag",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed",
+            "score": "met",
+            "why": "A store_true flag."
+          },
+          {
+            "when": "fix == \"int\"",
+            "score": "partial",
+            "why": "Works, but --dry-run False now crashes and the interface is surprising."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{rowsAlteredOutsideFix > 0 ? \"Deleted recent uploads by hand.\" : fix == \"str\" ? \"Text comparison breaks on true, yes or 1, and the default is still a dry run.\" : \"type=bool still treats every value as true.\"}"
+          }
+        ]
+      },
+      {
+        "id": "data",
+        "label": "Deleted only what the policy allows",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "rowsAlteredOutsideFix == 0",
+            "score": "met",
+            "why": "Nothing changed outside the fix."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Deleted recent uploads by hand."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Flag tests passed after the last change, before running for real",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "Checked after the last change, before shipping."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Checked, but it failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"c0\" and checkDoc == \"k0\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"c0\" or checkDoc == \"k0\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rightK",
+        "label": "Right result shipped",
+        "value": "sentAs == \"right\" ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "altered",
+        "label": "Rows changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until shipped",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 14"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "args.dry_run is True for --dry-run False."
+      },
+      {
+        "at": "4-9 min",
+        "text": "action='store_true'."
+      },
+      {
+        "at": "9-12 min",
+        "text": "Flag tests pass."
+      },
+      {
+        "at": "12-14 min",
+        "text": "Run for real; disk at 61%."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: a flag is a flag",
+        "body": "Command-line values arrive as strings; bool() of any non-empty string is True. store_true expresses on/off without a value."
+      },
+      "gaps": {
+        "headline": "Right, with gaps",
+        "body": "The result is right; it went late, unchecked, before you looked, or with a weaker fix than the cause called for."
+      },
+      "wrongSent": {
+        "headline": "Cleanup still wrong",
+        "body": "Comparing text or parsing integers keeps a value-taking flag that people will type wrong."
+      },
+      "notSent": {
+        "headline": "Nothing shipped",
+        "body": "Safe, but the deadline passed without the fix."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      },
+      "altered": {
+        "headline": "Recent uploads deleted",
+        "body": "The script was right about what to delete; only its flag was wrong. Fix the flag rather than deleting by hand."
+      }
+    },
+    "modelReasoning": "argparse reads option values as strings, so type=bool calls bool('False'), which is True because the string is not empty; every run was a dry run. Declare --dry-run with action='store_true', so its presence means a dry run, and remove the word False from the scheduler. Text comparisons and integers are fragile; deleting by hand removes recent uploads the policy keeps."
+  }
+}

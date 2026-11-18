@@ -1,0 +1,913 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cmpcbs-pilot-p-value-not-proof",
+  "title": "p = 0.21, so cancel it?",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "pilot_analysis.R output and report draft, home exercise program pilot, Lakeshore Rehabilitation Clinics (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Clinic director, Marcus Bell",
+          "text": "The pilot compared our new home program (B) with the old one (A). p = 0.21, so B is no better and I'll cancel it at the 14:00 budget meeting. Agree?",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "seen",
+          "label": "Pattern",
+          "text": "Twelve people, a wide interval, and a conclusion of 'no difference'.",
+          "when": "not isNull(lookAt) and not fixed",
+          "severity": "warning"
+        },
+        {
+          "id": "lock",
+          "label": "Budget meeting",
+          "text": "14:00: the budget meeting decided on the report as it stood.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [],
+      "code": [
+        {
+          "id": "code",
+          "label": "report draft",
+          "language": "text",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "Result: B is no better than A (p = 0.21). Recommend cancelling B.",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c1",
+              "text": "Result: B 3.5 points higher (95% CI -2.3 to 9.3; p = 0.21). Inconclusive: compatible with no benefit and with more than the 4-point target.",
+              "when": "fix == \"ci\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c2",
+              "text": "Next: a comparison of about 26 per group would detect a 4-point difference (SD about 5).",
+              "when": "fix == \"ci\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c3",
+              "text": "Result: not statistically significant (p = 0.21).",
+              "when": "fix == \"ns\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c4",
+              "text": "Plan: add participants weekly and test again until p < 0.05.",
+              "when": "fix == \"peek\"",
+              "mark": "\"warning\""
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Budget meeting",
+          "value": "14:00"
+        }
+      ]
+    }
+  },
+  "objective": "Statistical inference: estimation and hypothesis testing",
+  "secondaryObjectives": [
+    "Expected value and variance"
+  ],
+  "sources": [
+    {
+      "cite": "ScienceDaily (American Statistical Association release, March 7, 2016), statement on p-values",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.sciencedaily.com/releases/2016/03/160307092305.htm",
+      "note": "Read 2026-11-17 through a summarizing fetch. The six principles include: decisions 'should not be based only on whether a p-value passes a specific threshold'; 'A p-value, or statistical significance, does not measure the size of an effect or the importance of a result'; 'Proper inference requires full reporting and transparency'."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Every organization, person, count and deadline is invented teaching data; tool output is an authored rendering in the tool style."
+    }
+  ],
+  "brief": {
+    "situation": "You analyzed a small pilot at Lakeshore Rehabilitation Clinics (fictional): 6 people per program, outcome a 0-100 function score after 6 weeks. The director reads p = 0.21 as proof that program B is no better and plans to cancel it at 14:00. It is 13:05. All data are invented.",
+    "handover": [
+      "Mean change: A 8.2, B 11.7; difference 3.5 points.",
+      "The clinic considers 4 points a worthwhile difference."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: look, change, check or ship. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "13:05",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "The deadline is an invented teaching value."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "ci",
+        "ns",
+        "peek"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "c0",
+        "c1",
+        "c2"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "k0",
+        "k1",
+        "k2"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "(fix == \"ci\")"
+    },
+    "correct": {
+      "expr": "(fix == \"ci\" or fix == \"ns\")"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "look",
+        "change",
+        "check",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "look": {
+      "label": "Print the estimate, its 95% confidence interval and the study's power",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "output": "report states the estimate, interval and what it can and cannot rule out"
+            }
+          ],
+          "else": [
+            {
+              "output": "difference 3.5 (95% CI -2.3 to 9.3), p = 0.21\npower to detect 4 points with n = 6 per group: about 0.24"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "finding": "The report says what the data show."
+            }
+          ],
+          "else": [
+            {
+              "finding": "The interval runs from slightly worse to much better: the pilot cannot tell. A p-value above 0.05 is not evidence of no effect, and power was only about 24%."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Change the report",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "ci",
+              "label": "Report the difference with its 95% CI as inconclusive, and the sample size needed"
+            },
+            {
+              "value": "ns",
+              "label": "Say only 'not statistically significant (p = 0.21)'"
+            },
+            {
+              "value": "peek",
+              "label": "Keep adding participants and testing weekly until p < 0.05"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: {f}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "check": {
+      "label": "Check the draft against the output: estimate, interval, test, and what is claimed",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"ci\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "report: estimate, CI, power, next step; no claim of equivalence\n2 passed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"ns\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "no effect size or interval reported\n1 passed, 1 failed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"peek\"",
+              "then": [
+                {
+                  "output": "simulated: false-positive rate 0.19 at nominal 0.05\n1 failed"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "claims 'no better'; CI includes 9.3\n1 failed"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Send the report for the budget meeting",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "if": "correct",
+          "then": [
+            {
+              "output": "Sent: inconclusive pilot; a properly sized comparison proposed."
+            }
+          ],
+          "else": [
+            {
+              "output": "Sent: a conclusion the data do not support."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why 'no better' was wrong",
+              "options": [
+                {
+                  "value": "c0",
+                  "label": "A p-value above 0.05 in a small study is not evidence of no effect; the interval includes a worthwhile benefit"
+                },
+                {
+                  "value": "c1",
+                  "label": "The data were entered wrong"
+                },
+                {
+                  "value": "c2",
+                  "label": "Program B has a placebo effect"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know the report is right",
+              "options": [
+                {
+                  "value": "k0",
+                  "label": "Every claim matches the estimate, interval and power in the output"
+                },
+                {
+                  "value": "k1",
+                  "label": "The director agreed"
+                },
+                {
+                  "value": "k2",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "14:00: the budget meeting decided on the report as it stood.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the director: what the pilot shows, what you reported, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "What it shows",
+          "criteria": "p = 0.21 means the data are not very incompatible with no difference; it does not show no difference. The 95% CI (-2.3 to 9.3) includes the 4-point target; with power near 24% a real difference would usually be missed (Type II error).",
+          "modelAnswer": "Inconclusive: the CI includes a worthwhile benefit."
+        },
+        {
+          "label": "What you reported",
+          "criteria": "Effect estimate with interval, an honest 'inconclusive', and the sample needed; testing until significant inflates Type I error.",
+          "modelAnswer": "Estimate, CI, sample size."
+        },
+        {
+          "label": "How you know",
+          "criteria": "Each claim in the report traces to the output.",
+          "modelAnswer": "Report matches the analysis."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-333)",
+          "checkedAt": "2026-11-17",
+          "note": "The case's deadline; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Shipping nothing ships nothing wrong, but the deadline passes without the fix.",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "wrongSent": {
+      "label": "Unsupported conclusion sent",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "A program is cancelled, or 'proven', on evidence that cannot show either."
+    },
+    "notSent": {
+      "label": "Nothing shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "No wrong claim, but the budget was decided without the analysis."
+    },
+    "right": {
+      "label": "Right, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and fixed and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "The meeting decides knowing the pilot was inconclusive and what it would take to know."
+    },
+    "gaps": {
+      "label": "Right, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The result is right, but it went late, unchecked, before you looked, or with a weaker fix."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Read the estimate, interval and power before writing a conclusion",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked before acting."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Reported the estimate and its interval as inconclusive",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed",
+            "score": "met",
+            "why": "Estimate, interval and power reported; inconclusive stated."
+          },
+          {
+            "when": "fix == \"ns\"",
+            "score": "partial",
+            "why": "Accurate but invites the same misreading: no estimate, no interval."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{fix == \"peek\" ? \"Testing repeatedly until significance inflates the Type I error rate.\" : \"The report still treats p > 0.05 as proof of no difference.\"}"
+          }
+        ]
+      },
+      {
+        "id": "shipped",
+        "label": "Shipped nothing wrong",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sentAs != \"wrong\"",
+            "score": "met",
+            "why": "Nothing wrong shipped."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Shipped a wrong result."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Report matched the analysis after the last change, before the meeting",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "Checked after the last change, before shipping."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Checked, but it failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"c0\" and checkDoc == \"k0\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"c0\" or checkDoc == \"k0\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rightK",
+        "label": "Right result shipped",
+        "value": "sentAs == \"right\" ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "altered",
+        "label": "Rows changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until shipped",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 14"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "CI -2.3 to 9.3; power about 0.24."
+      },
+      {
+        "at": "4-9 min",
+        "text": "Report estimate and CI as inconclusive."
+      },
+      {
+        "at": "9-12 min",
+        "text": "Draft matches output."
+      },
+      {
+        "at": "12-14 min",
+        "text": "Send."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: absence of evidence is not evidence of absence",
+        "body": "A small study with a wide interval cannot show 'no difference'. Report the estimate and the interval."
+      },
+      "gaps": {
+        "headline": "Right, with gaps",
+        "body": "The result is right; it went late, unchecked, before you looked, or with a weaker fix than the cause called for."
+      },
+      "wrongSent": {
+        "headline": "Unsupported claim",
+        "body": "Testing again and again until p < 0.05 manufactures false positives."
+      },
+      "notSent": {
+        "headline": "Nothing shipped",
+        "body": "Safe, but the deadline passed without the fix."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "p = 0.21 from 6 people per group is not evidence that B is no better. The difference is 3.5 points with a 95% CI from -2.3 to 9.3, which includes the clinic's 4-point target, and power to detect 4 points was about 24%, so a real difference would usually be missed. Report the estimate and interval as inconclusive and the sample needed (about 26 per group). 'Not significant' alone invites the misreading; testing until p < 0.05 inflates the Type I error rate."
+  }
+}

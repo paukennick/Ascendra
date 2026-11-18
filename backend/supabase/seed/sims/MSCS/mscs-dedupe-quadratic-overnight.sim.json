@@ -1,0 +1,936 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "mscs-dedupe-quadratic-overnight",
+  "title": "The dedupe job won't finish before morning",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "dedupe.py, the nightly contact deduplication, Wrenfield Regional Library Network (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Systems lead, Ines Duarte",
+          "text": "The merged contact list grew from 200,000 to 2 million records. Last night's dedupe was still running at 06:00 and blocked the morning sync. Tonight's run starts at 22:00.",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "seen",
+          "label": "Pattern",
+          "text": "Run time grew about 100-fold when the data grew 10-fold.",
+          "when": "not isNull(lookAt) and not fixed",
+          "severity": "warning"
+        },
+        {
+          "id": "lock",
+          "label": "Nightly run",
+          "text": "22:00: tonight's run started with the code as it stood.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [],
+      "code": [
+        {
+          "id": "code",
+          "label": "dedupe.py",
+          "language": "Python",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "seen = []",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c1",
+              "text": "for r in records:"
+            },
+            {
+              "id": "c2",
+              "text": "    if r.email not in seen:          # scans the whole list each time",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c3",
+              "text": "        seen.append(r.email); out.append(r)",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c4",
+              "text": "seen = set()",
+              "when": "fix == \"set\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c5",
+              "text": "    if r.email not in seen:          # average O(1)",
+              "when": "fix == \"set\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c6",
+              "text": "        seen.add(r.email); out.append(r)",
+              "when": "fix == \"set\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c7",
+              "text": "records.sort(key=email); keep the first of each run of equal emails",
+              "when": "fix == \"sort\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c8",
+              "text": "run the list version on 8 worker processes",
+              "when": "fix == \"par\"",
+              "mark": "\"warning\""
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Nightly run",
+          "value": "22:00"
+        }
+      ]
+    }
+  },
+  "objective": "Analyze simple loop and recursive patterns",
+  "secondaryObjectives": [
+    "Distinguish time and space complexity",
+    "Compare constant, logarithmic, linear, linearithmic, quadratic, exponential, factorial growth"
+  ],
+  "sources": [
+    {
+      "cite": "Python documentation, Time complexity of built-in types",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.python.org/3/builtins/time-complexity.html",
+      "note": "Read 2026-11-17 through a summarizing fetch. x in l for a list is O(n); x in s for a set is O(1) on average, and 'In the worst case, O(1) operations instead take O(n) time' when hashes collide. Reached from the Python wiki's TimeComplexity page, which now redirects here."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Every organization, person, count and deadline is invented teaching data; tool output is an authored rendering in the tool style."
+    }
+  ],
+  "brief": {
+    "situation": "You maintain dedupe.py at Wrenfield Regional Library Network (fictional). It keeps the first occurrence of each email address. After two library systems merged, the list grew from 200,000 to 2 million records, and the job no longer finishes overnight. Tonight's run starts at 22:00. It is 21:05.",
+    "handover": [
+      "Output order must match input order (first occurrence kept).",
+      "The server has 16 GB of memory free; 2 million emails take about 200 MB as a set."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: look, change, check or ship. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "21:05",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "The deadline is an invented teaching value."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "set",
+        "sort",
+        "par"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "c0",
+        "c1",
+        "c2"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "k0",
+        "k1",
+        "k2"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "(fix == \"set\")"
+    },
+    "correct": {
+      "expr": "(fix == \"set\" or fix == \"sort\")"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "look",
+        "change",
+        "check",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "look": {
+      "label": "Time the job on 50k, 100k and 200k records and fit the growth",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "output": "50k: 0.04 s; 200k: 0.17 s; 2M: 1.8 s (linear)"
+            }
+          ],
+          "else": [
+            {
+              "output": "50k: 92 s; 100k: 370 s; 200k: 1,480 s\ndoubling n quadruples time: about n squared\n2M projected: about 41 hours"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "finding": "Membership is constant on average, so the loop is linear."
+            }
+          ],
+          "else": [
+            {
+              "finding": "Each 'not in' scans a growing list, so total work is about n squared over 2 comparisons: quadratic."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Change the algorithm",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "set",
+              "label": "Track seen emails in a set: O(n) time, O(n) extra space, order kept"
+            },
+            {
+              "value": "sort",
+              "label": "Sort by email and keep the first of each group"
+            },
+            {
+              "value": "par",
+              "label": "Keep the list but split the work across 8 processes"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: {f}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "check": {
+      "label": "Run on the full 2M copy, and compare output with the old job on the 200k sample",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"set\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "2M records in 1.8 s; output identical to the old job on 200k; order kept\n3 passed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"sort\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "2M in 6 s; duplicates removed; order differs from input\n2 passed, 1 failed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"par\"",
+              "then": [
+                {
+                  "output": "projected 5 h 10 min; 41,000 cross-chunk duplicates kept\n1 failed"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "still running after 30 minutes\n1 failed"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Deploy for tonight's 22:00 run",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "if": "correct",
+          "then": [
+            {
+              "output": "Deployed: tonight's run finished in 2 seconds."
+            }
+          ],
+          "else": [
+            {
+              "output": "Deployed: the run will not finish by morning."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why the job stopped finishing",
+              "options": [
+                {
+                  "value": "c0",
+                  "label": "A list membership test inside the loop made the job quadratic, so 10 times the data took about 100 times as long"
+                },
+                {
+                  "value": "c1",
+                  "label": "The server is slower"
+                },
+                {
+                  "value": "c2",
+                  "label": "The new emails are longer"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know it is fixed",
+              "options": [
+                {
+                  "value": "k0",
+                  "label": "The full 2M run takes seconds and output matches the old job on the sample"
+                },
+                {
+                  "value": "k1",
+                  "label": "It ran faster on 1,000 records"
+                },
+                {
+                  "value": "k2",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "22:00: tonight's run started with the code as it stood.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the systems lead: why the job slowed, what you changed, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "The loop runs n times and each list lookup is O(n), so the job is O(n squared): 10 times the data, about 100 times the time.",
+          "modelAnswer": "Quadratic: a list scan inside a loop."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "A set gives O(1) average lookups, so O(n) time for O(n) extra space; sorting is O(n log n) but loses order; parallelism divides a quadratic by a constant.",
+          "modelAnswer": "A set of seen emails."
+        },
+        {
+          "label": "How you know",
+          "criteria": "Timings on growing inputs are linear, the full run takes seconds, and output matches.",
+          "modelAnswer": "2M in 1.8 s; identical output."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-333)",
+          "checkedAt": "2026-11-17",
+          "note": "The case's deadline; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Shipping nothing ships nothing wrong, but the deadline passes without the fix.",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "wrongSent": {
+      "label": "Job still too slow",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "The morning sync is blocked again."
+    },
+    "notSent": {
+      "label": "Nothing shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "Tonight's run was skipped; the list stays duplicated."
+    },
+    "right": {
+      "label": "Right, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and fixed and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "The dedupe runs in seconds and keeps working as the list grows."
+    },
+    "gaps": {
+      "label": "Right, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The result is right, but it went late, unchecked, before you looked, or with a weaker fix."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Measured how run time grows before changing code",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked before acting."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Replaced the quadratic scan with a linear algorithm",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed",
+            "score": "met",
+            "why": "A set makes each lookup constant on average."
+          },
+          {
+            "when": "fix == \"sort\"",
+            "score": "partial",
+            "why": "Fast enough (n log n), but sorting loses the input order the sync needs unless restored."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{fix == \"par\" ? \"8 times faster is still quadratic (about 5 hours now, four times that when the list doubles), and splitting misses duplicates across chunks.\" : \"The algorithm is still quadratic.\"}"
+          }
+        ]
+      },
+      {
+        "id": "shipped",
+        "label": "Shipped nothing wrong",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sentAs != \"wrong\"",
+            "score": "met",
+            "why": "Nothing wrong shipped."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Shipped a wrong result."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Full-size run and output comparison passed after the last change, before tonight",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "Checked after the last change, before shipping."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Checked, but it failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"c0\" and checkDoc == \"k0\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"c0\" or checkDoc == \"k0\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rightK",
+        "label": "Right result shipped",
+        "value": "sentAs == \"right\" ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "altered",
+        "label": "Rows changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until shipped",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 14"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "Doubling n quadruples time."
+      },
+      {
+        "at": "4-9 min",
+        "text": "Set of seen emails."
+      },
+      {
+        "at": "9-12 min",
+        "text": "Full run 1.8 s; output matches."
+      },
+      {
+        "at": "12-14 min",
+        "text": "Deploy."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: measure growth, then fix the order",
+        "body": "A 100-fold slowdown for 10-fold data is quadratic. Change the algorithm's growth, not the hardware."
+      },
+      "gaps": {
+        "headline": "Right, with gaps",
+        "body": "The result is right; it went late, unchecked, before you looked, or with a weaker fix than the cause called for."
+      },
+      "wrongSent": {
+        "headline": "Still too slow",
+        "body": "More workers divide by a constant; the growth stays n squared."
+      },
+      "notSent": {
+        "headline": "Nothing shipped",
+        "body": "Safe, but the deadline passed without the fix."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "Data grew 10-fold and run time about 100-fold: quadratic. Timing 50k, 100k and 200k confirms it, since doubling n quadruples time. The loop runs n times and 'not in' on a list is O(n). Track seen emails in a set, O(1) on average, which makes the job O(n) time for O(n) space and keeps order. Sorting is n log n but changes order; eight processes divide a quadratic by eight and miss duplicates across chunks."
+  }
+}

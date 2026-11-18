@@ -1,0 +1,919 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "ptprereq-histology-slides-swapped-labels",
+  "title": "The tendon slide shows fibers going every which way",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "slide catalog for the histology practical, Whitmore Community College (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Lab instructor, Dr. Omar Lindqvist",
+          "text": "Two students say slide 14 ('tendon') looks nothing like their notes. The practical exam opens to 40 students at 10:00 and the slide labels are the answer key.",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "seen",
+          "label": "Pattern",
+          "text": "Slide 14 and slide 15 each look like the other's label.",
+          "when": "not isNull(lookAt) and not fixed",
+          "severity": "warning"
+        },
+        {
+          "id": "lock",
+          "label": "Practical exam",
+          "text": "10:00: the practical exam opened with the slide catalog as it stood.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [],
+      "code": [
+        {
+          "id": "code",
+          "label": "catalog.csv",
+          "language": "text",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "14, tendon, dense regular  -> image scan_0457 (fibers in random directions)",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c1",
+              "text": "15, dermis, dense irregular -> image scan_0456 (fibers parallel, rows of fibroblasts)",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c2",
+              "text": "14, tendon, dense regular  -> image scan_0456 (parallel fibers)",
+              "when": "fix == \"swap\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c3",
+              "text": "15, dermis, dense irregular -> image scan_0457 (random fibers)",
+              "when": "fix == \"swap\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c4",
+              "text": "14 and 15: labels removed; questions dropped from the exam",
+              "when": "fix == \"drop\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c5",
+              "text": "14, dermis, dense irregular -> scan_0457; 15, tendon, dense regular -> scan_0456   (labels swapped, question numbers changed)",
+              "when": "fix == \"relabel\"",
+              "mark": "\"warning\""
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Exam opens",
+          "value": "10:00"
+        }
+      ]
+    }
+  },
+  "objective": "Identify which connective tissue (dense regular, dense irregular, elastic) forms tendons and ligaments, the dermis and the walls of large arteries, and relate each to the direction of its fibers",
+  "secondaryObjectives": [
+    "Classify the four primary tissue types (epithelial, connective, muscle, nervous) and name a musculoskeletal structure built mainly from each"
+  ],
+  "sources": [
+    {
+      "cite": "Introduction to Human Biology (University of Baltimore, adapted from OpenStax Anatomy and Physiology 2e, 4.3), 4.2 Connective Tissue Supports and Protects",
+      "checkedAt": "2026-11-17",
+      "url": "https://ubalt.pressbooks.pub/introductiontohumanbiology/chapter/4-2-connective-tissue-supports-and-protects/",
+      "note": "Read 2026-11-17 through a summarizing fetch. In dense regular connective tissue 'fibers are parallel to each other, enhancing tensile strength'; 'Ligaments and tendons are made of dense regular connective tissue'; in dense irregular tissue 'the direction of fibers is random', and 'The dermis of the skin is an example'; elastic tissue gives arterial walls strength and the ability to recover their shape after stretching."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Every organization, person, count and deadline is invented teaching data; tool output is an authored rendering in the tool style."
+    }
+  ],
+  "brief": {
+    "situation": "You are the student assistant for the histology practical at Whitmore Community College (fictional). The digital slide catalog is the exam's answer key. Two students report that slide 14, labeled 'tendon (dense regular)', does not look like their notes. Slide 15 is labeled 'dermis (dense irregular)'. The exam opens at 10:00. It is 09:05.",
+    "handover": [
+      "Both slides were rescanned last week and re-uploaded.",
+      "Slide 16 is labeled 'aorta wall (elastic)'."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: look, change, check or ship. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "09:05",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "The deadline is an invented teaching value."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "swap",
+        "relabel",
+        "drop"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "c0",
+        "c1",
+        "c2"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "k0",
+        "k1",
+        "k2"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "(fix == \"swap\")"
+    },
+    "correct": {
+      "expr": "(fix == \"swap\" or fix == \"relabel\")"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "look",
+        "change",
+        "check",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "look": {
+      "label": "Open both images and compare fiber direction and cell arrangement with the labels",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "output": "slide 14: parallel bundles (tendon); slide 15: random bundles (dermis)"
+            }
+          ],
+          "else": [
+            {
+              "output": "slide 14 image: collagen bundles in many directions, interwoven\nslide 15 image: parallel collagen bundles with rows of flattened fibroblasts\nupload log: scan_0456 and scan_0457 attached in reverse order"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "finding": "Each slide's image matches its label."
+            }
+          ],
+          "else": [
+            {
+              "finding": "Tendon is dense regular tissue with parallel fibers; dermis is dense irregular with fibers in all directions. The images were attached to the wrong labels."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Correct the catalog",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "swap",
+              "label": "Reattach the images to the right slide numbers, keeping the labels and question numbers"
+            },
+            {
+              "value": "relabel",
+              "label": "Swap the labels and question numbers instead of the images"
+            },
+            {
+              "value": "drop",
+              "label": "Drop slides 14 and 15 from the exam"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: {f}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "check": {
+      "label": "Check slides 14 to 16 against the fiber direction for each tissue, and the question map",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"swap\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "slide 14 parallel fibers = tendon; 15 random = dermis; exam question map unchanged\n2 passed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"relabel\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "labels match images; printed sheet asks question 14 about tendon, catalog now has dermis\n1 passed, 1 failed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"drop\"",
+              "then": [
+                {
+                  "output": "exam missing dense regular and dense irregular tissue\n1 failed"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "slide 14 shows random fibers under a tendon label\n1 failed"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Publish the catalog for the 10:00 practical",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "if": "correct",
+          "then": [
+            {
+              "output": "Published: every slide matches its label."
+            }
+          ],
+          "else": [
+            {
+              "output": "Published: the answer key is wrong."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "What was wrong with slide 14",
+              "options": [
+                {
+                  "value": "c0",
+                  "label": "It showed dense irregular tissue (random fibers, dermis) under a tendon label; tendon is dense regular with parallel fibers"
+                },
+                {
+                  "value": "c1",
+                  "label": "The stain faded"
+                },
+                {
+                  "value": "c2",
+                  "label": "Students studied the wrong notes"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know it is right",
+              "options": [
+                {
+                  "value": "k0",
+                  "label": "Each image's fiber direction matches its tissue, and the question map is unchanged"
+                },
+                {
+                  "value": "k1",
+                  "label": "The students stopped complaining"
+                },
+                {
+                  "value": "k2",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "10:00: the practical exam opened with the slide catalog as it stood.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the instructor: what was wrong, what you changed, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "What was wrong",
+          "criteria": "Tendons and ligaments are dense regular tissue, fibers parallel for tensile strength in one direction; dermis is dense irregular, fibers in all directions; the two images were swapped.",
+          "modelAnswer": "Images swapped between 14 and 15."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "Reattach the images to the right slides; swapping labels breaks the printed question numbers; dropping slides removes required content.",
+          "modelAnswer": "Reattached scan_0456 and scan_0457."
+        },
+        {
+          "label": "How you know",
+          "criteria": "Each image's fiber direction matches its label, and the question map is unchanged.",
+          "modelAnswer": "Fibers match labels."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-333)",
+          "checkedAt": "2026-11-17",
+          "note": "The case's deadline; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Shipping nothing ships nothing wrong, but the deadline passes without the fix.",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "wrongSent": {
+      "label": "Wrong answer key published",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "Students are marked wrong for identifying the tissue correctly."
+    },
+    "notSent": {
+      "label": "Nothing shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "The practical started late."
+    },
+    "right": {
+      "label": "Right, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and fixed and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "The practical tests what the course teaches."
+    },
+    "gaps": {
+      "label": "Right, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The result is right, but it went late, unchecked, before you looked, or with a weaker fix."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Compared the images with the tissue features before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked before acting."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Matched each image to its tissue by fiber direction",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed",
+            "score": "met",
+            "why": "Images matched to labels by fiber direction."
+          },
+          {
+            "when": "fix == \"relabel\"",
+            "score": "partial",
+            "why": "The key is right, but question numbers no longer match the printed exam sheet."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{fix == \"drop\" ? \"Removes two required tissues from the practical instead of fixing a swap.\" : \"The images are still on the wrong labels.\"}"
+          }
+        ]
+      },
+      {
+        "id": "shipped",
+        "label": "Shipped nothing wrong",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sentAs != \"wrong\"",
+            "score": "met",
+            "why": "Nothing wrong shipped."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Shipped a wrong result."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Slides and question map checked after the last change, before the exam",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "Checked after the last change, before shipping."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Checked, but it failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"c0\" and checkDoc == \"k0\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"c0\" or checkDoc == \"k0\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rightK",
+        "label": "Right result shipped",
+        "value": "sentAs == \"right\" ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "altered",
+        "label": "Rows changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until shipped",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 14"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "14 random fibers, 15 parallel."
+      },
+      {
+        "at": "4-9 min",
+        "text": "Reattach images."
+      },
+      {
+        "at": "9-12 min",
+        "text": "14 to 16 checked."
+      },
+      {
+        "at": "12-14 min",
+        "text": "Publish."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: structure follows the load",
+        "body": "Fibers line up with the pull they resist: parallel in tendon, every direction in dermis, which is stretched every way."
+      },
+      "gaps": {
+        "headline": "Right, with gaps",
+        "body": "The result is right; it went late, unchecked, before you looked, or with a weaker fix than the cause called for."
+      },
+      "wrongSent": {
+        "headline": "Wrong key",
+        "body": "Dropping or relabeling dodges the tissue question."
+      },
+      "notSent": {
+        "headline": "Nothing shipped",
+        "body": "Safe, but the deadline passed without the fix."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "Students who say the tendon slide looks wrong are right if its fibers run in every direction. Tendons and ligaments are dense regular connective tissue, with parallel collagen fibers that resist pull in one direction; dermis is dense irregular, with fibers in all directions. Slide 14 shows random fibers and slide 15 parallel ones, and the upload log shows the images attached in reverse. Reattach the images to the right slides; swapping labels breaks the printed question numbers, and dropping the slides removes required tissues."
+  }
+}

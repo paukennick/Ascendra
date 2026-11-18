@@ -236,6 +236,54 @@ describe("REQ-333: the new cases behave as taught", () => {
     assert.equal(s16(u16(0xfd, 0x94)) / 100, -6.2);
   });
 
+  test("MSHI interprofessional tabletop: IT alone, a chat handoff and an unverified fix are each their own harm ending, ahead of the target; blame costs the roles criterion", () => {
+    const S = "mshi-flag-mapping-interprofessional-tabletop";
+    assert.deepEqual(docOf(S).endingOrder!.slice(0, 4), ["unreviewed", "droppedHandoff", "unvalidated", "noReport"]);
+    const g = goldenOf(S);
+    for (const [id, end] of [["itOnly", "unreviewed"], ["chatHandoff", "droppedHandoff"], ["deployNow", "unvalidated"], ["noReport", "noReport"], ["expert", "exercised"]]) assert.equal(g.paths.find((p) => p.id === id)!.expect.ending, end, id);
+    assert.equal(g.paths.find((p) => p.id === "blameLate")!.expect.criteria?.roles, "missed");
+  });
+
+  // The cases built on the round's data-case skeleton (look, change, check, ship):
+  // each option's check result agrees with whether shipping it is right, the
+  // as-found code never passes, and at least one option passes and one fails.
+  test("every data-case skeleton: the check passes exactly when the change would ship right, and a data shortcut spoils even the right fix", () => {
+    const skeletons = DEPTH_ACADEMIC.filter((w) => w.kind === "scenario" && w.screen === "data").filter((w) => {
+      const d = docOf(w.slug);
+      return d.actions.change?.params?.[0]?.id === "f" && !!d.actions.check && !!d.state.fix;
+    });
+    assert.ok(skeletons.length >= 40, `skeleton cases: ${skeletons.length}`);
+    for (const w of skeletons) {
+      const d = docOf(w.slug);
+      const opts = (d.actions.change.params![0] as { options: { value: string }[] }).options.map((o) => o.value);
+      const asFound = driver(w.slug);
+      asFound.act("look");
+      asFound.act("check");
+      assert.equal(asFound.v("testPassed"), false, `${w.slug}: the as-found version fails its check`);
+      let passes = 0;
+      for (const f of opts) {
+        const r = driver(w.slug);
+        r.act("look");
+        r.act("change", { f });
+        r.act("check");
+        const ok = r.v("testPassed") === true;
+        assert.equal(ok, r.v("correct") === true, `${w.slug}/${f}: check result matches what shipping would be`);
+        if (r.v("fixed") === true) assert.ok(ok, `${w.slug}/${f}: the right fix passes`);
+        if (ok) passes++;
+      }
+      assert.ok(passes >= 1 && passes < opts.length, `${w.slug}: some options pass, some fail`);
+      if (d.actions.destroy) {
+        const right = opts.find((f) => { const r = driver(w.slug); r.act("change", { f }); return r.v("fixed") === true; })!;
+        const r = driver(w.slug);
+        r.act("destroy");
+        r.act("change", { f: right });
+        r.act("check");
+        assert.equal(r.v("testPassed"), false, `${w.slug}: the shortcut spoils the right fix`);
+        assert.equal(d.endingOrder![0], "altered");
+      }
+    }
+  });
+
   test("PYTHON mutable default: only a None default passes both tests; clearing the list breaks a caller's own list", () => {
     const S = "py-packing-slips-mutable-default";
     const pass = (f?: string) => {

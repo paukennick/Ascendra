@@ -1,0 +1,913 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "mshi-eye-exam-recall-left-join",
+  "title": "The recall list skipped everyone who never had an exam",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "recall.sql, the annual diabetic eye exam recall, Valley Bend Community Health Center (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Quality manager, Rosa Delgado",
+          "text": "The recall list has 1,180 patients, but our registry shows about 1,900 adults with diabetes overdue. Letters print at 14:00.",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "seen",
+          "label": "Pattern",
+          "text": "No patient on the list has never had an eye exam.",
+          "when": "not isNull(lookAt) and not fixed",
+          "severity": "warning"
+        },
+        {
+          "id": "lock",
+          "label": "Letters",
+          "text": "14:00: recall letters printed from the list as it stood.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [],
+      "code": [
+        {
+          "id": "code",
+          "label": "recall.sql",
+          "language": "SQL",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "SELECT DISTINCT p.id FROM patients p JOIN problems d ON d.patient_id = p.id AND d.code = 'DIABETES'"
+            },
+            {
+              "id": "c1",
+              "text": "LEFT JOIN eye_exams e ON e.patient_id = p.id",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c2",
+              "text": "WHERE e.exam_date < current_date - interval '12 months';",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c3",
+              "text": "WHERE NOT EXISTS (SELECT 1 FROM eye_exams e WHERE e.patient_id = p.id AND e.exam_date >= current_date - interval '12 months');",
+              "when": "fix == \"notexists\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c4",
+              "text": "LEFT JOIN eye_exams e ON e.patient_id = p.id",
+              "when": "fix == \"isnull\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c5",
+              "text": "WHERE e.exam_date < current_date - interval '12 months' OR e.exam_date IS NULL;",
+              "when": "fix == \"isnull\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c6",
+              "text": "JOIN eye_exams e ON e.patient_id = p.id GROUP BY p.id HAVING max(e.exam_date) < current_date - interval '12 months';",
+              "when": "fix == \"maxjoin\"",
+              "mark": "\"warning\""
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Letters print",
+          "value": "14:00"
+        }
+      ]
+    }
+  },
+  "objective": "Relational databases, data modelling and SQL: tables linked by primary and foreign keys, and queries that join them to pull data on many patients",
+  "secondaryObjectives": [
+    "Analyzing, reporting and visualizing data so it supports a decision"
+  ],
+  "sources": [
+    {
+      "cite": "PostgreSQL 16 documentation, 9.23 Subquery Expressions",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.postgresql.org/docs/16/functions-subquery.html",
+      "note": "Read 2026-11-17 through a summarizing fetch. EXISTS: 'If it returns at least one row, the result of EXISTS is true; if the subquery returns no rows, the result of EXISTS is false'; 'The subquery can refer to variables from the surrounding query'; a correlated EXISTS 'is like an inner join ... but it produces at most one output row for each tab1 row, even if there are several matching tab2 rows'. NOT EXISTS is its negation (author's statement)."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Every organization, person, count and deadline is invented teaching data; tool output is an authored rendering in the tool style."
+    }
+  ],
+  "brief": {
+    "situation": "You maintain recall.sql at Valley Bend Community Health Center (fictional). It lists adult patients with diabetes who have had no eye exam in the past 12 months, for recall letters. The list has 1,180 patients; the registry suggests about 1,900. Letters print at 14:00. It is 13:05. All patients are invented test records; the query runs on a de-identified test copy first.",
+    "handover": [
+      "patients(id, ...), problems(patient_id, code), eye_exams(patient_id, exam_date): one row per exam; a patient can have none or many."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: look, change, check or ship. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "13:05",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "The deadline is an invented teaching value."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "notexists",
+        "isnull",
+        "maxjoin"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "c0",
+        "c1",
+        "c2"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "k0",
+        "k1",
+        "k2"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "(fix == \"notexists\")"
+    },
+    "correct": {
+      "expr": "(fix == \"notexists\")"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "look",
+        "change",
+        "check",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "look": {
+      "label": "On the test copy, count patients with diabetes by exam history and check who the query returns",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "output": "returned 1,900: 702 never examined + 1,198 overdue; 0 recently examined"
+            }
+          ],
+          "else": [
+            {
+              "output": "never examined: 702 (returned: 0)\nlast exam over 12 months ago: 1,198 (returned: 1,180)\nexamined in the last 12 months but with an older exam too: 18 returned wrongly"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "finding": "The query asks the real question: no exam in the last 12 months."
+            }
+          ],
+          "else": [
+            {
+              "finding": "A WHERE condition on the outer-joined table drops rows where it is NULL, so never-examined patients vanish; and a patient with an old and a recent exam matches on the old row."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Change the query",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "notexists",
+              "label": "NOT EXISTS an exam in the last 12 months (a correlated subquery)"
+            },
+            {
+              "value": "isnull",
+              "label": "Keep the LEFT JOIN and add OR e.exam_date IS NULL"
+            },
+            {
+              "value": "maxjoin",
+              "label": "Inner join and keep patients whose latest exam is over 12 months old"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: {f}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "check": {
+      "label": "Reconcile counts on the test copy with the registry and spot-check 40 charts",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"notexists\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "test copy: 1,900 returned; spot-check of 40 charts all overdue\n2 passed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"isnull\"",
+              "then": [
+                {
+                  "output": "1,918 returned; 18 had an exam last month\n1 failed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"maxjoin\"",
+              "then": [
+                {
+                  "output": "1,198 returned; 702 never-examined missing\n1 failed"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "1,180 vs registry 1,900\n1 failed"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Run on production and print the recall letters",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "if": "correct",
+          "then": [
+            {
+              "output": "Printed: 1,900 recall letters."
+            }
+          ],
+          "else": [
+            {
+              "output": "Printed: the wrong patients recalled or missed."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why patients were missing",
+              "options": [
+                {
+                  "value": "c0",
+                  "label": "The WHERE condition on the outer-joined exam table removed patients with no exam rows, and old exams matched patients with recent ones"
+                },
+                {
+                  "value": "c1",
+                  "label": "The registry overcounts"
+                },
+                {
+                  "value": "c2",
+                  "label": "Letters were already sent"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know the list is right",
+              "options": [
+                {
+                  "value": "k0",
+                  "label": "The count reconciles with the registry and 40 charts confirm each patient is overdue"
+                },
+                {
+                  "value": "k1",
+                  "label": "The list is longer now"
+                },
+                {
+                  "value": "k2",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "14:00: recall letters printed from the list as it stood.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the quality manager: why patients were missing, what you changed, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "eye_exams is linked to patients by a foreign key, one row per exam; a LEFT JOIN keeps unmatched patients with NULLs, but a WHERE on e.exam_date discards them; joining also matches a patient's old exam even when a recent one exists.",
+          "modelAnswer": "WHERE on the outer table dropped NULLs."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "NOT EXISTS an exam within 12 months, one row per patient whatever the exam count; OR IS NULL still recalls the recently examined; an inner join drops the never-examined.",
+          "modelAnswer": "NOT EXISTS a recent exam."
+        },
+        {
+          "label": "How you know",
+          "criteria": "Counts reconcile with the registry and a 40-chart spot-check on the test copy.",
+          "modelAnswer": "1,900; 40 of 40 overdue."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-333)",
+          "checkedAt": "2026-11-17",
+          "note": "The case's deadline; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Shipping nothing ships nothing wrong, but the deadline passes without the fix.",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "wrongSent": {
+      "label": "Wrong recall list printed",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "Patients who most need an exam get no letter, or recently examined patients are recalled."
+    },
+    "notSent": {
+      "label": "Nothing shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "No wrong letters, but this month's recall did not go out."
+    },
+    "right": {
+      "label": "Right, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and fixed and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "Every overdue patient, including those never examined, gets a recall letter."
+    },
+    "gaps": {
+      "label": "Right, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The result is right, but it went late, unchecked, before you looked, or with a weaker fix."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Counted patients by exam history before changing the query",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked before acting."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Asked for the absence of a recent exam with NOT EXISTS",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed",
+            "score": "met",
+            "why": "NOT EXISTS answers 'no exam in the last 12 months'."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{fix == \"isnull\" ? \"Adds never-examined patients but still recalls people with a recent exam who also have an old one.\" : fix == \"maxjoin\" ? \"Right for examined patients, but the inner join still drops everyone never examined.\" : \"The query still drops never-examined patients.\"}"
+          }
+        ]
+      },
+      {
+        "id": "shipped",
+        "label": "Shipped nothing wrong",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sentAs != \"wrong\"",
+            "score": "met",
+            "why": "Nothing wrong shipped."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Shipped a wrong result."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Counts reconciled and spot-check passed after the last change, before printing",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "Checked after the last change, before shipping."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Checked, but it failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"c0\" and checkDoc == \"k0\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"c0\" or checkDoc == \"k0\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rightK",
+        "label": "Right result shipped",
+        "value": "sentAs == \"right\" ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "altered",
+        "label": "Rows changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until shipped",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 14"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "702 never examined, none returned."
+      },
+      {
+        "at": "4-9 min",
+        "text": "NOT EXISTS."
+      },
+      {
+        "at": "9-12 min",
+        "text": "Reconciles; spot-check."
+      },
+      {
+        "at": "12-14 min",
+        "text": "Print."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: ask for what is absent",
+        "body": "'No exam in 12 months' is a question about absence. NOT EXISTS asks it directly, once per patient."
+      },
+      "gaps": {
+        "headline": "Right, with gaps",
+        "body": "The result is right; it went late, unchecked, before you looked, or with a weaker fix than the cause called for."
+      },
+      "wrongSent": {
+        "headline": "Wrong recall list",
+        "body": "Patching the outer join adds new mistakes; an inner join loses the people with no history."
+      },
+      "notSent": {
+        "headline": "Nothing shipped",
+        "body": "Safe, but the deadline passed without the fix."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "A recall list with no never-examined patients means the query drops patients without exam rows. The LEFT JOIN keeps them with NULL exam dates, and then WHERE e.exam_date < cutoff throws them away; it also matches a patient's old exam when a recent one exists. The question is about absence: NOT EXISTS an exam in the last 12 months, one row per patient. OR IS NULL still recalls the recently examined; an inner join drops the never-examined. Reconcile with the registry and spot-check charts on the test copy."
+  }
+}

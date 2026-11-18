@@ -1,0 +1,913 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "mshi-ed-registration-rework-loop",
+  "title": "Add a clerk, or remove the loop?",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "ED event-log analysis, Riverside Regional Hospital (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "ED director, Kwame Mensah",
+          "text": "Door-to-provider time went from 24 to 41 minutes after the new registration screen. I'm asking for another registration clerk at the 11:00 budget meeting. Your analysis?",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "seen",
+          "label": "Pattern",
+          "text": "Many visits go back from triage to registration before a provider sees them.",
+          "when": "not isNull(lookAt) and not fixed",
+          "severity": "warning"
+        },
+        {
+          "id": "lock",
+          "label": "Budget meeting",
+          "text": "11:00: the budget meeting decided on the analysis as it stood.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [],
+      "code": [
+        {
+          "id": "code",
+          "label": "analysis plan",
+          "language": "text",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "Recommendation: add one registration clerk at peak hours",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c1",
+              "text": "Process map from the event log: 38% of visits loop triage -> registration -> triage",
+              "when": "fix == \"mine\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c2",
+              "text": "Recommendation: move the mandatory insurance fields after the provider sees the patient (registration completes in parallel); re-mine the log after two weeks",
+              "when": "fix == \"mine\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c3",
+              "text": "Recommendation: add a clerk and also loop through registration faster",
+              "when": "fix == \"both\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c4",
+              "text": "Recommendation: remind triage nurses to finish registration first",
+              "when": "fix == \"remind\"",
+              "mark": "\"warning\""
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Budget meeting",
+          "value": "11:00"
+        }
+      ]
+    }
+  },
+  "objective": "Process improvement with Lean, Six Sigma and process mining of system event logs",
+  "secondaryObjectives": [
+    "Evaluating health informatics solutions and their impact"
+  ],
+  "sources": [
+    {
+      "cite": "Mans, Schonenberg, Song, van der Aalst and Bakker, Process Mining in Healthcare: A Case Study (Eindhoven University of Technology)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.vdaalst.rwth-aachen.de/publications/p459.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch. Process mining 'aims at extracting process knowledge from so-called event logs', including hospital information systems, to 'discover, monitor and improve real processes'; 'there is often a significant gap between what is prescribed or supposed to happen' and what actually occurs; conformance checking detects deviations. The case's rework loop is the author's scenario."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Every organization, person, count and deadline is invented teaching data; tool output is an authored rendering in the tool style."
+    }
+  ],
+  "brief": {
+    "situation": "You analyze the emergency department's EHR event log at Riverside Regional Hospital (fictional). Since a new registration screen went live, median door-to-provider time rose from 24 to 41 minutes. The director plans to request another registration clerk at 11:00. It is 10:05. The event log is de-identified test data.",
+    "handover": [
+      "The new screen made insurance fields mandatory before triage orders can be placed.",
+      "Event log: arrival, quick registration, triage, full registration, provider seen, with timestamps."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: look, change, check or ship. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "10:05",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "The deadline is an invented teaching value."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "mine",
+        "both",
+        "remind"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "c0",
+        "c1",
+        "c2"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "k0",
+        "k1",
+        "k2"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "(fix == \"mine\")"
+    },
+    "correct": {
+      "expr": "(fix == \"mine\" or fix == \"both\")"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "look",
+        "change",
+        "check",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "look": {
+      "label": "Mine the event log: discover the actual process map and time spent in each path",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "output": "re-mined after the change: loop in 4% of visits; median door-to-provider 25 minutes"
+            }
+          ],
+          "else": [
+            {
+              "output": "38% of visits: triage -> back to registration (insurance hold) -> triage again\nloop adds a median 19 minutes; registration queue length unchanged since go-live"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "finding": "The loop is gone from the real process."
+            }
+          ],
+          "else": [
+            {
+              "finding": "The delay is rework, not capacity: a mandatory field placed before triage orders sends visits back. The queue at registration has not grown."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Choose the recommendation",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "mine",
+              "label": "Remove the cause: insurance fields after the provider, registration in parallel; measure again from the log"
+            },
+            {
+              "value": "both",
+              "label": "Add the clerk to speed the loop up"
+            },
+            {
+              "value": "remind",
+              "label": "Remind triage nurses to complete registration first"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: {f}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "check": {
+      "label": "Replay last month's event log through the proposed process and compare door-to-provider",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"mine\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "simulation on last month's log: loop 4%, median 25 minutes\n2 passed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"both\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "simulation: loop still 38%, median 35 minutes\n1 passed, 1 failed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"remind\"",
+              "then": [
+                {
+                  "output": "simulation: loop 31%, triage time up 6 minutes\n1 failed"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "clerk added: median 38 minutes\n1 failed"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Send the analysis to the budget meeting",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "if": "correct",
+          "then": [
+            {
+              "output": "Sent: fix the screen order, no new clerk; re-measure in two weeks."
+            }
+          ],
+          "else": [
+            {
+              "output": "Sent: spend on the symptom."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why door-to-provider rose",
+              "options": [
+                {
+                  "value": "c0",
+                  "label": "A mandatory field before triage orders sent 38% of visits back through registration: rework, not capacity"
+                },
+                {
+                  "value": "c1",
+                  "label": "More patients arrived"
+                },
+                {
+                  "value": "c2",
+                  "label": "Clerks are slower"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know the fix will work",
+              "options": [
+                {
+                  "value": "k0",
+                  "label": "A replay of the event log shows the loop falls to 4% and the median to 25 minutes, and the log will be re-mined after the change"
+                },
+                {
+                  "value": "k1",
+                  "label": "Staff like it"
+                },
+                {
+                  "value": "k2",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "11:00: the budget meeting decided on the analysis as it stood.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the ED director: what the log shows, what you recommend, and how you will know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "What the log shows",
+          "criteria": "Process mining of the EHR event log reveals the real process: 38% of visits loop back to registration because insurance fields block triage orders; the queue has not grown, so it is rework (Lean waste), not a capacity problem.",
+          "modelAnswer": "A 38% rework loop."
+        },
+        {
+          "label": "What you recommend",
+          "criteria": "Remove the cause by moving the fields after the provider and registering in parallel; a clerk speeds the waste; reminders shift it to nurses.",
+          "modelAnswer": "Move the fields; no new clerk."
+        },
+        {
+          "label": "How you will know",
+          "criteria": "Replay last month's log now; re-mine the live log in two weeks and track door-to-provider.",
+          "modelAnswer": "Re-mine in two weeks."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-333)",
+          "checkedAt": "2026-11-17",
+          "note": "The case's deadline; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Shipping nothing ships nothing wrong, but the deadline passes without the fix.",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "wrongSent": {
+      "label": "Wrong recommendation sent",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "The hospital pays for capacity while the loop keeps patients waiting."
+    },
+    "notSent": {
+      "label": "Nothing shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "The meeting decided without the analysis."
+    },
+    "right": {
+      "label": "Right, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and fixed and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "The waste is removed, and the log will show whether it stays removed."
+    },
+    "gaps": {
+      "label": "Right, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The result is right, but it went late, unchecked, before you looked, or with a weaker fix."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Mined the actual process before recommending",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked before acting."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Recommended removing the rework, with a measure to confirm it",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed",
+            "score": "met",
+            "why": "Removed the cause of the rework the event log revealed."
+          },
+          {
+            "when": "fix == \"both\"",
+            "score": "partial",
+            "why": "Shortens the loop a little but pays to keep the waste."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{fix == \"remind\" ? \"Pushes clerical work onto nurses and keeps the loop.\" : \"The recommendation still adds capacity to a rework loop.\"}"
+          }
+        ]
+      },
+      {
+        "id": "shipped",
+        "label": "Shipped nothing wrong",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sentAs != \"wrong\"",
+            "score": "met",
+            "why": "Nothing wrong shipped."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Shipped a wrong result."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Replay supported the recommendation after the last change, before the meeting",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "Checked after the last change, before shipping."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Checked, but it failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"c0\" and checkDoc == \"k0\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"c0\" or checkDoc == \"k0\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rightK",
+        "label": "Right result shipped",
+        "value": "sentAs == \"right\" ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "altered",
+        "label": "Rows changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until shipped",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 14"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "Event log: 38% loop, queue unchanged."
+      },
+      {
+        "at": "4-9 min",
+        "text": "Move the fields; parallel registration."
+      },
+      {
+        "at": "9-12 min",
+        "text": "Replay: 25 minutes."
+      },
+      {
+        "at": "12-14 min",
+        "text": "Send."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: mine the real process",
+        "body": "The event log shows what actually happens. Fix the step that causes rework before buying capacity."
+      },
+      "gaps": {
+        "headline": "Right, with gaps",
+        "body": "The result is right; it went late, unchecked, before you looked, or with a weaker fix than the cause called for."
+      },
+      "wrongSent": {
+        "headline": "Spending on the symptom",
+        "body": "More hands on a loop make a faster loop."
+      },
+      "notSent": {
+        "headline": "Nothing shipped",
+        "body": "Safe, but the deadline passed without the fix."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "Door-to-provider rose after a screen change, not a volume change, so look at the real process. Mining the event log shows 38% of visits loop from triage back to registration because insurance fields now block triage orders, adding about 19 minutes, while the registration queue is unchanged. That is rework, a Lean waste, not a capacity gap. Move the fields after the provider, let registration finish in parallel, replay the log to confirm, and re-mine after two weeks. A clerk speeds the loop; reminders push clerical work to nurses."
+  }
+}
