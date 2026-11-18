@@ -12184,6 +12184,40 @@
         "changelog"
       ],
       "risk_notes": []
+    },
+    {
+      "id": "REQ-334",
+      "category": "content",
+      "title": "Health sim depth (depth-health): nursing licensure, CCRN neonatal and pediatric, and the physical therapy specialty courses brought to the robust target",
+      "description": "Nick (2026-11-17, 19:51 PT): courses with one or two sims should be built out more robustly. Scope: ADNRN, BSNRN, LPNVN, CCRNNEO, CCRNPEDS and the ten ABPTS courses (EMS and fitness moved to depth-ems-fitness). Target: every unit with a fitting objective gets a sim whose main objective is in it; at least 8 sims for courses with 60 or more objectives and 4 for the rest; purpose-written cases preferred for each course's top two domains; bands only where setting and scope match. Existing screens only; drugs appear as the ordered drug with no dose; unsafe choices end in harm; sources dated with how they were read; no permission-only marks; no claim of clinician or expert review; mature: true for sensitive topics.",
+      "priority": "high",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/",
+        "backend/lib/sim/documents.ts",
+        "backend/scripts/sim-golden/",
+        "backend/lib/sim/health-depth-1117.test.ts",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "each course in scope meets the sim count target or records each remaining unit as no fit with a reason",
+        "each new case has endingOrder three or four critical criteria a conditional harm ending and Good Mediocre and Bad golden paths reaching every ending but time_up with every criterion met and missed",
+        "each band changes only objective secondary objectives sources and brief and keeps the base's scoring outcome and endings",
+        "no dose number and no permission-only mark in learner text",
+        "sources dated and say how they were read"
+      ],
+      "validation_required": [
+        "per-document lint",
+        "lib/sim/health-depth-1117.test.ts",
+        "lib/sim/cert-marks.test.ts",
+        "lib/sim/documents.test.ts"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.38",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": []
     }
   ]
 }

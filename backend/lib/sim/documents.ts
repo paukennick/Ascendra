@@ -657,6 +657,24 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NCLEXPN", "clinic-eviction-no-way-out"),
   entry("NCLEXRN", "voices-say-he-should-die"),
   // ---- end REQ-329 ----
+  // ---- REQ-334 (docs/sims.md 22.38): health depth, round of 2026-11-17
+  // evening. Nursing licensure, CCRN neonatal and pediatric, and the physical
+  // therapy specialty courses. Keep these entries together. ----
+  band("ADNRN", "postop-fever-150-graves-meds-stopped-adn"),
+  band("ADNRN", "oxytocin-tachysystole-late-decels-adn"),
+  band("ADNRN", "postpartum-hemorrhage-atony-adn"),
+  band("ADNRN", "alcohol-withdrawal-ciwa-adn"),
+  band("ADNRN", "after-amputation-im-done-adn"),
+  band("LPNVN", "warfarin-inr-high-tarry-stool-lpn"),
+  band("LPNVN", "head-strike-on-apixaban-lpn"),
+  band("LPNVN", "clinic-belly-pain-moved-right-lpn"),
+  band("LPNVN", "aide-feeding-thin-liquids-dysphagia-lpn"),
+  band("LPNVN", "postpartum-check-boggy-fundus-lpn"),
+  band("LPNVN", "rehab-resident-no-use-to-anyone-lpn"),
+  band("BSNRN", "med-surg-deterioration-sbar-bsn"),
+  band("BSNRN", "insulin-given-to-wrong-bed-bsn"),
+  band("BSNRN", "preop-consent-after-opioid-bsn"),
+  // ---- end REQ-334 ----
 ];
 
 // REQ-312: the data and code console documents (docs/sims.md 22.25), by
