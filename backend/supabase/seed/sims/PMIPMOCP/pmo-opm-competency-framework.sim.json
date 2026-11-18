@@ -1,0 +1,1092 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pmo-opm-competency-framework",
+  "title": "Growing project management capability across an organization: a competency framework, mentoring and the capabilities that matter",
+  "screen": {
+    "type": "governance-board",
+    "level": 1,
+    "governance": {
+      "risks": [
+        {
+          "id": "rFrame",
+          "label": "Capability gaps unaddressed",
+          "spokenLabel": "Capability gaps unaddressed",
+          "owner": "\"PMO lead\"",
+          "rating": "frame == \"tailored\" ? \"low\" : frame == \"generic\" ? \"medium\" : frame == \"nothing\" ? \"critical\" : p >= 1 ? \"high\" : \"medium\"",
+          "appetite": "frame == \"tailored\" ? \"within\" : frame == \"generic\" ? \"within\" : frame == \"nothing\" ? \"above\" : p >= 1 ? \"above\" : \"within\"",
+          "status": "{frame == \"tailored\" ? \"Tailored framework\" : frame == \"generic\" ? \"Generic framework\" : frame == \"nothing\" ? \"Generic course for all\" : \"Open\"}"
+        },
+        {
+          "id": "rCap",
+          "label": "Wrong capability prioritized",
+          "spokenLabel": "Wrong capability prioritized",
+          "owner": "\"PMO lead\"",
+          "rating": "cap == \"change\" ? \"low\" : cap == \"training\" ? \"medium\" : cap == \"tool\" ? \"critical\" : p >= 2 ? \"high\" : \"medium\"",
+          "appetite": "cap == \"change\" ? \"within\" : cap == \"training\" ? \"within\" : cap == \"tool\" ? \"above\" : p >= 2 ? \"above\" : \"within\"",
+          "status": "{cap == \"change\" ? \"Change control prioritized\" : cap == \"training\" ? \"Training only\" : cap == \"tool\" ? \"New tool\" : \"Open\"}"
+        },
+        {
+          "id": "rMentor",
+          "label": "Framework doesn't change behavior",
+          "spokenLabel": "Framework doesn't change behavior",
+          "owner": "\"PMO lead\"",
+          "rating": "mentor == \"pair\" ? \"low\" : mentor == \"mentorOnly\" ? \"medium\" : mentor == \"rank\" ? \"critical\" : p >= 3 ? \"high\" : \"medium\"",
+          "appetite": "mentor == \"pair\" ? \"within\" : mentor == \"mentorOnly\" ? \"within\" : mentor == \"rank\" ? \"above\" : p >= 3 ? \"above\" : \"within\"",
+          "status": "{mentor == \"pair\" ? \"Mentoring tied to reviews\" : mentor == \"mentorOnly\" ? \"Mentoring only\" : mentor == \"rank\" ? \"Public ranking\" : \"Open\"}"
+        }
+      ],
+      "stakeholders": [
+        {
+          "id": "sExec",
+          "label": "Executive sponsor",
+          "spokenLabel": "the executive sponsor's support",
+          "value": "exec",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sCust",
+          "label": "PMO customers",
+          "spokenLabel": "the PMO customers' support",
+          "value": "cust",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sStaff",
+          "label": "PMO staff",
+          "spokenLabel": "the PMO staff's support",
+          "value": "staff",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "docket": [
+        {
+          "id": "dFrame",
+          "kind": "Competency framework",
+          "label": "Week 1: framework",
+          "status": "{frame == \"tailored\" ? \"Tailored framework\" : frame == \"generic\" ? \"Generic framework\" : frame == \"nothing\" ? \"Generic course for all\" : \"Due\"}",
+          "when": "p >= 1",
+          "flag": "p >= 1 and frame == \"none\""
+        },
+        {
+          "id": "dCap",
+          "kind": "Capability",
+          "label": "Week 2: priorities",
+          "status": "{cap == \"change\" ? \"Change control prioritized\" : cap == \"training\" ? \"Training only\" : cap == \"tool\" ? \"New tool\" : \"Due\"}",
+          "when": "p >= 2",
+          "flag": "p >= 2 and cap == \"none\""
+        },
+        {
+          "id": "dMentor",
+          "kind": "Development",
+          "label": "Week 3: mentoring",
+          "status": "{mentor == \"pair\" ? \"Mentoring tied to reviews\" : mentor == \"mentorOnly\" ? \"Mentoring only\" : mentor == \"rank\" ? \"Public ranking\" : \"Due\"}",
+          "when": "p >= 3",
+          "flag": "p >= 3 and mentor == \"none\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Week",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Elevating organizational project management (OPM): assessing current competencies, building a tailored competency framework, and pairing mentoring with performance management",
+  "secondaryObjectives": [
+    "Cultivating OPM capabilities: identifying and prioritizing the capabilities the organization actually needs, then closing people/process/technology gaps"
+  ],
+  "sources": [
+    {
+      "cite": "PMI, PMI PMO Certified Professional (PMI-PMOCP) Examination Content Outline and Specifications, January 2025 (v2): Organizational Development and Alignment 16%, PMO Strategic Elements 18%, PMO Design and Structuring 18%, PMO Operation and Performance 15%, PMO Enhancement and Effectiveness 18%, People 15%",
+      "checkedAt": "2026-11-17",
+      "url": "https://cb405383.masteryexamprep-com.pages.dev/exams/pmi/pmocp/overview",
+      "note": "Read 2026-11-17 through a summarizing fetch of a study page (masteryexamprep, dated 2025-12-20) that cites PMI's outline of January 2025 (v2) for these weights. The page lists no task statements; it says questions reward 'governance realism: decision rights, thresholds, escalation paths, and reporting that drives decisions'. PMI's PDF (the course seed cites it) was not opened; the task wording is the course seed's, to verify. Reused for REQ-336 from this course's water-utility-rebalance-pmipmocp (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the project, the figures and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You lead the PMO at Calder Engineering, a fictional engineering consultancy. Projects overrun often; the CEO wants 'better project managers'.",
+    "handover": [
+      "Sixty project managers, from new graduates to 20-year veterans.",
+      "No competency framework; training is a generic course."
+    ],
+    "howItWorks": [
+      "The board shows the risk register against the appetite, each stakeholder's support in words and the docket.",
+      "Move on a week at a time. A decision comes to you at each review; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-05-03T09:00",
+    "tick": "1d",
+    "maxDuration": "84d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "exec": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "cust": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "staff": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "frame": {
+      "type": "enum",
+      "values": [
+        "none",
+        "tailored",
+        "generic",
+        "nothing"
+      ],
+      "init": "none"
+    },
+    "frameAt": {
+      "type": "time",
+      "init": null
+    },
+    "cap": {
+      "type": "enum",
+      "values": [
+        "none",
+        "change",
+        "training",
+        "tool"
+      ],
+      "init": "none"
+    },
+    "capAt": {
+      "type": "time",
+      "init": null
+    },
+    "mentor": {
+      "type": "enum",
+      "values": [
+        "none",
+        "pair",
+        "mentorOnly",
+        "rank"
+      ],
+      "init": "none"
+    },
+    "mentorAt": {
+      "type": "time",
+      "init": null
+    },
+    "assessAt": {
+      "type": "time",
+      "init": null
+    },
+    "causesAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(exec, cust), staff)"
+    },
+    "missCount": {
+      "expr": "((frame == \"nothing\") ? 1 : 0) + ((cap == \"tool\") ? 1 : 0) + ((mentor == \"rank\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(frame == \"none\" or (frame == \"nothing\") ? 1 : 0) + (cap == \"none\" or (cap == \"tool\") ? 1 : 0) + (mentor == \"none\" or (mentor == \"rank\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "OPM development",
+      "clock": "turns",
+      "actions": [
+        "assess",
+        "causes"
+      ]
+    },
+    "close": {
+      "label": "Plan record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "assess": {
+      "label": "Assess current competencies",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(assessAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "assessAt",
+          "to": "t"
+        },
+        {
+          "log": "Assess current competencies.",
+          "kind": "act"
+        },
+        {
+          "finding": "Strong technical planning; weak commercial skills (change control, claims) and stakeholder management; overruns trace to unpriced changes."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "causes": {
+      "label": "Review overrun causes over two years",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(causesAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "causesAt",
+          "to": "t"
+        },
+        {
+          "log": "Review overrun causes over two years.",
+          "kind": "act"
+        },
+        {
+          "finding": "70% of overruns trace to client changes accepted without change orders."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "A tailored framework from the assessment, change control prioritized across people, process and tools, and mentoring tied to reviews"
+                },
+                {
+                  "value": "summary",
+                  "label": "OPM plan approved"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next review",
+      "wait": {
+        "skipLabel": "Go to the next review"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "frame == \"nothing\"",
+              "then": [
+                {
+                  "log": "Week 2: after the course, overruns from unpriced changes continue unchanged.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "cap == \"tool\"",
+              "then": [
+                {
+                  "log": "Week 3: the new tool goes live; changes are still accepted without orders.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "mentor == \"rank\"",
+              "then": [
+                {
+                  "log": "Week 4: two strong project managers resign after being ranked low on commercial skills.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "7d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The capability plan is approved.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "7d"
+        }
+      ]
+    },
+    {
+      "id": "t_frame",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 1: the framework.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "framePrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_cap",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 2: priorities.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "capPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_mentor",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 3: making it stick.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "mentorPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "framePrompt": {
+      "title": "Generic or tailored?",
+      "context": "A generic framework is available off the shelf.",
+      "choices": [
+        {
+          "id": "tailored",
+          "label": "Tailor a framework to the consultancy: technical, commercial and leadership competencies by level, weighted to the gaps found",
+          "effects": [
+            {
+              "set": "frame",
+              "to": "\"tailored\""
+            },
+            {
+              "set": "frameAt",
+              "to": "t"
+            },
+            {
+              "add": "staff",
+              "by": "1"
+            },
+            {
+              "log": "A tailored framework is agreed.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A tailored competency framework targets what the organization actually needs."
+        },
+        {
+          "id": "generic",
+          "label": "Adopt the generic framework",
+          "effects": [
+            {
+              "set": "frame",
+              "to": "\"generic\""
+            },
+            {
+              "set": "frameAt",
+              "to": "t"
+            },
+            {
+              "add": "staff",
+              "by": "-1"
+            },
+            {
+              "log": "Generic framework.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "It doesn't emphasize the commercial gap."
+        },
+        {
+          "id": "nothing",
+          "label": "Skip the framework and send everyone on the course",
+          "effects": [
+            {
+              "set": "frame",
+              "to": "\"nothing\""
+            },
+            {
+              "set": "frameAt",
+              "to": "t"
+            },
+            {
+              "add": "staff",
+              "by": "-2"
+            },
+            {
+              "log": "Everyone takes the course.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The real gap isn't addressed."
+        }
+      ]
+    },
+    "capPrompt": {
+      "title": "Which capability first?",
+      "context": "Overruns trace to unpriced changes.",
+      "choices": [
+        {
+          "id": "change",
+          "label": "Prioritize change control: train commercial skills, add a change-order process, and a change log in the project tool",
+          "effects": [
+            {
+              "set": "cap",
+              "to": "\"change\""
+            },
+            {
+              "set": "capAt",
+              "to": "t"
+            },
+            {
+              "add": "exec",
+              "by": "1"
+            },
+            {
+              "log": "Change control is the priority across people, process and tools.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Capabilities are prioritized by need and gaps closed across people, process and technology."
+        },
+        {
+          "id": "training",
+          "label": "Train commercial skills only",
+          "effects": [
+            {
+              "set": "cap",
+              "to": "\"training\""
+            },
+            {
+              "set": "capAt",
+              "to": "t"
+            },
+            {
+              "add": "exec",
+              "by": "-1"
+            },
+            {
+              "log": "Training only.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Without a process and a tool, skills don't change outcomes."
+        },
+        {
+          "id": "tool",
+          "label": "Buy a new project tool",
+          "effects": [
+            {
+              "set": "cap",
+              "to": "\"tool\""
+            },
+            {
+              "set": "capAt",
+              "to": "t"
+            },
+            {
+              "add": "exec",
+              "by": "-2"
+            },
+            {
+              "log": "A tool is bought.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "A tool doesn't fix unpriced changes."
+        }
+      ]
+    },
+    "mentorPrompt": {
+      "title": "Mentoring and reviews",
+      "context": "Veterans could mentor; reviews don't mention competencies.",
+      "choices": [
+        {
+          "id": "pair",
+          "label": "Pair each project manager with a mentor, set development goals from the framework, and include them in performance reviews",
+          "effects": [
+            {
+              "set": "mentor",
+              "to": "\"pair\""
+            },
+            {
+              "set": "mentorAt",
+              "to": "t"
+            },
+            {
+              "add": "cust",
+              "by": "1"
+            },
+            {
+              "log": "Mentoring and reviews use the framework.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Mentoring paired with performance management turns a framework into growth."
+        },
+        {
+          "id": "mentorOnly",
+          "label": "Mentoring without links to reviews",
+          "effects": [
+            {
+              "set": "mentor",
+              "to": "\"mentorOnly\""
+            },
+            {
+              "set": "mentorAt",
+              "to": "t"
+            },
+            {
+              "add": "cust",
+              "by": "-1"
+            },
+            {
+              "log": "Mentoring only.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Helpful, but nothing reinforces it."
+        },
+        {
+          "id": "rank",
+          "label": "Rank project managers by the framework and publish the list",
+          "effects": [
+            {
+              "set": "mentor",
+              "to": "\"rank\""
+            },
+            {
+              "set": "mentorAt",
+              "to": "t"
+            },
+            {
+              "add": "cust",
+              "by": "-2"
+            },
+            {
+              "log": "A ranking is published.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Public ranking breeds fear and gaming, not growth."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the OPM capability plan summary for the CEO.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Assessment and framework",
+          "criteria": "Commercial gap; 70% of overruns from unpriced changes; tailored framework.",
+          "modelAnswer": "Our managers plan well but price changes poorly; 70% of overruns trace to unpriced changes. The framework is weighted to that gap."
+        },
+        {
+          "label": "Closing the gap",
+          "criteria": "Change control across people, process and tools; mentoring tied to reviews.",
+          "modelAnswer": "Change control is the priority: training, a change-order process and a change log; mentors and reviews follow the framework."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "governance",
+    "thresholds": {
+      "aboveAppetite": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No risk above appetite at the close without a treatment."
+        }
+      },
+      "supportTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Each key stakeholder at 6 of 10 or more at the close."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (frame == \"generic\") and (cap == \"training\") and (mentor == \"mentorOnly\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "PMI, PMI PMO Certified Professional (PMI-PMOCP) Examination Content Outline and Specifications, January 2025 (v2): Organizational Development and Alignment 16%, PMO Strategic Elements 18%, PMO Design and Structuring 18%, PMO Operation and Performance 15%, PMO Enhancement and Effectiveness 18%, People 15%",
+        "checkedAt": "2026-11-17",
+        "url": "https://cb405383.masteryexamprep-com.pages.dev/exams/pmi/pmocp/overview",
+        "note": "Read 2026-11-17 through a summarizing fetch of a study page (masteryexamprep, dated 2025-12-20) that cites PMI's outline of January 2025 (v2) for these weights. The page lists no task statements; it says questions reward 'governance realism: decision rights, thresholds, escalation paths, and reporting that drives decisions'. PMI's PDF (the course seed cites it) was not opened; the task wording is the course seed's, to verify. Reused for REQ-336 from this course's water-utility-rebalance-pmipmocp (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "frameHarm": {
+      "label": "No change in overruns",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and frame == \"nothing\"",
+      "narrative": "The course didn't address commercial skills; overruns continued."
+    },
+    "capHarm": {
+      "label": "A tool without a capability",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and cap == \"tool\"",
+      "narrative": "The new tool changed nothing; changes were still unpriced."
+    },
+    "mentorHarm": {
+      "label": "Talent lost",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and mentor == \"rank\"",
+      "narrative": "Public ranking drove two strong project managers to resign."
+    },
+    "target": {
+      "label": "Capability that fixes the real problem",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (frame == \"tailored\") and (cap == \"change\") and (mentor == \"pair\") and record == \"honest\" and openCount <= aboveAppetite and minSupport >= supportTarget",
+      "narrative": "Project managers grow where the organization needs them, and overruns from unpriced changes fall."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "frameHarm",
+    "capHarm",
+    "mentorHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "frameCrit",
+        "label": "Built a competency framework tailored to the organization's needs",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "frame == \"tailored\"",
+            "score": "met",
+            "why": "Tailored."
+          },
+          {
+            "when": "frame == \"generic\"",
+            "score": "partial",
+            "why": "Untargeted."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No framework."
+          }
+        ]
+      },
+      {
+        "id": "capCrit",
+        "label": "Prioritized the capability the organization needs and closed people, process and tool gaps",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "cap == \"change\"",
+            "score": "met",
+            "why": "Prioritized."
+          },
+          {
+            "when": "cap == \"training\"",
+            "score": "partial",
+            "why": "People only."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Technology only."
+          }
+        ]
+      },
+      {
+        "id": "mentorCrit",
+        "label": "Paired mentoring with performance management",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "mentor == \"pair\"",
+            "score": "met",
+            "why": "Embedded."
+          },
+          {
+            "when": "mentor == \"mentorOnly\"",
+            "score": "partial",
+            "why": "Partial."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Harmful."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(assessAt) and not isNull(causesAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(assessAt) or not isNull(causesAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 10)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Assess competencies and overrun causes first."
+      },
+      {
+        "at": "Week 1",
+        "text": "Tailor the framework to the assessed gaps."
+      },
+      {
+        "at": "Week 2",
+        "text": "Prioritize change control across people, process and tools."
+      },
+      {
+        "at": "Week 3",
+        "text": "Pair mentoring with framework-based development goals in reviews."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "frameHarm": {
+        "headline": "Tailor to the gaps",
+        "body": "Assess, then build a framework for what's missing."
+      },
+      "capHarm": {
+        "headline": "Close the real gap",
+        "body": "People, process and technology together."
+      },
+      "mentorHarm": {
+        "headline": "Develop, don't rank",
+        "body": "Mentoring and development goals in reviews."
+      },
+      "target": {
+        "headline": "Good: capability that fixes the real problem",
+        "body": "Assessed, tailored, prioritized and embedded."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Organizational project management grows from an assessment of current competencies, a framework tailored to the organization's needs, capabilities prioritized by what drives results and closed across people, process and technology, and mentoring paired with performance management rather than rankings."
+  }
+}
