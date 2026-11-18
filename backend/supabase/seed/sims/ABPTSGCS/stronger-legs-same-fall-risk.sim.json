@@ -1,0 +1,1085 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "stronger-legs-same-fall-risk",
+  "title": "Stronger legs, same fall risk",
+  "objective": "Selecting and interpreting outcome measures across impairment, activity and participation in older adults",
+  "secondaryObjectives": [
+    "Stratify falls risk with gait speed (below 0.8 m/s flags risk), or the Timed Up and Go (over 15 seconds) as a less consistent alternative",
+    "Include fear of falling (Falls Efficacy Scale or short FES-I), vision, footwear and walking-aid fit in a multifactorial falls assessment"
+  ],
+  "sources": [
+    {
+      "cite": "Specialist certification examination outline: geriatrics (the certifying board's published outline page)",
+      "checkedAt": "2026-11-08",
+      "url": "https://specialization.apta.org/become-a-specialist/geriatrics/specialist-certification-examination-outline-geriatrics",
+      "note": "Relayed from the geriatrics specialty course seed (backend/supabase/seed/tracks/pt-abpts.ts, outline pages read 2026-10-08 and 2026-11-04, OUTLINE_CHECKED_AT 2026-11-08), not re-read: Outcomes (5%) is a tested area. Scope only; no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra geriatrics specialty course catalog (backend/supabase/seed/tracks/pt-abpts.ts, track ABPTSGCS)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Montero-Odasso M, et al. World guidelines for falls prevention and management for older adults: a global initiative. Age Ageing 2022, doi:10.1093/ageing/afac205",
+      "checkedAt": "2026-11-04",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9523684/",
+      "note": "Relayed from the course seed (backend/supabase/seed/tracks/pt-abpts.ts, tag WFG; full text read 2026-11-04), not re-read: stratify falls risk with gait speed (below 0.8 m/s flags risk), or the Timed Up and Go (over 15 seconds) as a less consistent alternative; include fear of falling (Falls Efficacy Scale or short FES-I) in a multifactorial assessment (the geriatrics course objectives' wording)."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "11:00 at Mr. Petrov's home. You are the home health physical therapist. Mr. Petrov, 79, fell in the street 3 months ago. This is the last planned visit of an 8-week falls program. The referral says 'discharge when strength improves', and his sit-to-stand strength has clearly improved. His daughter says he still won't go to the shops or church on his own.",
+    "handover": [
+      "At intake: gait speed 0.62 m/s, high fear of falling on the short FES-I, five sit-to-stands in 19 seconds.",
+      "Agency policy: discharge decisions use the program's outcome set and are reported to the referring physician."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "11:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.004,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "His falls risk stays high on discharge. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.001,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The program continues on the right targets. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of discharged at risk. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The physician updated within 5 minutes of the gait speed result (agency policy: discharge decisions are reported)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min to finish the visit."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "stsAt": {
+      "type": "time",
+      "init": null
+    },
+    "gaitAt": {
+      "type": "time",
+      "init": null
+    },
+    "fesAt": {
+      "type": "time",
+      "init": null
+    },
+    "partAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "sts",
+        "gait",
+        "fes",
+        "part"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "md",
+        "dc"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "notyet",
+        "ready",
+        "tug"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "dcAt": {
+      "type": "time",
+      "init": null
+    },
+    "reviseAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(isNull(dcAt) ? 76 : 92)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(138)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.58)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (isNull(dcAt) ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Mr. Petrov, 79, last planned visit of a home falls program",
+        "presentation": "Eight weeks of strength and balance work after a fall. {not isNull(dcAt) ? \"Discharged.\" : \"\"}"
+      },
+      "vitals": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "colour": "ecg",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              105,
+              120
+            ]
+          }
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "announce": {
+            "bands": [
+              160,
+              180
+            ]
+          },
+          "colour": "art"
+        }
+      ],
+      "activity": "{not inClinic ? \"Visit over.\" : (not isNull(dcAt) ? \"Walking you to the door, quickly, without his cane.\" : \"Seated in his kitchen.\")}",
+      "measures": [
+        {
+          "id": "stsResult",
+          "label": "Sit-to-stand",
+          "result": "12 seconds, from 19.",
+          "when": "not isNull(stsAt)"
+        },
+        {
+          "id": "gaitResult",
+          "label": "Gait speed",
+          "result": "0.72 m/s, from 0.62; still below 0.8.",
+          "when": "not isNull(gaitAt)",
+          "flag": "true"
+        },
+        {
+          "id": "fesResult",
+          "label": "Fear of falling",
+          "result": "Still high concern.",
+          "when": "not isNull(fesAt)"
+        },
+        {
+          "id": "partResult",
+          "label": "Participation",
+          "result": "Hasn't been to church or the shops alone since the fall.",
+          "when": "not isNull(partAt)"
+        }
+      ],
+      "dosage": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "Physician updated with the outcome set",
+            "when": "route == \"md\""
+          },
+          {
+            "label": "Plan revised",
+            "when": "not isNull(reviseAt)"
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleGait",
+          "label": "Gait speed still below 0.8 m/s",
+          "text": "Falls risk is still flagged: the strength gain alone does not support discharge.",
+          "met": "not isNull(gaitAt) and isNull(callAt)"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "sts": {
+      "label": "Repeat the five-times sit-to-stand (impairment: leg strength)",
+      "group": "Examine",
+      "available": "not testPending and isNull(stsAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"sts\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "gait": {
+      "label": "Repeat his gait speed (activity)",
+      "group": "Examine",
+      "available": "not testPending and isNull(gaitAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"gait\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "fes": {
+      "label": "Repeat the short FES-I (fear of falling)",
+      "group": "Examine",
+      "available": "not testPending and isNull(fesAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"fes\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "part": {
+      "label": "Ask about his life outside the house (participation)",
+      "group": "Examine",
+      "available": "not testPending and isNull(partAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"part\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "dc": {
+      "label": "Discharge him as the referral says: strength has improved",
+      "group": "Treat",
+      "available": "isNull(dcAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "dcAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.6, 2)"
+        },
+        {
+          "log": "Discharged on the strength gain.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "revise": {
+      "label": "Revise the plan with him and his daughter: gait and outdoor walking practice, graded trips to church and the shops, fear-of-falling work",
+      "group": "Treat",
+      "available": "isNull(reviseAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "reviseAt",
+          "to": "t"
+        },
+        {
+          "log": "Together you set walking practice outdoors, graded trips to church with his daughter, then alone, and fear-of-falling work.",
+          "kind": "act"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Is Mr. Petrov ready for discharge?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "notyet",
+              "label": "Not yet: strength improved, but gait speed is still below 0.8 m/s, fear is high and he isn't going out, so falls risk and participation goals remain"
+            },
+            {
+              "value": "ready",
+              "label": "Yes: his strength has improved as the referral asked"
+            },
+            {
+              "value": "tug",
+              "label": "Yes, if his TUG is under 15 seconds"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"notyet\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"notyet\""
+                },
+                {
+                  "log": "Not yet.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"ready\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"ready\""
+                },
+                {
+                  "log": "Read as ready.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"tug\""
+                },
+                {
+                  "log": "Read as ready by TUG.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Report",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "md",
+              "label": "Update the referring physician: strength improved (sit-to-stand 19 to 12 s), but gait speed 0.72 m/s is still below 0.8, high fear of falling, not going out alone; request continued care with these targets"
+            },
+            {
+              "value": "dc",
+              "label": "Send the discharge summary: strength goal met"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"md\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"md\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "The physician agrees to continue the program with gait, community walking and fear-of-falling goals.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"dc\""
+                },
+                {
+                  "set": "prog",
+                  "to": "min(prog + 0.3, 2)"
+                },
+                {
+                  "log": "Discharge summary sent.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document the outcome set and the revised goals",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Outcome set, interpretation and revised goals documented.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Home visit",
+      "clock": "running",
+      "actions": [
+        "sts",
+        "gait",
+        "fes",
+        "part",
+        "dc",
+        "revise",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the test",
+      "wait": {
+        "skipLabel": "the test result"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each test or question takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"sts\"",
+              "then": [
+                {
+                  "set": "stsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Five sit-to-stands in 12 seconds, from 19 at intake: leg strength has improved.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"gait\"",
+              "then": [
+                {
+                  "set": "gaitAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Gait speed 0.72 m/s, from 0.62: better, but still below 0.8 m/s, which flags falls risk.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"fes\"",
+              "then": [
+                {
+                  "set": "fesAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Short FES-I still shows high concern about falling.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "partAt",
+                  "to": "t"
+                },
+                {
+                  "log": "He has not gone to church or the shops alone since the fall: participation is still restricted.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the end of the visit",
+      "wait": {
+        "skipLabel": "the end of the visit"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min to finish the visit."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "The visit ends with a revised plan.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "Is Mr. Petrov ready for discharge?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "Not yet: the impairment measure (sit-to-stand) improved, but at the activity level gait speed of 0.72 m/s is still below 0.8 m/s, fear of falling is high, and at the participation level he isn't going out alone.",
+          "modelAnswer": "No. His legs are stronger, but he still walks under 0.8 m/s, he's still scared of falling, and he won't go out on his own."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Revise the plan with him and his daughter around gait, community walking and fear of falling, update the physician with the full outcome set, and document.",
+          "modelAnswer": "Change the plan to walking outside and getting back to church and the shops, tell the physician the full picture, and write it up."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "spo2Floor": {
+        "value": 88,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "escalateWindow": {
+        "value": 300,
+        "source": {
+          "cite": "Unit practice (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "The physician updated within 5 minutes of the gait speed result (agency policy: discharge decisions are reported)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Discharge on strength alone with a flagged falls risk is harm here.",
+      "source": {
+        "cite": "Montero-Odasso M, et al. World guidelines for falls prevention and management for older adults: a global initiative. Age Ageing 2022, doi:10.1093/ageing/afac205",
+        "checkedAt": "2026-11-04",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9523684/",
+        "note": "Relayed from the course seed (backend/supabase/seed/tracks/pt-abpts.ts, tag WFG; full text read 2026-11-04), not re-read: stratify falls risk with gait speed (below 0.8 m/s flags risk), or the Timed Up and Go (over 15 seconds) as a less consistent alternative; include fear of falling (Falls Efficacy Scale or short FES-I) in a multifactorial assessment (the geriatrics course objectives' wording)."
+      }
+    }
+  },
+  "endings": {
+    "fall": {
+      "label": "Discharged at risk",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "He is discharged on the strength gain; walking you out quickly without his cane, he trips on the doorstep and falls."
+    },
+    "safe": {
+      "label": "Outcomes read whole",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"md\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and (not isNull(stsAt) and not isNull(gaitAt) and not isNull(partAt)) and isNull(dcAt) and (not isNull(reviseAt))",
+      "narrative": "{timeAt(leftAt)|clock}: his program continues with gait, community walking and fear-of-falling goals."
+    },
+    "safeGaps": {
+      "label": "Read, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: the plan continues, but the update was slow or a level was skipped."
+    },
+    "time_up": {
+      "label": "Undecided at 12:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "12:00 and no decision."
+    }
+  },
+  "endingOrder": [
+    "fall",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "The physician updated within 5 minutes of the gait speed result",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"md\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"md\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "setC",
+        "label": "Measured across impairment, activity and participation, not strength alone",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(stsAt) and not isNull(gaitAt) and not isNull(partAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not measured across levels."
+          }
+        ]
+      },
+      {
+        "id": "planC",
+        "label": "Revised the plan on the full picture instead of discharging on strength",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(dcAt)",
+            "score": "missed",
+            "why": "Discharged on strength."
+          },
+          {
+            "when": "not isNull(reviseAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not revised."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Repeated the fear-of-falling measure",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(fesAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Interpreted the outcome set correctly",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"notyet\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"ready\"",
+            "score": "missed",
+            "why": "An impairment gain does not mean the activity and participation goals are met."
+          },
+          {
+            "when": "dxEnum == \"tug\"",
+            "score": "missed",
+            "why": "The TUG is a less consistent alternative; gait speed is still below 0.8 m/s."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: impairment improved; activity and participation not yet; continue",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Gait speed to the update",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "11:00 to the gait speed",
+        "value": "isNull(gaitAt) ? -1 : timeAt(gaitAt)",
+        "format": "duration",
+        "expert": "under 5 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "11:00",
+        "text": "Sit-to-stand: improved."
+      },
+      {
+        "at": "~11:01",
+        "text": "Gait speed: 0.72 m/s, still below 0.8."
+      },
+      {
+        "at": "~11:02",
+        "text": "Update the physician with the full set."
+      },
+      {
+        "at": "~11:05",
+        "text": "FES-I and participation; revise the plan with him; document."
+      }
+    ],
+    "debrief": {
+      "fall": {
+        "headline": "Discharged at risk",
+        "body": "Read outcomes across impairment, activity and participation. Strength improved, but gait speed below 0.8 m/s still flags falls risk."
+      },
+      "safe": {
+        "headline": "Outcomes read whole",
+        "body": "You measured at each level, saw that gait speed still flags risk and participation lags, revised the plan with him and updated the physician within minutes. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Read, with gaps",
+        "body": "Check whether you measured at each level and how soon you reported."
+      },
+      "time_up": {
+        "headline": "Undecided at 12:00",
+        "body": "Decide on discharge in the visit."
+      }
+    },
+    "modelReasoning": "Choose outcome measures across impairment (sit-to-stand), activity (gait speed) and participation (getting to church and the shops), and read them together. A strength gain does not meet falls-prevention goals when gait speed is still below 0.8 m/s, which flags risk, and fear of falling remains high. Continue care on those targets and report the full set."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "gaitQ": {
+      "during": "leaveT",
+      "ask": "While you finish: what gait speed flags falls risk?",
+      "choices": [
+        {
+          "id": "g08",
+          "label": "Below 0.8 m/s"
+        },
+        {
+          "id": "g12",
+          "label": "Below 1.2 m/s"
+        },
+        {
+          "id": "g04",
+          "label": "Below 0.4 m/s only"
+        }
+      ],
+      "expect": "g08",
+      "explain": "Gait speed below 0.8 m/s flags falls risk.",
+      "source": {
+        "cite": "Montero-Odasso M, et al. World guidelines for falls prevention and management for older adults: a global initiative. Age Ageing 2022, doi:10.1093/ageing/afac205",
+        "checkedAt": "2026-11-04",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9523684/",
+        "note": "Relayed from the course seed (backend/supabase/seed/tracks/pt-abpts.ts, tag WFG; full text read 2026-11-04), not re-read: stratify falls risk with gait speed (below 0.8 m/s flags risk), or the Timed Up and Go (over 15 seconds) as a less consistent alternative; include fear of falling (Falls Efficacy Scale or short FES-I) in a multifactorial assessment (the geriatrics course objectives' wording)."
+      }
+    },
+    "levelQ": {
+      "during": "testT",
+      "ask": "While you measure: which of these is a participation measure for him?",
+      "choices": [
+        {
+          "id": "part",
+          "label": "Getting to church and the shops alone"
+        },
+        {
+          "id": "sts",
+          "label": "Five-times sit-to-stand"
+        },
+        {
+          "id": "gait",
+          "label": "Gait speed"
+        }
+      ],
+      "expect": "part",
+      "explain": "Sit-to-stand is impairment, gait speed is activity, and getting out into the community is participation.",
+      "source": {
+        "cite": "Ascendra geriatrics specialty course catalog (backend/supabase/seed/tracks/pt-abpts.ts, track ABPTSGCS)",
+        "checkedAt": "2026-11-17",
+        "note": "The objective and secondary objectives are the course's own titles."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}
