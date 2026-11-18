@@ -6,6 +6,7 @@ import { Loading } from "@/components/ui";
 import { useColumnScreenOptions, usePersistentSidebarWidth, useWideWeb, webColumnLayout } from "@/components/WebColumn";
 import { APP_CONTENT_ID, DesktopSidebar } from "@/components/Sidebar";
 import { Platform, StyleSheet, View } from "react-native";
+import { ReviewerFeedbackFab } from "@/components/ReviewerFab";
 
 export default function AppLayout() {
   const { status } = useAuth();
@@ -88,18 +89,33 @@ export default function AppLayout() {
       <Stack.Screen name="course/[trackId]/sim/[simId]" options={{ title: "Simulation" }} />
     </Stack>
   );
-  // Native apps: exactly as before. On the web the stack always sits in the
+  // Native apps: the stack (and, REQ-332, the reviewer gutter). On the web the stack always sits in the
   // same wrapper, so resizing the window across 900px or opening a sim (where
   // the sidebar hides) never remounts the stack and loses its history. The
   // sidebar comes first, so Tab reaches it before the header and the screen.
-  if (Platform.OS !== "web") return <BillingProvider>{stack}</BillingProvider>;
+  // REQ-332: the reviewer Feedback button, mounted once, here, under the
+  // stack in its own gutter (it renders nothing for anyone who isn't a
+  // reviewer or an owner). The wrapper is always there, so the stack never
+  // remounts when the button appears.
+  const column = (
+    <>
+      {stack}
+      <ReviewerFeedbackFab />
+    </>
+  );
+  if (Platform.OS !== "web")
+    return (
+      <BillingProvider>
+        <View style={styles.content}>{column}</View>
+      </BillingProvider>
+    );
   return (
     <BillingProvider>
       <View style={styles.row}>
         {wide ? <DesktopSidebar hidden={sidebarWidth === 0} /> : null}
         {/* The skip link's target (screens carry their own role="main"). */}
         <View style={styles.content} nativeID={wide ? APP_CONTENT_ID : undefined} tabIndex={wide ? -1 : undefined}>
-          {stack}
+          {column}
         </View>
       </View>
     </BillingProvider>

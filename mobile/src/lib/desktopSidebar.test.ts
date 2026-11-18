@@ -224,9 +224,11 @@ describe("wiring", () => {
 
   test("the signed-in layout draws the sidebar on the web only, before the stack, without remounting it", () => {
     const src = readFileSync("app/(app)/_layout.tsx", "utf8");
-    assert.match(src, /if \(Platform\.OS !== "web"\) return <BillingProvider>\{stack\}<\/BillingProvider>;/);
+    // REQ-332: native wraps the stack with the reviewer gutter (`column`), in
+    // a wrapper that is always there; the web draws the sidebar before it.
+    assert.match(src, /if \(Platform\.OS !== "web"\)\s*return \(\s*<BillingProvider>\s*<View style=\{styles\.content\}>\{column\}<\/View>\s*<\/BillingProvider>\s*\);/);
     assert.match(src, /\{wide \? <DesktopSidebar hidden=\{sidebarWidth === 0\} \/> : null\}/);
-    assert.ok(src.indexOf("<DesktopSidebar") < src.indexOf("{stack}\n"));
+    assert.ok(src.indexOf("<DesktopSidebar") < src.lastIndexOf("{column}\n"));
     assert.match(src, /useColumnScreenOptions\([\s\S]*\{ sidebar: true \}\)/);
   });
 

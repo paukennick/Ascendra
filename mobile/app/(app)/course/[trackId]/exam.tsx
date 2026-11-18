@@ -3,6 +3,7 @@ import { AccessibilityInfo, Pressable, Switch, Text, View } from "react-native";
 import Feather from "@expo/vector-icons/Feather";
 import * as Crypto from "expo-crypto";
 import { Stack, useFocusEffect, useLocalSearchParams, useNavigation } from "expo-router";
+import { useReviewerFacts } from "@/lib/reviewerFacts";
 import { useAuth } from "@/auth/AuthContext";
 import { pendingIdFor, type PendingId } from "@/lib/pendingId";
 import { api, ApiError } from "@/api/client";
@@ -69,6 +70,8 @@ export default function ExamScreen() {
   const [busy, setBusy] = useState(false);
   const [sprintTimed, setSprintTimed] = useState(true);
   const [mockTimed, setMockTimed] = useState(true);
+  // REQ-332: the question showing, for a reviewer's quick note (RunView reports it).
+  const [shownQuestion, setShownQuestion] = useState<{ question: number; count: number; position: number } | null>(null);
 
   const loadStart = useCallback(() => {
     api
@@ -126,6 +129,20 @@ export default function ExamScreen() {
 
   const title = view?.session.mode === "mock" ? "Mock exam" : view ? "Timed sprint" : "Practice exam";
 
+  // REQ-332: where a reviewer is, for the Feedback button's quick note. A
+  // practice exam's deadline is the server's: the note can't pause it and
+  // says the clock keeps running.
+  const runningExam = !!view && view.session.status !== "submitted";
+  useReviewerFacts(
+    {
+      trackId,
+      courseTitle: trackTitle ?? null,
+      exam: runningExam && shownQuestion ? { sessionId: view.session.id, question: shownQuestion.question, count: shownQuestion.count } : null,
+      item: runningExam && shownQuestion ? { kind: "exam", position: shownQuestion.position } : null,
+    },
+    runningExam && view.session.deadlineAt ? { kind: "exam", running: true } : null
+  );
+
   return (
     <Screen>
       <Stack.Screen options={{ title }} />
@@ -155,6 +172,7 @@ export default function ExamScreen() {
       ) : (
         <RunView
           view={view}
+          onShowing={setShownQuestion}
           setView={setView}
           setError={setError}
           onLeave={() => {
@@ -327,11 +345,13 @@ const ExamClock = React.memo(function ExamClock({
 
 function RunView({
   view,
+  onShowing,
   setView,
   setError,
   onLeave,
 }: {
   view: ExamSessionView;
+  onShowing: (q: { question: number; count: number; position: number } | null) => void;
   setView: (v: ExamSessionView) => void;
   setError: (e: string | null) => void;
   onLeave: () => void;
@@ -348,6 +368,11 @@ function RunView({
   const shownAt = useRef(Date.now());
   const s = view.session;
   const item = items[index];
+  const itemPosition = item?.position;
+  useEffect(() => {
+    onShowing(itemPosition !== undefined ? { question: index + 1, count: items.length, position: itemPosition } : null);
+    return () => onShowing(null);
+  }, [index, items.length, itemPosition, onShowing]);
 
   const showResults = useCallback(async () => {
     try {

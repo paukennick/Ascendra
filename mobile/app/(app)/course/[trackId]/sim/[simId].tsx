@@ -34,6 +34,7 @@ import { TabletopPanel } from "@/sim/TabletopPanel";
 import { tabletopAlarmTexts, tabletopNews, tabletopSentence, type TabletopView } from "@/sim/runtime/tabletopView.ts";
 import { ReportProblem } from "@/components/ReportProblem";
 import { GiveFeedbackButton } from "@/components/GiveFeedback";
+import { useReviewerFacts } from "@/lib/reviewerFacts";
 import { StudyShortcutArea } from "@/components/StudyShortcuts";
 import { localHash } from "@/sim/runtime/session.ts";
 import { ActionBar, ChapterCard, DebriefView, EventLog, LaunchCard, PaceControl, PromptCard, ReasoningCard, SessionPanel, SkipOffer, TeachingCard, TopologyPanel, TreatmentPanel, VitalsPanel, WaitsRow, sessionSentence, treatmentSentence } from "@/sim/SimPanels";
@@ -159,6 +160,15 @@ export default function SimScreen() {
   const teach = s && pacing && !launching && !view?.blocked ? teachOffer(s.run, pacing) : null;
   const feedback = s && sim.teachResult ? teachFeedback(s.doc, sim.teachResult.prompt, sim.teachResult.choice) : null;
   const chapter = launching ? null : sim.chapter;
+  // REQ-332: where a reviewer is, for the Feedback button's quick note: the
+  // sim and its phase (the tick and clock are read when the note opens), and
+  // the clock, which the note pauses while it is open (pausing is never scored).
+  const clockRunning = running && view?.mode === "running" && !sim.paused && !view.blocked && !launching && !chapter;
+  useReviewerFacts(
+    { trackId, sim: { id: simId, title: info?.sim.title ?? null, runId: s?.runId ?? null, phase: s ? String(s.run.state.phase) : null, phaseLabel: view?.phaseLabel ?? null } },
+    s && view?.mode === "running" && !view.ended ? { kind: "sim", running: clockRunning, pause: () => sim.pause("learner"), resume: sim.resume } : null,
+    () => (s ? { sim: { id: simId, tick: s.run.state.tick, clock: clock ? clock.text : view?.clock ?? null } } : null)
+  );
 
   return (
     <Screen>

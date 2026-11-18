@@ -11,6 +11,7 @@ import { useAuth } from "@/auth/AuthContext";
 import type { GradeResult, LessonContent, MasteryStatus, NextObjective } from "@/types";
 import { masteryAdvice, SOLO_HINT_NOTE, SOLO_OPEN_NOTE } from "@/lib/masteryAdvice";
 import { ReportProblem } from "@/components/ReportProblem";
+import { useReviewerFacts } from "@/lib/reviewerFacts";
 import { ReportLessonProblem } from "@/components/ReportLessonProblem";
 import { KeyTermsButton } from "@/components/KeyTerms";
 import { ChoiceKey, StudyShortcutArea, answerListProps } from "@/components/StudyShortcuts";
@@ -894,6 +895,16 @@ export default function LessonFlow() {
   };
 
   const headerTitle = objectiveTitle ?? "Lesson";
+  // REQ-332: where a reviewer is, for the Feedback button's quick note: the
+  // unit, the lesson (objective), its step, and the question on a practice step.
+  useReviewerFacts({
+    trackId,
+    unitId: unitId ?? null,
+    objectiveId,
+    lessonTitle: objectiveTitle ?? null,
+    lessonStage: step,
+    item: step === "fade" || step === "solo" ? { kind: "lesson", id: objectiveId } : null,
+  });
   const notYet = soloOutcome(checks.solo) === "not-yet";
   // REQ-106 (research #12): a suggestion only; the learner always chooses.
   // REQ-252: with the level-aware flow on, New sees the full worked example

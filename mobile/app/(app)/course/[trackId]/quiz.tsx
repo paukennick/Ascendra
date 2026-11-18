@@ -4,6 +4,7 @@ import Feather from "@expo/vector-icons/Feather";
 import { friendlyError } from "@/lib/errorMessage";
 import * as Crypto from "expo-crypto";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { useReviewerFacts } from "@/lib/reviewerFacts";
 import { api } from "@/api/client";
 import { ReportProblem } from "@/components/ReportProblem";
 import { StudyShortcutArea, answerListProps } from "@/components/StudyShortcuts";
@@ -85,6 +86,15 @@ export default function QuizScreen() {
     }
   }
 
+  // REQ-332: the quiz question showing, for a reviewer's quick note.
+  useReviewerFacts({
+    trackId,
+    courseTitle: trackTitle ?? null,
+    unitId: turn?.unitId ?? null,
+    objectiveId: turn?.objectiveId ?? null,
+    lessonTitle: turn?.objectiveTitle ?? null,
+    item: turn ? { kind: "quiz", id: turn.id } : null,
+  });
   const closed = turn && turn.status !== "open";
   return (
     <Screen>
