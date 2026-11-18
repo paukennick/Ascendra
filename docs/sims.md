@@ -8173,6 +8173,354 @@ counts units with a fitting objective that are some sim's main objective.
   governance board or tabletop) would vary the mechanics if more nursing
   professional-unit sims are wanted.
 
+### 22.40 Depth for the CNCF ecosystem, CompTIA, security and project-management courses (REQ-336)
+
+Nick, 2026-11-17 (19:51 PT): "Courses have no sims still ... Some still have 1
+or two. Let's build those out more robustly." The lead's robust rule: every
+unit with an objective that fits the selection rule gets a sim whose main
+objective is in that unit; at least 4 sims per course (8 at 60 objectives or
+more); purpose-written cases preferred for a course's top two domains; a unit
+where nothing fits honestly is recorded as no fit. This section covers the 41
+courses of the depth-infra-sec-pm builder (CNCF ecosystem, CompTIA and
+security, project management). Counts were recounted from the seed on
+origin/master b2c02f34 before starting, with `activeUnits` (which leaves out
+any unit with a retiredAt, so CySA+ counts only its four CS0-004 units).
+
+**What this adds.** No new screen, no migration, engine 1.2, every document
+learner-paced. New cases are review-paced: the learner moves one review on at a
+time (a ten-minute check-in on the terminal and console, a day on the service
+desk and the Sprint board, a week or a fortnight on the governance board and
+the predictive dashboard, an inject on the tabletop); before the first review
+two inspect tasks read the evidence; at each review one decision arrives as a
+prompt with three choices: one meets the criterion, one is partly right, and
+one causes harm (each harm choice has its own harm ending, ordered first).
+After the last review the learner writes the record (an honest record or a
+one-line summary) and a two-part reflection. Every case has a critical
+criterion per decision, an evidence criterion (both inspect tasks), a record
+criterion, KPIs for the screen's profile, and seven golden paths (expert;
+partly right on the first decision; partly right on the last with a one-line
+record; every decision partly right; one per harm choice), so the goldens rate
+Good, Mediocre and Bad and reach every ending but time_up. The screens are
+generated from the decisions as each screen's bindings expect: governance
+board (risks against appetite, stakeholders, docket), terminal (nodes, links
+and lines), security console (alerts, events, assets), project dashboard in
+predictive mode (SPI and CPI derived from the decisions) and Sprint mode (the
+scrum profile), tabletop (injects, roles, communications), service desk
+(tickets against the organization's priority matrix) and data console (quality
+flags and a checks table). Profiles and thresholds are each screen's default
+profile at its default thresholds. The golden steps reuse
+`scripts/sim-golden/pm2-helpers.ts`. `lib/sim/depth-isp.ts` lists every
+document by slug; `lib/sim/depth-isp.test.ts` checks registration, objectives,
+goldens, bands, the claim words, the behavior of every new case (the expert
+choices reach target with no harm; each harm choice, with every other decision
+right, reaches its own harm ending; a partly right first decision is
+recovered), the robust rule for all 41 courses, a purpose-written case in each course's top two domains (units ranked by weight, ties counted), and source quality (no non-outline source left marked to verify, apart from two NIST pages two bands inherit; every WebFetch reading has an address and a read date).
+
+Bands (4.7) register a case on another course's objective that it teaches,
+with this course's outline first. Cross-level bands, flagged as in 22.29
+finding 3: a Cilium policy case on CKS's NetworkPolicy objective, a CKS
+hardening case on KCSA's threat-model objective, a Prometheus dashboard case on
+KCNA's SLO objective, Security+ phishing and ransomware incidents on CySA+
+CS0-004 identity-indicator and contain-and-recover objectives, an ISACA-level
+tabletop on CySA+'s communication-plan objective and an ISACA-level risk exception on
+SecurityX GRC, PenTest+ scope and Security+ cloud cases on CEH, a PMI-SP Monte
+Carlo case on PMI-RMP quantitative analysis, a PMI-RMP monitoring case on PgMP
+governance, a PgMP stakeholder case on PfMP communications, a PMI-PBA change
+case and a PMI-ACP increment case on CAPM, a SecAI+ compliance case on
+PMI-CPMAI's privacy objective, and the PMP fit-out on PMI-PMOCP's People
+objective. Permission-only marks stay out of sim text (the ITIL Foundation
+cases say "service management"; the CSSGB cases name no ASQ mark; CEH cases
+name no EC-Council mark); `certMarkProblems` passes on every document.
+
+**Before and after** (sims per course by registration; objective counts from
+the seed):
+
+| Course | Objectives | Target | Sims before | Sims after | Added (scenario / band) |
+|---|---|---|---|---|---|
+| CAPA | 16 | 4 | 1 | 4 | 3 / 0 |
+| CBA | 20 | 4 | 1 | 4 | 3 / 0 |
+| CCA | 27 | 4 | 1 | 4 | 3 / 0 |
+| CGOA | 27 | 4 | 1 | 5 | 3 / 1 |
+| CKS | 28 | 4 | 1 | 4 | 2 / 1 |
+| ICA | 18 | 4 | 1 | 4 | 3 / 0 |
+| KCA | 31 | 4 | 1 | 4 | 3 / 0 |
+| OTCA | 22 | 4 | 1 | 4 | 3 / 0 |
+| PCA | 30 | 4 | 1 | 4 | 3 / 0 |
+| CKAD | 33 | 4 | 2 | 4 | 2 / 0 |
+| CNPA | 27 | 4 | 2 | 6 | 4 / 0 |
+| CNPE | 18 | 4 | 2 | 6 | 4 / 0 |
+| KCSA | 41 | 4 | 2 | 5 | 2 / 1 |
+| KCNA | 32 | 4 | 3 | 5 | 1 / 1 |
+| APLUS_CORE1 | 34 | 4 | 1 | 4 | 3 / 0 |
+| APLUS_CORE2 | 28 | 4 | 2 | 4 | 2 / 0 |
+| DATAAI | 26 | 4 | 2 | 5 | 3 / 0 |
+| PENTESTPLUS | 22 | 4 | 2 | 4 | 2 / 0 |
+| SECAIPLUS | 15 | 4 | 2 | 5 | 3 / 0 |
+| SECURITYX | 19 | 4 | 2 | 5 | 2 / 1 |
+| AUTOOPSPLUS | 14 | 4 | 3 | 6 | 3 / 0 |
+| CYSAPLUS | 56 | 4 | 3 | 9 | 3 / 3 |
+| DATAPLUS | 18 | 4 | 3 | 5 | 2 / 0 |
+| TECHPLUS | 29 | 4 | 3 | 6 | 3 / 0 |
+| LINUXFUND | 48 | 4 | 3 | 4 | 1 / 0 |
+| CEH | 35 | 4 | 3 | 7 | 2 / 2 |
+| CSPP | 21 | 4 | 1 | 4 | 3 / 0 |
+| ITIL5FND | 47 | 4 | 1 | 4 | 3 / 0 |
+| PFMP | 34 | 4 | 1 | 5 | 3 / 1 |
+| PGMP | 35 | 4 | 1 | 5 | 3 / 1 |
+| PMIPBA | 28 | 4 | 1 | 4 | 3 / 0 |
+| PMIPMOCP | 23 | 4 | 1 | 7 | 5 / 1 |
+| PMISP | 27 | 4 | 1 | 5 | 4 / 0 |
+| CSSGB | 43 | 4 | 2 | 4 | 2 / 0 |
+| PMICP | 16 | 4 | 2 | 5 | 3 / 0 |
+| PMICPMAI | 31 | 4 | 2 | 6 | 3 / 1 |
+| PMIRMP | 20 | 4 | 2 | 6 | 3 / 1 |
+| CAPM | 30 | 4 | 3 | 7 | 2 / 2 |
+| CSM | 44 | 4 | 3 | 6 | 2 / 1 |
+| PMIACP | 24 | 4 | 3 | 7 | 4 / 0 |
+| PSMI | 37 | 4 | 3 | 5 | 2 / 0 |
+
+| Course / slug | Kind | Main objective (start) |
+|---|---|---|
+| CAPA/argocd-prune-moved-database | scenario | Configure synchronization in Argo CD: manual and automated sync, prune... |
+| CAPA/rollouts-analysis-gate-passes-bad-canary | scenario | Design AnalysisTemplates and AnalysisRuns: metric providers (Prometheu... |
+| CAPA/argo-events-upload-storm | scenario | Build event flows from the Argo Events components: EventSource types (... |
+| CBA/backstage-upgrade-mismatched-packages | scenario | Download and install dependencies for a Backstage project with NPM/Yar... |
+| CBA/backstage-production-catalog-wiped | scenario | Plan and deploy Backstage to production: PostgreSQL instead of SQLite,... |
+| CBA/backstage-catalog-ingestion-gaps | scenario | Troubleshoot entity ingestion: processing errors, orphaned entities, s... |
+| CCA/cilium-default-deny-breaks-dns | scenario | Interpret Cilium network policies and their intent: endpointSelector, ... |
+| CCA/cilium-wireguard-cross-node-plaintext | scenario | Configure encryption of traffic in transit with Cilium: WireGuard and ... |
+| CCA/cluster-mesh-failover-overlapping-cidr | scenario | Configure service discovery and load balancing across clusters with Cl... |
+| CGOA/gitops-claim-review-push-pipeline | scenario | Evaluate a design against the four principles and identify which are v... |
+| CGOA/gitops-store-fleet-patterns | scenario | Architecture patterns: in-cluster versus external reconcilers, hub-and... |
+| CGOA/argocd-prune-moved-database-cgoa | band of CAPA/argocd-prune-moved-database | State drift and state reconciliation: how the actual state diverges an... |
+| CGOA/gitops-rollback-feedback-loop | scenario | Feedback loop and rollback: how observed state informs operators, and ... |
+| CKS/restricted-profile-payments-rollout | scenario | Write a hardened container securityContext: runAsNonRoot, readOnlyRoot... |
+| CKS/image-admission-unsigned-critical-cve | scenario | Secure your supply chain: permit only approved registries with admissi... |
+| CKS/cilium-default-deny-breaks-dns-cks | band of CCA/cilium-default-deny-breaks-dns | Use network security policies to restrict cluster-level access: defaul... |
+| ICA/istio-strict-mtls-allow-policy-lockout | scenario | Configure authorization with AuthorizationPolicy: ALLOW, DENY and CUST... |
+| ICA/istio-503s-stale-proxies-missing-subset | scenario | Troubleshoot configuration with istioctl analyze, istioctl x describe ... |
+| ICA/istio-canary-revision-upgrade | scenario | Plan and perform an Istio upgrade, canary (revision-based) or in-place... |
+| KCA/kyverno-webhook-timeouts-node-drain | scenario | Configure the controllers with flags and the kyverno ConfigMap: webhoo... |
+| KCA/kyverno-match-exclude-blocks-deletes | scenario | Select resources with match and exclude: kinds, names, namespaces, sel... |
+| KCA/kyverno-hostpath-exception-scope | scenario | Configure PolicyExceptions: exempting specific resources from specific... |
+| OTCA/otel-collector-oom-fanout-pii | scenario | Design pipelines: batching, retries and queues, fan-out to multiple ex... |
+| OTCA/otel-instrumentation-plan-checkout | scenario | Choose automatic (agent and library) versus manual instrumentation for... |
+| OTCA/otel-missing-traces-pipeline-debug | scenario | Debugging pipelines: the debug exporter, Collector internal telemetry ... |
+| PCA/prometheus-relabel-drops-targets-cardinality | scenario | Configuration and scraping: prometheus.yml global settings, scrape_con... |
+| PCA/checkout-dashboard-misleading-latency-alert | scenario | Design dashboards: panels that match the metric type, rate windows, un... |
+| PCA/metrics-naming-route-label-review | scenario | Structuring and naming metrics: the _total, _seconds and _bytes conven... |
+| CKAD/quota-rejects-new-pods-oomkilled | scenario | Understand requests, limits and quotas: how ResourceQuota and LimitRan... |
+| CKAD/stuck-rollout-helm-upgrade-failed | scenario | Understand Deployments and perform rolling updates and rollbacks: stra... |
+| CNPA/platform-ingress-outage-tabletop | scenario | Plan incident response in platform engineering: on-call for the platfo... |
+| CNPA/platform-metrics-dora-review | scenario | Measure platform initiatives with DORA metrics: deployment frequency, ... |
+| CNPA/platform-as-product-golden-path | scenario | Platform engineering goals, objectives and approaches: reducing cognit... |
+| CNPA/platform-pipeline-supply-chain | scenario | Secure CI/CD pipelines: supply chain controls, signed artifacts, SBOMs... |
+| CNPE/opencost-rightsizing-review | scenario | Use cost management solutions for right-sizing and scaling: OpenCost a... |
+| CNPE/platform-deploys-failing-webhook-quota | scenario | Diagnose and remediate platform issues and incident scenarios: from al... |
+| CNPE/crossplane-database-claim-api | scenario | Design and create CustomResourceDefinitions for platform services: Ope... |
+| CNPE/tekton-pipeline-updates-git | scenario | Build and configure CI/CD pipelines integrated with Kubernetes: Tekton... |
+| KCSA/secret-read-by-unknown-serviceaccount | scenario | Audit logging: audit stages and levels, writing a policy, what to log ... |
+| KCSA/restricted-profile-payments-rollout-kcsa | band of CKS/restricted-profile-payments-rollout | Malicious code execution and compromised applications in containers: w... |
+| KCSA/kubelet-anonymous-alwaysallow | scenario | Kubelet security: the 10250 API, anonymous authentication and Webhook ... |
+| KCNA/checkout-dashboard-misleading-latency-alert-kcna | band of PCA/checkout-dashboard-misleading-latency-alert | Observability: designing SLIs, SLOs and alerts, and the difference bet... |
+| KCNA/pending-pods-requests-taints-selectors | scenario | Scheduling: how kube-scheduler filters and scores nodes using resource... |
+| APLUS_CORE1/office-server-raid-psu-printer | scenario | Installing and configuring storage devices: SATA and NVMe SSDs, HDDs, ... |
+| APLUS_CORE1/soho-router-forwarding-guest-wifi | scenario | Configuring a SOHO network: static vs. DHCP addressing, NAT, firewall ... |
+| APLUS_CORE1/developer-vm-resources-host-starved | scenario | Configuring and troubleshooting resource allocation for a client-side ... |
+| APLUS_CORE2/windows-update-failure-restore-backup | scenario | Configuring and troubleshooting Windows Update, backup, and system res... |
+| APLUS_CORE2/laptop-bitlocker-uac-firewall | scenario | Configuring Windows security settings: Windows Defender/Firewall, BitL... |
+| DATAAI/churn-model-selection-leakage | scenario | Analyzing experiment and testing results to justify a final model reco... |
+| DATAAI/pricing-ab-test-significance | scenario | Temporal models compared and contrasted: time series (AR, MA, ARIMA), ... |
+| DATAAI/loan-default-trees-forest-boosting | scenario | Tree-based supervised machine-learning concepts: decision trees, rando... |
+| PENTESTPLUS/pentest-password-spray-lockouts | scenario | Password attacks: cracking, spraying, credential stuffing concepts... |
+| PENTESTPLUS/pentest-recon-ot-printer-scope | scenario | Active reconnaissance: port scanning, service enumeration with Nmap... |
+| SECAIPLUS/ai-hiring-screener-compliance | scenario | The impact of compliance on AI business use and development: the EU AI... |
+| SECAIPLUS/ai-claims-model-lifecycle-security | scenario | The importance of security throughout the AI life cycle: business use-... |
+| SECAIPLUS/ai-assistant-soc-triage-guardrails | scenario | Using AI to automate security tasks: low-code/no-code scripting, AI-as... |
+| SECURITYX/risk-appetite-exception-securityx | band of CISM/cism-risk-appetite-exception | Enterprise risk management frameworks and risk treatment strategies... |
+| SECURITYX/threat-intel-campaign-enterprise-hunt | scenario | Enterprise-scale threat management and threat intelligence integration... |
+| SECURITYX/devsecops-pipeline-iot-fleet-crypto | scenario | Secure software development lifecycle and DevSecOps integration... |
+| AUTOOPSPLUS/pipeline-blue-green-slo-iam | scenario | Continuous delivery techniques: canary, blue-green, rolling, and in-pl... |
+| AUTOOPSPLUS/shared-repo-revert-semver-hotfix | scenario | Source control practices: Git remote/local operations, branching strat... |
+| AUTOOPSPLUS/terraform-drift-state-lock | scenario | Configuration management techniques: drift detection, remediation, and... |
+| CYSAPLUS/phish-to-account-takeover-cysa | band of SECPLUS/phish-to-account-takeover | Given a scenario, analyze identity-based indicators (IAM account compr... |
+| CYSAPLUS/ransomware-file-server-cysa | band of SECPLUS/ransomware-file-server | Given a scenario, contain and recover: isolating affected targets, rem... |
+| CYSAPLUS/ransomware-tabletop-cysa | band of CISM/cism-ransomware-tabletop | Communication plan (stakeholder identification, legal team, public rel... |
+| CYSAPLUS/container-cve-compensating-controls | scenario | Mitigation strategies (attack surface management, secure coding best p... |
+| CYSAPLUS/vuln-reporting-kpis-inhibitors | scenario | Vulnerability scan reports, compliance findings, and risk scorecards -... |
+| CYSAPLUS/network-indicators-rogue-scan-beacon | scenario | Given a scenario, analyze network-related indicators: rogue devices, e... |
+| DATAPLUS/branch-sales-merge-duplicates-outliers | scenario | Exploration: finding missing values, duplication, redundancy, and outl... |
+| DATAPLUS/delivery-times-skew-rates-correlation | scenario | Applying basic statistical techniques to data... |
+| TECHPLUS/browser-passwords-ai-assistant-help | scenario | Web browser features: private browsing, add-ons, password management, ... |
+| TECHPLUS/office-wifi-printer-new-ap | scenario | Wireless networks: 802.11 standards, speed, and interference considera... |
+| TECHPLUS/laptop-hotel-wifi-phones-encryption | scenario | Encryption: data at rest, data in transit, HTTPS, VPNs, and mobile dev... |
+| LINUXFUND/ssh-keys-listening-port-copy | scenario | Configure key-based SSH login with ssh-keygen and ssh-copy-id... |
+| CEH/pentest-scope-boundary-ceh | band of PENTESTPLUS/pentest-scope-boundary | Distinguish ethical hacking from attacking: written authorization, sco... |
+| CEH/cloud-iam-backdoor-ceh | band of SECPLUS/cloud-iam-backdoor | Analyze cloud threats and cloud hacking techniques, and apply cloud se... |
+| CEH/weak-crypto-findings-legacy-portal | scenario | Recognize cryptanalysis and cryptographic attacks, and choose counterm... |
+| CEH/authorized-recon-osint-exposure | scenario | Plan passive footprinting with search engines, web services, social ne... |
+| CSPP/cspp-flood-resilient-clinic | scenario | Defining sustainability, regeneration, and resilience in project envir... |
+| CSPP/cspp-prism-solar-farm-lifecycle | scenario | Applying PRiSM life cycle phases to a scenario: staffing, deliverables... |
+| CSPP/cspp-highway-sustainability-plan-bribery | scenario | Evaluating aspects of a Sustainability Management Plan against a scena... |
+| ITIL5FND/payroll-service-utility-warranty-sla | scenario | Analyzing a service description for its utility, warranty, user experi... |
+| ITIL5FND/hr-portal-rollout-four-dimensions | scenario | Analyzing a failed rollout for the dimension that was neglected... |
+| ITIL5FND/booking-service-lifecycle-activities | scenario | Planning how a new digital service moves through the lifecycle activit... |
+| PFMP/pfmp-bank-portfolio-escalation | scenario | Managing and escalating issues to appropriate decision-makers for time... |
+| PFMP/pfmp-council-portfolio-risk-reserve | scenario | Recommending and obtaining approval for a portfolio management reserve... |
+| PFMP/pfmp-university-portfolio-plan | scenario | Building a portfolio management plan covering roles, escalation proced... |
+| PFMP/pgmp-hospital-stakeholder-risks-pfmp | band of PGMP/pgmp-hospital-stakeholder-risks | Analyzing internal and external stakeholders (meetings, interviews, su... |
+| PGMP/airport-baggage-residual-secondary-risks-pgmp | band of PMIRMP/airport-baggage-residual-secondary-risks | Regularly evaluating new and existing risks against strategic objectiv... |
+| PGMP/pgmp-hospital-stakeholder-risks | scenario | Evaluating stakeholder-identified risks and incorporating them into th... |
+| PGMP/pgmp-ports-business-case-alignment | scenario | Assessing initial program objectives, requirements, and risks against ... |
+| PGMP/pgmp-benefits-sustainment-transition | scenario | Building a sustainment plan (processes, metrics, tools) so benefits co... |
+| PMIPBA/pba-requirement-change-impact | scenario | Managing requirement changes by assessing impact, dependencies, and ri... |
+| PMIPBA/pba-deployed-solution-evaluation | scenario | Evaluating the deployed solution against the original business case an... |
+| PMIPBA/pba-requirements-management-plan | scenario | Developing a requirements management plan: stakeholders, roles/respons... |
+| PMIPMOCP/pmo-service-catalog-slas | scenario | Designing and implementing PMO services: a needs assessment, a service... |
+| PMIPMOCP/pmo-phased-service-rollout | scenario | Managing PMO services in production: phased rollout for high-impact se... |
+| PMIPMOCP/pmo-opm-competency-framework | scenario | Elevating organizational project management (OPM): assessing current c... |
+| PMIPMOCP/pmo-team-competency-kpis | scenario | Assessing and improving PMO team competencies: a role-specific compete... |
+| PMIPMOCP/clinic-fitout-schedule-variance-pmocp | band of PMP/pmp-clinic-fitout-schedule-variance | Leveraging technical skills to deliver results: process optimization, ... |
+| PMIPMOCP/pmo-mandate-charter-sponsor | scenario | Stewarding the PMO mandate: defining scope and authority, drafting a P... |
+| PMISP/hospital-wing-monte-carlo-milestone | scenario | Performing schedule risk analysis (what-if scenarios, Monte Carlo simu... |
+| PMISP/data-center-schedule-plan-integration | scenario | Integrating scheduling-related components into the broader project man... |
+| PMISP/schedule-status-to-steering-committee | scenario | Providing verbal/written schedule status updates and corrective-action... |
+| PMISP/approved-mitigations-schedule-baseline | scenario | Incorporating approved risk-mitigation activities into the schedule un... |
+| CSSGB/define-charter-dpmo-claims | scenario | Writing a project charter: problem statement, scope, primary and conse... |
+| CSSGB/fmea-dispatch-takt-lean | scenario | Building a basic FMEA and calculating and interpreting risk priority n... |
+| PMICP/school-build-change-orders | scenario | Building and managing a change-order process: timing it appropriately ... |
+| PMICP/school-build-stakeholders-culture | scenario | Managing stakeholders effectively: identifying and assessing stakehold... |
+| PMICP/transit-depot-interface-points | scenario | Implementing interface management: planning interface points (IPs) acr... |
+| PMICPMAI/ai-triage-feasibility-risk | scenario | Evaluating initial AI feasibility: technical viability, data availabil... |
+| PMICPMAI/ai-model-selection-interpretability | scenario | Overseeing AI/ML model technique and algorithm selection: supervised/u... |
+| PMICPMAI/ai-hiring-screener-compliance-cpmai | band of SECAIPLUS/ai-hiring-screener-compliance | Overseeing a privacy and security plan: PII governance protocols, encr... |
+| PMICPMAI/returns-forecast-data-readiness | scenario | Determining whether available data meets solution needs, and conveying... |
+| PMIRMP/rail-signalling-risk-plan | scenario | Documenting a risk management plan: roles/responsibilities (RACI), a r... |
+| PMIRMP/airport-baggage-residual-secondary-risks | scenario | Monitoring residual and secondary risks resulting from implemented res... |
+| PMIRMP/hospital-wing-monte-carlo-milestone-rmp | band of PMISP/hospital-wing-monte-carlo-milestone | Performing quantitative analysis: sensitivity analysis (Monte Carlo, d... |
+| PMIRMP/stadium-roof-qualitative-analysis | scenario | Performing qualitative analysis: classifying risks in an RBS, applying... |
+| CAPM/increment-goal-early-feedback-pilot-capm | band of PMIACP/increment-goal-early-feedback-pilot | Preparing and executing task-management steps: interpreting success cr... |
+| CAPM/pba-requirement-change-impact-capm | band of PMIPBA/pba-requirement-change-impact | Using a requirements traceability matrix or product backlog... |
+| CAPM/community-center-issue-risk-scope | scenario | Telling apart an issue, a risk, an assumption, and a constraint, and r... |
+| CAPM/library-app-requirements-techniques | scenario | Matching a requirements-gathering technique to a scenario: user storie... |
+| CSM/po-delegates-backlog-to-analyst-csm | band of PSMI/po-delegates-backlog-to-analyst | Deciding who stays accountable when the Product Owner delegates Produc... |
+| CSM/sprint-review-demo-to-working-session | scenario | Running a Sprint Review as a working session with stakeholders that ca... |
+| CSM/undone-work-end-of-sprint | scenario | Deciding what happens to work that does not meet the Definition of Don... |
+| PMIACP/agile-team-conflict-root-cause | scenario | Facilitating conflict management: identifying a conflict's root cause ... |
+| PMIACP/increment-goal-early-feedback-pilot | scenario | Managing increments: aligning each increment to business priorities, d... |
+| PMIACP/blameless-retro-psychological-safety | scenario | Fostering psychological safety: promoting a no-blame culture, encourag... |
+| PMIACP/wip-limits-flow-interruptions | scenario | Optimizing flow: limiting work in progress at every level, shielding t... |
+| PSMI/po-delegates-backlog-to-analyst | scenario | Deciding who stays accountable when the Product Owner delegates Produc... |
+| PSMI/scrum-master-task-assigner-status-daily | scenario | Recognizing Scrum anti-patterns -- the Scrum Master as task assigner, ... |
+
+**Units with a fitting objective.** Every unit of these 41 courses with an
+objective that fits the selection rule now has a sim whose main objective is in
+it (`depth-isp.test.ts`, "the robust rule"); no unit is recorded as no fit.
+
+**Top two domains.** Every top-two domain now has a purpose-written case. The
+first pass covered the domains that had no sim at all (CNPE Platform APIs,
+SecAI+ AI-assisted Security, SecurityX Security Engineering, CEH
+Reconnaissance); KCA and CKAD's ties at the second weight have one in a tied
+domain. A second pass (the lead's follow-up the same evening) added 24 cases for
+the top-two units that had only band coverage, one per unit, with the bands
+kept as extra coverage: CGOA GitOps Terminology (rollback as a change to desired
+state, the feedback loop, what continuous means); CNPA Core Fundamentals
+(platform as a product, an optional golden path, product measures) and
+Observability, Security and Conformance (OIDC pipeline identity, signed
+provenance verified at admission, SBOM attestations); CNPE GitOps and CD (a
+Tekton pipeline that updates Git, runAfter and workspaces, finally tasks); KCSA
+Cluster Component Security (kubelet anonymous access, Webhook authorization,
+least-privilege monitoring); KCNA Kubernetes Fundamentals (Pending Pods:
+requests, taints and tolerations, node selectors); AutoOps+ Coding (git
+revert, semantic versioning, hotfix branches) and System Configuration
+(Terraform drift, state locking, remote state); CySA+ Security Operations
+(rogue device, enumeration, a beacon on an unexpected port); DataAI Machine
+Learning (random forest, early stopping, permutation importance); Data+ Data
+Analysis (median for skewed data, rates, correlation versus cause); Tech+
+Infrastructure (Wi-Fi survey, wired fixed devices, a current WPA3 access
+point) and Security (encryption at rest, in transit and on phones); PMI-PMOCP
+Strategic Elements (mandate, charter, sponsor); PMI-SP Monitoring and
+Controlling (approved mitigations by change request, a new baseline, honest
+variance); PMI-CP Contracts (interface points, classification, settlement);
+PMI-CPMAI Data Needs (readiness against need, a phased plan, business terms);
+PMI-RMP Risk Analysis (RBS, agreed matrix, urgency); CAPM Fundamentals (issue,
+risk, assumption, constraint; scope gaps) and Business Analysis (workshop,
+observation, survey and user stories); CSM Events (a Sprint Review as a working
+session) and Artifacts (undone work at Sprint end); PMI-ACP Mindset
+(psychological safety) and Delivery (WIP limits, interruptions, flow metrics).
+Tech+ Security's and the PM courses' second units counted separately, so the
+lead's 18 named domains are 24 units. Linux Fundamentals has no unit weights.
+
+**Sources** (read 2026-11-17). Each case's first source is its course's
+outline. CBA, KCA, CCA, CNPE and ICA outlines were re-read today on the
+certification bodies' pages (WebFetch); the others reuse the reading the
+course's earlier sims cite, with its date. Every fact a technical case's
+scoring depends on (a command, flag, field or behavior) now cites the primary
+page, read with WebFetch at a URL that came up in WebSearch, and the
+third-party listings marked "to verify" were dropped: Argo CD (Sync Options,
+Sync Phases and Waves, Automated Sync Policy, Diffing, notification triggers),
+Argo Rollouts (Analysis), Argo Events (data filters, parameterization,
+JetStream EventBus), Backstage (Keeping Backstage Updated, Database,
+Composability, Life of an Entity, GitHub Discovery), Cilium (DNS-based
+policies, WireGuard, Gateway API, Cluster Mesh setup, Global Services, Service
+Affinity), Istio (AuthorizationPolicy reference, mTLS migration, proxy-status,
+IST0101, canary upgrades), Kyverno (High Availability, Installation,
+Troubleshooting 1.15, Policy Settings 1.12, Selecting Resources, Policy
+Exceptions), OpenTelemetry (memory_limiter, exporterhelper, Resiliency,
+Internal telemetry, Troubleshooting, attributes processor, Java and Python
+zero-code, context propagation, HTTP semantic conventions), Prometheus
+(Configuration, naming, histograms), Grafana ($__rate_interval), Google SRE
+(Alerting on SLOs, Postmortem Culture), kubernetes.io (Resource Quotas, Pod QoS,
+Assign Memory, rolling updates, Pod Security Admission and Standards, namespace
+labels, Secrets good practices, Validating Admission Policy, Auditing,
+encryption at rest, VPA, priority and preemption, kubelet authn/authz,
+scheduling, taints), Helm (rollback, upgrade), Sigstore policy-controller,
+Trivy, Syft, Tekton, OpenGitOps, CNCF Platforms white paper and Maturity
+Model, DORA metrics, OpenCost specification, SLSA levels, GitHub OIDC,
+semver.org, git-revert, Terraform (state locking, refresh-only), scikit-learn
+ensembles, the NIST/SEMATECH e-Handbook and the Wi-Fi Alliance WPA3 overview.
+Every case also cites the author's scenario figures (fictional organizations
+and teaching figures). PMI, service-management, quality and most CompTIA
+cases rest on the course outlines and the author's scenarios.
+
+**Corrections from the primary pages.** Five cases changed where the primary
+page contradicted them: Kyverno's match without an operations list covers only
+CREATE and UPDATE, so the KCA case's policy now lists DELETE explicitly;
+Backstage removes orphaned entities by default, so the CBA case's config sets
+orphanStrategy: keep; Cilium verifies WireGuard with cilium-dbg status and a
+capture on cilium_wg0, so the CCA case's commands match; DORA's current model
+names failed deployment recovery time and adds rework rate, now in the CNPA
+case; and the CKAD case no longer says a Helm rollback is a new revision,
+which the helm rollback page does not state. Two unverifiable details were
+removed rather than kept: Kyverno image-verification caching (the KCA case)
+and STALE proxies meaning an overloaded istiod (the ICA case now cites the
+istiod memory evidence in its own log).
+
+**Still marked to verify** (not reachable with the tools here, listed for a
+later pass): the PMI outlines for PMI-PMOCP, PMI-CPMAI, PgMP, PMI-PBA and
+PMI-CP (no pmi.org page came up in search; the cited copies stay marked), the
+CompTIA A+ Core 2 page and the Tech+ FC0-U71 PDF, and NIST SP 800-61r3 and SP
+800-84 (inherited by two bands from other builders' bases); their fetches were
+blocked when a permission prompt went unanswered. Also blocked and not needed
+after other primary pages covered the facts: the OpenGitOps glossary on
+GitHub, prometheus.io's alerting practices page and Kyverno's 1.18
+verify-images page.
+
+**Findings for Nick** (no code defect, so no FAIL entry):
+
+1. **CySA+ sims are on CS0-004 objectives only.** The CS0-003 units carry
+   retiredAt 2026-12-23 and the app lists them until then, but `activeUnits`
+   (the robust rule's count) already leaves them out, so every CySA+ sim here
+   teaches a CS0-004 objective. A learner still sitting CS0-003 before
+   2026-12-22 sees these sims under the V4 units only.
+2. **Cross-level bands** as listed above; each teaches the band's objective, at
+   the base's level.
+3. **Decision cases on technical screens.** The CNCF cases put decisions on the
+   terminal as prompts after inspect commands, not as typed command sequences
+   like 22.10's outages. They teach the configuration decisions the objectives
+   name; hands-on command drills would need command-driven cases (a later
+   round).
+
 ### 22.41 Mental health depth of the 2026-11-17 round (REQ-337, depth-mh)
 
 Nick (2026-11-17, 19:51 PT): "Courses have no sims still ... Some still have 1 or two. Let's build those out more robustly." Scope: EPPP, NCE, the Washington psychology jurisprudence course, and NCMHCE and the two ASWB courses where under the target. Target (round-1117b): a sim whose main objective is in every unit that has a fitting objective; at least 4 sims under 60 objectives, 8 at 60 or more; heaviest units first; purpose-written cases for a course's top two domains; a unit with nothing that honestly fits is recorded as no fit.

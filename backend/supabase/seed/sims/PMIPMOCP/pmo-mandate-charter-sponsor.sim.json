@@ -1,0 +1,1090 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pmo-mandate-charter-sponsor",
+  "title": "A PMO nobody asked for: its scope and authority, a charter, and a sponsor who means it",
+  "screen": {
+    "type": "governance-board",
+    "level": 1,
+    "governance": {
+      "risks": [
+        {
+          "id": "rScope",
+          "label": "PMO authority undefined",
+          "spokenLabel": "PMO authority undefined",
+          "owner": "\"PMO lead\"",
+          "rating": "scope == \"decisionRights\" ? \"low\" : scope == \"advisory\" ? \"medium\" : scope == \"everything\" ? \"critical\" : p >= 1 ? \"high\" : \"medium\"",
+          "appetite": "scope == \"decisionRights\" ? \"within\" : scope == \"advisory\" ? \"within\" : scope == \"everything\" ? \"above\" : p >= 1 ? \"above\" : \"within\"",
+          "status": "{scope == \"decisionRights\" ? \"Scope and decision rights defined\" : scope == \"advisory\" ? \"Advisory only\" : scope == \"everything\" ? \"Total control\" : \"Open\"}"
+        },
+        {
+          "id": "rCharter",
+          "label": "PMO purpose unclear",
+          "spokenLabel": "PMO purpose unclear",
+          "owner": "\"PMO lead\"",
+          "rating": "charter == \"fullCharter\" ? \"low\" : charter == \"template\" ? \"medium\" : charter == \"noCharter\" ? \"critical\" : p >= 2 ? \"high\" : \"medium\"",
+          "appetite": "charter == \"fullCharter\" ? \"within\" : charter == \"template\" ? \"within\" : charter == \"noCharter\" ? \"above\" : p >= 2 ? \"above\" : \"within\"",
+          "status": "{charter == \"fullCharter\" ? \"Complete, agreed charter\" : charter == \"template\" ? \"Generic template\" : charter == \"noCharter\" ? \"Reports without a charter\" : \"Open\"}"
+        },
+        {
+          "id": "rSponsor",
+          "label": "No executive backing",
+          "spokenLabel": "No executive backing",
+          "owner": "\"PMO lead\"",
+          "rating": "sponsor == \"activeSponsor\" ? \"low\" : sponsor == \"emailOnly\" ? \"medium\" : sponsor == \"noSponsor\" ? \"critical\" : p >= 3 ? \"high\" : \"medium\"",
+          "appetite": "sponsor == \"activeSponsor\" ? \"within\" : sponsor == \"emailOnly\" ? \"within\" : sponsor == \"noSponsor\" ? \"above\" : p >= 3 ? \"above\" : \"within\"",
+          "status": "{sponsor == \"activeSponsor\" ? \"Active, visible sponsor\" : sponsor == \"emailOnly\" ? \"One supportive email\" : sponsor == \"noSponsor\" ? \"No sponsor\" : \"Open\"}"
+        }
+      ],
+      "stakeholders": [
+        {
+          "id": "sExec",
+          "label": "Executive sponsor",
+          "spokenLabel": "the executive sponsor's support",
+          "value": "exec",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sBu",
+          "label": "Business unit heads",
+          "spokenLabel": "the business unit heads' support",
+          "value": "bu",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sPms",
+          "label": "Project managers",
+          "spokenLabel": "the project managers' support",
+          "value": "pms",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "docket": [
+        {
+          "id": "dScope",
+          "kind": "Mandate",
+          "label": "Week 1: scope and authority",
+          "status": "{scope == \"decisionRights\" ? \"Scope and decision rights defined\" : scope == \"advisory\" ? \"Advisory only\" : scope == \"everything\" ? \"Total control\" : \"Due\"}",
+          "when": "p >= 1",
+          "flag": "p >= 1 and scope == \"none\""
+        },
+        {
+          "id": "dCharter",
+          "kind": "Charter",
+          "label": "Week 2: PMO charter",
+          "status": "{charter == \"fullCharter\" ? \"Complete, agreed charter\" : charter == \"template\" ? \"Generic template\" : charter == \"noCharter\" ? \"Reports without a charter\" : \"Due\"}",
+          "when": "p >= 2",
+          "flag": "p >= 2 and charter == \"none\""
+        },
+        {
+          "id": "dSponsor",
+          "kind": "Sponsorship",
+          "label": "Week 3: executive sponsor",
+          "status": "{sponsor == \"activeSponsor\" ? \"Active, visible sponsor\" : sponsor == \"emailOnly\" ? \"One supportive email\" : sponsor == \"noSponsor\" ? \"No sponsor\" : \"Due\"}",
+          "when": "p >= 3",
+          "flag": "p >= 3 and sponsor == \"none\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Week",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Stewarding the PMO mandate: defining scope and authority, drafting a PMO charter, and securing executive sponsorship",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "PMI, PMI PMO Certified Professional (PMI-PMOCP) Examination Content Outline and Specifications, January 2025 (v2): Organizational Development and Alignment 16%, PMO Strategic Elements 18%, PMO Design and Structuring 18%, PMO Operation and Performance 15%, PMO Enhancement and Effectiveness 18%, People 15%",
+      "checkedAt": "2026-11-17",
+      "url": "https://cb405383.masteryexamprep-com.pages.dev/exams/pmi/pmocp/overview",
+      "note": "Read 2026-11-17 through a summarizing fetch of a study page (masteryexamprep, dated 2025-12-20) that cites PMI's outline of January 2025 (v2) for these weights. The page lists no task statements; it says questions reward 'governance realism: decision rights, thresholds, escalation paths, and reporting that drives decisions'. PMI's PDF (the course seed cites it) was not opened; the task wording is the course seed's, to verify. Reused for REQ-336 from this course's water-utility-rebalance-pmipmocp (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the projects and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You have been appointed to set up a PMO at Ashcombe Engineering, a fictional engineering firm with 60 projects across four business units. The last PMO was disbanded after a year as 'a reporting office'.",
+    "handover": [
+      "The COO approved a PMO budget but has not said what it may decide.",
+      "Business unit heads expect another reporting burden."
+    ],
+    "howItWorks": [
+      "The board shows the risk register against the appetite, each stakeholder's support in words and the docket.",
+      "Move on a week at a time. A decision comes to you at each review; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-01-18T09:00",
+    "tick": "1d",
+    "maxDuration": "84d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "exec": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "bu": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "pms": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "scope": {
+      "type": "enum",
+      "values": [
+        "none",
+        "decisionRights",
+        "advisory",
+        "everything"
+      ],
+      "init": "none"
+    },
+    "scopeAt": {
+      "type": "time",
+      "init": null
+    },
+    "charter": {
+      "type": "enum",
+      "values": [
+        "none",
+        "fullCharter",
+        "template",
+        "noCharter"
+      ],
+      "init": "none"
+    },
+    "charterAt": {
+      "type": "time",
+      "init": null
+    },
+    "sponsor": {
+      "type": "enum",
+      "values": [
+        "none",
+        "activeSponsor",
+        "emailOnly",
+        "noSponsor"
+      ],
+      "init": "none"
+    },
+    "sponsorAt": {
+      "type": "time",
+      "init": null
+    },
+    "historyAt": {
+      "type": "time",
+      "init": null
+    },
+    "busAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(exec, bu), pms)"
+    },
+    "missCount": {
+      "expr": "((scope == \"everything\") ? 1 : 0) + ((charter == \"noCharter\") ? 1 : 0) + ((sponsor == \"noSponsor\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(scope == \"none\" or (scope == \"everything\") ? 1 : 0) + (charter == \"none\" or (charter == \"noCharter\") ? 1 : 0) + (sponsor == \"none\" or (sponsor == \"noSponsor\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Mandate reviews",
+      "clock": "turns",
+      "actions": [
+        "history",
+        "bus"
+      ]
+    },
+    "close": {
+      "label": "PMO charter",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "history": {
+      "label": "Read why the last PMO was disbanded",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(historyAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "historyAt",
+          "to": "t"
+        },
+        {
+          "log": "Read why the last PMO was disbanded.",
+          "kind": "act"
+        },
+        {
+          "finding": "It had no defined authority, collected status reports nobody used and had no sponsor after its first quarter."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "bus": {
+      "label": "Interview the four business unit heads",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(busAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "busAt",
+          "to": "t"
+        },
+        {
+          "log": "Interview the four business unit heads.",
+          "kind": "act"
+        },
+        {
+          "finding": "They want help with resource conflicts and late projects, not more reports."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Scope and decision rights defined, an agreed charter, and the COO as active sponsor"
+                },
+                {
+                  "value": "summary",
+                  "label": "Mandate set"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next review",
+      "wait": {
+        "skipLabel": "Go to the next review"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "scope == \"everything\"",
+              "then": [
+                {
+                  "log": "Week 2: two business unit heads refuse to share plans; the COO is drawn into a turf dispute.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "charter == \"noCharter\"",
+              "then": [
+                {
+                  "log": "Week 3: project managers ignore the report requests; the COO asks what the PMO is for.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "sponsor == \"noSponsor\"",
+              "then": [
+                {
+                  "log": "Week 4: a business unit overrides the PMO's resource decision; nobody senior backs the PMO.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "7d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The mandate review closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "7d"
+        }
+      ]
+    },
+    {
+      "id": "t_scope",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 1: what the PMO may decide.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "scopePrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_charter",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 2: the charter.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "charterPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_sponsor",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 3: the COO.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "sponsorPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "scopePrompt": {
+      "title": "A PMO without defined authority",
+      "context": "The COO says 'just make projects better'.",
+      "choices": [
+        {
+          "id": "decisionRights",
+          "label": "Define scope (the 60 projects above a size threshold) and decision rights: the PMO sets methods and arbitrates cross-unit resource conflicts; business units keep delivery decisions",
+          "effects": [
+            {
+              "set": "scope",
+              "to": "\"decisionRights\""
+            },
+            {
+              "set": "scopeAt",
+              "to": "t"
+            },
+            {
+              "add": "bu",
+              "by": "1"
+            },
+            {
+              "log": "Scope and rights are written down.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A PMO mandate states what it covers and what it may decide; without that, it becomes a reporting office."
+        },
+        {
+          "id": "advisory",
+          "label": "Make the PMO advisory only, with no decisions",
+          "effects": [
+            {
+              "set": "scope",
+              "to": "\"advisory\""
+            },
+            {
+              "set": "scopeAt",
+              "to": "t"
+            },
+            {
+              "add": "bu",
+              "by": "-1"
+            },
+            {
+              "log": "The PMO advises.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "It can help, but cannot settle the resource conflicts the units asked for."
+        },
+        {
+          "id": "everything",
+          "label": "Give the PMO authority over every project decision",
+          "effects": [
+            {
+              "set": "scope",
+              "to": "\"everything\""
+            },
+            {
+              "set": "scopeAt",
+              "to": "t"
+            },
+            {
+              "add": "bu",
+              "by": "-2"
+            },
+            {
+              "log": "The PMO controls all projects.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The units lose delivery decisions and resist the PMO from day one."
+        }
+      ]
+    },
+    "charterPrompt": {
+      "title": "What the charter says",
+      "context": "The COO wants a charter by month end.",
+      "choices": [
+        {
+          "id": "fullCharter",
+          "label": "Draft a charter with purpose, services (resource arbitration, delivery support), authority, success measures and a six-month review, agreed with the business units",
+          "effects": [
+            {
+              "set": "charter",
+              "to": "\"fullCharter\""
+            },
+            {
+              "set": "charterAt",
+              "to": "t"
+            },
+            {
+              "add": "pms",
+              "by": "1"
+            },
+            {
+              "log": "The charter is agreed.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A PMO charter records purpose, services, authority and measures, and is agreed with those it serves."
+        },
+        {
+          "id": "template",
+          "label": "Copy a charter template from the internet",
+          "effects": [
+            {
+              "set": "charter",
+              "to": "\"template\""
+            },
+            {
+              "set": "charterAt",
+              "to": "t"
+            },
+            {
+              "add": "pms",
+              "by": "-1"
+            },
+            {
+              "log": "A template is filled in.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "It reads well but does not reflect what the units asked for."
+        },
+        {
+          "id": "noCharter",
+          "label": "Skip the charter and start collecting status reports",
+          "effects": [
+            {
+              "set": "charter",
+              "to": "\"noCharter\""
+            },
+            {
+              "set": "charterAt",
+              "to": "t"
+            },
+            {
+              "add": "pms",
+              "by": "-2"
+            },
+            {
+              "log": "Reports are requested.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "It repeats the last PMO's mistake."
+        }
+      ]
+    },
+    "sponsorPrompt": {
+      "title": "A sponsor in name only",
+      "context": "The COO approved the budget and moved on.",
+      "choices": [
+        {
+          "id": "activeSponsor",
+          "label": "Ask the COO to sponsor the PMO actively: sign the charter, chair a monthly portfolio meeting and back the PMO's arbitration decisions",
+          "effects": [
+            {
+              "set": "sponsor",
+              "to": "\"activeSponsor\""
+            },
+            {
+              "set": "sponsorAt",
+              "to": "t"
+            },
+            {
+              "add": "exec",
+              "by": "1"
+            },
+            {
+              "log": "The COO signs and chairs the first meeting.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Executive sponsorship gives the PMO's mandate weight; without it, authority on paper is ignored."
+        },
+        {
+          "id": "emailOnly",
+          "label": "Ask the COO for a supportive email",
+          "effects": [
+            {
+              "set": "sponsor",
+              "to": "\"emailOnly\""
+            },
+            {
+              "set": "sponsorAt",
+              "to": "t"
+            },
+            {
+              "add": "exec",
+              "by": "-1"
+            },
+            {
+              "log": "An email goes out.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Helpful once, then forgotten."
+        },
+        {
+          "id": "noSponsor",
+          "label": "Proceed without a sponsor; the budget is enough",
+          "effects": [
+            {
+              "set": "sponsor",
+              "to": "\"noSponsor\""
+            },
+            {
+              "set": "sponsorAt",
+              "to": "t"
+            },
+            {
+              "add": "exec",
+              "by": "-2"
+            },
+            {
+              "log": "No sponsor.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The first contested decision has nobody to back it."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the PMO charter summary for the executive team.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Mandate",
+          "criteria": "Scope and decision rights; agreed charter.",
+          "modelAnswer": "The PMO covers projects above the threshold, sets methods and arbitrates cross-unit resource conflicts; units keep delivery decisions. The charter is agreed."
+        },
+        {
+          "label": "Sponsorship",
+          "criteria": "The COO signs, chairs and backs decisions.",
+          "modelAnswer": "The COO signed the charter, chairs the monthly portfolio meeting and backs arbitration decisions."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "governance",
+    "thresholds": {
+      "aboveAppetite": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No risk above appetite at the close without a treatment."
+        }
+      },
+      "supportTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Each key stakeholder at 6 of 10 or more at the close."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (scope == \"advisory\") and (charter == \"template\") and (sponsor == \"emailOnly\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "PMI, PMI PMO Certified Professional (PMI-PMOCP) Examination Content Outline and Specifications, January 2025 (v2): Organizational Development and Alignment 16%, PMO Strategic Elements 18%, PMO Design and Structuring 18%, PMO Operation and Performance 15%, PMO Enhancement and Effectiveness 18%, People 15%",
+        "checkedAt": "2026-11-17",
+        "url": "https://cb405383.masteryexamprep-com.pages.dev/exams/pmi/pmocp/overview",
+        "note": "Read 2026-11-17 through a summarizing fetch of a study page (masteryexamprep, dated 2025-12-20) that cites PMI's outline of January 2025 (v2) for these weights. The page lists no task statements; it says questions reward 'governance realism: decision rights, thresholds, escalation paths, and reporting that drives decisions'. PMI's PDF (the course seed cites it) was not opened; the task wording is the course seed's, to verify. Reused for REQ-336 from this course's water-utility-rebalance-pmipmocp (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "scopeHarm": {
+      "label": "Units resist",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and scope == \"everything\"",
+      "narrative": "Claiming every decision set the units against the PMO."
+    },
+    "charterHarm": {
+      "label": "The old failure repeated",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and charter == \"noCharter\"",
+      "narrative": "Without a charter, the PMO became a reporting office again."
+    },
+    "sponsorHarm": {
+      "label": "A decision overridden",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and sponsor == \"noSponsor\"",
+      "narrative": "Without a sponsor, the first contested decision was overridden."
+    },
+    "target": {
+      "label": "A PMO with a mandate",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (scope == \"decisionRights\") and (charter == \"fullCharter\") and (sponsor == \"activeSponsor\") and record == \"honest\" and openCount <= aboveAppetite and minSupport >= supportTarget",
+      "narrative": "The PMO starts with clear authority, an agreed charter and a sponsor who backs it."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "scopeHarm",
+    "charterHarm",
+    "sponsorHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "scopeCrit",
+        "label": "Defined the PMO's scope and decision rights",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "scope == \"decisionRights\"",
+            "score": "met",
+            "why": "Clear mandate."
+          },
+          {
+            "when": "scope == \"advisory\"",
+            "score": "partial",
+            "why": "Toothless."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Overreach."
+          }
+        ]
+      },
+      {
+        "id": "charterCrit",
+        "label": "Drafted a charter with purpose, services, authority, measures and review",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "charter == \"fullCharter\"",
+            "score": "met",
+            "why": "Agreed."
+          },
+          {
+            "when": "charter == \"template\"",
+            "score": "partial",
+            "why": "Generic."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Repeat failure."
+          }
+        ]
+      },
+      {
+        "id": "sponsorCrit",
+        "label": "Secured active executive sponsorship",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sponsor == \"activeSponsor\"",
+            "score": "met",
+            "why": "Sponsored."
+          },
+          {
+            "when": "sponsor == \"emailOnly\"",
+            "score": "partial",
+            "why": "Thin."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Unbacked."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(historyAt) and not isNull(busAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(historyAt) or not isNull(busAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 10)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the last PMO's history and talk to the business units first."
+      },
+      {
+        "at": "Week 1",
+        "text": "Write down the PMO's scope and decision rights."
+      },
+      {
+        "at": "Week 2",
+        "text": "Draft and agree a complete charter."
+      },
+      {
+        "at": "Week 3",
+        "text": "Secure the COO's active, visible sponsorship."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "scopeHarm": {
+        "headline": "Right-sized authority",
+        "body": "Scope and decision rights agreed with the units."
+      },
+      "charterHarm": {
+        "headline": "Charter first",
+        "body": "Purpose, services, authority and measures."
+      },
+      "sponsorHarm": {
+        "headline": "Secure sponsorship",
+        "body": "An active executive sponsor."
+      },
+      "target": {
+        "headline": "Good: a PMO with a mandate",
+        "body": "Scope, charter and sponsorship."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A PMO's mandate defines its scope and decision rights, written into a charter agreed with the units it serves, and backed by an active executive sponsor. Without them, a PMO becomes a reporting office."
+  }
+}

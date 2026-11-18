@@ -1,0 +1,846 @@
+{
+  "slug": "metrics-naming-route-label-review",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Diff and /metrics read; a seconds histogram; route-template labels; _total counter; an honest record",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "diff",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "scrapeOut",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 5,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 10,
+          "seq": 5,
+          "tick": 5
+        },
+        {
+          "type": "choose",
+          "prompt": "latPrompt",
+          "choice": "histogram",
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 20,
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "choose",
+          "prompt": "pathPrompt",
+          "choice": "route",
+          "seq": 8,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 30,
+          "seq": 9,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "namesPrompt",
+          "choice": "conventions",
+          "seq": 10,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 40,
+          "seq": 11,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 40
+        }
+      ],
+      "expect": {
+        "ending": "target",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "latCrit": "met",
+          "pathCrit": "met",
+          "namesCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0
+        },
+        "stateHash": "f285fbe6ff6da018"
+      },
+      "reasoning": {
+        "reflection": "met"
+      }
+    },
+    {
+      "id": "partialLat",
+      "title": "Partly right on latency, the rest on plan",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "diff",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 10,
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "choose",
+          "prompt": "latPrompt",
+          "choice": "summary",
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 20,
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "choose",
+          "prompt": "pathPrompt",
+          "choice": "route",
+          "seq": 6,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 30,
+          "seq": 7,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "namesPrompt",
+          "choice": "conventions",
+          "seq": 8,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 40,
+          "seq": 9,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 10,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 11,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 12,
+          "tick": 40
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "latCrit": "partial",
+          "pathCrit": "met",
+          "namesCrit": "met",
+          "evidenceCrit": "partial",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0
+        },
+        "stateHash": "5215a4327fdfd25e"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "partialNames",
+      "title": "Partly right on naming, and a one-line record",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 10,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "latPrompt",
+          "choice": "histogram",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 2,
+          "to": 20,
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "choose",
+          "prompt": "pathPrompt",
+          "choice": "route",
+          "seq": 4,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 30,
+          "seq": 5,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "namesPrompt",
+          "choice": "separate",
+          "seq": 6,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 40,
+          "seq": 7,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 8,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "summary"
+          },
+          "seq": 9,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 10,
+          "tick": 40
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "latCrit": "met",
+          "pathCrit": "met",
+          "namesCrit": "partial",
+          "evidenceCrit": "missed",
+          "recordCrit": "missed"
+        },
+        "kpis": {
+          "missK": 0
+        },
+        "stateHash": "ca2e42540cc801ce"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "allPartial",
+      "title": "Every decision only partly right",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 10,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "latPrompt",
+          "choice": "summary",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 2,
+          "to": 20,
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "choose",
+          "prompt": "pathPrompt",
+          "choice": "dropPath",
+          "seq": 4,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 30,
+          "seq": 5,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "namesPrompt",
+          "choice": "separate",
+          "seq": 6,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 40,
+          "seq": 7,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 8,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 9,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 10,
+          "tick": 40
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "latCrit": "partial",
+          "pathCrit": "partial",
+          "namesCrit": "partial",
+          "evidenceCrit": "missed",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0
+        },
+        "stateHash": "b35caaf696685482"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "badLat",
+      "title": "Latency kept as a last-value gauge",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "diff",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "scrapeOut",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 5,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 10,
+          "seq": 5,
+          "tick": 5
+        },
+        {
+          "type": "choose",
+          "prompt": "latPrompt",
+          "choice": "keepGauge",
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 20,
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "choose",
+          "prompt": "pathPrompt",
+          "choice": "route",
+          "seq": 8,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 30,
+          "seq": 9,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "namesPrompt",
+          "choice": "conventions",
+          "seq": 10,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 40,
+          "seq": 11,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 40
+        }
+      ],
+      "expect": {
+        "ending": "latHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "latCrit": "missed",
+          "pathCrit": "met",
+          "namesCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1
+        },
+        "stateHash": "49668026d8023584"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    },
+    {
+      "id": "badPath",
+      "title": "Raw URL paths shipped as a label",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "diff",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "scrapeOut",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 5,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 10,
+          "seq": 5,
+          "tick": 5
+        },
+        {
+          "type": "choose",
+          "prompt": "latPrompt",
+          "choice": "histogram",
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 20,
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "choose",
+          "prompt": "pathPrompt",
+          "choice": "keepRaw",
+          "seq": 8,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 30,
+          "seq": 9,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "namesPrompt",
+          "choice": "conventions",
+          "seq": 10,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 40,
+          "seq": 11,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 40
+        }
+      ],
+      "expect": {
+        "ending": "pathHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "latCrit": "met",
+          "pathCrit": "missed",
+          "namesCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1
+        },
+        "stateHash": "5b3b3c5d031d3cdd"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    },
+    {
+      "id": "badNames",
+      "title": "Requests made a resetting gauge",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "diff",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "scrapeOut",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 5,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 10,
+          "seq": 5,
+          "tick": 5
+        },
+        {
+          "type": "choose",
+          "prompt": "latPrompt",
+          "choice": "histogram",
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 20,
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "choose",
+          "prompt": "pathPrompt",
+          "choice": "route",
+          "seq": 8,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 30,
+          "seq": 9,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "namesPrompt",
+          "choice": "gaugeCount",
+          "seq": 10,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 40,
+          "seq": 11,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 40
+        }
+      ],
+      "expect": {
+        "ending": "namesHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "latCrit": "met",
+          "pathCrit": "met",
+          "namesCrit": "missed",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1
+        },
+        "stateHash": "d1e047f58e6a4748"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    }
+  ]
+}

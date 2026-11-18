@@ -1,0 +1,1096 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "platform-as-product-golden-path",
+  "title": "Starting a platform team: what it is for, a golden path teams will choose, and how to know it works",
+  "screen": {
+    "type": "governance-board",
+    "level": 1,
+    "governance": {
+      "risks": [
+        {
+          "id": "rGoal",
+          "label": "Platform built for the wrong goal",
+          "spokenLabel": "Platform built for the wrong goal",
+          "owner": "\"Platform lead\"",
+          "rating": "goal == \"cognitive\" ? \"low\" : goal == \"standardize\" ? \"medium\" : goal == \"decree\" ? \"critical\" : p >= 1 ? \"high\" : \"medium\"",
+          "appetite": "goal == \"cognitive\" ? \"within\" : goal == \"standardize\" ? \"within\" : goal == \"decree\" ? \"above\" : p >= 1 ? \"above\" : \"within\"",
+          "status": "{goal == \"cognitive\" ? \"Reduce cognitive load, run as a product\" : goal == \"standardize\" ? \"Tool standardization\" : goal == \"decree\" ? \"Platform by decree\" : \"Open\"}"
+        },
+        {
+          "id": "rPath",
+          "label": "Offering nobody uses",
+          "spokenLabel": "Offering nobody uses",
+          "owner": "\"Platform lead\"",
+          "rating": "path == \"golden\" ? \"low\" : path == \"wiki\" ? \"medium\" : path == \"locked\" ? \"critical\" : p >= 2 ? \"high\" : \"medium\"",
+          "appetite": "path == \"golden\" ? \"within\" : path == \"wiki\" ? \"within\" : path == \"locked\" ? \"above\" : p >= 2 ? \"above\" : \"within\"",
+          "status": "{path == \"golden\" ? \"Optional, composable golden path\" : path == \"wiki\" ? \"Recommendations only\" : path == \"locked\" ? \"Locked template\" : \"Open\"}"
+        },
+        {
+          "id": "rMeasure",
+          "label": "Success unmeasured",
+          "spokenLabel": "Success unmeasured",
+          "owner": "\"Platform lead\"",
+          "rating": "measure == \"nps\" ? \"low\" : measure == \"templates\" ? \"medium\" : measure == \"mandateKpi\" ? \"critical\" : p >= 3 ? \"high\" : \"medium\"",
+          "appetite": "measure == \"nps\" ? \"within\" : measure == \"templates\" ? \"within\" : measure == \"mandateKpi\" ? \"above\" : p >= 3 ? \"above\" : \"within\"",
+          "status": "{measure == \"nps\" ? \"Satisfaction, active use and time to first deploy\" : measure == \"templates\" ? \"Output count\" : measure == \"mandateKpi\" ? \"Forced adoption target\" : \"Open\"}"
+        }
+      ],
+      "stakeholders": [
+        {
+          "id": "sCto",
+          "label": "CTO",
+          "spokenLabel": "the CTO's support",
+          "value": "cto",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sProd",
+          "label": "Product teams",
+          "spokenLabel": "the product teams' support",
+          "value": "prod",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sPlat",
+          "label": "Platform team",
+          "spokenLabel": "the platform team's support",
+          "value": "plat",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "docket": [
+        {
+          "id": "dGoal",
+          "kind": "Charter",
+          "label": "Week 1: platform goal",
+          "status": "{goal == \"cognitive\" ? \"Reduce cognitive load, run as a product\" : goal == \"standardize\" ? \"Tool standardization\" : goal == \"decree\" ? \"Platform by decree\" : \"Due\"}",
+          "when": "p >= 1",
+          "flag": "p >= 1 and goal == \"none\""
+        },
+        {
+          "id": "dPath",
+          "kind": "Golden path",
+          "label": "Week 2: golden path",
+          "status": "{path == \"golden\" ? \"Optional, composable golden path\" : path == \"wiki\" ? \"Recommendations only\" : path == \"locked\" ? \"Locked template\" : \"Due\"}",
+          "when": "p >= 2",
+          "flag": "p >= 2 and path == \"none\""
+        },
+        {
+          "id": "dMeasure",
+          "kind": "Measures",
+          "label": "Week 3: success measures",
+          "status": "{measure == \"nps\" ? \"Satisfaction, active use and time to first deploy\" : measure == \"templates\" ? \"Output count\" : measure == \"mandateKpi\" ? \"Forced adoption target\" : \"Due\"}",
+          "when": "p >= 3",
+          "flag": "p >= 3 and measure == \"none\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Week",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Platform engineering goals, objectives and approaches: reducing cognitive load, paved roads, golden paths, platform as a product, and the CNCF Platforms white paper's capabilities",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "CNCF Certified Cloud Native Platform Engineering Associate (CNPA) curriculum: Platform Engineering Core Fundamentals 36%, Platform Observability, Security and Conformance 20%, Continuous Delivery and Platform Engineering 16%, Platform APIs and Provisioning Infrastructure 12%, IDPs and Developer Experience 8%, Measuring your Platform 8%",
+      "checkedAt": "2026-11-17",
+      "url": "https://kube-dojo.github.io/k8s/cnpa",
+      "note": "On 2026-11-17 the weights were confirmed through a third-party study page (kube-dojo.github.io/k8s/cnpa, summarizing fetch), which lists 'GitOps fundamentals' and continuous delivery in the core fundamentals domain and says to 'understand why GitOps uses pull-based reconciliation'. The official curriculum was not re-read; the objective wording is the course seed's. Reused for REQ-336 from this course's service-selector-no-endpoints-cnpa (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "CNCF TAG App Delivery, CNCF Platforms White Paper",
+      "checkedAt": "2026-11-17",
+      "url": "https://tag-app-delivery.cncf.io/whitepapers/platforms",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: platforms reduce the cognitive load on product teams; platforms are designed from their users' requirements, learned through interviews, surveys and usage observation, with product managers sharing roadmaps; a golden path is a bundled template with documentation; platforms should be optional and composable, self-service and thin; success is measured by user satisfaction (for example NPS) and active users and retention."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the systems and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You lead a new platform team at Brookvale Health Software, a fictional company with 22 product teams. Each team runs its own pipelines, clusters and dashboards; onboarding a service takes three weeks.",
+    "handover": [
+      "The CTO wants 'one platform for everyone' by summer.",
+      "Two teams built their own internal tools and fear losing them."
+    ],
+    "howItWorks": [
+      "The board shows the risk register against the appetite, each stakeholder's support in words and the docket.",
+      "Move on a week at a time. A decision comes to you at each review; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-02-08T09:00",
+    "tick": "1d",
+    "maxDuration": "84d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "cto": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "prod": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "plat": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "goal": {
+      "type": "enum",
+      "values": [
+        "none",
+        "cognitive",
+        "standardize",
+        "decree"
+      ],
+      "init": "none"
+    },
+    "goalAt": {
+      "type": "time",
+      "init": null
+    },
+    "path": {
+      "type": "enum",
+      "values": [
+        "none",
+        "golden",
+        "wiki",
+        "locked"
+      ],
+      "init": "none"
+    },
+    "pathAt": {
+      "type": "time",
+      "init": null
+    },
+    "measure": {
+      "type": "enum",
+      "values": [
+        "none",
+        "nps",
+        "templates",
+        "mandateKpi"
+      ],
+      "init": "none"
+    },
+    "measureAt": {
+      "type": "time",
+      "init": null
+    },
+    "interviewsAt": {
+      "type": "time",
+      "init": null
+    },
+    "inventoryAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(cto, prod), plat)"
+    },
+    "missCount": {
+      "expr": "((goal == \"decree\") ? 1 : 0) + ((path == \"locked\") ? 1 : 0) + ((measure == \"mandateKpi\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(goal == \"none\" or (goal == \"decree\") ? 1 : 0) + (path == \"none\" or (path == \"locked\") ? 1 : 0) + (measure == \"none\" or (measure == \"mandateKpi\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Platform reviews",
+      "clock": "turns",
+      "actions": [
+        "interviews",
+        "inventory"
+      ]
+    },
+    "close": {
+      "label": "Platform charter",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "interviews": {
+      "label": "Interview six product teams",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(interviewsAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "interviewsAt",
+          "to": "t"
+        },
+        {
+          "log": "Interview six product teams.",
+          "kind": "act"
+        },
+        {
+          "finding": "Teams lose most time on pipeline setup, secrets and dashboards; the data team needs GPU jobs nobody else uses."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "inventory": {
+      "label": "Inventory current tools",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(inventoryAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "inventoryAt",
+          "to": "t"
+        },
+        {
+          "log": "Inventory current tools.",
+          "kind": "act"
+        },
+        {
+          "finding": "Nine CI setups, four observability stacks, no shared templates; the two in-house tools are well liked."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "A product-run platform aimed at cognitive load, an optional golden path, and measures of satisfaction and use"
+                },
+                {
+                  "value": "summary",
+                  "label": "Charter agreed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next review",
+      "wait": {
+        "skipLabel": "Go to the next review"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "goal == \"decree\"",
+              "then": [
+                {
+                  "log": "Week 2: teams fork their pipelines to keep working; the two in-house tool owners escalate to the CTO.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "path == \"locked\"",
+              "then": [
+                {
+                  "log": "Week 3: the data team's model training stops; they cannot add GPU jobs to the locked template.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "measure == \"mandateKpi\"",
+              "then": [
+                {
+                  "log": "Week 4: adoption hits 95% on paper while half the teams keep shadow pipelines; satisfaction is never asked.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "7d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The platform review closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "7d"
+        }
+      ]
+    },
+    {
+      "id": "t_goal",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 1: the charter.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "goalPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_path",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 2: the first offering.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "pathPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_measure",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 3: the CTO's question.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "measurePrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "goalPrompt": {
+      "title": "What the platform is for",
+      "context": "The CTO asks for a one-line goal.",
+      "choices": [
+        {
+          "id": "cognitive",
+          "label": "Goal: reduce product teams' cognitive load so a new service ships in a day; the platform is a product with a product manager, built from the interviews and a public roadmap",
+          "effects": [
+            {
+              "set": "goal",
+              "to": "\"cognitive\""
+            },
+            {
+              "set": "goalAt",
+              "to": "t"
+            },
+            {
+              "add": "prod",
+              "by": "1"
+            },
+            {
+              "log": "The charter is agreed.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Platforms exist to serve their users and reduce their cognitive load; a product mindset starts from user research."
+        },
+        {
+          "id": "standardize",
+          "label": "Goal: standardize on the platform team's preferred tools",
+          "effects": [
+            {
+              "set": "goal",
+              "to": "\"standardize\""
+            },
+            {
+              "set": "goalAt",
+              "to": "t"
+            },
+            {
+              "add": "prod",
+              "by": "-1"
+            },
+            {
+              "log": "Tools are picked.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Consistency helps, but it starts from the platform team's taste, not users' needs."
+        },
+        {
+          "id": "decree",
+          "label": "Goal: one mandatory platform; retire every team's tools by summer",
+          "effects": [
+            {
+              "set": "goal",
+              "to": "\"decree\""
+            },
+            {
+              "set": "goalAt",
+              "to": "t"
+            },
+            {
+              "add": "prod",
+              "by": "-2"
+            },
+            {
+              "log": "A mandate goes out.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Forcing adoption before the platform serves users breeds workarounds."
+        }
+      ]
+    },
+    "pathPrompt": {
+      "title": "What teams get first",
+      "context": "Pipelines, secrets and dashboards cost the most time.",
+      "choices": [
+        {
+          "id": "golden",
+          "label": "A golden path template: repository, pipeline, secrets wiring and dashboards with docs; optional and composable, so the data team can use parts and keep its GPU jobs",
+          "effects": [
+            {
+              "set": "path",
+              "to": "\"golden\""
+            },
+            {
+              "set": "pathAt",
+              "to": "t"
+            },
+            {
+              "add": "plat",
+              "by": "1"
+            },
+            {
+              "log": "Three teams adopt it in a week.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A golden path bundles a well-integrated template with docs; optional and composable platforms win adoption."
+        },
+        {
+          "id": "wiki",
+          "label": "Publish a wiki page of recommended tools",
+          "effects": [
+            {
+              "set": "path",
+              "to": "\"wiki\""
+            },
+            {
+              "set": "pathAt",
+              "to": "t"
+            },
+            {
+              "add": "plat",
+              "by": "-1"
+            },
+            {
+              "log": "A wiki page is written.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Teams still assemble everything themselves."
+        },
+        {
+          "id": "locked",
+          "label": "A single locked template no team may change",
+          "effects": [
+            {
+              "set": "path",
+              "to": "\"locked\""
+            },
+            {
+              "set": "pathAt",
+              "to": "t"
+            },
+            {
+              "add": "plat",
+              "by": "-2"
+            },
+            {
+              "log": "The template is locked.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The data team cannot run GPU jobs; teams needing anything different are blocked."
+        }
+      ]
+    },
+    "measurePrompt": {
+      "title": "How do we know it works?",
+      "context": "The CTO wants a number by quarter end.",
+      "choices": [
+        {
+          "id": "nps",
+          "label": "Track satisfaction (a short quarterly survey with NPS), active teams and retention, and time to first deploy, and review them with teams",
+          "effects": [
+            {
+              "set": "measure",
+              "to": "\"nps\""
+            },
+            {
+              "set": "measureAt",
+              "to": "t"
+            },
+            {
+              "add": "cto",
+              "by": "1"
+            },
+            {
+              "log": "Measures and a review cadence are agreed.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A platform is measured like a product: user satisfaction and active users and retention."
+        },
+        {
+          "id": "templates",
+          "label": "Count templates created",
+          "effects": [
+            {
+              "set": "measure",
+              "to": "\"templates\""
+            },
+            {
+              "set": "measureAt",
+              "to": "t"
+            },
+            {
+              "add": "cto",
+              "by": "-1"
+            },
+            {
+              "log": "A template count is reported.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Counts what the platform made, not whether it helped."
+        },
+        {
+          "id": "mandateKpi",
+          "label": "Make 100% adoption by quarter end every team's KPI",
+          "effects": [
+            {
+              "set": "measure",
+              "to": "\"mandateKpi\""
+            },
+            {
+              "set": "measureAt",
+              "to": "t"
+            },
+            {
+              "add": "cto",
+              "by": "-2"
+            },
+            {
+              "log": "Adoption becomes a target.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Teams adopt on paper and keep side tools; the number means nothing."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the platform charter for the CTO and the product teams.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Goal and offering",
+          "criteria": "Reduce cognitive load; optional, composable golden path.",
+          "modelAnswer": "The platform is a product that lets a team ship a new service in a day; the first golden path covers repo, pipeline, secrets and dashboards, and teams can use parts."
+        },
+        {
+          "label": "Measures",
+          "criteria": "Satisfaction, active teams and retention, time to first deploy.",
+          "modelAnswer": "We survey teams quarterly, track active teams and time to first deploy, and review them together."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "governance",
+    "thresholds": {
+      "aboveAppetite": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No risk above appetite at the close without a treatment."
+        }
+      },
+      "supportTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Each key stakeholder at 6 of 10 or more at the close."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (goal == \"standardize\") and (path == \"wiki\") and (measure == \"templates\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CNCF Certified Cloud Native Platform Engineering Associate (CNPA) curriculum: Platform Engineering Core Fundamentals 36%, Platform Observability, Security and Conformance 20%, Continuous Delivery and Platform Engineering 16%, Platform APIs and Provisioning Infrastructure 12%, IDPs and Developer Experience 8%, Measuring your Platform 8%",
+        "checkedAt": "2026-11-17",
+        "url": "https://kube-dojo.github.io/k8s/cnpa",
+        "note": "On 2026-11-17 the weights were confirmed through a third-party study page (kube-dojo.github.io/k8s/cnpa, summarizing fetch), which lists 'GitOps fundamentals' and continuous delivery in the core fundamentals domain and says to 'understand why GitOps uses pull-based reconciliation'. The official curriculum was not re-read; the objective wording is the course seed's. Reused for REQ-336 from this course's service-selector-no-endpoints-cnpa (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "goalHarm": {
+      "label": "A platform teams route around",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and goal == \"decree\"",
+      "narrative": "The mandate produced forks and escalations instead of adoption."
+    },
+    "pathHarm": {
+      "label": "A team blocked",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and path == \"locked\"",
+      "narrative": "The locked template stopped the data team's training jobs."
+    },
+    "measureHarm": {
+      "label": "Numbers without value",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and measure == \"mandateKpi\"",
+      "narrative": "Forced adoption hit its target while teams kept shadow pipelines."
+    },
+    "target": {
+      "label": "A platform teams choose",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (goal == \"cognitive\") and (path == \"golden\") and (measure == \"nps\") and record == \"honest\" and openCount <= aboveAppetite and minSupport >= supportTarget",
+      "narrative": "Teams adopt the golden path because it saves them time, and the CTO sees it in the measures."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "goalHarm",
+    "pathHarm",
+    "measureHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "goalCrit",
+        "label": "Set the goal as reducing product teams' cognitive load, built from user research",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "goal == \"cognitive\"",
+            "score": "met",
+            "why": "User-centered goal."
+          },
+          {
+            "when": "goal == \"standardize\"",
+            "score": "partial",
+            "why": "Inward-looking."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Mandated."
+          }
+        ]
+      },
+      {
+        "id": "pathCrit",
+        "label": "Offered an optional golden path that composes with teams' needs",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "path == \"golden\"",
+            "score": "met",
+            "why": "Paved road."
+          },
+          {
+            "when": "path == \"wiki\"",
+            "score": "partial",
+            "why": "Unpaved."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Rigid."
+          }
+        ]
+      },
+      {
+        "id": "measureCrit",
+        "label": "Measured the platform by its users' satisfaction and use",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "measure == \"nps\"",
+            "score": "met",
+            "why": "Measured as a product."
+          },
+          {
+            "when": "measure == \"templates\"",
+            "score": "partial",
+            "why": "Output only."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Gamed."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(interviewsAt) and not isNull(inventoryAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(interviewsAt) or not isNull(inventoryAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 10)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Talk to the users before deciding what to build."
+      },
+      {
+        "at": "Week 1",
+        "text": "Run the platform as a product that reduces teams' cognitive load."
+      },
+      {
+        "at": "Week 2",
+        "text": "Ship an optional, composable golden path template with documentation."
+      },
+      {
+        "at": "Week 3",
+        "text": "Measure satisfaction, active use and time to first deploy."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "goalHarm": {
+        "headline": "Serve users first",
+        "body": "A platform is a product teams choose."
+      },
+      "pathHarm": {
+        "headline": "Optional and composable",
+        "body": "Let teams use the parts they need."
+      },
+      "measureHarm": {
+        "headline": "Measure what users experience",
+        "body": "Satisfaction and active use."
+      },
+      "target": {
+        "headline": "Good: a platform teams choose",
+        "body": "Goal, golden path and product measures."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Platform engineering exists to reduce product teams' cognitive load. Run the platform as a product: learn users' needs, offer optional, composable golden paths with docs, and measure user satisfaction and active use rather than mandating adoption."
+  }
+}

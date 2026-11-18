@@ -1,0 +1,1012 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "network-indicators-rogue-scan-beacon",
+  "title": "Three network indicators in one shift: a rogue device, an internal sweep and a host calling out on an odd port",
+  "screen": {
+    "type": "security-console",
+    "level": 1,
+    "console": {
+      "alerts": [
+        {
+          "id": "aRogue",
+          "severity": "high",
+          "title": "Unknown device on finance VLAN",
+          "detail": "It is not in the asset inventory.",
+          "when": "p >= 1",
+          "at": "600",
+          "status": "{rogue == \"quarantine\" ? \"Port quarantined; device located and seized\" : rogue == \"blockMac\" ? \"MAC blocked\" : rogue == \"printer\" ? \"Assumed harmless\" : \"Due\"}",
+          "open": "rogue == \"none\""
+        },
+        {
+          "id": "aSweep",
+          "severity": "high",
+          "title": "Internal port sweep",
+          "detail": "It is not the scheduled scan window.",
+          "when": "p >= 2",
+          "at": "1200",
+          "status": "{sweep == \"isolate\" ? \"Verified, isolated and investigated\" : sweep == \"blockPorts\" ? \"Ports blocked\" : sweep == \"assumeIt\" ? \"Assumed authorized\" : \"Due\"}",
+          "open": "sweep == \"none\""
+        },
+        {
+          "id": "aBeacon",
+          "severity": "critical",
+          "title": "Beacon on TCP 4444",
+          "detail": "One connection every 60 seconds to the same address.",
+          "when": "p >= 3",
+          "at": "1800",
+          "status": "{beacon == \"c2\" ? \"Isolated, blocked and hunted\" : beacon == \"blockIp\" ? \"Destination blocked\" : beacon == \"ticket\" ? \"Deferred\" : \"Due\"}",
+          "open": "beacon == \"none\""
+        }
+      ],
+      "events": [
+        {
+          "id": "eRogue",
+          "source": "NAC",
+          "text": "{rogue == \"quarantine\" ? \"Port quarantined; device located and seized\" : rogue == \"blockMac\" ? \"MAC blocked\" : rogue == \"printer\" ? \"Assumed harmless\" : \"\"}",
+          "when": "rogue != \"none\"",
+          "at": "timeAt(rogueAt)"
+        },
+        {
+          "id": "eSweep",
+          "source": "NetFlow",
+          "text": "{sweep == \"isolate\" ? \"Verified, isolated and investigated\" : sweep == \"blockPorts\" ? \"Ports blocked\" : sweep == \"assumeIt\" ? \"Assumed authorized\" : \"\"}",
+          "when": "sweep != \"none\"",
+          "at": "timeAt(sweepAt)"
+        },
+        {
+          "id": "eBeacon",
+          "source": "NetFlow",
+          "text": "{beacon == \"c2\" ? \"Isolated, blocked and hunted\" : beacon == \"blockIp\" ? \"Destination blocked\" : beacon == \"ticket\" ? \"Deferred\" : \"\"}",
+          "when": "beacon != \"none\"",
+          "at": "timeAt(beaconAt)"
+        },
+        {
+          "id": "iDhcp",
+          "source": "Analyst",
+          "text": "A device with an unknown vendor MAC took a lease on the finance floor at 06:12 on port 3/0/27, which serves a meeting room.",
+          "when": "not isNull(dhcpAt)",
+          "at": "timeAt(dhcpAt)"
+        },
+        {
+          "id": "iFlows",
+          "source": "Analyst",
+          "text": "WS-0412 touched 1,900 internal addresses on ports 22, 445 and 3389 in 12 minutes; WS-0388 connects to one external address on TCP 4444 every 60 seconds.",
+          "when": "not isNull(flowsAt)",
+          "at": "timeAt(flowsAt)"
+        }
+      ],
+      "assets": [
+        {
+          "id": "xRogue",
+          "label": "Switch port 3/0/27",
+          "spokenLabel": "Switch port 3/0/27",
+          "kind": "network",
+          "status": "{rogue == \"quarantine\" ? \"Port quarantined; device located and seized\" : rogue == \"blockMac\" ? \"MAC blocked\" : rogue == \"printer\" ? \"Assumed harmless\" : \"Under review\"}",
+          "tone": "rogue == \"quarantine\" ? \"ok\" : rogue == \"blockMac\" ? \"watch\" : rogue == \"printer\" ? \"bad\" : p >= 1 ? \"watch\" : \"ok\""
+        },
+        {
+          "id": "xSweep",
+          "label": "WS-0412",
+          "spokenLabel": "WS-0412",
+          "kind": "workstation",
+          "status": "{sweep == \"isolate\" ? \"Verified, isolated and investigated\" : sweep == \"blockPorts\" ? \"Ports blocked\" : sweep == \"assumeIt\" ? \"Assumed authorized\" : \"Under review\"}",
+          "tone": "sweep == \"isolate\" ? \"ok\" : sweep == \"blockPorts\" ? \"watch\" : sweep == \"assumeIt\" ? \"bad\" : p >= 2 ? \"watch\" : \"ok\""
+        },
+        {
+          "id": "xBeacon",
+          "label": "WS-0388",
+          "spokenLabel": "WS-0388",
+          "kind": "workstation",
+          "status": "{beacon == \"c2\" ? \"Isolated, blocked and hunted\" : beacon == \"blockIp\" ? \"Destination blocked\" : beacon == \"ticket\" ? \"Deferred\" : \"Under review\"}",
+          "tone": "beacon == \"c2\" ? \"ok\" : beacon == \"blockIp\" ? \"watch\" : beacon == \"ticket\" ? \"bad\" : p >= 3 ? \"watch\" : \"ok\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Check-in",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Given a scenario, analyze network-related indicators: rogue devices, enumeration, anomalous activity, activity on unexpected ports",
+  "secondaryObjectives": [
+    "Log analysis with security information and event management (SIEM), and user and entity behavior analysis (UEBA) with Open User and Entity Behavior Analytics (OpenUBA)"
+  ],
+  "sources": [
+    {
+      "cite": "CompTIA CySA+ CS0-004 Exam Objectives, Exam Objectives Document Version 2.0 (exam launched 2026-06-23; domains 34/26/24/16)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.comptia.org/en-us/certifications/cybersecurity-analyst/v4/",
+      "note": "Relevant text: 1.2 'Given a scenario, analyze indicators of potential malicious activity' (host-related indicators: resource consumption, unauthorized software, anomalous activity: suspicious or rogue processes, Living Off the Land Binaries (LOLBins) and Scripts, file system changes, data exfiltration); 2.3 'Given a scenario, analyze data to prioritize and mitigate vulnerabilities' (exploitability, active exploitation/threat intelligence, asset value, impact, patch/remediation availability, true/false positives, true/false negatives; CVSS metrics, EPSS); 3.2 'Summarize the incident response process' (containment, recovery); 3.3 'Given a scenario, implement incident response techniques' (triage, establishment of a timeline, determining severity and impact, escalation; isolating affected targets, remediation and verification, release from isolation, performing restoration). Read in the official objectives PDF (the course's officialObjectivesUrl) through a summarizing fetch, and the CompTIA V4 page, on 2026-11-11. CS0-003 retires for English on 2026-12-22. Reused for REQ-336 from this course's alert-triage-lolbin-hunt (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the systems, the data and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the SOC analyst on the morning shift at Harrowgate Insurance, a fictional insurer. Three network alerts are waiting in the queue.",
+    "handover": [
+      "Network access control can move a switch port to a quarantine VLAN.",
+      "IT runs an authorized vulnerability scan on the first Sunday of each month only."
+    ],
+    "howItWorks": [
+      "The console shows the alert queue, the event log and each asset's status.",
+      "Move on a check-in at a time. A decision comes to you at each check-in; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-05-24T08:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "rogue": {
+      "type": "enum",
+      "values": [
+        "none",
+        "quarantine",
+        "blockMac",
+        "printer"
+      ],
+      "init": "none"
+    },
+    "rogueAt": {
+      "type": "time",
+      "init": null
+    },
+    "sweep": {
+      "type": "enum",
+      "values": [
+        "none",
+        "isolate",
+        "blockPorts",
+        "assumeIt"
+      ],
+      "init": "none"
+    },
+    "sweepAt": {
+      "type": "time",
+      "init": null
+    },
+    "beacon": {
+      "type": "enum",
+      "values": [
+        "none",
+        "c2",
+        "blockIp",
+        "ticket"
+      ],
+      "init": "none"
+    },
+    "beaconAt": {
+      "type": "time",
+      "init": null
+    },
+    "dhcpAt": {
+      "type": "time",
+      "init": null
+    },
+    "flowsAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((rogue == \"printer\") ? 1 : 0) + ((sweep == \"assumeIt\") ? 1 : 0) + ((beacon == \"ticket\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(rogue == \"none\" or (rogue == \"printer\") ? 1 : 0) + (sweep == \"none\" or (sweep == \"assumeIt\") ? 1 : 0) + (beacon == \"none\" or (beacon == \"ticket\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "SOC shift",
+      "clock": "turns",
+      "actions": [
+        "dhcp",
+        "flows"
+      ]
+    },
+    "close": {
+      "label": "Shift record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "dhcp": {
+      "label": "Read DHCP leases and switch port logs",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(dhcpAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "dhcpAt",
+          "to": "t"
+        },
+        {
+          "log": "Read DHCP leases and switch port logs.",
+          "kind": "act"
+        },
+        {
+          "finding": "A device with an unknown vendor MAC took a lease on the finance floor at 06:12 on port 3/0/27, which serves a meeting room."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "flows": {
+      "label": "Read the last two hours of flow records",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(flowsAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "flowsAt",
+          "to": "t"
+        },
+        {
+          "log": "Read the last two hours of flow records.",
+          "kind": "act"
+        },
+        {
+          "finding": "WS-0412 touched 1,900 internal addresses on ports 22, 445 and 3389 in 12 minutes; WS-0388 connects to one external address on TCP 4444 every 60 seconds."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "The rogue device quarantined and seized, the sweep investigated and its host isolated, and the beacon contained with a hunt"
+                },
+                {
+                  "value": "summary",
+                  "label": "Shift complete"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next check-in",
+      "wait": {
+        "skipLabel": "Go to the next check-in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "rogue == \"printer\"",
+              "then": [
+                {
+                  "log": "Check-in 2: the device captures finance staff credentials from the network for another day before anyone looks.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "sweep == \"assumeIt\"",
+              "then": [
+                {
+                  "log": "Check-in 3: the attacker uses what the sweep found to move to a file server.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "beacon == \"ticket\"",
+              "then": [
+                {
+                  "log": "Check-in 4: the attacker uses the beacon to stage a data upload from WS-0388 overnight.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "10min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The shift ends.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "10min"
+        }
+      ]
+    },
+    {
+      "id": "t_rogue",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 1: the unknown device.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "roguePrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_sweep",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 2: WS-0412.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "sweepPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_beacon",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 3: WS-0388.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "beaconPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "roguePrompt": {
+      "title": "An unknown device on the finance floor",
+      "context": "It is not in the asset inventory.",
+      "choices": [
+        {
+          "id": "quarantine",
+          "label": "Move port 3/0/27 to the quarantine VLAN through network access control, have facilities locate the device, photograph and seize it, and record the MAC, lease and port",
+          "effects": [
+            {
+              "set": "rogue",
+              "to": "\"quarantine\""
+            },
+            {
+              "set": "rogueAt",
+              "to": "t"
+            },
+            {
+              "log": "The port is quarantined; a small computer is found under the meeting room table.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A rogue device is contained at the port, physically located and preserved as evidence."
+        },
+        {
+          "id": "blockMac",
+          "label": "Block its MAC address on the network",
+          "effects": [
+            {
+              "set": "rogue",
+              "to": "\"blockMac\""
+            },
+            {
+              "set": "rogueAt",
+              "to": "t"
+            },
+            {
+              "log": "The MAC is blocked.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "MAC addresses are easy to change; the device can return with another."
+        },
+        {
+          "id": "printer",
+          "label": "Close it as a new printer that IT forgot to register",
+          "effects": [
+            {
+              "set": "rogue",
+              "to": "\"printer\""
+            },
+            {
+              "set": "rogueAt",
+              "to": "t"
+            },
+            {
+              "log": "The alert is closed.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Nobody checked; an unknown device stays on the finance network."
+        }
+      ]
+    },
+    "sweepPrompt": {
+      "title": "A workstation enumerating the network",
+      "context": "It is not the scheduled scan window.",
+      "choices": [
+        {
+          "id": "isolate",
+          "label": "Check the scan schedule (none today), isolate WS-0412 with EDR, collect its process list and logs, and find the user and parent process that ran the scan",
+          "effects": [
+            {
+              "set": "sweep",
+              "to": "\"isolate\""
+            },
+            {
+              "set": "sweepAt",
+              "to": "t"
+            },
+            {
+              "log": "WS-0412 is isolated; a scanning tool was dropped by a macro.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Enumeration outside an authorized window is a likely sign of an intruder mapping the network."
+        },
+        {
+          "id": "blockPorts",
+          "label": "Block ports 22, 445 and 3389 from WS-0412 at the firewall",
+          "effects": [
+            {
+              "set": "sweep",
+              "to": "\"blockPorts\""
+            },
+            {
+              "set": "sweepAt",
+              "to": "t"
+            },
+            {
+              "log": "Those ports are blocked from the host.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "It slows the sweep but leaves the compromised host running."
+        },
+        {
+          "id": "assumeIt",
+          "label": "Assume it is IT's scanner and suppress the alert",
+          "effects": [
+            {
+              "set": "sweep",
+              "to": "\"assumeIt\""
+            },
+            {
+              "set": "sweepAt",
+              "to": "t"
+            },
+            {
+              "log": "The alert is suppressed.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The scan schedule says otherwise; the attacker keeps mapping."
+        }
+      ]
+    },
+    "beaconPrompt": {
+      "title": "Regular outbound traffic on port 4444",
+      "context": "One connection every 60 seconds to the same address.",
+      "choices": [
+        {
+          "id": "c2",
+          "label": "Isolate WS-0388, capture its traffic and memory, block the destination at the egress firewall, and search all flows for the same address and timing",
+          "effects": [
+            {
+              "set": "beacon",
+              "to": "\"c2\""
+            },
+            {
+              "set": "beaconAt",
+              "to": "t"
+            },
+            {
+              "log": "WS-0388 is isolated; one more host shows the same beacon.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Fixed-interval connections on an unexpected port suggest command and control; contain, preserve evidence and hunt for the same indicator."
+        },
+        {
+          "id": "blockIp",
+          "label": "Block the destination address only",
+          "effects": [
+            {
+              "set": "beacon",
+              "to": "\"blockIp\""
+            },
+            {
+              "set": "beaconAt",
+              "to": "t"
+            },
+            {
+              "log": "The address is blocked.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The implant may switch addresses; the host stays compromised."
+        },
+        {
+          "id": "ticket",
+          "label": "Open a low-priority ticket for next week",
+          "effects": [
+            {
+              "set": "beacon",
+              "to": "\"ticket\""
+            },
+            {
+              "set": "beaconAt",
+              "to": "t"
+            },
+            {
+              "log": "A ticket is opened.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "A week of command and control is a week of attacker access."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the shift record for the incident lead.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Indicators",
+          "criteria": "Rogue device, unscheduled enumeration and a 60-second beacon on 4444.",
+          "modelAnswer": "An unknown device joined the finance floor; WS-0412 swept 1,900 addresses outside the scan window; WS-0388 beaconed to one address on 4444 every minute."
+        },
+        {
+          "label": "Actions",
+          "criteria": "Port quarantined and device seized; hosts isolated; hunt found one more.",
+          "modelAnswer": "We quarantined the port and seized the device, isolated both workstations with evidence, blocked the address and found one more beaconing host."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "security",
+    "thresholds": {
+      "containWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Contained and closed within 60 minutes of the first alert."
+        }
+      },
+      "containSpread": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No asset newly exposed by the response."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (rogue == \"blockMac\") and (sweep == \"blockPorts\") and (beacon == \"blockIp\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CompTIA CySA+ CS0-004 Exam Objectives, Exam Objectives Document Version 2.0 (exam launched 2026-06-23; domains 34/26/24/16)",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.comptia.org/en-us/certifications/cybersecurity-analyst/v4/",
+        "note": "Relevant text: 1.2 'Given a scenario, analyze indicators of potential malicious activity' (host-related indicators: resource consumption, unauthorized software, anomalous activity: suspicious or rogue processes, Living Off the Land Binaries (LOLBins) and Scripts, file system changes, data exfiltration); 2.3 'Given a scenario, analyze data to prioritize and mitigate vulnerabilities' (exploitability, active exploitation/threat intelligence, asset value, impact, patch/remediation availability, true/false positives, true/false negatives; CVSS metrics, EPSS); 3.2 'Summarize the incident response process' (containment, recovery); 3.3 'Given a scenario, implement incident response techniques' (triage, establishment of a timeline, determining severity and impact, escalation; isolating affected targets, remediation and verification, release from isolation, performing restoration). Read in the official objectives PDF (the course's officialObjectivesUrl) through a summarizing fetch, and the CompTIA V4 page, on 2026-11-11. CS0-003 retires for English on 2026-12-22. Reused for REQ-336 from this course's alert-triage-lolbin-hunt (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "rogueHarm": {
+      "label": "Credentials captured",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and rogue == \"printer\"",
+      "narrative": "The dismissed device kept capturing credentials."
+    },
+    "sweepHarm": {
+      "label": "Lateral movement",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and sweep == \"assumeIt\"",
+      "narrative": "The suppressed sweep led to a file server compromise."
+    },
+    "beaconHarm": {
+      "label": "Data staged for theft",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and beacon == \"ticket\"",
+      "narrative": "The deferred beacon was used to stage data for exfiltration."
+    },
+    "target": {
+      "label": "Indicators read and acted on",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (rogue == \"quarantine\") and (sweep == \"isolate\") and (beacon == \"c2\") and record == \"honest\" and missCount <= containSpread and timeAt(doneAt) <= containWindow",
+      "narrative": "All three indicators were contained before the attacker could use them."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "rogueHarm",
+    "sweepHarm",
+    "beaconHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "rogueCrit",
+        "label": "Contained and located the rogue device while keeping evidence",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "rogue == \"quarantine\"",
+            "score": "met",
+            "why": "Contained."
+          },
+          {
+            "when": "rogue == \"blockMac\"",
+            "score": "partial",
+            "why": "Bypassable."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Unverified."
+          }
+        ]
+      },
+      {
+        "id": "sweepCrit",
+        "label": "Treated unscheduled enumeration as hostile until proven otherwise",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sweep == \"isolate\"",
+            "score": "met",
+            "why": "Investigated."
+          },
+          {
+            "when": "sweep == \"blockPorts\"",
+            "score": "partial",
+            "why": "Partial."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Unverified."
+          }
+        ]
+      },
+      {
+        "id": "beaconCrit",
+        "label": "Treated regular traffic on an unexpected port as possible command and control",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "beacon == \"c2\"",
+            "score": "met",
+            "why": "Scoped."
+          },
+          {
+            "when": "beacon == \"blockIp\"",
+            "score": "partial",
+            "why": "Partial."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Delayed."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(dhcpAt) and not isNull(flowsAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(dhcpAt) or not isNull(flowsAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the DHCP, switch and flow data first."
+      },
+      {
+        "at": "Check-in 1",
+        "text": "Quarantine the port, locate the device and preserve it."
+      },
+      {
+        "at": "Check-in 2",
+        "text": "Check authorization, isolate the host and investigate."
+      },
+      {
+        "at": "Check-in 3",
+        "text": "Isolate, preserve, block and hunt."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "rogueHarm": {
+        "headline": "Verify unknown devices",
+        "body": "Contain, locate and preserve."
+      },
+      "sweepHarm": {
+        "headline": "Verify against the schedule",
+        "body": "Unscheduled enumeration is an indicator."
+      },
+      "beaconHarm": {
+        "headline": "Act on beacons",
+        "body": "Contain, preserve and hunt."
+      },
+      "target": {
+        "headline": "Good: indicators read and acted on",
+        "body": "Rogue device, enumeration and command and control."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Network indicators need context: unknown devices are contained at the port and located; enumeration outside an authorized window is hostile until proven otherwise; regular traffic on an unexpected port suggests command and control. Contain, preserve evidence and hunt for the same indicator elsewhere."
+  }
+}

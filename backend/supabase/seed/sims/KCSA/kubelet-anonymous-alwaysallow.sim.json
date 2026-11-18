@@ -1,0 +1,1002 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "kubelet-anonymous-alwaysallow",
+  "title": "A kubelet anyone can talk to: anonymous access, AlwaysAllow authorization and what monitoring really needs",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "sec@thornbury:~$",
+      "lines": [
+        {
+          "id": "firstLine",
+          "text": "pentest: Pod-to-kubelet anonymous access on all 12 nodes",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "lineAnon",
+          "text": "{anon == \"authn\" ? \"Anonymous off; certificates and tokens required\" : anon == \"firewall\" ? \"Network restriction only\" : anon == \"leave\" ? \"Anonymous left on\" : \"\"}",
+          "when": "anon != \"none\"",
+          "at": "timeAt(anonAt)",
+          "error": "anon == \"leave\""
+        },
+        {
+          "id": "lineAuthz",
+          "text": "{authz == \"webhook\" ? \"Webhook authorization via SubjectAccessReview\" : authz == \"keepAllow\" ? \"AlwaysAllow kept\" : authz == \"noAuthn\" ? \"Anonymous plus AlwaysAllow\" : \"\"}",
+          "when": "authz != \"none\"",
+          "at": "timeAt(authzAt)",
+          "error": "authz == \"noAuthn\""
+        },
+        {
+          "id": "lineMonitor",
+          "text": "{monitor == \"statsOnly\" ? \"Only metrics and stats\" : monitor == \"statsProxy\" ? \"Proxy granted temporarily\" : monitor == \"admin\" ? \"cluster-admin for monitoring\" : \"\"}",
+          "when": "monitor != \"none\"",
+          "at": "timeAt(monitorAt)",
+          "error": "monitor == \"admin\""
+        }
+      ],
+      "nodes": [
+        {
+          "id": "nAnon",
+          "label": "kubelet :10250",
+          "spokenLabel": "kubelet :10250",
+          "kind": "kubelet",
+          "status": "{anon == \"authn\" ? \"Anonymous off; certificates and tokens required\" : anon == \"firewall\" ? \"Network restriction only\" : anon == \"leave\" ? \"Anonymous left on\" : \"Waiting\"}",
+          "tone": "anon == \"authn\" ? \"up\" : anon == \"firewall\" ? \"degraded\" : anon == \"leave\" ? \"down\" : p >= 1 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nAuthz",
+          "label": "kubelet authorizer",
+          "spokenLabel": "kubelet authorizer",
+          "kind": "kubelet",
+          "status": "{authz == \"webhook\" ? \"Webhook authorization via SubjectAccessReview\" : authz == \"keepAllow\" ? \"AlwaysAllow kept\" : authz == \"noAuthn\" ? \"Anonymous plus AlwaysAllow\" : \"Waiting\"}",
+          "tone": "authz == \"webhook\" ? \"up\" : authz == \"keepAllow\" ? \"degraded\" : authz == \"noAuthn\" ? \"down\" : p >= 2 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nMonitor",
+          "label": "monitoring agent",
+          "spokenLabel": "monitoring agent",
+          "kind": "ServiceAccount",
+          "status": "{monitor == \"statsOnly\" ? \"Only metrics and stats\" : monitor == \"statsProxy\" ? \"Proxy granted temporarily\" : monitor == \"admin\" ? \"cluster-admin for monitoring\" : \"Waiting\"}",
+          "tone": "monitor == \"statsOnly\" ? \"up\" : monitor == \"statsProxy\" ? \"degraded\" : monitor == \"admin\" ? \"down\" : p >= 3 ? \"degraded\" : \"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "link0",
+          "from": "nAnon",
+          "to": "nAuthz",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        },
+        {
+          "id": "link1",
+          "from": "nAuthz",
+          "to": "nMonitor",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Check-in",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Kubelet security: the 10250 API, anonymous authentication and Webhook authorization, the read-only port, and certificate rotation",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "CNCF KCSA Curriculum (cncf/curriculum, pinned commit 0a8cc08a): Overview of Cloud Native Security 14%, Kubernetes Cluster Component Security 22%, Kubernetes Security Fundamentals 22%, Kubernetes Threat Model 16%, Platform Security 16%, Compliance and Security Frameworks 10%",
+      "checkedAt": "2026-11-17",
+      "url": "https://github.com/cncf/curriculum/tree/0a8cc08a502710a894e5724c2bec7b88404e5a6b",
+      "note": "The curriculum was read in primary text on 2026-11-07 by the course builder (backend/supabase/seed/tracks/kubernetes.ts). On 2026-11-17 a third-party summary (slauger.github.io/kubestronaut/kcsa/cluster-component-security) confirmed the 22% domain and its etcd topics (mutual TLS, access limited to the API server, encryption at rest, snapshots); the PDF itself was not re-read. The objective wording is the course seed's. Reused for REQ-336 from this course's etcd-restore-deleted-namespace-kcsa (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Kubernetes documentation, Kubelet authentication/authorization",
+      "checkedAt": "2026-11-17",
+      "url": "https://kubernetes.io/docs/reference/access-authn-authz/kubelet-authn-authz",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: by default unauthenticated requests to the kubelet's HTTPS endpoint are anonymous (system:anonymous) and the default authorization mode AlwaysAllow allows every request; --anonymous-auth=false returns 401; --client-ca-file and --authentication-token-webhook (TokenReview) authenticate clients; --authorization-mode=Webhook asks the API server with SubjectAccessReview; nodes/proxy grants access to all kubelet APIs, including running commands in any container, while stats, metrics, log and spec are separate subresources."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the systems and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the security engineer at Thornbury Analytics, a fictional company running self-managed Kubernetes. A penetration test found that a Pod could list every Pod on its node through the kubelet.",
+    "handover": [
+      "Kubelets run with default authentication and authorization settings.",
+      "A monitoring vendor asks for 'kubelet access' for its agent."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the map shows each component and its status in words.",
+      "Move on a check-in at a time. A decision comes to you at each check-in; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-03-29T09:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "anon": {
+      "type": "enum",
+      "values": [
+        "none",
+        "authn",
+        "firewall",
+        "leave"
+      ],
+      "init": "none"
+    },
+    "anonAt": {
+      "type": "time",
+      "init": null
+    },
+    "authz": {
+      "type": "enum",
+      "values": [
+        "none",
+        "webhook",
+        "keepAllow",
+        "noAuthn"
+      ],
+      "init": "none"
+    },
+    "authzAt": {
+      "type": "time",
+      "init": null
+    },
+    "monitor": {
+      "type": "enum",
+      "values": [
+        "none",
+        "statsOnly",
+        "statsProxy",
+        "admin"
+      ],
+      "init": "none"
+    },
+    "monitorAt": {
+      "type": "time",
+      "init": null
+    },
+    "curlAt": {
+      "type": "time",
+      "init": null
+    },
+    "configAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((anon == \"leave\") ? 1 : 0) + ((authz == \"noAuthn\") ? 1 : 0) + ((monitor == \"admin\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(anon == \"none\" or (anon == \"leave\") ? 1 : 0) + (authz == \"none\" or (authz == \"noAuthn\") ? 1 : 0) + (monitor == \"none\" or (monitor == \"admin\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Hardening review",
+      "clock": "turns",
+      "actions": [
+        "curl",
+        "config"
+      ]
+    },
+    "close": {
+      "label": "Hardening record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "curl": {
+      "label": "curl -sk https://NODE:10250/pods from a test Pod",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(curlAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "curlAt",
+          "to": "t"
+        },
+        {
+          "output": "Returns the full Pod list with no credentials: anonymous requests are accepted."
+        },
+        {
+          "log": "curl -sk https://NODE:10250/pods from a test Pod.",
+          "kind": "act"
+        },
+        {
+          "finding": "Returns the full Pod list with no credentials: anonymous requests are accepted."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "config": {
+      "label": "Read the kubelet configuration",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(configAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "configAt",
+          "to": "t"
+        },
+        {
+          "output": "authentication.anonymous.enabled true; authorization.mode AlwaysAllow; no client CA configured."
+        },
+        {
+          "log": "Read the kubelet configuration.",
+          "kind": "act"
+        },
+        {
+          "finding": "authentication.anonymous.enabled true; authorization.mode AlwaysAllow; no client CA configured."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Anonymous access off with certificate and token authentication, Webhook authorization, and monitoring limited to metrics and stats"
+                },
+                {
+                  "value": "summary",
+                  "label": "Kubelets hardened"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next check-in",
+      "wait": {
+        "skipLabel": "Go to the next check-in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "anon == \"leave\"",
+              "then": [
+                {
+                  "log": "Check-in 2: an attacker in a compromised web Pod lists every Pod on the node and finds a database Pod to target.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "authz == \"noAuthn\"",
+              "then": [
+                {
+                  "log": "Check-in 3: an attacker uses the open kubelet's exec API to run commands in a payments container.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "monitor == \"admin\"",
+              "then": [
+                {
+                  "log": "Check-in 4: the vendor's agent token leaks from a support bundle; with cluster-admin it reads every Secret.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "10min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The hardening review closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "10min"
+        }
+      ]
+    },
+    {
+      "id": "t_anon",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 1: the test result.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "anonPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_authz",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 2: AlwaysAllow.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "authzPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_monitor",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 3: the vendor.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "monitorPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "anonPrompt": {
+      "title": "Anonymous requests accepted",
+      "context": "Any Pod can reach port 10250.",
+      "choices": [
+        {
+          "id": "authn",
+          "label": "Set --anonymous-auth=false, configure --client-ca-file and --authentication-token-webhook, and make sure the API server's kubelet client certificate is set; roll it out node by node",
+          "effects": [
+            {
+              "set": "anon",
+              "to": "\"authn\""
+            },
+            {
+              "set": "anonAt",
+              "to": "t"
+            },
+            {
+              "log": "Unauthenticated requests now get 401.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "By default unauthenticated kubelet requests are anonymous; disabling it and authenticating with client certificates or tokens closes the hole."
+        },
+        {
+          "id": "firewall",
+          "label": "Leave anonymous on but firewall 10250 to the control plane",
+          "effects": [
+            {
+              "set": "anon",
+              "to": "\"firewall\""
+            },
+            {
+              "set": "anonAt",
+              "to": "t"
+            },
+            {
+              "log": "A firewall rule is added.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Helps, but anything that gets onto an allowed network is still anonymous to the kubelet."
+        },
+        {
+          "id": "leave",
+          "label": "Leave it: the cluster network is private",
+          "effects": [
+            {
+              "set": "anon",
+              "to": "\"leave\""
+            },
+            {
+              "set": "anonAt",
+              "to": "t"
+            },
+            {
+              "log": "Nothing changes.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Any compromised Pod can query the kubelet anonymously."
+        }
+      ]
+    },
+    "authzPrompt": {
+      "title": "Every authenticated request allowed",
+      "context": "AlwaysAllow authorizes anything that authenticates.",
+      "choices": [
+        {
+          "id": "webhook",
+          "label": "Set --authorization-mode=Webhook so the kubelet asks the API server with SubjectAccessReview, and grant the API server's client identity the node subresources it needs",
+          "effects": [
+            {
+              "set": "authz",
+              "to": "\"webhook\""
+            },
+            {
+              "set": "authzAt",
+              "to": "t"
+            },
+            {
+              "log": "Requests are authorized by RBAC.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Webhook mode lets RBAC decide what each client may do on the kubelet instead of allowing everything."
+        },
+        {
+          "id": "keepAllow",
+          "label": "Keep AlwaysAllow now that anonymous access is off",
+          "effects": [
+            {
+              "set": "authz",
+              "to": "\"keepAllow\""
+            },
+            {
+              "set": "authzAt",
+              "to": "t"
+            },
+            {
+              "log": "No change.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Any authenticated client, however minor, can use every kubelet API."
+        },
+        {
+          "id": "noAuthn",
+          "label": "Turn anonymous access back on to fix a broken metrics agent, with AlwaysAllow",
+          "effects": [
+            {
+              "set": "authz",
+              "to": "\"noAuthn\""
+            },
+            {
+              "set": "authzAt",
+              "to": "t"
+            },
+            {
+              "log": "Anonymous is back on.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The kubelet is open to anyone again, with every API allowed."
+        }
+      ]
+    },
+    "monitorPrompt": {
+      "title": "What the agent may reach",
+      "context": "The vendor's agent needs node metrics and stats.",
+      "choices": [
+        {
+          "id": "statsOnly",
+          "label": "A ServiceAccount for the agent with get on nodes/metrics and nodes/stats only, not nodes/proxy",
+          "effects": [
+            {
+              "set": "monitor",
+              "to": "\"statsOnly\""
+            },
+            {
+              "set": "monitorAt",
+              "to": "t"
+            },
+            {
+              "log": "The agent reads metrics and stats.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "nodes/proxy reaches every kubelet API, including exec; monitoring needs only metrics and stats."
+        },
+        {
+          "id": "statsProxy",
+          "label": "Grant metrics, stats and nodes/proxy for a week to get it working",
+          "effects": [
+            {
+              "set": "monitor",
+              "to": "\"statsProxy\""
+            },
+            {
+              "set": "monitorAt",
+              "to": "t"
+            },
+            {
+              "log": "Proxy is granted temporarily.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Temporary broad grants tend to stay; proxy reaches exec."
+        },
+        {
+          "id": "admin",
+          "label": "Bind the agent to cluster-admin as the vendor asks",
+          "effects": [
+            {
+              "set": "monitor",
+              "to": "\"admin\""
+            },
+            {
+              "set": "monitorAt",
+              "to": "t"
+            },
+            {
+              "log": "cluster-admin is bound.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The agent's token can do anything in the cluster."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the hardening record for the security review.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Authentication and authorization",
+          "criteria": "Anonymous off; client CA and token webhook; Webhook authorization.",
+          "modelAnswer": "The kubelet now rejects anonymous requests, authenticates certificates and tokens, and asks the API server whether each request is allowed."
+        },
+        {
+          "label": "Monitoring",
+          "criteria": "nodes/metrics and nodes/stats only.",
+          "modelAnswer": "The vendor's agent can read node metrics and stats and nothing else on the kubelet."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Service restored and the work closed within 60 minutes of the first report."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No fault introduced by the response itself."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (anon == \"firewall\") and (authz == \"keepAllow\") and (monitor == \"statsProxy\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CNCF KCSA Curriculum (cncf/curriculum, pinned commit 0a8cc08a): Overview of Cloud Native Security 14%, Kubernetes Cluster Component Security 22%, Kubernetes Security Fundamentals 22%, Kubernetes Threat Model 16%, Platform Security 16%, Compliance and Security Frameworks 10%",
+        "checkedAt": "2026-11-17",
+        "url": "https://github.com/cncf/curriculum/tree/0a8cc08a502710a894e5724c2bec7b88404e5a6b",
+        "note": "The curriculum was read in primary text on 2026-11-07 by the course builder (backend/supabase/seed/tracks/kubernetes.ts). On 2026-11-17 a third-party summary (slauger.github.io/kubestronaut/kcsa/cluster-component-security) confirmed the 22% domain and its etcd topics (mutual TLS, access limited to the API server, encryption at rest, snapshots); the PDF itself was not re-read. The objective wording is the course seed's. Reused for REQ-336 from this course's etcd-restore-deleted-namespace-kcsa (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "anonHarm": {
+      "label": "The node mapped by an attacker",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and anon == \"leave\"",
+      "narrative": "Anonymous kubelet access let a compromised Pod map the node."
+    },
+    "authzHarm": {
+      "label": "Commands run in a container",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and authz == \"noAuthn\"",
+      "narrative": "The reopened kubelet let an attacker execute commands in a payments container."
+    },
+    "monitorHarm": {
+      "label": "Every Secret readable",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and monitor == \"admin\"",
+      "narrative": "The leaked agent token had cluster-admin."
+    },
+    "target": {
+      "label": "Kubelets closed to strangers",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (anon == \"authn\") and (authz == \"webhook\") and (monitor == \"statsOnly\") and record == \"honest\" and missCount <= newFaults and timeAt(doneAt) <= restoreWindow",
+      "narrative": "Pods can no longer query or command the kubelet, and monitoring works with the least access."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "anonHarm",
+    "authzHarm",
+    "monitorHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "anonCrit",
+        "label": "Turned off anonymous access and required authenticated clients",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "anon == \"authn\"",
+            "score": "met",
+            "why": "Authenticated."
+          },
+          {
+            "when": "anon == \"firewall\"",
+            "score": "partial",
+            "why": "Partial."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Open."
+          }
+        ]
+      },
+      {
+        "id": "authzCrit",
+        "label": "Delegated kubelet authorization to the API server",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "authz == \"webhook\"",
+            "score": "met",
+            "why": "Authorized by RBAC."
+          },
+          {
+            "when": "authz == \"keepAllow\"",
+            "score": "partial",
+            "why": "Too broad."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Reopened."
+          }
+        ]
+      },
+      {
+        "id": "monitorCrit",
+        "label": "Granted monitoring only the kubelet subresources it needs",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "monitor == \"statsOnly\"",
+            "score": "met",
+            "why": "Least privilege."
+          },
+          {
+            "when": "monitor == \"statsProxy\"",
+            "score": "partial",
+            "why": "Too broad."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Excessive."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(curlAt) and not isNull(configAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(curlAt) or not isNull(configAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Test the kubelet endpoint and read its configuration first."
+      },
+      {
+        "at": "Check-in 1",
+        "text": "Disable anonymous auth and require client certificates or tokens."
+      },
+      {
+        "at": "Check-in 2",
+        "text": "Use Webhook authorization with RBAC."
+      },
+      {
+        "at": "Check-in 3",
+        "text": "Grant nodes/metrics and nodes/stats only."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "anonHarm": {
+        "headline": "Authenticate kubelet clients",
+        "body": "Turn anonymous auth off."
+      },
+      "authzHarm": {
+        "headline": "Authorize with Webhook",
+        "body": "RBAC decides what each client can do."
+      },
+      "monitorHarm": {
+        "headline": "Grant only what is needed",
+        "body": "Metrics and stats, never proxy or admin."
+      },
+      "target": {
+        "headline": "Good: kubelets closed to strangers",
+        "body": "Authenticated, authorized and least-privileged."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The kubelet's API on port 10250 can list Pods and run commands. By default it treats unauthenticated requests as anonymous and authorizes everything (AlwaysAllow). Turn anonymous auth off, authenticate with client certificates or tokens, delegate authorization to the API server with Webhook mode, and grant monitoring only the metrics and stats subresources, never nodes/proxy."
+  }
+}

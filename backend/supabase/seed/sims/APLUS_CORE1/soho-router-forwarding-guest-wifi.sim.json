@@ -1,0 +1,1036 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "soho-router-forwarding-guest-wifi",
+  "title": "A dental office's router: port forwarding for a camera, guest Wi-Fi apart from patient records, and wireless security",
+  "screen": {
+    "type": "service-desk",
+    "level": 1,
+    "desk": {
+      "matrix": {
+        "impacts": [
+          "High",
+          "Medium",
+          "Low"
+        ],
+        "urgencies": [
+          "High",
+          "Medium",
+          "Low"
+        ],
+        "priorities": [
+          [
+            1,
+            2,
+            3
+          ],
+          [
+            2,
+            3,
+            4
+          ],
+          [
+            3,
+            4,
+            5
+          ]
+        ],
+        "targets": [
+          {
+            "priority": 1,
+            "label": "P1: restore within 4 hours"
+          },
+          {
+            "priority": 2,
+            "label": "P2: within 8 hours"
+          },
+          {
+            "priority": 3,
+            "label": "P3: within 2 working days"
+          },
+          {
+            "priority": 4,
+            "label": "P4: within 5 working days"
+          },
+          {
+            "priority": 5,
+            "label": "P5: next planned release"
+          }
+        ]
+      },
+      "tickets": [
+        {
+          "id": "tCam",
+          "ref": "REQ-2201",
+          "kind": "request",
+          "title": "Owner wants to view the camera from home",
+          "when": "p >= 1",
+          "at": "1800",
+          "impact": "3",
+          "urgency": "2",
+          "priority": "4",
+          "status": "{cam == \"vpn\" ? \"Reserved address; VPN only\" : cam == \"forwardSafe\" ? \"Port 8080 forwarded\" : cam == \"dmz\" ? \"DMZ with default password\" : \"Due\"}",
+          "open": "cam == \"none\"",
+          "due": "3600"
+        },
+        {
+          "id": "tGuest",
+          "ref": "REQ-2202",
+          "kind": "request",
+          "title": "Patients want Wi-Fi",
+          "when": "p >= 2",
+          "at": "3600",
+          "impact": "2",
+          "urgency": "2",
+          "priority": "3",
+          "status": "{guest == \"isolated\" ? \"Guest VLAN, isolated\" : guest == \"noGuest\" ? \"No guest Wi-Fi\" : guest == \"sharePw\" ? \"Patients on the office network\" : \"Due\"}",
+          "open": "guest == \"none\"",
+          "due": "5400"
+        },
+        {
+          "id": "tWpa",
+          "ref": "REQ-2203",
+          "kind": "change",
+          "title": "Office Wi-Fi security settings",
+          "when": "p >= 3",
+          "at": "5400",
+          "impact": "2",
+          "urgency": "3",
+          "priority": "4",
+          "status": "{wpa == \"wpa3\" ? \"WPA3, new passphrase, WPS off\" : wpa == \"newPw\" ? \"WPA2, new password\" : wpa == \"open\" ? \"Open Wi-Fi\" : \"Due\"}",
+          "open": "wpa == \"none\"",
+          "due": "7200"
+        }
+      ],
+      "services": [
+        {
+          "id": "vCam",
+          "label": "Waiting-room camera",
+          "spokenLabel": "Waiting-room camera",
+          "status": "{cam == \"vpn\" ? \"Reserved address; VPN only\" : cam == \"forwardSafe\" ? \"Port 8080 forwarded\" : cam == \"dmz\" ? \"DMZ with default password\" : \"Normal service\"}",
+          "tone": "cam == \"vpn\" ? \"ok\" : cam == \"forwardSafe\" ? \"degraded\" : cam == \"dmz\" ? \"down\" : \"ok\""
+        },
+        {
+          "id": "vGuest",
+          "label": "Patient-records network",
+          "spokenLabel": "Patient-records network",
+          "status": "{guest == \"isolated\" ? \"Guest VLAN, isolated\" : guest == \"noGuest\" ? \"No guest Wi-Fi\" : guest == \"sharePw\" ? \"Patients on the office network\" : \"Normal service\"}",
+          "tone": "guest == \"isolated\" ? \"ok\" : guest == \"noGuest\" ? \"degraded\" : guest == \"sharePw\" ? \"down\" : \"ok\""
+        },
+        {
+          "id": "vWpa",
+          "label": "Office Wi-Fi",
+          "spokenLabel": "Office Wi-Fi",
+          "status": "{wpa == \"wpa3\" ? \"WPA3, new passphrase, WPS off\" : wpa == \"newPw\" ? \"WPA2, new password\" : wpa == \"open\" ? \"Open Wi-Fi\" : \"Normal service\"}",
+          "tone": "wpa == \"wpa3\" ? \"ok\" : wpa == \"newPw\" ? \"degraded\" : wpa == \"open\" ? \"down\" : \"ok\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Ticket round",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Configuring a SOHO network: static vs. DHCP addressing, NAT, firewall rules, and port forwarding",
+  "secondaryObjectives": [
+    "Configuring and troubleshooting VPN, VLAN, and QoS settings on a SOHO router",
+    "Wireless standards and encryption: 802.11 generations, frequency bands, and WPA2/WPA3"
+  ],
+  "sources": [
+    {
+      "cite": "CompTIA A+ Core 1 (220-1201) V15: domains Mobile devices 13%, Networking 23%, Hardware 25%, Virtualization and cloud computing 11%, Hardware and network troubleshooting 28%; launched 2025-03-25",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.comptia.org/en-us/certifications/a/core-1-v15/",
+      "note": "Exam page read through a summarizing fetch on 2026-11-14 ('Diagnosing issues: identifying and fixing hardware, network, and connectivity problems'). The objectives PDF (Exam Objectives Version 1.2) was read in primary text the same day: 5.5 'Given a scenario, troubleshoot network issues' lists 'Limited connectivity' and 'Intermittent internet connectivity'; 2.6 lists APIPA, static and dynamic addressing, subnet mask and gateway; 2.4 lists DHCP leases, reservations, scope and exclusions. The PDF says the troubleshooting methodology 'will not be tested' in the 220-1200 series but remains a competency standard. Reused for REQ-336 from this course's rogue-dhcp-soho-office (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The business, the users, the devices and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You support Brightsmile Dental, a fictional two-chair dental office. The owner wants to watch the waiting-room camera from home, patients want Wi-Fi, and the router still has its installer's settings.",
+    "handover": [
+      "The camera gets its address from DHCP; the patient-records PC and the camera share one flat network.",
+      "Wi-Fi: one network, WPA2 with a password printed at the front desk."
+    ],
+    "howItWorks": [
+      "The desk shows the ticket queue against the priority matrix and each service's status.",
+      "Move on a ticket round at a time. A decision comes to you at each ticket round; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-03-01T09:00",
+    "tick": "1min",
+    "maxDuration": "360min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "cam": {
+      "type": "enum",
+      "values": [
+        "none",
+        "vpn",
+        "forwardSafe",
+        "dmz"
+      ],
+      "init": "none"
+    },
+    "camAt": {
+      "type": "time",
+      "init": null
+    },
+    "guest": {
+      "type": "enum",
+      "values": [
+        "none",
+        "isolated",
+        "noGuest",
+        "sharePw"
+      ],
+      "init": "none"
+    },
+    "guestAt": {
+      "type": "time",
+      "init": null
+    },
+    "wpa": {
+      "type": "enum",
+      "values": [
+        "none",
+        "wpa3",
+        "newPw",
+        "open"
+      ],
+      "init": "none"
+    },
+    "wpaAt": {
+      "type": "time",
+      "init": null
+    },
+    "routerAt": {
+      "type": "time",
+      "init": null
+    },
+    "camcfgAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((cam == \"dmz\") ? 1 : 0) + ((guest == \"sharePw\") ? 1 : 0) + ((wpa == \"open\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(cam == \"none\" or (cam == \"dmz\") ? 1 : 0) + (guest == \"none\" or (guest == \"sharePw\") ? 1 : 0) + (wpa == \"none\" or (wpa == \"open\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The router work",
+      "clock": "turns",
+      "actions": [
+        "router",
+        "camcfg"
+      ]
+    },
+    "close": {
+      "label": "Work notes",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "router": {
+      "label": "Read the router's LAN, DHCP and wireless pages",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(routerAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "routerAt",
+          "to": "t"
+        },
+        {
+          "log": "You read the router configuration.",
+          "kind": "act"
+        },
+        {
+          "finding": "The camera's DHCP address changed twice this month. Everything shares one subnet, and the Wi-Fi password at the desk is also the office staff's."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "camcfg": {
+      "label": "Read the camera's settings",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(camcfgAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "camcfgAt",
+          "to": "t"
+        },
+        {
+          "log": "You read the camera settings.",
+          "kind": "act"
+        },
+        {
+          "finding": "The camera's web interface listens on port 8080 with the default admin password; it also supports the vendor's app over an encrypted cloud relay or a VPN."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the work notes",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the notes say",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Camera reserved and reached over the VPN, guests on an isolated VLAN, and office Wi-Fi on WPA3 with a new passphrase"
+                },
+                {
+                  "value": "summary",
+                  "label": "Router set up"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next ticket round",
+      "wait": {
+        "skipLabel": "Go to the next ticket round"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "cam == \"dmz\"",
+              "then": [
+                {
+                  "log": "Round 2: the camera is taken over by a botnet within a day and starts scanning the office network.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "guest == \"sharePw\"",
+              "then": [
+                {
+                  "log": "Round 3: a patient's infected laptop spreads malware to the records PC over the shared network.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "wpa == \"open\"",
+              "then": [
+                {
+                  "log": "Round 4: someone in the car park joins the open office network and browses the shared folders.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "30min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The router changes are done.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "30min"
+        }
+      ]
+    },
+    {
+      "id": "t_cam",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Round 1: the camera request.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "camPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_guest",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Round 2: guest Wi-Fi.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "guestPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_wpa",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Round 3: the office Wi-Fi.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "wpaPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "camPrompt": {
+      "title": "Reach the camera from home",
+      "context": "The owner wants to see the waiting room from home.",
+      "choices": [
+        {
+          "id": "vpn",
+          "label": "Give the camera a DHCP reservation, change its default password, and let the owner reach it through the router's VPN rather than a forwarded port",
+          "effects": [
+            {
+              "set": "cam",
+              "to": "\"vpn\""
+            },
+            {
+              "set": "camAt",
+              "to": "t"
+            },
+            {
+              "log": "The camera has a fixed address and is reached only over the VPN.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A reservation keeps the address stable; the VPN gives remote access without opening the camera to the internet."
+        },
+        {
+          "id": "forwardSafe",
+          "label": "Reserve its address and forward port 8080 to it after changing the password",
+          "effects": [
+            {
+              "set": "cam",
+              "to": "\"forwardSafe\""
+            },
+            {
+              "set": "camAt",
+              "to": "t"
+            },
+            {
+              "log": "Port 8080 is forwarded to the camera.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "It works, but the camera's web interface is now open to the whole internet."
+        },
+        {
+          "id": "dmz",
+          "label": "Put the camera in the router's DMZ and keep the default password",
+          "effects": [
+            {
+              "set": "cam",
+              "to": "\"dmz\""
+            },
+            {
+              "set": "camAt",
+              "to": "t"
+            },
+            {
+              "log": "The camera is in the DMZ with the default password.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "A DMZ host receives every unsolicited connection; with the default password it is taken over in hours."
+        }
+      ]
+    },
+    "guestPrompt": {
+      "title": "Patients on the same network as records",
+      "context": "The router supports a guest network on its own VLAN.",
+      "choices": [
+        {
+          "id": "isolated",
+          "label": "Turn on the guest network on its own VLAN with client isolation and no access to the LAN, a separate password, and a bandwidth limit",
+          "effects": [
+            {
+              "set": "guest",
+              "to": "\"isolated\""
+            },
+            {
+              "set": "guestAt",
+              "to": "t"
+            },
+            {
+              "log": "Guests are on their own VLAN with no LAN access.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A guest VLAN keeps patients' devices away from the records PC."
+        },
+        {
+          "id": "noGuest",
+          "label": "Tell patients there is no Wi-Fi",
+          "effects": [
+            {
+              "set": "guest",
+              "to": "\"noGuest\""
+            },
+            {
+              "set": "guestAt",
+              "to": "t"
+            },
+            {
+              "log": "No guest Wi-Fi.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Safe, but the owner asked for it and patients will ask staff for their password."
+        },
+        {
+          "id": "sharePw",
+          "label": "Keep giving patients the office Wi-Fi password",
+          "effects": [
+            {
+              "set": "guest",
+              "to": "\"sharePw\""
+            },
+            {
+              "set": "guestAt",
+              "to": "t"
+            },
+            {
+              "log": "Patients keep using the office network.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Every patient device can reach the records PC."
+        }
+      ]
+    },
+    "wpaPrompt": {
+      "title": "WPA2 with a printed password",
+      "context": "All office devices support WPA3; the router supports WPA3 and a WPA2/WPA3 transition mode.",
+      "choices": [
+        {
+          "id": "wpa3",
+          "label": "Switch to WPA3-Personal (transition mode only if an old device needs it), set a new long passphrase known only to staff, and turn off WPS",
+          "effects": [
+            {
+              "set": "wpa",
+              "to": "\"wpa3\""
+            },
+            {
+              "set": "wpaAt",
+              "to": "t"
+            },
+            {
+              "log": "WPA3 with a new staff-only passphrase; WPS off.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "WPA3 resists offline password guessing; a new passphrase removes everyone who learned the old one."
+        },
+        {
+          "id": "newPw",
+          "label": "Keep WPA2 and change the password",
+          "effects": [
+            {
+              "set": "wpa",
+              "to": "\"newPw\""
+            },
+            {
+              "set": "wpaAt",
+              "to": "t"
+            },
+            {
+              "log": "The WPA2 password changes.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Better, but WPA3 was available and stronger."
+        },
+        {
+          "id": "open",
+          "label": "Remove the password so the cameras and card readers connect more easily",
+          "effects": [
+            {
+              "set": "wpa",
+              "to": "\"open\""
+            },
+            {
+              "set": "wpaAt",
+              "to": "t"
+            },
+            {
+              "log": "The office Wi-Fi is open.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "An open network lets anyone nearby join and read unencrypted traffic."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the work notes: how remote viewing, guest Wi-Fi and wireless security are set up, and why.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Camera",
+          "criteria": "DHCP reservation, password changed, VPN rather than port forwarding.",
+          "modelAnswer": "The camera has a reserved address and a new password; the owner reaches it over the router's VPN, so no port is open to it."
+        },
+        {
+          "label": "Wi-Fi",
+          "criteria": "Isolated guest VLAN; WPA3 with a new staff passphrase.",
+          "modelAnswer": "Patients use an isolated guest VLAN; the office network is WPA3 with a new staff-only passphrase."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "service",
+    "thresholds": {
+      "slaBreachTarget": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No incident restored after its service level target."
+        }
+      },
+      "unauthorizedChanges": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No change without the authorization its type needs."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (cam == \"forwardSafe\") and (guest == \"noGuest\") and (wpa == \"newPw\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CompTIA A+ Core 1 (220-1201) V15: domains Mobile devices 13%, Networking 23%, Hardware 25%, Virtualization and cloud computing 11%, Hardware and network troubleshooting 28%; launched 2025-03-25",
+        "checkedAt": "2026-11-14",
+        "url": "https://www.comptia.org/en-us/certifications/a/core-1-v15/",
+        "note": "Exam page read through a summarizing fetch on 2026-11-14 ('Diagnosing issues: identifying and fixing hardware, network, and connectivity problems'). The objectives PDF (Exam Objectives Version 1.2) was read in primary text the same day: 5.5 'Given a scenario, troubleshoot network issues' lists 'Limited connectivity' and 'Intermittent internet connectivity'; 2.6 lists APIPA, static and dynamic addressing, subnet mask and gateway; 2.4 lists DHCP leases, reservations, scope and exclusions. The PDF says the troubleshooting methodology 'will not be tested' in the 220-1200 series but remains a competency standard. Reused for REQ-336 from this course's rogue-dhcp-soho-office (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "camHarm": {
+      "label": "The camera taken over",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and cam == \"dmz\"",
+      "narrative": "The exposed camera was taken over by a botnet and scanned the office network."
+    },
+    "guestHarm": {
+      "label": "Malware from a patient's device",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and guest == \"sharePw\"",
+      "narrative": "A patient's infected laptop reached the records PC over the shared network."
+    },
+    "wpaHarm": {
+      "label": "An open office network",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and wpa == \"open\"",
+      "narrative": "Someone outside joined the open office Wi-Fi and browsed the shared folders."
+    },
+    "target": {
+      "label": "A small office network done right",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (cam == \"vpn\") and (guest == \"isolated\") and (wpa == \"wpa3\") and record == \"honest\" and missCount <= slaBreachTarget and openCount <= unauthorizedChanges",
+      "narrative": "The owner sees the camera from home, patients have Wi-Fi, and the records PC is out of reach."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "camHarm",
+    "guestHarm",
+    "wpaHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "camCrit",
+        "label": "Gave the camera a fixed address and remote access without exposing it",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "cam == \"vpn\"",
+            "score": "met",
+            "why": "Stable and not exposed."
+          },
+          {
+            "when": "cam == \"forwardSafe\"",
+            "score": "partial",
+            "why": "Works, exposed."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Fully exposed."
+          }
+        ]
+      },
+      {
+        "id": "guestCrit",
+        "label": "Separated guests from the office network",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "guest == \"isolated\"",
+            "score": "met",
+            "why": "Segmented."
+          },
+          {
+            "when": "guest == \"noGuest\"",
+            "score": "partial",
+            "why": "Safe, unhelpful."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No segmentation."
+          }
+        ]
+      },
+      {
+        "id": "wpaCrit",
+        "label": "Moved the office Wi-Fi to WPA3 with a new password",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "wpa == \"wpa3\"",
+            "score": "met",
+            "why": "Stronger and rotated."
+          },
+          {
+            "when": "wpa == \"newPw\"",
+            "score": "partial",
+            "why": "Rotated, not upgraded."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No encryption."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(routerAt) and not isNull(camcfgAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(routerAt) or not isNull(camcfgAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the router's configuration and the camera's options first."
+      },
+      {
+        "at": "Round 1",
+        "text": "Reserve the camera's address, change its password, reach it over the VPN."
+      },
+      {
+        "at": "Round 2",
+        "text": "Put guests on an isolated guest VLAN with its own password."
+      },
+      {
+        "at": "Round 3",
+        "text": "Move to WPA3 with a new staff-only passphrase and WPS off."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "camHarm": {
+        "headline": "Don't expose devices",
+        "body": "Reserve the address and reach the device over a VPN; never put it in the DMZ with defaults."
+      },
+      "guestHarm": {
+        "headline": "Separate guests",
+        "body": "A guest VLAN with isolation keeps visitors off the office network."
+      },
+      "wpaHarm": {
+        "headline": "Encrypt the Wi-Fi",
+        "body": "Use WPA3 with a strong passphrase; never leave the office network open."
+      },
+      "target": {
+        "headline": "Good: a small office network done right",
+        "body": "Stable addressing, remote access without exposure, segmentation and strong wireless security."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "On a SOHO router, a DHCP reservation gives a device a stable address. Port forwarding and especially the DMZ expose a device to the internet; a VPN gives remote access without that. Guests belong on an isolated guest network or VLAN. WPA3 is stronger than WPA2, a new passphrase removes everyone who knew the old one, and WPS should be off."
+  }
+}

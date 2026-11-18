@@ -1,0 +1,1092 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "ai-claims-model-lifecycle-security",
+  "title": "Security across an AI model's life cycle: untrusted training data, a deployment without monitoring, and a model that drifts",
+  "screen": {
+    "type": "governance-board",
+    "level": 1,
+    "governance": {
+      "risks": [
+        {
+          "id": "rData",
+          "label": "Untrusted training labels",
+          "spokenLabel": "Untrusted training labels",
+          "owner": "\"ML team lead\"",
+          "rating": "data == \"provenance\" ? \"low\" : data == \"sample\" ? \"medium\" : data == \"useAll\" ? \"critical\" : p >= 1 ? \"high\" : \"medium\"",
+          "appetite": "data == \"provenance\" ? \"within\" : data == \"sample\" ? \"within\" : data == \"useAll\" ? \"above\" : p >= 1 ? \"above\" : \"within\"",
+          "status": "{data == \"provenance\" ? \"Confirmed labels with lineage\" : data == \"sample\" ? \"Scraped list spot-checked\" : data == \"useAll\" ? \"Unvetted labels used\" : \"Open\"}"
+        },
+        {
+          "id": "rDep",
+          "label": "Automated denials with no oversight",
+          "spokenLabel": "Automated denials with no oversight",
+          "owner": "\"Product owner\"",
+          "rating": "dep == \"assist\" ? \"low\" : dep == \"sampleReview\" ? \"medium\" : dep == \"autoDeny\" ? \"critical\" : p >= 2 ? \"high\" : \"medium\"",
+          "appetite": "dep == \"assist\" ? \"within\" : dep == \"sampleReview\" ? \"within\" : dep == \"autoDeny\" ? \"above\" : p >= 2 ? \"above\" : \"within\"",
+          "status": "{dep == \"assist\" ? \"Human decides; logged\" : dep == \"sampleReview\" ? \"Auto-deny, 5% sampled\" : dep == \"autoDeny\" ? \"Automatic denials\" : \"Open\"}"
+        },
+        {
+          "id": "rMon",
+          "label": "No monitoring after release",
+          "spokenLabel": "No monitoring after release",
+          "owner": "\"Risk officer\"",
+          "rating": "mon == \"monitor\" ? \"low\" : mon == \"quarterly\" ? \"medium\" : mon == \"unwatched\" ? \"critical\" : p >= 3 ? \"high\" : \"medium\"",
+          "appetite": "mon == \"monitor\" ? \"within\" : mon == \"quarterly\" ? \"within\" : mon == \"unwatched\" ? \"above\" : p >= 3 ? \"above\" : \"within\"",
+          "status": "{mon == \"monitor\" ? \"Drift and overturn monitoring with triggers\" : mon == \"quarterly\" ? \"Quarterly review\" : mon == \"unwatched\" ? \"Unmonitored\" : \"Open\"}"
+        }
+      ],
+      "stakeholders": [
+        {
+          "id": "sProd",
+          "label": "Product owner",
+          "spokenLabel": "the product owner's support",
+          "value": "prod",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sRisk",
+          "label": "Risk officer",
+          "spokenLabel": "the risk officer's support",
+          "value": "risk",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sMl",
+          "label": "ML team lead",
+          "spokenLabel": "the ML team lead's support",
+          "value": "ml",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "docket": [
+        {
+          "id": "dData",
+          "kind": "Data trustworthiness",
+          "label": "Gate 1: training data",
+          "status": "{data == \"provenance\" ? \"Confirmed labels with lineage\" : data == \"sample\" ? \"Scraped list spot-checked\" : data == \"useAll\" ? \"Unvetted labels used\" : \"Due\"}",
+          "when": "p >= 1",
+          "flag": "p >= 1 and data == \"none\""
+        },
+        {
+          "id": "dDep",
+          "kind": "Human-centric design",
+          "label": "Gate 2: deployment",
+          "status": "{dep == \"assist\" ? \"Human decides; logged\" : dep == \"sampleReview\" ? \"Auto-deny, 5% sampled\" : dep == \"autoDeny\" ? \"Automatic denials\" : \"Due\"}",
+          "when": "p >= 2",
+          "flag": "p >= 2 and dep == \"none\""
+        },
+        {
+          "id": "dMon",
+          "kind": "Monitoring",
+          "label": "Gate 3: monitoring",
+          "status": "{mon == \"monitor\" ? \"Drift and overturn monitoring with triggers\" : mon == \"quarterly\" ? \"Quarterly review\" : mon == \"unwatched\" ? \"Unmonitored\" : \"Due\"}",
+          "when": "p >= 3",
+          "flag": "p >= 3 and mon == \"none\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Week",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "The importance of security throughout the AI life cycle: business use-case alignment, data collection trustworthiness, model development through deployment and monitoring, and human-centric design (human-in-the-loop, oversight, validation)",
+  "secondaryObjectives": [
+    "The importance of data security in relation to AI: data processing and lineage, data types, watermarking, and retrieval-augmented generation (vector storage, embeddings)"
+  ],
+  "sources": [
+    {
+      "cite": "CompTIA SecAI+ CY0-001 (V1) exam page: launched 2026-02-17; domains Basic AI concepts related to cybersecurity 17%, Securing AI systems 40%, AI-assisted security 24%, AI governance, risk, and compliance 19%",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.comptia.org/en-us/certifications/secai/",
+      "note": "Relevant text: Securing AI systems: 'Mitigate adversarial risks: Defend against attacks targeting AI models, data pipelines, and inference layers'; 'Implement security controls: Protect AI systems, data, and models using robust technical safeguards'. The page does not name prompt injection, data leakage or guardrails. Read through a summarizing fetch on 2026-11-11; the CY0-001 objectives PDF was not re-read here; the course's objective titles come from the course seed. Reused for REQ-336 from this course's agent-indirect-prompt-injection (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the systems, the data and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the AI security architect at Tamsin Insurance, a fictional insurer. The data science team is building a model that flags suspicious claims for investigators. You review it at three life-cycle gates.",
+    "handover": [
+      "Training data: five years of claims plus a 'fraud list' scraped from a public forum.",
+      "Plan: deploy straight to production and let it auto-deny claims above a score."
+    ],
+    "howItWorks": [
+      "The board shows the risk register against the appetite, each stakeholder's support in words and the docket.",
+      "Move on a week at a time. A decision comes to you at each review; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-03-01T09:00",
+    "tick": "1d",
+    "maxDuration": "84d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "prod": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "risk": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "ml": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "data": {
+      "type": "enum",
+      "values": [
+        "none",
+        "provenance",
+        "sample",
+        "useAll"
+      ],
+      "init": "none"
+    },
+    "dataAt": {
+      "type": "time",
+      "init": null
+    },
+    "dep": {
+      "type": "enum",
+      "values": [
+        "none",
+        "assist",
+        "sampleReview",
+        "autoDeny"
+      ],
+      "init": "none"
+    },
+    "depAt": {
+      "type": "time",
+      "init": null
+    },
+    "mon": {
+      "type": "enum",
+      "values": [
+        "none",
+        "monitor",
+        "quarterly",
+        "unwatched"
+      ],
+      "init": "none"
+    },
+    "monAt": {
+      "type": "time",
+      "init": null
+    },
+    "lineageAt": {
+      "type": "time",
+      "init": null
+    },
+    "deployAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(prod, risk), ml)"
+    },
+    "missCount": {
+      "expr": "((data == \"useAll\") ? 1 : 0) + ((dep == \"autoDeny\") ? 1 : 0) + ((mon == \"unwatched\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(data == \"none\" or (data == \"useAll\") ? 1 : 0) + (dep == \"none\" or (dep == \"autoDeny\") ? 1 : 0) + (mon == \"none\" or (mon == \"unwatched\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The life-cycle gates",
+      "clock": "turns",
+      "actions": [
+        "lineage",
+        "deploy"
+      ]
+    },
+    "close": {
+      "label": "Gate decision",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "lineage": {
+      "label": "Read the training data's lineage",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(lineageAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "lineageAt",
+          "to": "t"
+        },
+        {
+          "log": "You read the data lineage.",
+          "kind": "act"
+        },
+        {
+          "finding": "The scraped 'fraud list' has no provenance; anyone can post to the forum, so labels can be poisoned."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "deploy": {
+      "label": "Read the deployment plan",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(deployAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "deployAt",
+          "to": "t"
+        },
+        {
+          "log": "You read the deployment plan.",
+          "kind": "act"
+        },
+        {
+          "finding": "No monitoring for drift or abuse, no logging of model inputs and outputs, and claims above a score would be denied automatically."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Record the gate decision",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the decision says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Trustworthy, traced training data, a human-in-the-loop deployment with logging, and drift and overturn monitoring with gated retraining"
+                },
+                {
+                  "value": "summary",
+                  "label": "Model approved"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next review",
+      "wait": {
+        "skipLabel": "Go to the next review"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "data == \"useAll\"",
+              "then": [
+                {
+                  "log": "Gate 2: testing shows the model flags claims from one repair shop's customers because a competitor posted their names to the forum.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "dep == \"autoDeny\"",
+              "then": [
+                {
+                  "log": "Gate 3: 300 legitimate claims are auto-denied in the first week; customers complain to the regulator.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "mon == \"unwatched\"",
+              "then": [
+                {
+                  "log": "Gate 4 (follow-up): fraudsters learn the model ignores a new claim pattern; losses rise for two quarters before anyone notices.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "7d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The gate reviews are complete.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "7d"
+        }
+      ]
+    },
+    {
+      "id": "t_data",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Gate 1: data.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "dataPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_dep",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Gate 2: deployment.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "depPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_mon",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Gate 3: monitoring.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "monPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "dataPrompt": {
+      "title": "Labels from a public forum",
+      "context": "The forum list adds 4,000 'fraud' labels.",
+      "choices": [
+        {
+          "id": "provenance",
+          "label": "Drop the scraped list, train on investigator-confirmed outcomes with recorded lineage, and keep a dataset version for each model",
+          "effects": [
+            {
+              "set": "data",
+              "to": "\"provenance\""
+            },
+            {
+              "set": "dataAt",
+              "to": "t"
+            },
+            {
+              "add": "ml",
+              "by": "1"
+            },
+            {
+              "log": "Training uses traceable, confirmed labels only.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Training data must be trustworthy and traceable; untrusted labels invite poisoning."
+        },
+        {
+          "id": "sample",
+          "label": "Keep the scraped list but spot-check 100 entries",
+          "effects": [
+            {
+              "set": "data",
+              "to": "\"sample\""
+            },
+            {
+              "set": "dataAt",
+              "to": "t"
+            },
+            {
+              "add": "ml",
+              "by": "-1"
+            },
+            {
+              "log": "100 entries are spot-checked.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "A spot check can't show the rest wasn't poisoned."
+        },
+        {
+          "id": "useAll",
+          "label": "Use everything: more data is better",
+          "effects": [
+            {
+              "set": "data",
+              "to": "\"useAll\""
+            },
+            {
+              "set": "dataAt",
+              "to": "t"
+            },
+            {
+              "add": "ml",
+              "by": "-2"
+            },
+            {
+              "log": "All data is used.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Anyone who posted to the forum shaped the model."
+        }
+      ]
+    },
+    "depPrompt": {
+      "title": "Auto-deny above a score",
+      "context": "The plan denies claims automatically above a threshold.",
+      "choices": [
+        {
+          "id": "assist",
+          "label": "The model only routes claims to investigators with its reasons; investigators decide; every input, score and decision is logged",
+          "effects": [
+            {
+              "set": "dep",
+              "to": "\"assist\""
+            },
+            {
+              "set": "depAt",
+              "to": "t"
+            },
+            {
+              "add": "prod",
+              "by": "1"
+            },
+            {
+              "log": "The model assists; humans decide; everything is logged.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Human-centric design keeps people accountable for decisions that affect customers; logs make it auditable."
+        },
+        {
+          "id": "sampleReview",
+          "label": "Auto-deny, with humans reviewing a 5% sample weekly",
+          "effects": [
+            {
+              "set": "dep",
+              "to": "\"sampleReview\""
+            },
+            {
+              "set": "depAt",
+              "to": "t"
+            },
+            {
+              "add": "prod",
+              "by": "-1"
+            },
+            {
+              "log": "Auto-deny with sampling.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Most wrong denials are never seen by a person."
+        },
+        {
+          "id": "autoDeny",
+          "label": "Auto-deny as planned",
+          "effects": [
+            {
+              "set": "dep",
+              "to": "\"autoDeny\""
+            },
+            {
+              "set": "depAt",
+              "to": "t"
+            },
+            {
+              "add": "prod",
+              "by": "-2"
+            },
+            {
+              "log": "Claims above the score are denied automatically.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Customers are denied by a model with no human or log to explain it."
+        }
+      ]
+    },
+    "monPrompt": {
+      "title": "What happens after release",
+      "context": "Claim patterns change each season; fraudsters adapt.",
+      "choices": [
+        {
+          "id": "monitor",
+          "label": "Monitor input drift, score distribution and investigator overturn rate weekly, alert on thresholds, and retrain from versioned data through the same gates",
+          "effects": [
+            {
+              "set": "mon",
+              "to": "\"monitor\""
+            },
+            {
+              "set": "monAt",
+              "to": "t"
+            },
+            {
+              "add": "risk",
+              "by": "1"
+            },
+            {
+              "log": "Drift and abuse monitoring with triggers is in place.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A model's security and accuracy decay after release; monitoring and gated retraining keep it trustworthy."
+        },
+        {
+          "id": "quarterly",
+          "label": "Review accuracy once a quarter",
+          "effects": [
+            {
+              "set": "mon",
+              "to": "\"quarterly\""
+            },
+            {
+              "set": "monAt",
+              "to": "t"
+            },
+            {
+              "add": "risk",
+              "by": "-1"
+            },
+            {
+              "log": "Quarterly reviews are scheduled.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Something, but drift and adaptation can run for months unseen."
+        },
+        {
+          "id": "unwatched",
+          "label": "No monitoring: the model was tested before release",
+          "effects": [
+            {
+              "set": "mon",
+              "to": "\"unwatched\""
+            },
+            {
+              "set": "monAt",
+              "to": "t"
+            },
+            {
+              "add": "risk",
+              "by": "-2"
+            },
+            {
+              "log": "No monitoring is set up.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Pre-release tests say nothing about next season's claims or adapting fraud."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the gate decision: how security is built into the model's data, deployment and operation.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Data and design",
+          "criteria": "Confirmed labels with lineage; the model assists and humans decide, with logging.",
+          "modelAnswer": "We train on investigator-confirmed outcomes with lineage; the model routes claims with reasons and investigators decide, all logged."
+        },
+        {
+          "label": "Operation",
+          "criteria": "Drift and overturn monitoring with alerts and gated retraining.",
+          "modelAnswer": "We watch input drift, scores and investigator overturns weekly and retrain through the same gates."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "governance",
+    "thresholds": {
+      "aboveAppetite": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No risk above appetite at the close without a treatment."
+        }
+      },
+      "supportTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Each key stakeholder at 6 of 10 or more at the close."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (data == \"sample\") and (dep == \"sampleReview\") and (mon == \"quarterly\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CompTIA SecAI+ CY0-001 (V1) exam page: launched 2026-02-17; domains Basic AI concepts related to cybersecurity 17%, Securing AI systems 40%, AI-assisted security 24%, AI governance, risk, and compliance 19%",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.comptia.org/en-us/certifications/secai/",
+        "note": "Relevant text: Securing AI systems: 'Mitigate adversarial risks: Defend against attacks targeting AI models, data pipelines, and inference layers'; 'Implement security controls: Protect AI systems, data, and models using robust technical safeguards'. The page does not name prompt injection, data leakage or guardrails. Read through a summarizing fetch on 2026-11-11; the CY0-001 objectives PDF was not re-read here; the course's objective titles come from the course seed. Reused for REQ-336 from this course's agent-indirect-prompt-injection (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "dataHarm": {
+      "label": "A poisoned model",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and data == \"useAll\"",
+      "narrative": "Poisoned forum labels made the model flag one repair shop's customers."
+    },
+    "depHarm": {
+      "label": "Legitimate claims denied",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and dep == \"autoDeny\"",
+      "narrative": "The model auto-denied 300 legitimate claims; customers complained to the regulator."
+    },
+    "monHarm": {
+      "label": "Drift exploited",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and mon == \"unwatched\"",
+      "narrative": "Unmonitored, the model missed a new fraud pattern for two quarters."
+    },
+    "target": {
+      "label": "Secure across the life cycle",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (data == \"provenance\") and (dep == \"assist\") and (mon == \"monitor\") and record == \"honest\" and openCount <= aboveAppetite and minSupport >= supportTarget",
+      "narrative": "The claims model is trained on trustworthy data, overseen by people and watched in production."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "dataHarm",
+    "depHarm",
+    "monHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "dataCrit",
+        "label": "Used only trustworthy, traceable training data",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "data == \"provenance\"",
+            "score": "met",
+            "why": "Trustworthy data."
+          },
+          {
+            "when": "data == \"sample\"",
+            "score": "partial",
+            "why": "Partial assurance."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Poisonable."
+          }
+        ]
+      },
+      {
+        "id": "depCrit",
+        "label": "Kept a human in the decision with logging",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "dep == \"assist\"",
+            "score": "met",
+            "why": "Human oversight."
+          },
+          {
+            "when": "dep == \"sampleReview\"",
+            "score": "partial",
+            "why": "Weak oversight."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No oversight."
+          }
+        ]
+      },
+      {
+        "id": "monCrit",
+        "label": "Monitored the model for drift and abuse with a retraining trigger",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "mon == \"monitor\"",
+            "score": "met",
+            "why": "Monitored."
+          },
+          {
+            "when": "mon == \"quarterly\"",
+            "score": "partial",
+            "why": "Slow."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Unmonitored."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(lineageAt) and not isNull(deployAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(lineageAt) or not isNull(deployAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 10)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the data lineage and the deployment plan first."
+      },
+      {
+        "at": "Gate 1",
+        "text": "Train on confirmed outcomes with lineage and drop the scraped list."
+      },
+      {
+        "at": "Gate 2",
+        "text": "Have the model route claims with reasons, humans decide, everything logged."
+      },
+      {
+        "at": "Gate 3",
+        "text": "Monitor drift and overturn rates with alerts and gated retraining."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "dataHarm": {
+        "headline": "Trustworthy data first",
+        "body": "Use traceable, confirmed data with lineage."
+      },
+      "depHarm": {
+        "headline": "Keep humans in the decision",
+        "body": "Let the model assist; people decide and everything is logged."
+      },
+      "monHarm": {
+        "headline": "Monitor after release",
+        "body": "Watch drift and outcomes and retrain through the gates."
+      },
+      "target": {
+        "headline": "Good: secure across the life cycle",
+        "body": "Trusted data, human oversight and monitoring, gate by gate."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Security runs through the AI life cycle: a use case aligned to the business, training data that is trustworthy and traceable (untrusted labels invite poisoning), development and deployment designed around people (models assist, humans decide, everything logged), and monitoring after release for drift and abuse, with retraining through the same gates."
+  }
+}

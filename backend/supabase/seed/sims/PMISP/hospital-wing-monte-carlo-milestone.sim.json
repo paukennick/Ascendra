@@ -1,0 +1,1168 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "hospital-wing-monte-carlo-milestone",
+  "title": "Is 30 September achievable? A Monte Carlo schedule risk analysis, merge bias and a near-critical path",
+  "screen": {
+    "type": "project-dashboard",
+    "level": 1,
+    "dashboard": {
+      "mode": "predictive",
+      "heading": "Hospital wing fit-out, schedule risk analysis, week {p}",
+      "commitments": [
+        {
+          "id": "ms",
+          "label": "Contract milestone",
+          "text": "Wing handed over for commissioning by 30 September; liquidated damages apply after."
+        },
+        {
+          "id": "base",
+          "label": "Baseline",
+          "text": "Deterministic critical path finishes 12 September."
+        }
+      ],
+      "columns": [
+        {
+          "id": "open",
+          "label": "Open"
+        },
+        {
+          "id": "risk",
+          "label": "Off plan"
+        },
+        {
+          "id": "done",
+          "label": "Decided on plan"
+        }
+      ],
+      "items": [
+        {
+          "id": "wSim",
+          "label": "Schedule risk analysis",
+          "column": "sim == \"monte\" ? \"done\" : sim == \"pert\" ? \"risk\" : sim == \"deterministic\" ? \"risk\" : \"open\"",
+          "when": "true",
+          "flag": "sim == \"deterministic\""
+        },
+        {
+          "id": "wNear",
+          "label": "Medical gas path",
+          "column": "near == \"focus\" ? \"done\" : near == \"cpOnly\" ? \"risk\" : near == \"ignore\" ? \"risk\" : \"open\"",
+          "when": "true",
+          "flag": "near == \"ignore\""
+        },
+        {
+          "id": "wRerun",
+          "label": "Schedule risk report",
+          "column": "rerun == \"report\" ? \"done\" : rerun == \"p50\" ? \"risk\" : rerun == \"pad\" ? \"risk\" : \"open\"",
+          "when": "true",
+          "flag": "rerun == \"pad\""
+        }
+      ],
+      "issues": [
+        {
+          "id": "iSim",
+          "label": "Milestone confidence unknown",
+          "when": "p >= 1",
+          "at": "604800",
+          "status": "{sim == \"monte\" ? \"P50 24 Sep, P80 4 Oct: below tolerance\" : sim == \"pert\" ? \"PERT on one path: 16 Sep\" : sim == \"deterministic\" ? \"12 Sep reported as safe\" : \"Due\"}",
+          "open": "sim == \"none\""
+        },
+        {
+          "id": "iNear",
+          "label": "Near-critical path drives the finish",
+          "when": "p >= 2",
+          "at": "1209600",
+          "status": "{near == \"focus\" ? \"Near-critical path treated\" : near == \"cpOnly\" ? \"Electrical accelerated\" : near == \"ignore\" ? \"Near-critical path ignored\" : \"Due\"}",
+          "open": "near == \"none\""
+        },
+        {
+          "id": "iRerun",
+          "label": "Confidence not communicated",
+          "when": "p >= 3",
+          "at": "1814400",
+          "status": "{rerun == \"report\" ? \"P80 27 Sep reported; monthly reruns\" : rerun == \"p50\" ? \"P50 only\" : rerun == \"pad\" ? \"Hidden padding\" : \"Due\"}",
+          "open": "rerun == \"none\""
+        }
+      ],
+      "people": [
+        {
+          "id": "sSpon",
+          "label": "Sponsor",
+          "spokenLabel": "the sponsor's support",
+          "value": "spon",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sTeam",
+          "label": "Project team",
+          "spokenLabel": "the team's support",
+          "value": "team",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sCust",
+          "label": "Customer",
+          "spokenLabel": "the customer's support",
+          "value": "cust",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "events": [
+        {
+          "id": "mSim",
+          "label": "Risk analysis",
+          "at": "604800",
+          "status": "{sim == \"monte\" ? \"P50 24 Sep, P80 4 Oct: below tolerance\" : sim == \"pert\" ? \"PERT on one path: 16 Sep\" : sim == \"deterministic\" ? \"12 Sep reported as safe\" : \"Due\"}"
+        },
+        {
+          "id": "mNear",
+          "label": "Long-lead orders",
+          "at": "1209600",
+          "status": "{near == \"focus\" ? \"Near-critical path treated\" : near == \"cpOnly\" ? \"Electrical accelerated\" : near == \"ignore\" ? \"Near-critical path ignored\" : \"Due\"}"
+        },
+        {
+          "id": "mRerun",
+          "label": "Sponsor briefing",
+          "at": "1814400",
+          "status": "{rerun == \"report\" ? \"P80 27 Sep reported; monthly reruns\" : rerun == \"p50\" ? \"P50 only\" : rerun == \"pad\" ? \"Hidden padding\" : \"Due\"}"
+        }
+      ],
+      "meters": [
+        {
+          "id": "mSpi",
+          "label": "SPI",
+          "value": "{spi}"
+        },
+        {
+          "id": "mCpi",
+          "label": "CPI",
+          "value": "{cpi}"
+        }
+      ]
+    }
+  },
+  "objective": "Performing schedule risk analysis (what-if scenarios, Monte Carlo simulation) to test whether milestones are achievable within risk tolerance",
+  "secondaryObjectives": [
+    "Identifying critical and near-critical paths (Critical Path Method, Critical Chain, PERT, Monte Carlo simulation)",
+    "Estimating activity durations using three-point, parametric, analogous, or PERT techniques"
+  ],
+  "sources": [
+    {
+      "cite": "PMI, PMI Scheduling Professional (PMI-SP) Examination Content Outline (2012, revision mark 4/20): Schedule Strategy 14%, Planning and Development 31%, Monitoring and Controlling 35%, Closeout 6%, Stakeholder Communications 14%",
+      "checkedAt": "2026-11-17",
+      "url": "https://mail.mosaicprojects.com.au/PDF-Gen/PMI-SP_exam_outline.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch of a copy of PMI's PDF hosted by a consultancy. Relevant text: Monitoring and Controlling Task 3 'Perform schedule analysis and audit ... in order to identify and report project schedule, status, changes, impacts or issues'; Task 5 'Incorporate approved risk mitigation activities into the schedule, by utilizing defined change control processes'; Task 6 'Update the schedule model and document schedule baseline changes, received through formal change-control processes'. The objective wording here is the course seed's. Reused for REQ-336 from this course's clinic-fitout-variance-pmisp (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the project, the figures and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the scheduler for the new surgical wing at Brookvale General, a fictional hospital. The deterministic schedule finishes 12 September against a 30 September contract milestone. The sponsor's risk tolerance: at least 80% confidence of meeting it.",
+    "handover": [
+      "Three parallel paths (mechanical, electrical, medical gas) merge at commissioning.",
+      "Durations so far are single-point estimates."
+    ],
+    "howItWorks": [
+      "The dashboard shows the commitments, the work items, the risks and issues, the people's support and the milestones.",
+      "Move on a week at a time. A decision comes to you at each status meeting; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-01-11T09:00",
+    "tick": "1d",
+    "maxDuration": "84d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "spon": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "team": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "cust": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "sim": {
+      "type": "enum",
+      "values": [
+        "none",
+        "monte",
+        "pert",
+        "deterministic"
+      ],
+      "init": "none"
+    },
+    "simAt": {
+      "type": "time",
+      "init": null
+    },
+    "near": {
+      "type": "enum",
+      "values": [
+        "none",
+        "focus",
+        "cpOnly",
+        "ignore"
+      ],
+      "init": "none"
+    },
+    "nearAt": {
+      "type": "time",
+      "init": null
+    },
+    "rerun": {
+      "type": "enum",
+      "values": [
+        "none",
+        "report",
+        "p50",
+        "pad"
+      ],
+      "init": "none"
+    },
+    "rerunAt": {
+      "type": "time",
+      "init": null
+    },
+    "estAt": {
+      "type": "time",
+      "init": null
+    },
+    "netAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(spon, team), cust)"
+    },
+    "missCount": {
+      "expr": "((sim == \"deterministic\") ? 1 : 0) + ((near == \"ignore\") ? 1 : 0) + ((rerun == \"pad\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(sim == \"none\" or (sim == \"deterministic\") ? 1 : 0) + (near == \"none\" or (near == \"ignore\") ? 1 : 0) + (rerun == \"none\" or (rerun == \"pad\") ? 1 : 0)"
+    },
+    "spi": {
+      "expr": "1 - ((sim == \"pert\") ? 0.04 : (sim == \"deterministic\") ? 0.09 : 0) - ((near == \"cpOnly\") ? 0.04 : (near == \"ignore\") ? 0.09 : 0) - ((rerun == \"p50\") ? 0.04 : (rerun == \"pad\") ? 0.09 : 0)"
+    },
+    "cpi": {
+      "expr": "1 - ((sim == \"pert\") ? 0.03 : (sim == \"deterministic\") ? 0.08 : 0) - ((near == \"cpOnly\") ? 0.03 : (near == \"ignore\") ? 0.08 : 0) - ((rerun == \"p50\") ? 0.03 : (rerun == \"pad\") ? 0.08 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Schedule risk analysis",
+      "clock": "turns",
+      "actions": [
+        "est",
+        "net"
+      ]
+    },
+    "close": {
+      "label": "Schedule risk report",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "est": {
+      "label": "Collect three-point estimates from the trade leads",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(estAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "estAt",
+          "to": "t"
+        },
+        {
+          "log": "You collect optimistic, most likely and pessimistic durations.",
+          "kind": "act"
+        },
+        {
+          "finding": "The medical gas path's pessimistic estimate is 40% above its most likely; mechanical and electrical are tighter."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "net": {
+      "label": "Review the schedule network's merge points",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(netAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "netAt",
+          "to": "t"
+        },
+        {
+          "log": "You review the network.",
+          "kind": "act"
+        },
+        {
+          "finding": "Three parallel paths of similar length merge at commissioning; the medical gas path has only 4 days of float."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the schedule risk report",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the report says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Monte Carlo on three-point estimates (P80 4 October, then 27 September with responses), the medical gas driver treated, and monthly reruns"
+                },
+                {
+                  "value": "summary",
+                  "label": "Schedule on track"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next status meeting",
+      "wait": {
+        "skipLabel": "Go to the next status meeting"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "sim == \"deterministic\"",
+              "then": [
+                {
+                  "log": "Week 2: the sponsor commits the hospital's opening to 1 October on the 'safe' date.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "near == \"ignore\"",
+              "then": [
+                {
+                  "log": "Week 3: the medical gas valves arrive late; commissioning slips past 30 September and liquidated damages start.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "rerun == \"pad\"",
+              "then": [
+                {
+                  "log": "Week 4: crews fill the padded durations; real progress is invisible and the schedule loses credibility with the hospital.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "7d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The schedule risk review closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "7d"
+        }
+      ]
+    },
+    {
+      "id": "t_sim",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 1: the sponsor asks if 30 September is safe.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "simPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_near",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 2: the simulation's criticality index.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "nearPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_rerun",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 3: rerun with the responses.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "rerunPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "simPrompt": {
+      "title": "Deterministic or probabilistic?",
+      "context": "The deterministic finish is 12 September.",
+      "choices": [
+        {
+          "id": "monte",
+          "label": "Run a Monte Carlo simulation on three-point estimates across the network: P50 is 24 September, P80 is 4 October",
+          "effects": [
+            {
+              "set": "sim",
+              "to": "\"monte\""
+            },
+            {
+              "set": "simAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "10"
+            },
+            {
+              "log": "The simulation shows P80 after the milestone.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Merging parallel paths adds risk a single-point CPM date hides (merge bias); the simulation shows the confidence."
+        },
+        {
+          "id": "pert",
+          "label": "Use PERT on the critical path only",
+          "effects": [
+            {
+              "set": "sim",
+              "to": "\"pert\""
+            },
+            {
+              "set": "simAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-15"
+            },
+            {
+              "log": "PERT gives 16 September.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Better than single points, but ignores the other paths merging."
+        },
+        {
+          "id": "deterministic",
+          "label": "Report 12 September as safe: 18 days of margin",
+          "effects": [
+            {
+              "set": "sim",
+              "to": "\"deterministic\""
+            },
+            {
+              "set": "simAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-25"
+            },
+            {
+              "log": "12 September is reported.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "A single-point date ignores uncertainty and merge bias."
+        }
+      ]
+    },
+    "nearPrompt": {
+      "title": "Which path drives the risk?",
+      "context": "Medical gas is critical in 55% of iterations, though not on the deterministic critical path.",
+      "choices": [
+        {
+          "id": "focus",
+          "label": "Treat medical gas as a near-critical driver: pre-order the long-lead valves and add a second certified crew in August",
+          "effects": [
+            {
+              "set": "near",
+              "to": "\"focus\""
+            },
+            {
+              "set": "nearAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "10"
+            },
+            {
+              "log": "Medical gas risk is treated.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "The criticality index shows which path really drives the finish."
+        },
+        {
+          "id": "cpOnly",
+          "label": "Accelerate the deterministic critical path (electrical)",
+          "effects": [
+            {
+              "set": "near",
+              "to": "\"cpOnly\""
+            },
+            {
+              "set": "nearAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "-15"
+            },
+            {
+              "log": "Electrical is accelerated.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "That path is critical in only 30% of iterations; the main driver is untouched."
+        },
+        {
+          "id": "ignore",
+          "label": "Ignore it: medical gas isn't on the critical path",
+          "effects": [
+            {
+              "set": "near",
+              "to": "\"ignore\""
+            },
+            {
+              "set": "nearAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "-25"
+            },
+            {
+              "log": "Nothing changes.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The path most likely to delay the finish is left alone."
+        }
+      ]
+    },
+    "rerunPrompt": {
+      "title": "Reporting confidence",
+      "context": "With the responses, P80 is 27 September.",
+      "choices": [
+        {
+          "id": "report",
+          "label": "Report P50 and P80 with the responses (P80 27 September, within tolerance), the assumptions, and rerun monthly",
+          "effects": [
+            {
+              "set": "rerun",
+              "to": "\"report\""
+            },
+            {
+              "set": "rerunAt",
+              "to": "t"
+            },
+            {
+              "add": "cust",
+              "by": "10"
+            },
+            {
+              "log": "The sponsor gets confidence levels and assumptions.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Report confidence against the stated tolerance, with assumptions, and update it."
+        },
+        {
+          "id": "p50",
+          "label": "Report P50 only",
+          "effects": [
+            {
+              "set": "rerun",
+              "to": "\"p50\""
+            },
+            {
+              "set": "rerunAt",
+              "to": "t"
+            },
+            {
+              "add": "cust",
+              "by": "-15"
+            },
+            {
+              "log": "P50 is reported.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "P50 is a coin toss; tolerance was 80%."
+        },
+        {
+          "id": "pad",
+          "label": "Add 30 days of hidden padding to every activity and report 'on track'",
+          "effects": [
+            {
+              "set": "rerun",
+              "to": "\"pad\""
+            },
+            {
+              "set": "rerunAt",
+              "to": "t"
+            },
+            {
+              "add": "cust",
+              "by": "-25"
+            },
+            {
+              "log": "Padding is hidden in the activities.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Hidden padding destroys the schedule's credibility and gets consumed (Parkinson's law)."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the schedule risk report: how likely 30 September is, what drives the risk and what you did about it.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Analysis",
+          "criteria": "Monte Carlo on three-point estimates; merge bias; P80 4 October against an 80% tolerance.",
+          "modelAnswer": "Three-point estimates in a Monte Carlo simulation gave P50 24 September and P80 4 October, below the 80% tolerance, because three paths merge."
+        },
+        {
+          "label": "Response",
+          "criteria": "Medical gas near-critical (55%); pre-order and second crew; P80 27 September; monthly reruns.",
+          "modelAnswer": "Medical gas was critical in 55% of runs; pre-ordering and a second crew bring P80 to 27 September. We rerun monthly."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "project",
+    "thresholds": {
+      "spiTarget": {
+        "value": 0.95,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "SPI at the close."
+        }
+      },
+      "cpiTarget": {
+        "value": 0.95,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "CPI at the close."
+        }
+      },
+      "stakeholderTarget": {
+        "value": 60,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Every stakeholder at 60 of 100 or more."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (sim == \"pert\") and (near == \"cpOnly\") and (rerun == \"p50\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "PMI, PMI Scheduling Professional (PMI-SP) Examination Content Outline (2012, revision mark 4/20): Schedule Strategy 14%, Planning and Development 31%, Monitoring and Controlling 35%, Closeout 6%, Stakeholder Communications 14%",
+        "checkedAt": "2026-11-17",
+        "url": "https://mail.mosaicprojects.com.au/PDF-Gen/PMI-SP_exam_outline.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch of a copy of PMI's PDF hosted by a consultancy. Relevant text: Monitoring and Controlling Task 3 'Perform schedule analysis and audit ... in order to identify and report project schedule, status, changes, impacts or issues'; Task 5 'Incorporate approved risk mitigation activities into the schedule, by utilizing defined change control processes'; Task 6 'Update the schedule model and document schedule baseline changes, received through formal change-control processes'. The objective wording here is the course seed's. Reused for REQ-336 from this course's clinic-fitout-variance-pmisp (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "simHarm": {
+      "label": "A commitment on false confidence",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and sim == \"deterministic\"",
+      "narrative": "The hospital committed its opening on a deterministic date with about 50% real confidence."
+    },
+    "nearHarm": {
+      "label": "The milestone missed",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and near == \"ignore\"",
+      "narrative": "The ignored medical gas path slipped; commissioning missed 30 September and damages applied."
+    },
+    "rerunHarm": {
+      "label": "A schedule nobody trusts",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and rerun == \"pad\"",
+      "narrative": "Hidden padding was consumed and progress became invisible; the hospital stopped trusting the schedule."
+    },
+    "target": {
+      "label": "A milestone tested against tolerance",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (sim == \"monte\") and (near == \"focus\") and (rerun == \"report\") and record == \"honest\" and spi >= spiTarget and cpi >= cpiTarget and minSupport >= stakeholderTarget",
+      "narrative": "The milestone now has 80% confidence and the sponsor knows why."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "simHarm",
+    "nearHarm",
+    "rerunHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "simCrit",
+        "label": "Ran a Monte Carlo analysis with three-point estimates",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sim == \"monte\"",
+            "score": "met",
+            "why": "Probabilistic."
+          },
+          {
+            "when": "sim == \"pert\"",
+            "score": "partial",
+            "why": "Ignores merge bias."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Overconfident."
+          }
+        ]
+      },
+      {
+        "id": "nearCrit",
+        "label": "Managed the near-critical path the simulation exposed",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "near == \"focus\"",
+            "score": "met",
+            "why": "Targeted."
+          },
+          {
+            "when": "near == \"cpOnly\"",
+            "score": "partial",
+            "why": "Wrong path."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Ignored."
+          }
+        ]
+      },
+      {
+        "id": "rerunCrit",
+        "label": "Reported the milestone confidence against tolerance and kept it updated",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "rerun == \"report\"",
+            "score": "met",
+            "why": "Transparent."
+          },
+          {
+            "when": "rerun == \"p50\"",
+            "score": "partial",
+            "why": "Half the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Hidden padding."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(estAt) and not isNull(netAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(estAt) or not isNull(netAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 100)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "70 or more"
+      },
+      {
+        "id": "spiK",
+        "label": "SPI at the close",
+        "value": "spi",
+        "format": "number",
+        "expert": "1.00"
+      },
+      {
+        "id": "cpiK",
+        "label": "CPI at the close",
+        "value": "cpi",
+        "format": "number",
+        "expert": "1.00"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Collect three-point estimates and check the merge points first."
+      },
+      {
+        "at": "Week 1",
+        "text": "Run a Monte Carlo simulation on three-point estimates."
+      },
+      {
+        "at": "Week 2",
+        "text": "Treat the near-critical medical gas path with pre-ordering and a second crew."
+      },
+      {
+        "at": "Week 3",
+        "text": "Report P50 and P80 against tolerance and rerun monthly."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "simHarm": {
+        "headline": "Test against risk tolerance",
+        "body": "Monte Carlo shows the confidence of meeting a milestone."
+      },
+      "nearHarm": {
+        "headline": "Watch near-critical paths",
+        "body": "The criticality index shows paths that often drive the finish."
+      },
+      "rerunHarm": {
+        "headline": "Visible, quantified reserves",
+        "body": "Report confidence levels and keep reserves visible."
+      },
+      "target": {
+        "headline": "Good: a milestone tested against tolerance",
+        "body": "Monte Carlo, the near-critical driver treated, and confidence reported."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A deterministic critical-path date ignores uncertainty and merge bias, where parallel paths joining make a late finish more likely. Schedule risk analysis runs Monte Carlo on three-point estimates to give confidence levels (P50, P80) to compare with the risk tolerance; the criticality index exposes near-critical paths that often drive the finish. Responses are targeted at the drivers and the analysis is rerun and reported openly."
+  }
+}

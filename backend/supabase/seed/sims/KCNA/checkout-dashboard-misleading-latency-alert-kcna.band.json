@@ -1,0 +1,44 @@
+{
+  "band": "kcna",
+  "label": "KCNA",
+  "base": {
+    "course": "PCA",
+    "slug": "checkout-dashboard-misleading-latency-alert"
+  },
+  "slug": "checkout-dashboard-misleading-latency-alert-kcna",
+  "patch": {
+    "objective": "Observability: designing SLIs, SLOs and alerts, and the difference between monitoring and observability, cost and telemetry volume included",
+    "secondaryObjectives": [],
+    "sources": [
+      {
+        "cite": "CNCF KCNA Curriculum (cncf/curriculum, pinned commit 0a8cc08a) and the Linux Foundation KCNA exam page",
+        "checkedAt": "2026-11-14",
+        "url": "https://training.linuxfoundation.org/certification/kubernetes-cloud-native-associate/",
+        "note": "The course's own outline sources (the catalog's curriculum PDF and exam page). This case was written against the course objective titles as the KCNA course seed records them; neither page was re-read for this case on 2026-11-14, so the outline wording is the seed's. Reused for REQ-336 from this course's service-selector-no-endpoints (the same reading and date); the objective wording is the course seed's."
+      },
+      {
+        "cite": "Prometheus documentation, Histograms and summaries",
+        "checkedAt": "2026-11-17",
+        "url": "https://prometheus.io/docs/practices/histograms/",
+        "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: summary quantiles cannot be aggregated and averaging quantiles is statistically nonsensical; histograms aggregate with histogram_quantile(0.95, sum by (le) (rate(..._bucket[5m]))); for a 300 ms objective use buckets around 300 ms; the share of requests within 300 ms comes from the le=0.3 bucket over the count."
+      },
+      {
+        "cite": "Grafana documentation, Prometheus template variables (v12.4)",
+        "checkedAt": "2026-11-17",
+        "url": "https://grafana.com/docs/grafana/v12.4/datasources/prometheus/template-variables/",
+        "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: $__rate_interval is max($__interval + scrape interval, 4 x scrape interval) and is recommended for rate and increase, so the window is always at least four times the scrape interval."
+      },
+      {
+        "cite": "Google SRE Workbook, chapter 5: Alerting on SLOs",
+        "checkedAt": "2026-11-17",
+        "url": "https://sre.google/workbook/alerting-on-slos/",
+        "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: multiwindow, multi-burn-rate alerts: page on 2% of the budget in 1 hour (5-minute short window, burn rate 14.4) and 5% in 6 hours (30-minute short window), ticket on slower burns; the short window, 1/12 of the long one, lets the alert reset soon after errors stop."
+      },
+      {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "The company, the services, the metrics and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+      }
+    ]
+  }
+}

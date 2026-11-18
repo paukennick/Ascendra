@@ -1,0 +1,853 @@
+{
+  "slug": "increment-goal-early-feedback-pilot",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Ride-along and error data read; value-first goal; pilot on real jobs; adapted and measured; honest notes",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "pain",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "errors",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 4,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 24,
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "choose",
+          "prompt": "goalPrompt",
+          "choice": "valueFirst",
+          "seq": 6,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 48,
+          "seq": 7,
+          "tick": 24
+        },
+        {
+          "type": "choose",
+          "prompt": "feedbackPrompt",
+          "choice": "pilot",
+          "seq": 8,
+          "tick": 48
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 72,
+          "seq": 9,
+          "tick": 48
+        },
+        {
+          "type": "choose",
+          "prompt": "adaptPrompt",
+          "choice": "adaptMeasure",
+          "seq": 10,
+          "tick": 72
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 96,
+          "seq": 11,
+          "tick": 72
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 96
+        }
+      ],
+      "expect": {
+        "ending": "target",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "goalCrit": "met",
+          "feedbackCrit": "met",
+          "adaptCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0,
+          "supK": 80
+        },
+        "stateHash": "15728eae1045ea8e"
+      },
+      "reasoning": {
+        "reflection": "met"
+      }
+    },
+    {
+      "id": "partialGoal",
+      "title": "Partly right on the increment goal, the rest on plan",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "pain",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 24,
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "choose",
+          "prompt": "goalPrompt",
+          "choice": "mixed",
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 48,
+          "seq": 5,
+          "tick": 24
+        },
+        {
+          "type": "choose",
+          "prompt": "feedbackPrompt",
+          "choice": "pilot",
+          "seq": 6,
+          "tick": 48
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 72,
+          "seq": 7,
+          "tick": 48
+        },
+        {
+          "type": "choose",
+          "prompt": "adaptPrompt",
+          "choice": "adaptMeasure",
+          "seq": 8,
+          "tick": 72
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 96,
+          "seq": 9,
+          "tick": 72
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 10,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 11,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 12,
+          "tick": 96
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "goalCrit": "partial",
+          "feedbackCrit": "met",
+          "adaptCrit": "met",
+          "evidenceCrit": "partial",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0,
+          "supK": 55
+        },
+        "stateHash": "5f0b2845fb9228d0"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "partialAdapt",
+      "title": "Partly right on acting on feedback, and a one-line record",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 24,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "goalPrompt",
+          "choice": "valueFirst",
+          "seq": 2,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 2,
+          "to": 48,
+          "seq": 3,
+          "tick": 24
+        },
+        {
+          "type": "choose",
+          "prompt": "feedbackPrompt",
+          "choice": "pilot",
+          "seq": 4,
+          "tick": 48
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 72,
+          "seq": 5,
+          "tick": 48
+        },
+        {
+          "type": "choose",
+          "prompt": "adaptPrompt",
+          "choice": "note",
+          "seq": 6,
+          "tick": 72
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 96,
+          "seq": 7,
+          "tick": 72
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 8,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "summary"
+          },
+          "seq": 9,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 10,
+          "tick": 96
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "goalCrit": "met",
+          "feedbackCrit": "met",
+          "adaptCrit": "partial",
+          "evidenceCrit": "missed",
+          "recordCrit": "missed"
+        },
+        "kpis": {
+          "missK": 0,
+          "supK": 55
+        },
+        "stateHash": "62462db987c9e571"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "allPartial",
+      "title": "Every decision only partly right",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 24,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "goalPrompt",
+          "choice": "mixed",
+          "seq": 2,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 2,
+          "to": 48,
+          "seq": 3,
+          "tick": 24
+        },
+        {
+          "type": "choose",
+          "prompt": "feedbackPrompt",
+          "choice": "demo",
+          "seq": 4,
+          "tick": 48
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 72,
+          "seq": 5,
+          "tick": 48
+        },
+        {
+          "type": "choose",
+          "prompt": "adaptPrompt",
+          "choice": "note",
+          "seq": 6,
+          "tick": 72
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 96,
+          "seq": 7,
+          "tick": 72
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 8,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 9,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 10,
+          "tick": 96
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "goalCrit": "partial",
+          "feedbackCrit": "partial",
+          "adaptCrit": "partial",
+          "evidenceCrit": "missed",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0,
+          "supK": 55
+        },
+        "stateHash": "f2d6d22cecda8742"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "badGoal",
+      "title": "The most visible feature built first",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "pain",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "errors",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 4,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 24,
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "choose",
+          "prompt": "goalPrompt",
+          "choice": "visible",
+          "seq": 6,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 48,
+          "seq": 7,
+          "tick": 24
+        },
+        {
+          "type": "choose",
+          "prompt": "feedbackPrompt",
+          "choice": "pilot",
+          "seq": 8,
+          "tick": 48
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 72,
+          "seq": 9,
+          "tick": 48
+        },
+        {
+          "type": "choose",
+          "prompt": "adaptPrompt",
+          "choice": "adaptMeasure",
+          "seq": 10,
+          "tick": 72
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 96,
+          "seq": 11,
+          "tick": 72
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 96
+        }
+      ],
+      "expect": {
+        "ending": "goalHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "goalCrit": "missed",
+          "feedbackCrit": "met",
+          "adaptCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1,
+          "supK": 45
+        },
+        "stateHash": "5e9bbc87b62da3ab"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    },
+    {
+      "id": "badFeedback",
+      "title": "Feedback held until the end",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "pain",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "errors",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 4,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 24,
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "choose",
+          "prompt": "goalPrompt",
+          "choice": "valueFirst",
+          "seq": 6,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 48,
+          "seq": 7,
+          "tick": 24
+        },
+        {
+          "type": "choose",
+          "prompt": "feedbackPrompt",
+          "choice": "wait",
+          "seq": 8,
+          "tick": 48
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 72,
+          "seq": 9,
+          "tick": 48
+        },
+        {
+          "type": "choose",
+          "prompt": "adaptPrompt",
+          "choice": "adaptMeasure",
+          "seq": 10,
+          "tick": 72
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 96,
+          "seq": 11,
+          "tick": 72
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 96
+        }
+      ],
+      "expect": {
+        "ending": "feedbackHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "goalCrit": "met",
+          "feedbackCrit": "missed",
+          "adaptCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1,
+          "supK": 45
+        },
+        "stateHash": "36dd589493cfff09"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    },
+    {
+      "id": "badAdapt",
+      "title": "Pilot feedback dismissed",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "pain",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "errors",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 4,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 24,
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "choose",
+          "prompt": "goalPrompt",
+          "choice": "valueFirst",
+          "seq": 6,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 48,
+          "seq": 7,
+          "tick": 24
+        },
+        {
+          "type": "choose",
+          "prompt": "feedbackPrompt",
+          "choice": "pilot",
+          "seq": 8,
+          "tick": 48
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 72,
+          "seq": 9,
+          "tick": 48
+        },
+        {
+          "type": "choose",
+          "prompt": "adaptPrompt",
+          "choice": "dismiss",
+          "seq": 10,
+          "tick": 72
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 96,
+          "seq": 11,
+          "tick": 72
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 96
+        }
+      ],
+      "expect": {
+        "ending": "adaptHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "goalCrit": "met",
+          "feedbackCrit": "met",
+          "adaptCrit": "missed",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1,
+          "supK": 45
+        },
+        "stateHash": "b6035ea871b7687c"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    }
+  ]
+}

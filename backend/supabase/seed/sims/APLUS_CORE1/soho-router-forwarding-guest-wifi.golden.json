@@ -1,0 +1,846 @@
+{
+  "slug": "soho-router-forwarding-guest-wifi",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Router and camera read; reserved and VPN; isolated guest VLAN; WPA3; honest notes",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "router",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 10,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "camcfg",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 20,
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 30,
+          "seq": 5,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "camPrompt",
+          "choice": "vpn",
+          "seq": 6,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 60,
+          "seq": 7,
+          "tick": 30
+        },
+        {
+          "type": "choose",
+          "prompt": "guestPrompt",
+          "choice": "isolated",
+          "seq": 8,
+          "tick": 60
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 90,
+          "seq": 9,
+          "tick": 60
+        },
+        {
+          "type": "choose",
+          "prompt": "wpaPrompt",
+          "choice": "wpa3",
+          "seq": 10,
+          "tick": 90
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 120,
+          "seq": 11,
+          "tick": 90
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "target",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "camCrit": "met",
+          "guestCrit": "met",
+          "wpaCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0
+        },
+        "stateHash": "91d26b9139370944"
+      },
+      "reasoning": {
+        "reflection": "met"
+      }
+    },
+    {
+      "id": "partialCam",
+      "title": "Partly right on remote viewing, the rest on plan",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "router",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 10,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 30,
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "choose",
+          "prompt": "camPrompt",
+          "choice": "forwardSafe",
+          "seq": 4,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 60,
+          "seq": 5,
+          "tick": 30
+        },
+        {
+          "type": "choose",
+          "prompt": "guestPrompt",
+          "choice": "isolated",
+          "seq": 6,
+          "tick": 60
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 90,
+          "seq": 7,
+          "tick": 60
+        },
+        {
+          "type": "choose",
+          "prompt": "wpaPrompt",
+          "choice": "wpa3",
+          "seq": 8,
+          "tick": 90
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 120,
+          "seq": 9,
+          "tick": 90
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 10,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 11,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 12,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "camCrit": "partial",
+          "guestCrit": "met",
+          "wpaCrit": "met",
+          "evidenceCrit": "partial",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0
+        },
+        "stateHash": "32dac813b16a5d9c"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "partialWpa",
+      "title": "Partly right on wireless security, and a one-line record",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 30,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "camPrompt",
+          "choice": "vpn",
+          "seq": 2,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 2,
+          "to": 60,
+          "seq": 3,
+          "tick": 30
+        },
+        {
+          "type": "choose",
+          "prompt": "guestPrompt",
+          "choice": "isolated",
+          "seq": 4,
+          "tick": 60
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 90,
+          "seq": 5,
+          "tick": 60
+        },
+        {
+          "type": "choose",
+          "prompt": "wpaPrompt",
+          "choice": "newPw",
+          "seq": 6,
+          "tick": 90
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 120,
+          "seq": 7,
+          "tick": 90
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 8,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "summary"
+          },
+          "seq": 9,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 10,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "camCrit": "met",
+          "guestCrit": "met",
+          "wpaCrit": "partial",
+          "evidenceCrit": "missed",
+          "recordCrit": "missed"
+        },
+        "kpis": {
+          "missK": 0
+        },
+        "stateHash": "7d229e1bd6c34f8d"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "allPartial",
+      "title": "Every decision only partly right",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 30,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "camPrompt",
+          "choice": "forwardSafe",
+          "seq": 2,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 2,
+          "to": 60,
+          "seq": 3,
+          "tick": 30
+        },
+        {
+          "type": "choose",
+          "prompt": "guestPrompt",
+          "choice": "noGuest",
+          "seq": 4,
+          "tick": 60
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 90,
+          "seq": 5,
+          "tick": 60
+        },
+        {
+          "type": "choose",
+          "prompt": "wpaPrompt",
+          "choice": "newPw",
+          "seq": 6,
+          "tick": 90
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 120,
+          "seq": 7,
+          "tick": 90
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 8,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 9,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 10,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "camCrit": "partial",
+          "guestCrit": "partial",
+          "wpaCrit": "partial",
+          "evidenceCrit": "missed",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0
+        },
+        "stateHash": "b98e70ac0ca0df44"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "badCam",
+      "title": "The camera in the DMZ with its default password",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "router",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 10,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "camcfg",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 20,
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 30,
+          "seq": 5,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "camPrompt",
+          "choice": "dmz",
+          "seq": 6,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 60,
+          "seq": 7,
+          "tick": 30
+        },
+        {
+          "type": "choose",
+          "prompt": "guestPrompt",
+          "choice": "isolated",
+          "seq": 8,
+          "tick": 60
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 90,
+          "seq": 9,
+          "tick": 60
+        },
+        {
+          "type": "choose",
+          "prompt": "wpaPrompt",
+          "choice": "wpa3",
+          "seq": 10,
+          "tick": 90
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 120,
+          "seq": 11,
+          "tick": 90
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "camHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "camCrit": "missed",
+          "guestCrit": "met",
+          "wpaCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1
+        },
+        "stateHash": "5791680955d088ab"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    },
+    {
+      "id": "badGuest",
+      "title": "Patients kept on the office network",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "router",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 10,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "camcfg",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 20,
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 30,
+          "seq": 5,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "camPrompt",
+          "choice": "vpn",
+          "seq": 6,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 60,
+          "seq": 7,
+          "tick": 30
+        },
+        {
+          "type": "choose",
+          "prompt": "guestPrompt",
+          "choice": "sharePw",
+          "seq": 8,
+          "tick": 60
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 90,
+          "seq": 9,
+          "tick": 60
+        },
+        {
+          "type": "choose",
+          "prompt": "wpaPrompt",
+          "choice": "wpa3",
+          "seq": 10,
+          "tick": 90
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 120,
+          "seq": 11,
+          "tick": 90
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "guestHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "camCrit": "met",
+          "guestCrit": "missed",
+          "wpaCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1
+        },
+        "stateHash": "5bd271619c238c79"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    },
+    {
+      "id": "badWpa",
+      "title": "The office Wi-Fi left open",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "router",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 10,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "camcfg",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 20,
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 30,
+          "seq": 5,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "camPrompt",
+          "choice": "vpn",
+          "seq": 6,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 60,
+          "seq": 7,
+          "tick": 30
+        },
+        {
+          "type": "choose",
+          "prompt": "guestPrompt",
+          "choice": "isolated",
+          "seq": 8,
+          "tick": 60
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 90,
+          "seq": 9,
+          "tick": 60
+        },
+        {
+          "type": "choose",
+          "prompt": "wpaPrompt",
+          "choice": "open",
+          "seq": 10,
+          "tick": 90
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 120,
+          "seq": 11,
+          "tick": 90
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "wpaHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "camCrit": "met",
+          "guestCrit": "met",
+          "wpaCrit": "missed",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1
+        },
+        "stateHash": "fc209fbd35dbfec0"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    }
+  ]
+}

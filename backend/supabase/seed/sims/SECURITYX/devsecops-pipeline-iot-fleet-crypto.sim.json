@@ -1,0 +1,1013 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "devsecops-pipeline-iot-fleet-crypto",
+  "title": "Security engineering for a medical-device maker: a pipeline without security gates, device firmware signing and crypto agility",
+  "screen": {
+    "type": "security-console",
+    "level": 1,
+    "console": {
+      "alerts": [
+        {
+          "id": "aGates",
+          "severity": "high",
+          "title": "CI pipeline without security",
+          "detail": "The release is due Friday.",
+          "when": "p >= 1",
+          "at": "600",
+          "status": "{gates == \"devsecops\" ? \"Security gates and review in CI\" : gates == \"manual\" ? \"Manual pre-release review\" : gates == \"ship\" ? \"Shipped without gates\" : \"Due\"}",
+          "open": "gates == \"none\""
+        },
+        {
+          "id": "aSign",
+          "severity": "critical",
+          "title": "Unsigned firmware updates",
+          "detail": "An attacker on the update channel could push firmware.",
+          "when": "p >= 2",
+          "at": "1200",
+          "status": "{sign == \"signed\" ? \"Signed firmware, verified on device\" : sign == \"tls\" ? \"TLS only\" : sign == \"keyInRepo\" ? \"Signing key in the repository\" : \"Due\"}",
+          "open": "sign == \"none\""
+        },
+        {
+          "id": "aCrypto",
+          "severity": "high",
+          "title": "Device keys with no rotation",
+          "detail": "RSA-2048 keys are burned in; regulators expect post-quantum planning.",
+          "when": "p >= 3",
+          "at": "1800",
+          "status": "{crypto == \"agile\" ? \"Rotation and algorithm agility\" : crypto == \"bigger\" ? \"Larger keys, no agility\" : crypto == \"ignore\" ? \"Fixed keys for life\" : \"Due\"}",
+          "open": "crypto == \"none\""
+        }
+      ],
+      "events": [
+        {
+          "id": "eGates",
+          "source": "Review",
+          "text": "{gates == \"devsecops\" ? \"Security gates and review in CI\" : gates == \"manual\" ? \"Manual pre-release review\" : gates == \"ship\" ? \"Shipped without gates\" : \"\"}",
+          "when": "gates != \"none\"",
+          "at": "timeAt(gatesAt)"
+        },
+        {
+          "id": "eSign",
+          "source": "Review",
+          "text": "{sign == \"signed\" ? \"Signed firmware, verified on device\" : sign == \"tls\" ? \"TLS only\" : sign == \"keyInRepo\" ? \"Signing key in the repository\" : \"\"}",
+          "when": "sign != \"none\"",
+          "at": "timeAt(signAt)"
+        },
+        {
+          "id": "eCrypto",
+          "source": "Architecture",
+          "text": "{crypto == \"agile\" ? \"Rotation and algorithm agility\" : crypto == \"bigger\" ? \"Larger keys, no agility\" : crypto == \"ignore\" ? \"Fixed keys for life\" : \"\"}",
+          "when": "crypto != \"none\"",
+          "at": "timeAt(cryptoAt)"
+        },
+        {
+          "id": "iPipe",
+          "source": "Analyst",
+          "text": "No static analysis, no dependency scanning, no SBOM; one engineer can push straight to the release branch.",
+          "when": "not isNull(pipeAt)",
+          "at": "timeAt(pipeAt)"
+        },
+        {
+          "id": "iDev",
+          "source": "Analyst",
+          "text": "Devices install any image delivered over the update channel; nothing verifies a signature.",
+          "when": "not isNull(devAt)",
+          "at": "timeAt(devAt)"
+        }
+      ],
+      "assets": [
+        {
+          "id": "xGates",
+          "label": "Firmware pipeline",
+          "spokenLabel": "Firmware pipeline",
+          "kind": "CI",
+          "status": "{gates == \"devsecops\" ? \"Security gates and review in CI\" : gates == \"manual\" ? \"Manual pre-release review\" : gates == \"ship\" ? \"Shipped without gates\" : \"Under review\"}",
+          "tone": "gates == \"devsecops\" ? \"ok\" : gates == \"manual\" ? \"watch\" : gates == \"ship\" ? \"bad\" : p >= 1 ? \"watch\" : \"ok\""
+        },
+        {
+          "id": "xSign",
+          "label": "Infusion pump fleet",
+          "spokenLabel": "Infusion pump fleet",
+          "kind": "IoT",
+          "status": "{sign == \"signed\" ? \"Signed firmware, verified on device\" : sign == \"tls\" ? \"TLS only\" : sign == \"keyInRepo\" ? \"Signing key in the repository\" : \"Under review\"}",
+          "tone": "sign == \"signed\" ? \"ok\" : sign == \"tls\" ? \"watch\" : sign == \"keyInRepo\" ? \"bad\" : p >= 2 ? \"watch\" : \"ok\""
+        },
+        {
+          "id": "xCrypto",
+          "label": "Device identity keys",
+          "spokenLabel": "Device identity keys",
+          "kind": "cryptography",
+          "status": "{crypto == \"agile\" ? \"Rotation and algorithm agility\" : crypto == \"bigger\" ? \"Larger keys, no agility\" : crypto == \"ignore\" ? \"Fixed keys for life\" : \"Under review\"}",
+          "tone": "crypto == \"agile\" ? \"ok\" : crypto == \"bigger\" ? \"watch\" : crypto == \"ignore\" ? \"bad\" : p >= 3 ? \"watch\" : \"ok\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Check-in",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Secure software development lifecycle and DevSecOps integration",
+  "secondaryObjectives": [
+    "Enterprise mobility, endpoint, and IoT/OT security engineering",
+    "Advanced cryptographic concepts and applied cryptography design"
+  ],
+  "sources": [
+    {
+      "cite": "CompTIA SecurityX CAS-005 (V5) exam page: domains Governance, risk, and compliance 20%, Security architecture 27%, Security engineering 31%, Security operations 22%",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.comptia.org/en-us/certifications/securityx/",
+      "note": "Relevant text: Security architecture covers network architecture ('segmentation, microsegmentation, VPN, always-on VPN, and API integration'), Zero Trust ('defining subject-object relationships'), security boundaries ('asset identification, management, attestation, data perimeters, and secure zones') and deperimeterization ('SASE, SD-WAN, and software-defined networking'); Security operations covers incident response including root cause analysis. The page has no objective text on federation by name. Read through a summarizing fetch on 2026-11-11; the CAS-005 objectives PDF was not re-read here. The course's unit titles are the course's own wording. Reused for REQ-336 from this course's federation-token-forgery (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the systems and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the security architect at Brightline Medical, a fictional maker of connected infusion pumps. A firmware release is due; the pipeline has no security gates and devices accept any firmware image.",
+    "handover": [
+      "CI builds and ships firmware; tests are functional only.",
+      "Device-to-cloud traffic uses RSA-2048 keys burned in at manufacture with no rotation path."
+    ],
+    "howItWorks": [
+      "The console shows the alert queue, the event log and each asset's status.",
+      "Move on a check-in at a time. A decision comes to you at each check-in; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-06-14T09:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "gates": {
+      "type": "enum",
+      "values": [
+        "none",
+        "devsecops",
+        "manual",
+        "ship"
+      ],
+      "init": "none"
+    },
+    "gatesAt": {
+      "type": "time",
+      "init": null
+    },
+    "sign": {
+      "type": "enum",
+      "values": [
+        "none",
+        "signed",
+        "tls",
+        "keyInRepo"
+      ],
+      "init": "none"
+    },
+    "signAt": {
+      "type": "time",
+      "init": null
+    },
+    "crypto": {
+      "type": "enum",
+      "values": [
+        "none",
+        "agile",
+        "bigger",
+        "ignore"
+      ],
+      "init": "none"
+    },
+    "cryptoAt": {
+      "type": "time",
+      "init": null
+    },
+    "pipeAt": {
+      "type": "time",
+      "init": null
+    },
+    "devAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((gates == \"ship\") ? 1 : 0) + ((sign == \"keyInRepo\") ? 1 : 0) + ((crypto == \"ignore\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(gates == \"none\" or (gates == \"ship\") ? 1 : 0) + (sign == \"none\" or (sign == \"keyInRepo\") ? 1 : 0) + (crypto == \"none\" or (crypto == \"ignore\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Security engineering review",
+      "clock": "turns",
+      "actions": [
+        "pipe",
+        "dev"
+      ]
+    },
+    "close": {
+      "label": "Review record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "pipe": {
+      "label": "Review the CI pipeline",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(pipeAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "pipeAt",
+          "to": "t"
+        },
+        {
+          "log": "Review the CI pipeline.",
+          "kind": "act"
+        },
+        {
+          "finding": "No static analysis, no dependency scanning, no SBOM; one engineer can push straight to the release branch."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "dev": {
+      "label": "Review the device update path",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(devAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "devAt",
+          "to": "t"
+        },
+        {
+          "log": "Review the device update path.",
+          "kind": "act"
+        },
+        {
+          "finding": "Devices install any image delivered over the update channel; nothing verifies a signature."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Security gates and protected review in CI, HSM-signed firmware verified on devices, and a crypto-agile key design"
+                },
+                {
+                  "value": "summary",
+                  "label": "Review closed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next check-in",
+      "wait": {
+        "skipLabel": "Go to the next check-in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "gates == \"ship\"",
+              "then": [
+                {
+                  "log": "Check-in 2: the release includes a library with a known remote-code flaw; a hospital's scanner finds it on the pumps.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "sign == \"keyInRepo\"",
+              "then": [
+                {
+                  "log": "Check-in 3: a contractor's leaked token exposes the repository and its signing key.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "crypto == \"ignore\"",
+              "then": [
+                {
+                  "log": "Check-in 4: a key-extraction flaw in the chip is published; the fleet's keys can't be rotated.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "10min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The release review closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "10min"
+        }
+      ]
+    },
+    {
+      "id": "t_gates",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 1: the pipeline.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "gatesPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_sign",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 2: the update path.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "signPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_crypto",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 3: device keys.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "cryptoPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "gatesPrompt": {
+      "title": "No security in the pipeline",
+      "context": "The release is due Friday.",
+      "choices": [
+        {
+          "id": "devsecops",
+          "label": "Add SAST, dependency scanning and an SBOM to CI, require two-person review on the release branch, and block on criticals",
+          "effects": [
+            {
+              "set": "gates",
+              "to": "\"devsecops\""
+            },
+            {
+              "set": "gatesAt",
+              "to": "t"
+            },
+            {
+              "log": "Gates run in CI.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "DevSecOps builds security checks into every build and protects the release branch."
+        },
+        {
+          "id": "manual",
+          "label": "Run a manual review before each release",
+          "effects": [
+            {
+              "set": "gates",
+              "to": "\"manual\""
+            },
+            {
+              "set": "gatesAt",
+              "to": "t"
+            },
+            {
+              "log": "A manual review is planned.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Better than nothing, but late and inconsistent."
+        },
+        {
+          "id": "ship",
+          "label": "Ship and add security next quarter",
+          "effects": [
+            {
+              "set": "gates",
+              "to": "\"ship\""
+            },
+            {
+              "set": "gatesAt",
+              "to": "t"
+            },
+            {
+              "log": "Shipped unchanged.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "A vulnerable library ships to devices in hospitals."
+        }
+      ]
+    },
+    "signPrompt": {
+      "title": "Devices accept any image",
+      "context": "An attacker on the update channel could push firmware.",
+      "choices": [
+        {
+          "id": "signed",
+          "label": "Sign releases with a key held in an HSM and make devices verify the signature (secure boot) before installing",
+          "effects": [
+            {
+              "set": "sign",
+              "to": "\"signed\""
+            },
+            {
+              "set": "signAt",
+              "to": "t"
+            },
+            {
+              "log": "Devices verify signatures.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Code signing with verification on the device prevents malicious updates."
+        },
+        {
+          "id": "tls",
+          "label": "Rely on TLS for the update channel",
+          "effects": [
+            {
+              "set": "sign",
+              "to": "\"tls\""
+            },
+            {
+              "set": "signAt",
+              "to": "t"
+            },
+            {
+              "log": "TLS only.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "TLS protects transport, not a malicious image from a compromised server."
+        },
+        {
+          "id": "keyInRepo",
+          "label": "Sign with a key stored in the CI repository",
+          "effects": [
+            {
+              "set": "sign",
+              "to": "\"keyInRepo\""
+            },
+            {
+              "set": "signAt",
+              "to": "t"
+            },
+            {
+              "log": "Key in the repo.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Anyone with repo access can sign malicious firmware."
+        }
+      ]
+    },
+    "cryptoPrompt": {
+      "title": "Keys with no rotation path",
+      "context": "RSA-2048 keys are burned in; regulators expect post-quantum planning.",
+      "choices": [
+        {
+          "id": "agile",
+          "label": "Design key rotation over signed updates, an algorithm-agile protocol, and a migration plan to post-quantum algorithms",
+          "effects": [
+            {
+              "set": "crypto",
+              "to": "\"agile\""
+            },
+            {
+              "set": "cryptoAt",
+              "to": "t"
+            },
+            {
+              "log": "A rotation and migration design is approved.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Crypto agility lets algorithms and keys change without replacing devices."
+        },
+        {
+          "id": "bigger",
+          "label": "Move to RSA-4096 in the next hardware revision",
+          "effects": [
+            {
+              "set": "crypto",
+              "to": "\"bigger\""
+            },
+            {
+              "set": "cryptoAt",
+              "to": "t"
+            },
+            {
+              "log": "Bigger keys planned.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Still no rotation; still a hardware change."
+        },
+        {
+          "id": "ignore",
+          "label": "Leave keys as they are for the device's life",
+          "effects": [
+            {
+              "set": "crypto",
+              "to": "\"ignore\""
+            },
+            {
+              "set": "cryptoAt",
+              "to": "t"
+            },
+            {
+              "log": "Unchanged.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "A compromised key can never be replaced."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the security engineering review: what you required for the pipeline, the devices and their keys.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Pipeline and firmware",
+          "criteria": "SAST, SCA, SBOM, protected review; HSM signing with on-device verification.",
+          "modelAnswer": "CI runs SAST, dependency scanning and an SBOM with two-person review; firmware is signed with an HSM key and verified on the pump."
+        },
+        {
+          "label": "Crypto",
+          "criteria": "Rotation over signed updates and algorithm agility with a migration plan.",
+          "modelAnswer": "Keys rotate over signed updates and the protocol can change algorithms, with a post-quantum migration plan."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "security",
+    "thresholds": {
+      "containWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Contained and closed within 60 minutes of the first alert."
+        }
+      },
+      "containSpread": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No asset newly exposed by the response."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (gates == \"manual\") and (sign == \"tls\") and (crypto == \"bigger\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CompTIA SecurityX CAS-005 (V5) exam page: domains Governance, risk, and compliance 20%, Security architecture 27%, Security engineering 31%, Security operations 22%",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.comptia.org/en-us/certifications/securityx/",
+        "note": "Relevant text: Security architecture covers network architecture ('segmentation, microsegmentation, VPN, always-on VPN, and API integration'), Zero Trust ('defining subject-object relationships'), security boundaries ('asset identification, management, attestation, data perimeters, and secure zones') and deperimeterization ('SASE, SD-WAN, and software-defined networking'); Security operations covers incident response including root cause analysis. The page has no objective text on federation by name. Read through a summarizing fetch on 2026-11-11; the CAS-005 objectives PDF was not re-read here. The course's unit titles are the course's own wording. Reused for REQ-336 from this course's federation-token-forgery (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "gatesHarm": {
+      "label": "A vulnerable release",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and gates == \"ship\"",
+      "narrative": "A known-vulnerable library shipped to pumps."
+    },
+    "signHarm": {
+      "label": "A compromised signing key",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and sign == \"keyInRepo\"",
+      "narrative": "The signing key leaked with the repository."
+    },
+    "cryptoHarm": {
+      "label": "Unrotatable keys",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and crypto == \"ignore\"",
+      "narrative": "A chip flaw exposed keys that could never be rotated."
+    },
+    "target": {
+      "label": "Security engineered in",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (gates == \"devsecops\") and (sign == \"signed\") and (crypto == \"agile\") and record == \"honest\" and missCount <= containSpread and timeAt(doneAt) <= containWindow",
+      "narrative": "The firmware ships through gated CI, devices accept only signed images, and keys can change."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "gatesHarm",
+    "signHarm",
+    "cryptoHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "gatesCrit",
+        "label": "Integrated security gates into the SDLC",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "gates == \"devsecops\"",
+            "score": "met",
+            "why": "Integrated."
+          },
+          {
+            "when": "gates == \"manual\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Unsafe."
+          }
+        ]
+      },
+      {
+        "id": "signCrit",
+        "label": "Required signed firmware verified on the device",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sign == \"signed\"",
+            "score": "met",
+            "why": "Verified updates."
+          },
+          {
+            "when": "sign == \"tls\"",
+            "score": "partial",
+            "why": "Partial."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Exposed key."
+          }
+        ]
+      },
+      {
+        "id": "cryptoCrit",
+        "label": "Designed for crypto agility",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "crypto == \"agile\"",
+            "score": "met",
+            "why": "Agile."
+          },
+          {
+            "when": "crypto == \"bigger\"",
+            "score": "partial",
+            "why": "Rigid."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No agility."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(pipeAt) and not isNull(devAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(pipeAt) or not isNull(devAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Review the pipeline and the device update path first."
+      },
+      {
+        "at": "Check-in 1",
+        "text": "Add SAST, SCA, SBOM and protected review to CI."
+      },
+      {
+        "at": "Check-in 2",
+        "text": "Sign in an HSM and verify on the device."
+      },
+      {
+        "at": "Check-in 3",
+        "text": "Design rotation and algorithm agility with a migration plan."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "gatesHarm": {
+        "headline": "Shift security left",
+        "body": "Gates in CI for every build."
+      },
+      "signHarm": {
+        "headline": "Protect signing keys",
+        "body": "HSM-held keys and on-device verification."
+      },
+      "cryptoHarm": {
+        "headline": "Build in agility",
+        "body": "Rotation and algorithm agility."
+      },
+      "target": {
+        "headline": "Good: security engineered in",
+        "body": "DevSecOps, verified updates and crypto agility."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Security engineering builds controls into the lifecycle (DevSecOps gates, protected branches), into devices (signed firmware verified by secure boot, keys in an HSM) and into cryptographic design (key rotation and algorithm agility)."
+  }
+}

@@ -1,0 +1,846 @@
+{
+  "slug": "shared-repo-revert-semver-hotfix",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "History and diff read; reverted; major version; hotfix branch; an honest record",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "log",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diff",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 6,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 10,
+          "seq": 5,
+          "tick": 6
+        },
+        {
+          "type": "choose",
+          "prompt": "undoPrompt",
+          "choice": "revert",
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 20,
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "choose",
+          "prompt": "versionPrompt",
+          "choice": "major",
+          "seq": 8,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 30,
+          "seq": 9,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "hotfixPrompt",
+          "choice": "hotfixBranch",
+          "seq": 10,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 40,
+          "seq": 11,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 40
+        }
+      ],
+      "expect": {
+        "ending": "target",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "undoCrit": "met",
+          "versionCrit": "met",
+          "hotfixCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0
+        },
+        "stateHash": "6e38f2663f842ba4"
+      },
+      "reasoning": {
+        "reflection": "met"
+      }
+    },
+    {
+      "id": "partialUndo",
+      "title": "Partly right on undoing the commit, the rest on plan",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "log",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 10,
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "choose",
+          "prompt": "undoPrompt",
+          "choice": "localFix",
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 20,
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "choose",
+          "prompt": "versionPrompt",
+          "choice": "major",
+          "seq": 6,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 30,
+          "seq": 7,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "hotfixPrompt",
+          "choice": "hotfixBranch",
+          "seq": 8,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 40,
+          "seq": 9,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 10,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 11,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 12,
+          "tick": 40
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "undoCrit": "partial",
+          "versionCrit": "met",
+          "hotfixCrit": "met",
+          "evidenceCrit": "partial",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0
+        },
+        "stateHash": "20f43cd25a3aef5e"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "partialHotfix",
+      "title": "Partly right on the hotfix, and a one-line record",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 10,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "undoPrompt",
+          "choice": "revert",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 2,
+          "to": 20,
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "choose",
+          "prompt": "versionPrompt",
+          "choice": "major",
+          "seq": 4,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 30,
+          "seq": 5,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "hotfixPrompt",
+          "choice": "fromMain",
+          "seq": 6,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 40,
+          "seq": 7,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 8,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "summary"
+          },
+          "seq": 9,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 10,
+          "tick": 40
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "undoCrit": "met",
+          "versionCrit": "met",
+          "hotfixCrit": "partial",
+          "evidenceCrit": "missed",
+          "recordCrit": "missed"
+        },
+        "kpis": {
+          "missK": 0
+        },
+        "stateHash": "5408291b5f19dd97"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "allPartial",
+      "title": "Every decision only partly right",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 10,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "undoPrompt",
+          "choice": "localFix",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 2,
+          "to": 20,
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "choose",
+          "prompt": "versionPrompt",
+          "choice": "minor",
+          "seq": 4,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 30,
+          "seq": 5,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "hotfixPrompt",
+          "choice": "fromMain",
+          "seq": 6,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 40,
+          "seq": 7,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 8,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 9,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 10,
+          "tick": 40
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "undoCrit": "partial",
+          "versionCrit": "partial",
+          "hotfixCrit": "partial",
+          "evidenceCrit": "missed",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0
+        },
+        "stateHash": "72e58ccf12a3bcbb"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "badUndo",
+      "title": "main reset and force-pushed",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "log",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diff",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 6,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 10,
+          "seq": 5,
+          "tick": 6
+        },
+        {
+          "type": "choose",
+          "prompt": "undoPrompt",
+          "choice": "forcePush",
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 20,
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "choose",
+          "prompt": "versionPrompt",
+          "choice": "major",
+          "seq": 8,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 30,
+          "seq": 9,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "hotfixPrompt",
+          "choice": "hotfixBranch",
+          "seq": 10,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 40,
+          "seq": 11,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 40
+        }
+      ],
+      "expect": {
+        "ending": "undoHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "undoCrit": "missed",
+          "versionCrit": "met",
+          "hotfixCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1
+        },
+        "stateHash": "a2211f7eacb21cf2"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    },
+    {
+      "id": "badVersion",
+      "title": "The released v2.3.1 tag moved",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "log",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diff",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 6,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 10,
+          "seq": 5,
+          "tick": 6
+        },
+        {
+          "type": "choose",
+          "prompt": "undoPrompt",
+          "choice": "revert",
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 20,
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "choose",
+          "prompt": "versionPrompt",
+          "choice": "retag",
+          "seq": 8,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 30,
+          "seq": 9,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "hotfixPrompt",
+          "choice": "hotfixBranch",
+          "seq": 10,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 40,
+          "seq": 11,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 40
+        }
+      ],
+      "expect": {
+        "ending": "versionHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "undoCrit": "met",
+          "versionCrit": "missed",
+          "hotfixCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1
+        },
+        "stateHash": "55fa096ba250e9f7"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    },
+    {
+      "id": "badHotfix",
+      "title": "Production deployed from a feature branch",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "log",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diff",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 6,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 10,
+          "seq": 5,
+          "tick": 6
+        },
+        {
+          "type": "choose",
+          "prompt": "undoPrompt",
+          "choice": "revert",
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 20,
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "choose",
+          "prompt": "versionPrompt",
+          "choice": "major",
+          "seq": 8,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 30,
+          "seq": 9,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "hotfixPrompt",
+          "choice": "featureBranch",
+          "seq": 10,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 40,
+          "seq": 11,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 40
+        }
+      ],
+      "expect": {
+        "ending": "hotfixHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "undoCrit": "met",
+          "versionCrit": "met",
+          "hotfixCrit": "missed",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1
+        },
+        "stateHash": "e858d7b33b50fd01"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    }
+  ]
+}

@@ -1,0 +1,853 @@
+{
+  "slug": "wip-limits-flow-interruptions",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Board and interruptions read; WIP limits; one intake; flow metrics; an honest record",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "board",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "chat",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 4,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 24,
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "choose",
+          "prompt": "wipPrompt",
+          "choice": "limits",
+          "seq": 6,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 48,
+          "seq": 7,
+          "tick": 24
+        },
+        {
+          "type": "choose",
+          "prompt": "shieldPrompt",
+          "choice": "intake",
+          "seq": 8,
+          "tick": 48
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 72,
+          "seq": 9,
+          "tick": 48
+        },
+        {
+          "type": "choose",
+          "prompt": "metricPrompt",
+          "choice": "cycleTime",
+          "seq": 10,
+          "tick": 72
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 96,
+          "seq": 11,
+          "tick": 72
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 96
+        }
+      ],
+      "expect": {
+        "ending": "target",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "wipCrit": "met",
+          "shieldCrit": "met",
+          "metricCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0,
+          "supK": 80
+        },
+        "stateHash": "b8952af7905b6a77"
+      },
+      "reasoning": {
+        "reflection": "met"
+      }
+    },
+    {
+      "id": "partialWip",
+      "title": "Partly right on work in progress, the rest on plan",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "board",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 24,
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "choose",
+          "prompt": "wipPrompt",
+          "choice": "prioritize",
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 48,
+          "seq": 5,
+          "tick": 24
+        },
+        {
+          "type": "choose",
+          "prompt": "shieldPrompt",
+          "choice": "intake",
+          "seq": 6,
+          "tick": 48
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 72,
+          "seq": 7,
+          "tick": 48
+        },
+        {
+          "type": "choose",
+          "prompt": "metricPrompt",
+          "choice": "cycleTime",
+          "seq": 8,
+          "tick": 72
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 96,
+          "seq": 9,
+          "tick": 72
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 10,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 11,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 12,
+          "tick": 96
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "wipCrit": "partial",
+          "shieldCrit": "met",
+          "metricCrit": "met",
+          "evidenceCrit": "partial",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0,
+          "supK": 55
+        },
+        "stateHash": "efe5f55b44223fd7"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "partialMetric",
+      "title": "Partly right on the flow metric, and a one-line record",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 24,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "wipPrompt",
+          "choice": "limits",
+          "seq": 2,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 2,
+          "to": 48,
+          "seq": 3,
+          "tick": 24
+        },
+        {
+          "type": "choose",
+          "prompt": "shieldPrompt",
+          "choice": "intake",
+          "seq": 4,
+          "tick": 48
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 72,
+          "seq": 5,
+          "tick": 48
+        },
+        {
+          "type": "choose",
+          "prompt": "metricPrompt",
+          "choice": "velocity",
+          "seq": 6,
+          "tick": 72
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 96,
+          "seq": 7,
+          "tick": 72
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 8,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "summary"
+          },
+          "seq": 9,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 10,
+          "tick": 96
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "wipCrit": "met",
+          "shieldCrit": "met",
+          "metricCrit": "partial",
+          "evidenceCrit": "missed",
+          "recordCrit": "missed"
+        },
+        "kpis": {
+          "missK": 0,
+          "supK": 55
+        },
+        "stateHash": "9e5f24db1dc6b521"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "allPartial",
+      "title": "Every decision only partly right",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 24,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "wipPrompt",
+          "choice": "prioritize",
+          "seq": 2,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 2,
+          "to": 48,
+          "seq": 3,
+          "tick": 24
+        },
+        {
+          "type": "choose",
+          "prompt": "shieldPrompt",
+          "choice": "dnd",
+          "seq": 4,
+          "tick": 48
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 72,
+          "seq": 5,
+          "tick": 48
+        },
+        {
+          "type": "choose",
+          "prompt": "metricPrompt",
+          "choice": "velocity",
+          "seq": 6,
+          "tick": 72
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 96,
+          "seq": 7,
+          "tick": 72
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 8,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 9,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 10,
+          "tick": 96
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "wipCrit": "partial",
+          "shieldCrit": "partial",
+          "metricCrit": "partial",
+          "evidenceCrit": "missed",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0,
+          "supK": 55
+        },
+        "stateHash": "1141fcd41d151507"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "badWip",
+      "title": "More work started with 14 in progress",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "board",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "chat",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 4,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 24,
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "choose",
+          "prompt": "wipPrompt",
+          "choice": "addMore",
+          "seq": 6,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 48,
+          "seq": 7,
+          "tick": 24
+        },
+        {
+          "type": "choose",
+          "prompt": "shieldPrompt",
+          "choice": "intake",
+          "seq": 8,
+          "tick": 48
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 72,
+          "seq": 9,
+          "tick": 48
+        },
+        {
+          "type": "choose",
+          "prompt": "metricPrompt",
+          "choice": "cycleTime",
+          "seq": 10,
+          "tick": 72
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 96,
+          "seq": 11,
+          "tick": 72
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 96
+        }
+      ],
+      "expect": {
+        "ending": "wipHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "wipCrit": "missed",
+          "shieldCrit": "met",
+          "metricCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1,
+          "supK": 45
+        },
+        "stateHash": "1a6a6890a61a1f13"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    },
+    {
+      "id": "badShield",
+      "title": "Interruptions left unmanaged",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "board",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "chat",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 4,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 24,
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "choose",
+          "prompt": "wipPrompt",
+          "choice": "limits",
+          "seq": 6,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 48,
+          "seq": 7,
+          "tick": 24
+        },
+        {
+          "type": "choose",
+          "prompt": "shieldPrompt",
+          "choice": "acceptAll",
+          "seq": 8,
+          "tick": 48
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 72,
+          "seq": 9,
+          "tick": 48
+        },
+        {
+          "type": "choose",
+          "prompt": "metricPrompt",
+          "choice": "cycleTime",
+          "seq": 10,
+          "tick": 72
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 96,
+          "seq": 11,
+          "tick": 72
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 96
+        }
+      ],
+      "expect": {
+        "ending": "shieldHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "wipCrit": "met",
+          "shieldCrit": "missed",
+          "metricCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1,
+          "supK": 45
+        },
+        "stateHash": "94d5329ef00fcfee"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    },
+    {
+      "id": "badMetric",
+      "title": "Developers ranked by points",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "board",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "chat",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 4,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 24,
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "choose",
+          "prompt": "wipPrompt",
+          "choice": "limits",
+          "seq": 6,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 48,
+          "seq": 7,
+          "tick": 24
+        },
+        {
+          "type": "choose",
+          "prompt": "shieldPrompt",
+          "choice": "intake",
+          "seq": 8,
+          "tick": 48
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 72,
+          "seq": 9,
+          "tick": 48
+        },
+        {
+          "type": "choose",
+          "prompt": "metricPrompt",
+          "choice": "perPerson",
+          "seq": 10,
+          "tick": 72
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 96,
+          "seq": 11,
+          "tick": 72
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 96
+        }
+      ],
+      "expect": {
+        "ending": "metricHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "wipCrit": "met",
+          "shieldCrit": "met",
+          "metricCrit": "missed",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1,
+          "supK": 45
+        },
+        "stateHash": "ee4b980189baead8"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    }
+  ]
+}

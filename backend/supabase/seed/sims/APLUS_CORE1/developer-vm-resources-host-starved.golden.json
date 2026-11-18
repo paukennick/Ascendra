@@ -1,0 +1,846 @@
+{
+  "slug": "developer-vm-resources-host-starved",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Allocations and disk read; resized; VT-x on; snapshots consolidated; honest notes",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "alloc",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 10,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "disk",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 20,
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 30,
+          "seq": 5,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "memPrompt",
+          "choice": "fit",
+          "seq": 6,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 60,
+          "seq": 7,
+          "tick": 30
+        },
+        {
+          "type": "choose",
+          "prompt": "vtxPrompt",
+          "choice": "firmware",
+          "seq": 8,
+          "tick": 60
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 90,
+          "seq": 9,
+          "tick": 60
+        },
+        {
+          "type": "choose",
+          "prompt": "snapPrompt",
+          "choice": "consolidate",
+          "seq": 10,
+          "tick": 90
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 120,
+          "seq": 11,
+          "tick": 90
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "target",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "memCrit": "met",
+          "vtxCrit": "met",
+          "snapCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0
+        },
+        "stateHash": "c7d610f802454a3b"
+      },
+      "reasoning": {
+        "reflection": "met"
+      }
+    },
+    {
+      "id": "partialMem",
+      "title": "Partly right on the allocation, the rest on plan",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "alloc",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 10,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 30,
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "choose",
+          "prompt": "memPrompt",
+          "choice": "oneAtATime",
+          "seq": 4,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 60,
+          "seq": 5,
+          "tick": 30
+        },
+        {
+          "type": "choose",
+          "prompt": "vtxPrompt",
+          "choice": "firmware",
+          "seq": 6,
+          "tick": 60
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 90,
+          "seq": 7,
+          "tick": 60
+        },
+        {
+          "type": "choose",
+          "prompt": "snapPrompt",
+          "choice": "consolidate",
+          "seq": 8,
+          "tick": 90
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 120,
+          "seq": 9,
+          "tick": 90
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 10,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 11,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 12,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "memCrit": "partial",
+          "vtxCrit": "met",
+          "snapCrit": "met",
+          "evidenceCrit": "partial",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0
+        },
+        "stateHash": "645890c99a77812a"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "partialSnap",
+      "title": "Partly right on the snapshots, and a one-line record",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 30,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "memPrompt",
+          "choice": "fit",
+          "seq": 2,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 2,
+          "to": 60,
+          "seq": 3,
+          "tick": 30
+        },
+        {
+          "type": "choose",
+          "prompt": "vtxPrompt",
+          "choice": "firmware",
+          "seq": 4,
+          "tick": 60
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 90,
+          "seq": 5,
+          "tick": 60
+        },
+        {
+          "type": "choose",
+          "prompt": "snapPrompt",
+          "choice": "move",
+          "seq": 6,
+          "tick": 90
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 120,
+          "seq": 7,
+          "tick": 90
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 8,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "summary"
+          },
+          "seq": 9,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 10,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "memCrit": "met",
+          "vtxCrit": "met",
+          "snapCrit": "partial",
+          "evidenceCrit": "missed",
+          "recordCrit": "missed"
+        },
+        "kpis": {
+          "missK": 0
+        },
+        "stateHash": "c576d6554bb41eb4"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "allPartial",
+      "title": "Every decision only partly right",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 30,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "memPrompt",
+          "choice": "oneAtATime",
+          "seq": 2,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 2,
+          "to": 60,
+          "seq": 3,
+          "tick": 30
+        },
+        {
+          "type": "choose",
+          "prompt": "vtxPrompt",
+          "choice": "reinstall",
+          "seq": 4,
+          "tick": 60
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 90,
+          "seq": 5,
+          "tick": 60
+        },
+        {
+          "type": "choose",
+          "prompt": "snapPrompt",
+          "choice": "move",
+          "seq": 6,
+          "tick": 90
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 120,
+          "seq": 7,
+          "tick": 90
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 8,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 9,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 10,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "memCrit": "partial",
+          "vtxCrit": "partial",
+          "snapCrit": "partial",
+          "evidenceCrit": "missed",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0
+        },
+        "stateHash": "3b2b03ce2dd5c42b"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "badMem",
+      "title": "A 64 GB page file to cover over-allocation",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "alloc",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 10,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "disk",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 20,
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 30,
+          "seq": 5,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "memPrompt",
+          "choice": "pagefile",
+          "seq": 6,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 60,
+          "seq": 7,
+          "tick": 30
+        },
+        {
+          "type": "choose",
+          "prompt": "vtxPrompt",
+          "choice": "firmware",
+          "seq": 8,
+          "tick": 60
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 90,
+          "seq": 9,
+          "tick": 60
+        },
+        {
+          "type": "choose",
+          "prompt": "snapPrompt",
+          "choice": "consolidate",
+          "seq": 10,
+          "tick": 90
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 120,
+          "seq": 11,
+          "tick": 90
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "memHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "memCrit": "missed",
+          "vtxCrit": "met",
+          "snapCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1
+        },
+        "stateHash": "6347472cf0e08d30"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    },
+    {
+      "id": "badVtx",
+      "title": "Secure Boot and the TPM disabled",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "alloc",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 10,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "disk",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 20,
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 30,
+          "seq": 5,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "memPrompt",
+          "choice": "fit",
+          "seq": 6,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 60,
+          "seq": 7,
+          "tick": 30
+        },
+        {
+          "type": "choose",
+          "prompt": "vtxPrompt",
+          "choice": "secureBootOff",
+          "seq": 8,
+          "tick": 60
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 90,
+          "seq": 9,
+          "tick": 60
+        },
+        {
+          "type": "choose",
+          "prompt": "snapPrompt",
+          "choice": "consolidate",
+          "seq": 10,
+          "tick": 90
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 120,
+          "seq": 11,
+          "tick": 90
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "vtxHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "memCrit": "met",
+          "vtxCrit": "missed",
+          "snapCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1
+        },
+        "stateHash": "e338be3571d6c978"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    },
+    {
+      "id": "badSnap",
+      "title": "Snapshot files deleted in Explorer",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "alloc",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 10,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "disk",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 20,
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 30,
+          "seq": 5,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "memPrompt",
+          "choice": "fit",
+          "seq": 6,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 60,
+          "seq": 7,
+          "tick": 30
+        },
+        {
+          "type": "choose",
+          "prompt": "vtxPrompt",
+          "choice": "firmware",
+          "seq": 8,
+          "tick": 60
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 90,
+          "seq": 9,
+          "tick": 60
+        },
+        {
+          "type": "choose",
+          "prompt": "snapPrompt",
+          "choice": "deleteFiles",
+          "seq": 10,
+          "tick": 90
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 120,
+          "seq": 11,
+          "tick": 90
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "snapHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "memCrit": "met",
+          "vtxCrit": "met",
+          "snapCrit": "missed",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1
+        },
+        "stateHash": "763975b9ca6dc1ac"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    }
+  ]
+}

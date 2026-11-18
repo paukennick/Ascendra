@@ -1,0 +1,846 @@
+{
+  "slug": "churn-model-selection-leakage",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Features and evaluation read; leakage fixed; precision at capacity; an honest recommendation",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "feats",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 6,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "eval",
+          "seq": 3,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 12,
+          "seq": 4,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 20,
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "choose",
+          "prompt": "leakPrompt",
+          "choice": "drop",
+          "seq": 6,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 40,
+          "seq": 7,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "metricPrompt",
+          "choice": "precisionK",
+          "seq": 8,
+          "tick": 40
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 60,
+          "seq": 9,
+          "tick": 40
+        },
+        {
+          "type": "choose",
+          "prompt": "commPrompt",
+          "choice": "honest",
+          "seq": 10,
+          "tick": 60
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 80,
+          "seq": 11,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 80
+        }
+      ],
+      "expect": {
+        "ending": "target",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "leakCrit": "met",
+          "metricCrit": "met",
+          "commCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0
+        },
+        "stateHash": "101fb90809449f0b"
+      },
+      "reasoning": {
+        "reflection": "met"
+      }
+    },
+    {
+      "id": "partialLeak",
+      "title": "Partly right on model C, the rest on plan",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "feats",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 6,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 20,
+          "seq": 3,
+          "tick": 6
+        },
+        {
+          "type": "choose",
+          "prompt": "leakPrompt",
+          "choice": "flag",
+          "seq": 4,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 40,
+          "seq": 5,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "metricPrompt",
+          "choice": "precisionK",
+          "seq": 6,
+          "tick": 40
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 60,
+          "seq": 7,
+          "tick": 40
+        },
+        {
+          "type": "choose",
+          "prompt": "commPrompt",
+          "choice": "honest",
+          "seq": 8,
+          "tick": 60
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 80,
+          "seq": 9,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 10,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 11,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 12,
+          "tick": 80
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "leakCrit": "partial",
+          "metricCrit": "met",
+          "commCrit": "met",
+          "evidenceCrit": "partial",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0
+        },
+        "stateHash": "cca1ec486d802b64"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "partialComm",
+      "title": "Partly right on the recommendation, and a one-line record",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 20,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "leakPrompt",
+          "choice": "drop",
+          "seq": 2,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 2,
+          "to": 40,
+          "seq": 3,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "metricPrompt",
+          "choice": "precisionK",
+          "seq": 4,
+          "tick": 40
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 60,
+          "seq": 5,
+          "tick": 40
+        },
+        {
+          "type": "choose",
+          "prompt": "commPrompt",
+          "choice": "technical",
+          "seq": 6,
+          "tick": 60
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 80,
+          "seq": 7,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 8,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "summary"
+          },
+          "seq": 9,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 10,
+          "tick": 80
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "leakCrit": "met",
+          "metricCrit": "met",
+          "commCrit": "partial",
+          "evidenceCrit": "missed",
+          "recordCrit": "missed"
+        },
+        "kpis": {
+          "missK": 0
+        },
+        "stateHash": "f1cea075248a9e30"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "allPartial",
+      "title": "Every decision only partly right",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 20,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "leakPrompt",
+          "choice": "flag",
+          "seq": 2,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 2,
+          "to": 40,
+          "seq": 3,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "metricPrompt",
+          "choice": "auc",
+          "seq": 4,
+          "tick": 40
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 60,
+          "seq": 5,
+          "tick": 40
+        },
+        {
+          "type": "choose",
+          "prompt": "commPrompt",
+          "choice": "technical",
+          "seq": 6,
+          "tick": 60
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 80,
+          "seq": 7,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 8,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 9,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 10,
+          "tick": 80
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "leakCrit": "partial",
+          "metricCrit": "partial",
+          "commCrit": "partial",
+          "evidenceCrit": "missed",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0
+        },
+        "stateHash": "5556789f670dfc78"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "badLeak",
+      "title": "The leaky model recommended",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "feats",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 6,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "eval",
+          "seq": 3,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 12,
+          "seq": 4,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 20,
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "choose",
+          "prompt": "leakPrompt",
+          "choice": "shipC",
+          "seq": 6,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 40,
+          "seq": 7,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "metricPrompt",
+          "choice": "precisionK",
+          "seq": 8,
+          "tick": 40
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 60,
+          "seq": 9,
+          "tick": 40
+        },
+        {
+          "type": "choose",
+          "prompt": "commPrompt",
+          "choice": "honest",
+          "seq": 10,
+          "tick": 60
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 80,
+          "seq": 11,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 80
+        }
+      ],
+      "expect": {
+        "ending": "leakHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "leakCrit": "missed",
+          "metricCrit": "met",
+          "commCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1
+        },
+        "stateHash": "cc05143b38bac789"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    },
+    {
+      "id": "badMetric",
+      "title": "Models compared on accuracy",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "feats",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 6,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "eval",
+          "seq": 3,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 12,
+          "seq": 4,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 20,
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "choose",
+          "prompt": "leakPrompt",
+          "choice": "drop",
+          "seq": 6,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 40,
+          "seq": 7,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "metricPrompt",
+          "choice": "accuracy",
+          "seq": 8,
+          "tick": 40
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 60,
+          "seq": 9,
+          "tick": 40
+        },
+        {
+          "type": "choose",
+          "prompt": "commPrompt",
+          "choice": "honest",
+          "seq": 10,
+          "tick": 60
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 80,
+          "seq": 11,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 80
+        }
+      ],
+      "expect": {
+        "ending": "metricHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "leakCrit": "met",
+          "metricCrit": "missed",
+          "commCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1
+        },
+        "stateHash": "8d7b69dffbf2de5f"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    },
+    {
+      "id": "badComm",
+      "title": "A truncated-axis chart for the executives",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "feats",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 6,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "eval",
+          "seq": 3,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 12,
+          "seq": 4,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 20,
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "choose",
+          "prompt": "leakPrompt",
+          "choice": "drop",
+          "seq": 6,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 40,
+          "seq": 7,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "metricPrompt",
+          "choice": "precisionK",
+          "seq": 8,
+          "tick": 40
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 60,
+          "seq": 9,
+          "tick": 40
+        },
+        {
+          "type": "choose",
+          "prompt": "commPrompt",
+          "choice": "truncated",
+          "seq": 10,
+          "tick": 60
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 80,
+          "seq": 11,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 80
+        }
+      ],
+      "expect": {
+        "ending": "commHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "leakCrit": "met",
+          "metricCrit": "met",
+          "commCrit": "missed",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1
+        },
+        "stateHash": "43b8b31ec0f527d5"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    }
+  ]
+}

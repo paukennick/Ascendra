@@ -1,0 +1,1093 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pfmp-university-portfolio-plan",
+  "title": "A university's new portfolio office: the portfolio management plan, its processes, and decisions through the governance model",
+  "screen": {
+    "type": "governance-board",
+    "level": 1,
+    "governance": {
+      "risks": [
+        {
+          "id": "rPlan",
+          "label": "Decisions by lobbying",
+          "spokenLabel": "Decisions by lobbying",
+          "owner": "\"Portfolio manager\"",
+          "rating": "plan == \"full\" ? \"low\" : plan == \"listOnly\" ? \"medium\" : plan == \"vcDecides\" ? \"critical\" : p >= 1 ? \"high\" : \"medium\"",
+          "appetite": "plan == \"full\" ? \"within\" : plan == \"listOnly\" ? \"within\" : plan == \"vcDecides\" ? \"above\" : p >= 1 ? \"above\" : \"within\"",
+          "status": "{plan == \"full\" ? \"Plan with roles, thresholds and prioritization\" : plan == \"listOnly\" ? \"Initiative list only\" : plan == \"vcDecides\" ? \"Everything to one person\" : \"Open\"}"
+        },
+        {
+          "id": "rProc",
+          "label": "Benefits not tracked",
+          "spokenLabel": "Benefits not tracked",
+          "owner": "\"Portfolio manager\"",
+          "rating": "proc == \"procs\" ? \"low\" : proc == \"riskOnly\" ? \"medium\" : proc == \"skip\" ? \"critical\" : p >= 2 ? \"high\" : \"medium\"",
+          "appetite": "proc == \"procs\" ? \"within\" : proc == \"riskOnly\" ? \"within\" : proc == \"skip\" ? \"above\" : p >= 2 ? \"above\" : \"within\"",
+          "status": "{proc == \"procs\" ? \"Benefits, change, risk and information processes\" : proc == \"riskOnly\" ? \"Risk process only\" : proc == \"skip\" ? \"No portfolio processes\" : \"Open\"}"
+        },
+        {
+          "id": "rApprv",
+          "label": "First decision bypasses the model",
+          "spokenLabel": "First decision bypasses the model",
+          "owner": "\"Portfolio board\"",
+          "rating": "apprv == \"model\" ? \"low\" : apprv == \"exception\" ? \"medium\" : apprv == \"approveSelf\" ? \"critical\" : p >= 3 ? \"high\" : \"medium\"",
+          "appetite": "apprv == \"model\" ? \"within\" : apprv == \"exception\" ? \"within\" : apprv == \"approveSelf\" ? \"above\" : p >= 3 ? \"above\" : \"within\"",
+          "status": "{apprv == \"model\" ? \"Decided through the model\" : apprv == \"exception\" ? \"Exception granted\" : apprv == \"approveSelf\" ? \"Approved outside the model\" : \"Open\"}"
+        }
+      ],
+      "stakeholders": [
+        {
+          "id": "sBoard",
+          "label": "Portfolio board chair",
+          "spokenLabel": "the board chair's support",
+          "value": "board",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sCfo",
+          "label": "CFO",
+          "spokenLabel": "the CFO's support",
+          "value": "cfo",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sPms",
+          "label": "Program and project managers",
+          "spokenLabel": "the managers' support",
+          "value": "pms",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "docket": [
+        {
+          "id": "dPlan",
+          "kind": "Portfolio management plan",
+          "label": "Meeting 1: the plan",
+          "status": "{plan == \"full\" ? \"Plan with roles, thresholds and prioritization\" : plan == \"listOnly\" ? \"Initiative list only\" : plan == \"vcDecides\" ? \"Everything to one person\" : \"Due\"}",
+          "when": "p >= 1",
+          "flag": "p >= 1 and plan == \"none\""
+        },
+        {
+          "id": "dProc",
+          "kind": "Portfolio processes",
+          "label": "Meeting 2: processes",
+          "status": "{proc == \"procs\" ? \"Benefits, change, risk and information processes\" : proc == \"riskOnly\" ? \"Risk process only\" : proc == \"skip\" ? \"No portfolio processes\" : \"Due\"}",
+          "when": "p >= 2",
+          "flag": "p >= 2 and proc == \"none\""
+        },
+        {
+          "id": "dApprv",
+          "kind": "Portfolio decision",
+          "label": "Meeting 3: lab refit",
+          "status": "{apprv == \"model\" ? \"Decided through the model\" : apprv == \"exception\" ? \"Exception granted\" : apprv == \"approveSelf\" ? \"Approved outside the model\" : \"Due\"}",
+          "when": "p >= 3",
+          "flag": "p >= 3 and apprv == \"none\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Meeting",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Building a portfolio management plan covering roles, escalation procedures, risk tolerances, thresholds, and prioritization model",
+  "secondaryObjectives": [
+    "Defining or modifying portfolio processes: benefits realization, information management, risk, stakeholder engagement, and change management",
+    "Making and obtaining approval for portfolio decisions (components, plans, budget, roadmap) through the defined governance model"
+  ],
+  "sources": [
+    {
+      "cite": "PMI, Portfolio Management Professional (PfMP) Examination Content Outline (PRA-206-2017, July 2017): Strategic Alignment 25%, Governance 20%, Portfolio Performance 25%, Portfolio Risk Management 15%, Communications Management 15%",
+      "checkedAt": "2026-11-17",
+      "url": "https://prothoughtssolutions.com/wp-content/uploads/2020/04/portfolio-management-professional-exam-outline.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch of a copy of PMI's PDF hosted by a training provider. Relevant text: Strategic Alignment Task 5 scenarios 'in order to evaluate and select viable options'; Task 6 'Recommend portfolio scenario(s) and related components, based on prioritization analysis/criteria'; Task 7 'Determine the impact to portfolio and portfolio components due to changes in strategic goals and objectives'; Portfolio Performance Task 6 'Balance portfolio and prioritize portfolio components, using established criteria and methods'; Task 7 'Analyze and optimize the consolidated allocation/reallocation of capacity'; Governance Task 5 'Make recommendations and obtain approval regarding portfolio decisions'. Whether PMI has a newer outline was not checked. The objective wording is the course seed's. Reused for REQ-336 from this course's pfmp-water-utility-rebalance (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the portfolio or program, the figures and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You set up portfolio management for Marlow University, a fictional university, covering 40 IT and estates initiatives. Decisions today are made by whoever shouts loudest at the vice-chancellor's meeting.",
+    "handover": [
+      "No prioritization model; faculties lobby directly.",
+      "No benefits tracking after projects close."
+    ],
+    "howItWorks": [
+      "The board shows the risk register against the appetite, each stakeholder's support in words and the docket.",
+      "Move on a fortnight at a time. A decision comes to you at each board meeting; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-05-03T09:00",
+    "tick": "1d",
+    "maxDuration": "168d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "board": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "cfo": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "pms": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "plan": {
+      "type": "enum",
+      "values": [
+        "none",
+        "full",
+        "listOnly",
+        "vcDecides"
+      ],
+      "init": "none"
+    },
+    "planAt": {
+      "type": "time",
+      "init": null
+    },
+    "proc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "procs",
+        "riskOnly",
+        "skip"
+      ],
+      "init": "none"
+    },
+    "procAt": {
+      "type": "time",
+      "init": null
+    },
+    "apprv": {
+      "type": "enum",
+      "values": [
+        "none",
+        "model",
+        "exception",
+        "approveSelf"
+      ],
+      "init": "none"
+    },
+    "apprvAt": {
+      "type": "time",
+      "init": null
+    },
+    "lobbyAt": {
+      "type": "time",
+      "init": null
+    },
+    "stratAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(board, cfo), pms)"
+    },
+    "missCount": {
+      "expr": "((plan == \"vcDecides\") ? 1 : 0) + ((proc == \"skip\") ? 1 : 0) + ((apprv == \"approveSelf\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(plan == \"none\" or (plan == \"vcDecides\") ? 1 : 0) + (proc == \"none\" or (proc == \"skip\") ? 1 : 0) + (apprv == \"none\" or (apprv == \"approveSelf\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Portfolio governance",
+      "clock": "turns",
+      "actions": [
+        "lobby",
+        "strat"
+      ]
+    },
+    "close": {
+      "label": "Board record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "lobby": {
+      "label": "Review how the last ten initiatives were approved",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(lobbyAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "lobbyAt",
+          "to": "t"
+        },
+        {
+          "log": "Review how the last ten initiatives were approved.",
+          "kind": "act"
+        },
+        {
+          "finding": "Seven of ten were approved by direct lobbying; three overlap; none had a benefits measure."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2d"
+        }
+      ]
+    },
+    "strat": {
+      "label": "Read the university's strategic plan",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(stratAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "stratAt",
+          "to": "t"
+        },
+        {
+          "log": "Read the university's strategic plan.",
+          "kind": "act"
+        },
+        {
+          "finding": "Four strategic goals: student experience, research income, net zero by 2035, financial sustainability."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2d"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Record the board decisions",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "A plan with roles, thresholds and a strategic prioritization model, defined portfolio processes including benefits, and the first decision taken through the model"
+                },
+                {
+                  "value": "summary",
+                  "label": "Portfolio office set up"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next board meeting",
+      "wait": {
+        "skipLabel": "Go to the next board meeting"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "plan == \"vcDecides\"",
+              "then": [
+                {
+                  "log": "Meeting 2: two faculties lobby the vice-chancellor and two overlapping student-portal projects are both approved.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "proc == \"skip\"",
+              "then": [
+                {
+                  "log": "Meeting 3: the board can't say what last year's 30 million dollars of projects delivered; the funding council asks.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "apprv == \"approveSelf\"",
+              "then": [
+                {
+                  "log": "Meeting 4: another dean demands the same treatment; the board suspends the new model.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "14d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The plan is in place.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "14d"
+        }
+      ]
+    },
+    {
+      "id": "t_plan",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Meeting 1: the plan.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "planPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_proc",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Meeting 2: processes.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "procPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_apprv",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Meeting 3: a 6 million dollar proposal.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "apprvPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "planPrompt": {
+      "title": "What goes in the plan",
+      "context": "The board wants something light.",
+      "choices": [
+        {
+          "id": "full",
+          "label": "A plan with roles, decision thresholds, escalation paths, risk tolerances and a prioritization model scoring proposals against the four strategic goals",
+          "effects": [
+            {
+              "set": "plan",
+              "to": "\"full\""
+            },
+            {
+              "set": "planAt",
+              "to": "t"
+            },
+            {
+              "add": "board",
+              "by": "1"
+            },
+            {
+              "log": "The plan is drafted for approval.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "The plan defines who decides what, at what threshold, and how proposals are ranked against strategy."
+        },
+        {
+          "id": "listOnly",
+          "label": "A list of current initiatives and owners",
+          "effects": [
+            {
+              "set": "plan",
+              "to": "\"listOnly\""
+            },
+            {
+              "set": "planAt",
+              "to": "t"
+            },
+            {
+              "add": "board",
+              "by": "-1"
+            },
+            {
+              "log": "A list is produced.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Useful inventory, but no way to decide."
+        },
+        {
+          "id": "vcDecides",
+          "label": "Write that the vice-chancellor decides everything",
+          "effects": [
+            {
+              "set": "plan",
+              "to": "\"vcDecides\""
+            },
+            {
+              "set": "planAt",
+              "to": "t"
+            },
+            {
+              "add": "board",
+              "by": "-2"
+            },
+            {
+              "log": "One decision maker.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "No thresholds, no prioritization, no escalation: lobbying continues."
+        }
+      ]
+    },
+    "procPrompt": {
+      "title": "Which processes?",
+      "context": "Nothing tracks benefits after closure.",
+      "choices": [
+        {
+          "id": "procs",
+          "label": "Define benefits realization (measures, owners, post-closure reviews), change management for components, risk and information management processes",
+          "effects": [
+            {
+              "set": "proc",
+              "to": "\"procs\""
+            },
+            {
+              "set": "procAt",
+              "to": "t"
+            },
+            {
+              "add": "cfo",
+              "by": "1"
+            },
+            {
+              "log": "Processes are defined.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Portfolio processes make the plan work; benefits tracking shows whether strategy is delivered."
+        },
+        {
+          "id": "riskOnly",
+          "label": "Define risk management only",
+          "effects": [
+            {
+              "set": "proc",
+              "to": "\"riskOnly\""
+            },
+            {
+              "set": "procAt",
+              "to": "t"
+            },
+            {
+              "add": "cfo",
+              "by": "-1"
+            },
+            {
+              "log": "Risk only.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Benefits and change stay untracked."
+        },
+        {
+          "id": "skip",
+          "label": "Skip processes: projects have their own",
+          "effects": [
+            {
+              "set": "proc",
+              "to": "\"skip\""
+            },
+            {
+              "set": "procAt",
+              "to": "t"
+            },
+            {
+              "add": "cfo",
+              "by": "-2"
+            },
+            {
+              "log": "No portfolio processes.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Nothing shows whether the portfolio delivers the strategy."
+        }
+      ]
+    },
+    "apprvPrompt": {
+      "title": "The first decision under the model",
+      "context": "A faculty dean presents a lab refit; it scores low on the strategic model.",
+      "choices": [
+        {
+          "id": "model",
+          "label": "Score it with the prioritization model, present the ranking to the board and record the board's decision against the thresholds",
+          "effects": [
+            {
+              "set": "apprv",
+              "to": "\"model\""
+            },
+            {
+              "set": "apprvAt",
+              "to": "t"
+            },
+            {
+              "add": "pms",
+              "by": "1"
+            },
+            {
+              "log": "The board defers it on its score.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Decisions follow the defined governance model and are recorded."
+        },
+        {
+          "id": "exception",
+          "label": "Approve it as an exception this once",
+          "effects": [
+            {
+              "set": "apprv",
+              "to": "\"exception\""
+            },
+            {
+              "set": "apprvAt",
+              "to": "t"
+            },
+            {
+              "add": "pms",
+              "by": "-1"
+            },
+            {
+              "log": "An exception is granted.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The first exception teaches everyone that lobbying still works."
+        },
+        {
+          "id": "approveSelf",
+          "label": "Approve it yourself: it's under your budget limit",
+          "effects": [
+            {
+              "set": "apprv",
+              "to": "\"approveSelf\""
+            },
+            {
+              "set": "apprvAt",
+              "to": "t"
+            },
+            {
+              "add": "pms",
+              "by": "-2"
+            },
+            {
+              "log": "You approve it.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "6 million dollars is above your threshold in the plan; it's the board's decision."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the cover note for the portfolio management plan.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Plan",
+          "criteria": "Roles, thresholds, escalation, tolerances and a prioritization model against the four goals.",
+          "modelAnswer": "The plan sets who decides at what threshold, how to escalate, the risk tolerances and a model that scores proposals against our four strategic goals."
+        },
+        {
+          "label": "Processes and decisions",
+          "criteria": "Benefits, change, risk and information processes; the first decision through the model.",
+          "modelAnswer": "Benefits are measured and reviewed after closure; changes go through the portfolio process. The lab refit was scored and deferred by the board."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "governance",
+    "thresholds": {
+      "aboveAppetite": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No risk above appetite at the close without a treatment."
+        }
+      },
+      "supportTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Each key stakeholder at 6 of 10 or more at the close."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (plan == \"listOnly\") and (proc == \"riskOnly\") and (apprv == \"exception\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "PMI, Portfolio Management Professional (PfMP) Examination Content Outline (PRA-206-2017, July 2017): Strategic Alignment 25%, Governance 20%, Portfolio Performance 25%, Portfolio Risk Management 15%, Communications Management 15%",
+        "checkedAt": "2026-11-17",
+        "url": "https://prothoughtssolutions.com/wp-content/uploads/2020/04/portfolio-management-professional-exam-outline.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch of a copy of PMI's PDF hosted by a training provider. Relevant text: Strategic Alignment Task 5 scenarios 'in order to evaluate and select viable options'; Task 6 'Recommend portfolio scenario(s) and related components, based on prioritization analysis/criteria'; Task 7 'Determine the impact to portfolio and portfolio components due to changes in strategic goals and objectives'; Portfolio Performance Task 6 'Balance portfolio and prioritize portfolio components, using established criteria and methods'; Task 7 'Analyze and optimize the consolidated allocation/reallocation of capacity'; Governance Task 5 'Make recommendations and obtain approval regarding portfolio decisions'. Whether PMI has a newer outline was not checked. The objective wording is the course seed's. Reused for REQ-336 from this course's pfmp-water-utility-rebalance (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "planHarm": {
+      "label": "Duplicate approvals",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and plan == \"vcDecides\"",
+      "narrative": "Lobbying approved two overlapping student-portal projects."
+    },
+    "procHarm": {
+      "label": "Benefits unknown",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and proc == \"skip\"",
+      "narrative": "With no benefits process, nobody could say what last year's investment delivered."
+    },
+    "apprvHarm": {
+      "label": "The model abandoned",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and apprv == \"approveSelf\"",
+      "narrative": "Approving outside the model led to copycat demands and the board suspended it."
+    },
+    "target": {
+      "label": "Governed by a plan, not by lobbying",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (plan == \"full\") and (proc == \"procs\") and (apprv == \"model\") and record == \"honest\" and openCount <= aboveAppetite and minSupport >= supportTarget",
+      "narrative": "Proposals are ranked against strategy and decided by the right body, and benefits are tracked."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "planHarm",
+    "procHarm",
+    "apprvHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "planCrit",
+        "label": "Built a portfolio management plan with roles, thresholds, escalation and a prioritization model",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "plan == \"full\"",
+            "score": "met",
+            "why": "Complete."
+          },
+          {
+            "when": "plan == \"listOnly\"",
+            "score": "partial",
+            "why": "Inventory, not a plan."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No governance."
+          }
+        ]
+      },
+      {
+        "id": "procCrit",
+        "label": "Defined portfolio processes including benefits realization and change",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "proc == \"procs\"",
+            "score": "met",
+            "why": "Defined."
+          },
+          {
+            "when": "proc == \"riskOnly\"",
+            "score": "partial",
+            "why": "Partial."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Unmanaged."
+          }
+        ]
+      },
+      {
+        "id": "apprvCrit",
+        "label": "Took the decision through the governance model",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "apprv == \"model\"",
+            "score": "met",
+            "why": "Governed."
+          },
+          {
+            "when": "apprv == \"exception\"",
+            "score": "partial",
+            "why": "Undermined."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Outside authority."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(lobbyAt) and not isNull(stratAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(lobbyAt) or not isNull(stratAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 10)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Review recent approvals and the strategy before drafting the plan."
+      },
+      {
+        "at": "Meeting 1",
+        "text": "Draft roles, thresholds, escalation, tolerances and a strategic prioritization model."
+      },
+      {
+        "at": "Meeting 2",
+        "text": "Define benefits realization, change, risk and information processes."
+      },
+      {
+        "at": "Meeting 3",
+        "text": "Score with the model and let the board decide and record."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "planHarm": {
+        "headline": "Plan the governance",
+        "body": "Roles, thresholds and a prioritization model decide, not lobbying."
+      },
+      "procHarm": {
+        "headline": "Define the processes",
+        "body": "Benefits realization and change management make the portfolio accountable."
+      },
+      "apprvHarm": {
+        "headline": "Decide through the model",
+        "body": "Approvals follow the governance model's thresholds."
+      },
+      "target": {
+        "headline": "Good: governed by a plan, not by lobbying",
+        "body": "A portfolio management plan, defined processes and decisions through the model."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Portfolio governance is defined in a portfolio management plan: roles, decision thresholds, escalation procedures, risk tolerances and a prioritization model tied to strategy. Portfolio processes (benefits realization, change, risk, information) make it work, and decisions are made and recorded through the model; exceptions and self-approvals above thresholds undo it."
+  }
+}

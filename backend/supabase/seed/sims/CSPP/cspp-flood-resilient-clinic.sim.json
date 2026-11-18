@@ -1,0 +1,1092 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cspp-flood-resilient-clinic",
+  "title": "A rural clinic in a flood zone: defining sustainability, resilience and regeneration for the project",
+  "screen": {
+    "type": "governance-board",
+    "level": 1,
+    "governance": {
+      "risks": [
+        {
+          "id": "rRes",
+          "label": "Clinic unusable in floods",
+          "spokenLabel": "Clinic unusable in floods",
+          "owner": "\"Project manager\"",
+          "rating": "res == \"resilient\" ? \"low\" : res == \"solarOnly\" ? \"medium\" : res == \"ignoreFlood\" ? \"critical\" : p >= 1 ? \"high\" : \"medium\"",
+          "appetite": "res == \"resilient\" ? \"within\" : res == \"solarOnly\" ? \"within\" : res == \"ignoreFlood\" ? \"above\" : p >= 1 ? \"above\" : \"within\"",
+          "status": "{res == \"resilient\" ? \"Resilience and low-impact objectives\" : res == \"solarOnly\" ? \"Solar on a standard design\" : res == \"ignoreFlood\" ? \"Flood left to insurance\" : \"Open\"}"
+        },
+        {
+          "id": "rTbl",
+          "label": "Social value ignored",
+          "spokenLabel": "Social value ignored",
+          "owner": "\"Sponsor\"",
+          "rating": "tbl == \"tbl\" ? \"low\" : tbl == \"costOnly\" ? \"medium\" : tbl == \"promise\" ? \"critical\" : p >= 2 ? \"high\" : \"medium\"",
+          "appetite": "tbl == \"tbl\" ? \"within\" : tbl == \"costOnly\" ? \"within\" : tbl == \"promise\" ? \"above\" : p >= 2 ? \"above\" : \"within\"",
+          "status": "{tbl == \"tbl\" ? \"Triple bottom line weighed\" : tbl == \"costOnly\" ? \"Cost only\" : tbl == \"promise\" ? \"Unfunded promise\" : \"Open\"}"
+        },
+        {
+          "id": "rRegen",
+          "label": "Site ecology and flood storage",
+          "spokenLabel": "Site ecology and flood storage",
+          "owner": "\"Project manager\"",
+          "rating": "regen == \"restore\" ? \"low\" : regen == \"keep\" ? \"medium\" : regen == \"fill\" ? \"critical\" : p >= 3 ? \"high\" : \"medium\"",
+          "appetite": "regen == \"restore\" ? \"within\" : regen == \"keep\" ? \"within\" : regen == \"fill\" ? \"above\" : p >= 3 ? \"above\" : \"within\"",
+          "status": "{regen == \"restore\" ? \"Wetland restored\" : regen == \"keep\" ? \"Wetland kept\" : regen == \"fill\" ? \"Wetland filled\" : \"Open\"}"
+        }
+      ],
+      "stakeholders": [
+        {
+          "id": "sSpon",
+          "label": "Sponsor",
+          "spokenLabel": "the sponsor's support",
+          "value": "spon",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sComm",
+          "label": "Community representatives",
+          "spokenLabel": "the community's support",
+          "value": "comm",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sTeam",
+          "label": "Project team",
+          "spokenLabel": "the team's support",
+          "value": "team",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "docket": [
+        {
+          "id": "dRes",
+          "kind": "Resilience",
+          "label": "Week 1: objectives",
+          "status": "{res == \"resilient\" ? \"Resilience and low-impact objectives\" : res == \"solarOnly\" ? \"Solar on a standard design\" : res == \"ignoreFlood\" ? \"Flood left to insurance\" : \"Due\"}",
+          "when": "p >= 1",
+          "flag": "p >= 1 and res == \"none\""
+        },
+        {
+          "id": "dTbl",
+          "kind": "Triple bottom line",
+          "label": "Week 2: build approach",
+          "status": "{tbl == \"tbl\" ? \"Triple bottom line weighed\" : tbl == \"costOnly\" ? \"Cost only\" : tbl == \"promise\" ? \"Unfunded promise\" : \"Due\"}",
+          "when": "p >= 2",
+          "flag": "p >= 2 and tbl == \"none\""
+        },
+        {
+          "id": "dRegen",
+          "kind": "Regeneration",
+          "label": "Week 3: the site",
+          "status": "{regen == \"restore\" ? \"Wetland restored\" : regen == \"keep\" ? \"Wetland kept\" : regen == \"fill\" ? \"Wetland filled\" : \"Due\"}",
+          "when": "p >= 3",
+          "flag": "p >= 3 and regen == \"none\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Week",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Defining sustainability, regeneration, and resilience in project environments: reducing negative environmental impact and designing projects to withstand or recover from extreme events",
+  "secondaryObjectives": [
+    "Explaining the Triple Bottom Line: People, Planet, and Prosperity considerations"
+  ],
+  "sources": [
+    {
+      "cite": "PMI, Certified Sustainable Project Professional (CSPP) bundle and exam page: P5 Standard: Sustainability and Impact Analysis 24% (the largest domain with PRiSM Life Cycle Approach 23% and Project Management Considerations 23%)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.pmi.org/certifications/cspp-bundle-exam-course",
+      "note": "Read 2026-11-17 directly (summarizing fetch of pmi.org/certifications/cspp-bundle-exam-course). The page lists six domains: Foundations of Sustainable Project Work 12%, PRiSM Life Cycle Approach 23%, P5 Standard: Sustainability and Impact Analysis 24%, Developing a Sustainability Management Plan 12%, ESG & Sustainability Reporting, Governance, and Project Communications 7%, Project Management Considerations 23% (they add to 101%). It says the P5 Standard evaluates project impacts on 'people, planet, and prosperity', and a prep module practices 'a P5 Impact Analysis' to 'identify, assess and mitigate sustainability impacts'. The course seed's five domains and weights (P5 36%) differ from this page; the P5 domain is the largest either way. The objective wording is the course seed's. Reused for REQ-336 from this course's cspp-school-laptop-p5-review (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the project, the figures and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You manage the build of a rural health clinic for a fictional district health board. The site is in a 1-in-50-year flood zone; the brief says 'sustainable building'.",
+    "handover": [
+      "The design team proposes a standard design with solar panels.",
+      "The last flood cut the road for four days."
+    ],
+    "howItWorks": [
+      "The board shows the risk register against the appetite, each stakeholder's support in words and the docket.",
+      "Move on a week at a time. A decision comes to you at each review; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-02-01T09:00",
+    "tick": "1d",
+    "maxDuration": "84d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "spon": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "comm": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "team": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "res": {
+      "type": "enum",
+      "values": [
+        "none",
+        "resilient",
+        "solarOnly",
+        "ignoreFlood"
+      ],
+      "init": "none"
+    },
+    "resAt": {
+      "type": "time",
+      "init": null
+    },
+    "tbl": {
+      "type": "enum",
+      "values": [
+        "none",
+        "tbl",
+        "costOnly",
+        "promise"
+      ],
+      "init": "none"
+    },
+    "tblAt": {
+      "type": "time",
+      "init": null
+    },
+    "regen": {
+      "type": "enum",
+      "values": [
+        "none",
+        "restore",
+        "keep",
+        "fill"
+      ],
+      "init": "none"
+    },
+    "regenAt": {
+      "type": "time",
+      "init": null
+    },
+    "floodAt": {
+      "type": "time",
+      "init": null
+    },
+    "commAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(spon, comm), team)"
+    },
+    "missCount": {
+      "expr": "((res == \"ignoreFlood\") ? 1 : 0) + ((tbl == \"promise\") ? 1 : 0) + ((regen == \"fill\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(res == \"none\" or (res == \"ignoreFlood\") ? 1 : 0) + (tbl == \"none\" or (tbl == \"promise\") ? 1 : 0) + (regen == \"none\" or (regen == \"fill\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Project definition",
+      "clock": "turns",
+      "actions": [
+        "flood",
+        "comm"
+      ]
+    },
+    "close": {
+      "label": "Objectives record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "flood": {
+      "label": "Read the flood study",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(floodAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "floodAt",
+          "to": "t"
+        },
+        {
+          "log": "Read the flood study.",
+          "kind": "act"
+        },
+        {
+          "finding": "Floods reach 0.8 m on the site about once in 50 years; climate projections make it more frequent. The road floods first."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "comm": {
+      "label": "Meet community representatives",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(commAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "commAt",
+          "to": "t"
+        },
+        {
+          "log": "Meet community representatives.",
+          "kind": "act"
+        },
+        {
+          "finding": "During floods the community needs the clinic most; they ask for a shelter role and local jobs in the build."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Resilience objectives for flood, power, water and access, the triple bottom line weighed with an approved premium, and the wetland restored"
+                },
+                {
+                  "value": "summary",
+                  "label": "Objectives set"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next review",
+      "wait": {
+        "skipLabel": "Go to the next review"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "res == \"ignoreFlood\"",
+              "then": [
+                {
+                  "log": "Week 2: the design review shows the clinic's ground floor and generator below the projected flood level; redesign costs 6 weeks.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "tbl == \"promise\"",
+              "then": [
+                {
+                  "log": "Week 3: the national contractor wins on price; the promised local jobs don't appear and community trust drops.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "regen == \"fill\"",
+              "then": [
+                {
+                  "log": "Week 4: the flood model shows filling the wetland raises flood levels at neighboring homes; the council refuses consent.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "7d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The design objectives are set.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "7d"
+        }
+      ]
+    },
+    {
+      "id": "t_res",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 1: design objectives.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "resPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_tbl",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 2: the build approach.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "tblPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_regen",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 3: the site.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "regenPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "resPrompt": {
+      "title": "What 'sustainable' means here",
+      "context": "The design team offers solar panels.",
+      "choices": [
+        {
+          "id": "resilient",
+          "label": "Set objectives for resilience (floor raised above the projected flood level, backup power and water for 5 days, access by an alternative route) alongside reduced impact",
+          "effects": [
+            {
+              "set": "res",
+              "to": "\"resilient\""
+            },
+            {
+              "set": "resAt",
+              "to": "t"
+            },
+            {
+              "add": "comm",
+              "by": "1"
+            },
+            {
+              "log": "Resilience objectives are set.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Resilience means withstanding and recovering from extreme events; it belongs in the objectives."
+        },
+        {
+          "id": "solarOnly",
+          "label": "Accept the standard design with solar panels",
+          "effects": [
+            {
+              "set": "res",
+              "to": "\"solarOnly\""
+            },
+            {
+              "set": "resAt",
+              "to": "t"
+            },
+            {
+              "add": "comm",
+              "by": "-1"
+            },
+            {
+              "log": "Solar is added.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Lower impact, but the clinic floods."
+        },
+        {
+          "id": "ignoreFlood",
+          "label": "Treat the flood risk as an insurance matter",
+          "effects": [
+            {
+              "set": "res",
+              "to": "\"ignoreFlood\""
+            },
+            {
+              "set": "resAt",
+              "to": "t"
+            },
+            {
+              "add": "comm",
+              "by": "-2"
+            },
+            {
+              "log": "Insurance covers it.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Insurance pays after; the community loses its clinic when it needs it most."
+        }
+      ]
+    },
+    "tblPrompt": {
+      "title": "People, planet, prosperity",
+      "context": "A national contractor quotes 8% less than local firms.",
+      "choices": [
+        {
+          "id": "tbl",
+          "label": "Weigh all three: local firms and apprentices (people, prosperity), lower transport emissions (planet), at an 8% premium the sponsor approves",
+          "effects": [
+            {
+              "set": "tbl",
+              "to": "\"tbl\""
+            },
+            {
+              "set": "tblAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "1"
+            },
+            {
+              "log": "The sponsor approves the local approach.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "The triple bottom line weighs social, environmental and economic value together."
+        },
+        {
+          "id": "costOnly",
+          "label": "Choose the cheapest bid",
+          "effects": [
+            {
+              "set": "tbl",
+              "to": "\"costOnly\""
+            },
+            {
+              "set": "tblAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-1"
+            },
+            {
+              "log": "The cheapest bid wins.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Prosperity narrowly; people and planet ignored."
+        },
+        {
+          "id": "promise",
+          "label": "Promise local jobs in the press without budget",
+          "effects": [
+            {
+              "set": "tbl",
+              "to": "\"promise\""
+            },
+            {
+              "set": "tblAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-2"
+            },
+            {
+              "log": "Jobs are promised.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "An unfunded commitment to the community."
+        }
+      ]
+    },
+    "regenPrompt": {
+      "title": "Leaving the site better",
+      "context": "Wetland on the site edge absorbs flood water.",
+      "choices": [
+        {
+          "id": "restore",
+          "label": "Restore and extend the wetland as natural flood storage, part of the landscaping budget",
+          "effects": [
+            {
+              "set": "regen",
+              "to": "\"restore\""
+            },
+            {
+              "set": "regenAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "1"
+            },
+            {
+              "log": "The wetland is restored.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Regeneration leaves systems better than before; here it also reduces flood risk."
+        },
+        {
+          "id": "keep",
+          "label": "Leave the wetland as it is",
+          "effects": [
+            {
+              "set": "regen",
+              "to": "\"keep\""
+            },
+            {
+              "set": "regenAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "-1"
+            },
+            {
+              "log": "Left as is.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "No harm, no gain."
+        },
+        {
+          "id": "fill",
+          "label": "Fill the wetland for parking",
+          "effects": [
+            {
+              "set": "regen",
+              "to": "\"fill\""
+            },
+            {
+              "set": "regenAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "-2"
+            },
+            {
+              "log": "The wetland is filled.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Filling it removes flood storage and habitat."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the objectives record: what sustainable, resilient and regenerative mean for this clinic.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Resilience and impact",
+          "criteria": "Floor above projected flood, 5 days of backup, alternative access; low impact.",
+          "modelAnswer": "The clinic stands above the projected flood level with 5 days of power and water and an alternative access route."
+        },
+        {
+          "label": "Value and regeneration",
+          "criteria": "Local firms and apprentices at an approved premium; wetland restored.",
+          "modelAnswer": "Local firms and apprentices build it at an 8% premium the sponsor approved; the wetland is restored as flood storage."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "governance",
+    "thresholds": {
+      "aboveAppetite": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No risk above appetite at the close without a treatment."
+        }
+      },
+      "supportTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Each key stakeholder at 6 of 10 or more at the close."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (res == \"solarOnly\") and (tbl == \"costOnly\") and (regen == \"keep\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "PMI, Certified Sustainable Project Professional (CSPP) bundle and exam page: P5 Standard: Sustainability and Impact Analysis 24% (the largest domain with PRiSM Life Cycle Approach 23% and Project Management Considerations 23%)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.pmi.org/certifications/cspp-bundle-exam-course",
+        "note": "Read 2026-11-17 directly (summarizing fetch of pmi.org/certifications/cspp-bundle-exam-course). The page lists six domains: Foundations of Sustainable Project Work 12%, PRiSM Life Cycle Approach 23%, P5 Standard: Sustainability and Impact Analysis 24%, Developing a Sustainability Management Plan 12%, ESG & Sustainability Reporting, Governance, and Project Communications 7%, Project Management Considerations 23% (they add to 101%). It says the P5 Standard evaluates project impacts on 'people, planet, and prosperity', and a prep module practices 'a P5 Impact Analysis' to 'identify, assess and mitigate sustainability impacts'. The course seed's five domains and weights (P5 36%) differ from this page; the P5 domain is the largest either way. The objective wording is the course seed's. Reused for REQ-336 from this course's cspp-school-laptop-p5-review (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "resHarm": {
+      "label": "A clinic that would flood",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and res == \"ignoreFlood\"",
+      "narrative": "The design put the clinic below the flood level; it had to be redesigned."
+    },
+    "tblHarm": {
+      "label": "A broken promise",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and tbl == \"promise\"",
+      "narrative": "The promised local jobs never appeared; the community stopped trusting the project."
+    },
+    "regenHarm": {
+      "label": "Flood risk moved to neighbors",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and regen == \"fill\"",
+      "narrative": "Filling the wetland raised neighbors' flood levels; consent was refused."
+    },
+    "target": {
+      "label": "A clinic that stays open when it's needed",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (res == \"resilient\") and (tbl == \"tbl\") and (regen == \"restore\") and record == \"honest\" and openCount <= aboveAppetite and minSupport >= supportTarget",
+      "narrative": "The clinic will withstand floods, support the community and leave the site better."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "resHarm",
+    "tblHarm",
+    "regenHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "resCrit",
+        "label": "Defined resilience as a design objective, not only lower impact",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "res == \"resilient\"",
+            "score": "met",
+            "why": "Resilient."
+          },
+          {
+            "when": "res == \"solarOnly\"",
+            "score": "partial",
+            "why": "Impact only."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not resilient."
+          }
+        ]
+      },
+      {
+        "id": "tblCrit",
+        "label": "Weighed people, planet and prosperity together",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "tbl == \"tbl\"",
+            "score": "met",
+            "why": "Balanced."
+          },
+          {
+            "when": "tbl == \"costOnly\"",
+            "score": "partial",
+            "why": "One bottom line."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Greenwashing risk."
+          }
+        ]
+      },
+      {
+        "id": "regenCrit",
+        "label": "Took a regenerative approach to the site",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "regen == \"restore\"",
+            "score": "met",
+            "why": "Regenerative."
+          },
+          {
+            "when": "regen == \"keep\"",
+            "score": "partial",
+            "why": "Neutral."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Destructive."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(floodAt) and not isNull(commAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(floodAt) or not isNull(commAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 10)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the flood study and community needs first."
+      },
+      {
+        "at": "Week 1",
+        "text": "Add resilience objectives for flood, power, water and access."
+      },
+      {
+        "at": "Week 2",
+        "text": "Weigh people, planet and prosperity and get the premium approved."
+      },
+      {
+        "at": "Week 3",
+        "text": "Restore the wetland as natural flood storage."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "resHarm": {
+        "headline": "Design for resilience",
+        "body": "Withstand and recover from extreme events."
+      },
+      "tblHarm": {
+        "headline": "Weigh all three",
+        "body": "People, planet and prosperity together."
+      },
+      "regenHarm": {
+        "headline": "Regenerate",
+        "body": "Restore natural systems; they protect people too."
+      },
+      "target": {
+        "headline": "Good: a clinic that stays open when it's needed",
+        "body": "Resilience, triple bottom line and regeneration in the objectives."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Sustainability in projects covers reducing negative impact, resilience (designing to withstand and recover from extreme events) and regeneration (leaving systems better). The triple bottom line weighs people, planet and prosperity together rather than cost alone."
+  }
+}

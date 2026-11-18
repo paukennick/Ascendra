@@ -1,0 +1,1092 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pmo-team-competency-kpis",
+  "title": "Improving the PMO itself: its team's competencies, a development plan and mentoring",
+  "screen": {
+    "type": "governance-board",
+    "level": 1,
+    "governance": {
+      "risks": [
+        {
+          "id": "rRoles",
+          "label": "Team skills don't fit services",
+          "spokenLabel": "Team skills don't fit services",
+          "owner": "\"PMO lead\"",
+          "rating": "roles == \"roleFw\" ? \"low\" : roles == \"generic\" ? \"medium\" : roles == \"hireOnly\" ? \"critical\" : p >= 1 ? \"high\" : \"medium\"",
+          "appetite": "roles == \"roleFw\" ? \"within\" : roles == \"generic\" ? \"within\" : roles == \"hireOnly\" ? \"above\" : p >= 1 ? \"above\" : \"within\"",
+          "status": "{roles == \"roleFw\" ? \"Role-specific framework\" : roles == \"generic\" ? \"Company framework\" : roles == \"hireOnly\" ? \"Replacement plan\" : \"Open\"}"
+        },
+        {
+          "id": "rIdp",
+          "label": "Gaps persist",
+          "spokenLabel": "Gaps persist",
+          "owner": "\"PMO lead\"",
+          "rating": "idp == \"plans\" ? \"low\" : idp == \"course\" ? \"medium\" : idp == \"nothing\" ? \"critical\" : p >= 2 ? \"high\" : \"medium\"",
+          "appetite": "idp == \"plans\" ? \"within\" : idp == \"course\" ? \"within\" : idp == \"nothing\" ? \"above\" : p >= 2 ? \"above\" : \"within\"",
+          "status": "{idp == \"plans\" ? \"IDPs with mentoring\" : idp == \"course\" ? \"One course for all\" : idp == \"nothing\" ? \"No development\" : \"Open\"}"
+        },
+        {
+          "id": "rKpi",
+          "label": "Measuring output",
+          "spokenLabel": "Measuring output",
+          "owner": "\"PMO lead\"",
+          "rating": "kpi == \"kpis\" ? \"low\" : kpi == \"satisfaction\" ? \"medium\" : kpi == \"output\" ? \"critical\" : p >= 3 ? \"high\" : \"medium\"",
+          "appetite": "kpi == \"kpis\" ? \"within\" : kpi == \"satisfaction\" ? \"within\" : kpi == \"output\" ? \"above\" : p >= 3 ? \"above\" : \"within\"",
+          "status": "{kpi == \"kpis\" ? \"Outcome KPIs on a dashboard\" : kpi == \"satisfaction\" ? \"Satisfaction only\" : kpi == \"output\" ? \"Output counts\" : \"Open\"}"
+        }
+      ],
+      "stakeholders": [
+        {
+          "id": "sExec",
+          "label": "Executive sponsor",
+          "spokenLabel": "the executive sponsor's support",
+          "value": "exec",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sCust",
+          "label": "PMO customers",
+          "spokenLabel": "the PMO customers' support",
+          "value": "cust",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sStaff",
+          "label": "PMO staff",
+          "spokenLabel": "the PMO staff's support",
+          "value": "staff",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "docket": [
+        {
+          "id": "dRoles",
+          "kind": "Competencies",
+          "label": "Week 1: competencies",
+          "status": "{roles == \"roleFw\" ? \"Role-specific framework\" : roles == \"generic\" ? \"Company framework\" : roles == \"hireOnly\" ? \"Replacement plan\" : \"Due\"}",
+          "when": "p >= 1",
+          "flag": "p >= 1 and roles == \"none\""
+        },
+        {
+          "id": "dIdp",
+          "kind": "Development",
+          "label": "Week 2: development",
+          "status": "{idp == \"plans\" ? \"IDPs with mentoring\" : idp == \"course\" ? \"One course for all\" : idp == \"nothing\" ? \"No development\" : \"Due\"}",
+          "when": "p >= 2",
+          "flag": "p >= 2 and idp == \"none\""
+        },
+        {
+          "id": "dKpi",
+          "kind": "PMO KPIs",
+          "label": "Week 3: KPIs",
+          "status": "{kpi == \"kpis\" ? \"Outcome KPIs on a dashboard\" : kpi == \"satisfaction\" ? \"Satisfaction only\" : kpi == \"output\" ? \"Output counts\" : \"Due\"}",
+          "when": "p >= 3",
+          "flag": "p >= 3 and kpi == \"none\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Week",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Assessing and improving PMO team competencies: a role-specific competency framework, individual development plans, and mentoring initiatives",
+  "secondaryObjectives": [
+    "Optimizing PMO service performance: KPIs, a performance measurement system, and a real-time dashboard"
+  ],
+  "sources": [
+    {
+      "cite": "PMI, PMI PMO Certified Professional (PMI-PMOCP) Examination Content Outline and Specifications, January 2025 (v2): Organizational Development and Alignment 16%, PMO Strategic Elements 18%, PMO Design and Structuring 18%, PMO Operation and Performance 15%, PMO Enhancement and Effectiveness 18%, People 15%",
+      "checkedAt": "2026-11-17",
+      "url": "https://cb405383.masteryexamprep-com.pages.dev/exams/pmi/pmocp/overview",
+      "note": "Read 2026-11-17 through a summarizing fetch of a study page (masteryexamprep, dated 2025-12-20) that cites PMI's outline of January 2025 (v2) for these weights. The page lists no task statements; it says questions reward 'governance realism: decision rights, thresholds, escalation paths, and reporting that drives decisions'. PMI's PDF (the course seed cites it) was not opened; the task wording is the course seed's, to verify. Reused for REQ-336 from this course's water-utility-rebalance-pmipmocp (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the project, the figures and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "Your PMO at Calder Engineering, a fictional consultancy, now has eight analysts. Customer satisfaction with its services has dropped from 4.1 to 3.2 of 5.",
+    "handover": [
+      "Analysts were hired for reporting; the new services need facilitation and analysis.",
+      "The PMO measures reports produced, not service outcomes."
+    ],
+    "howItWorks": [
+      "The board shows the risk register against the appetite, each stakeholder's support in words and the docket.",
+      "Move on a week at a time. A decision comes to you at each review; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-06-07T09:00",
+    "tick": "1d",
+    "maxDuration": "84d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "exec": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "cust": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "staff": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "roles": {
+      "type": "enum",
+      "values": [
+        "none",
+        "roleFw",
+        "generic",
+        "hireOnly"
+      ],
+      "init": "none"
+    },
+    "rolesAt": {
+      "type": "time",
+      "init": null
+    },
+    "idp": {
+      "type": "enum",
+      "values": [
+        "none",
+        "plans",
+        "course",
+        "nothing"
+      ],
+      "init": "none"
+    },
+    "idpAt": {
+      "type": "time",
+      "init": null
+    },
+    "kpi": {
+      "type": "enum",
+      "values": [
+        "none",
+        "kpis",
+        "satisfaction",
+        "output"
+      ],
+      "init": "none"
+    },
+    "kpiAt": {
+      "type": "time",
+      "init": null
+    },
+    "surveyAt": {
+      "type": "time",
+      "init": null
+    },
+    "skillsAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(exec, cust), staff)"
+    },
+    "missCount": {
+      "expr": "((roles == \"hireOnly\") ? 1 : 0) + ((idp == \"nothing\") ? 1 : 0) + ((kpi == \"output\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(roles == \"none\" or (roles == \"hireOnly\") ? 1 : 0) + (idp == \"none\" or (idp == \"nothing\") ? 1 : 0) + (kpi == \"none\" or (kpi == \"output\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "PMO enhancement",
+      "clock": "turns",
+      "actions": [
+        "survey",
+        "skills"
+      ]
+    },
+    "close": {
+      "label": "Plan record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "survey": {
+      "label": "Read the customer survey comments",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(surveyAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "surveyAt",
+          "to": "t"
+        },
+        {
+          "log": "Read the customer survey comments.",
+          "kind": "act"
+        },
+        {
+          "finding": "Customers praise the reports but say scheduling clinics are 'run like audits' and capacity analysis is shallow."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "skills": {
+      "label": "Map analysts' skills against the services",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(skillsAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "skillsAt",
+          "to": "t"
+        },
+        {
+          "log": "Map analysts' skills against the services.",
+          "kind": "act"
+        },
+        {
+          "finding": "Strong reporting; weak facilitation and analysis, which the new services need."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "A role-specific framework, development plans with mentoring, and outcome KPIs per service"
+                },
+                {
+                  "value": "summary",
+                  "label": "PMO improvement planned"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next review",
+      "wait": {
+        "skipLabel": "Go to the next review"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "roles == \"hireOnly\"",
+              "then": [
+                {
+                  "log": "Week 2: word spreads; two analysts leave before any replacement is hired and the clinics stop.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "idp == \"nothing\"",
+              "then": [
+                {
+                  "log": "Week 3: satisfaction falls to 2.9; two departments stop booking clinics.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "kpi == \"output\"",
+              "then": [
+                {
+                  "log": "Week 4: the PMO hits its report count while forecast accuracy falls; the sponsor cuts its budget.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "7d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The improvement plan is approved.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "7d"
+        }
+      ]
+    },
+    {
+      "id": "t_roles",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 1: competencies.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "rolesPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_idp",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 2: development.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "idpPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_kpi",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 3: measurement.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "kpiPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "rolesPrompt": {
+      "title": "What the PMO team needs",
+      "context": "Skills don't match the new services.",
+      "choices": [
+        {
+          "id": "roleFw",
+          "label": "Define competencies per PMO role (facilitation, analysis, reporting, stakeholder skills) from the service catalog",
+          "effects": [
+            {
+              "set": "roles",
+              "to": "\"roleFw\""
+            },
+            {
+              "set": "rolesAt",
+              "to": "t"
+            },
+            {
+              "add": "staff",
+              "by": "1"
+            },
+            {
+              "log": "A role framework is agreed.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A role-specific framework matches the team's skills to its services."
+        },
+        {
+          "id": "generic",
+          "label": "Use the company-wide framework",
+          "effects": [
+            {
+              "set": "roles",
+              "to": "\"generic\""
+            },
+            {
+              "set": "rolesAt",
+              "to": "t"
+            },
+            {
+              "add": "staff",
+              "by": "-1"
+            },
+            {
+              "log": "Company framework used.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "It doesn't cover PMO service skills."
+        },
+        {
+          "id": "hireOnly",
+          "label": "Replace analysts who lack the skills",
+          "effects": [
+            {
+              "set": "roles",
+              "to": "\"hireOnly\""
+            },
+            {
+              "set": "rolesAt",
+              "to": "t"
+            },
+            {
+              "add": "staff",
+              "by": "-2"
+            },
+            {
+              "log": "Replacements planned.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Loses people instead of developing them."
+        }
+      ]
+    },
+    "idpPrompt": {
+      "title": "Closing the gaps",
+      "context": "Each analyst has different gaps.",
+      "choices": [
+        {
+          "id": "plans",
+          "label": "An individual development plan per analyst with mentoring from experienced project managers and facilitation practice in real clinics",
+          "effects": [
+            {
+              "set": "idp",
+              "to": "\"plans\""
+            },
+            {
+              "set": "idpAt",
+              "to": "t"
+            },
+            {
+              "add": "cust",
+              "by": "1"
+            },
+            {
+              "log": "Plans and mentoring start.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Individual plans and mentoring target each person's gaps."
+        },
+        {
+          "id": "course",
+          "label": "Send everyone on a facilitation course",
+          "effects": [
+            {
+              "set": "idp",
+              "to": "\"course\""
+            },
+            {
+              "set": "idpAt",
+              "to": "t"
+            },
+            {
+              "add": "cust",
+              "by": "-1"
+            },
+            {
+              "log": "A course for all.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Covers one gap for some, not each person's."
+        },
+        {
+          "id": "nothing",
+          "label": "Leave development to each analyst",
+          "effects": [
+            {
+              "set": "idp",
+              "to": "\"nothing\""
+            },
+            {
+              "set": "idpAt",
+              "to": "t"
+            },
+            {
+              "add": "cust",
+              "by": "-2"
+            },
+            {
+              "log": "Nothing planned.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Gaps persist."
+        }
+      ]
+    },
+    "kpiPrompt": {
+      "title": "What the PMO measures",
+      "context": "It counts reports produced.",
+      "choices": [
+        {
+          "id": "kpis",
+          "label": "KPIs per service (clinic satisfaction, capacity forecast accuracy, decision lead time) on a live dashboard reviewed monthly",
+          "effects": [
+            {
+              "set": "kpi",
+              "to": "\"kpis\""
+            },
+            {
+              "set": "kpiAt",
+              "to": "t"
+            },
+            {
+              "add": "exec",
+              "by": "1"
+            },
+            {
+              "log": "Outcome KPIs are live.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Service KPIs show whether the PMO delivers value."
+        },
+        {
+          "id": "satisfaction",
+          "label": "Track satisfaction only",
+          "effects": [
+            {
+              "set": "kpi",
+              "to": "\"satisfaction\""
+            },
+            {
+              "set": "kpiAt",
+              "to": "t"
+            },
+            {
+              "add": "exec",
+              "by": "-1"
+            },
+            {
+              "log": "Satisfaction only.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Useful, but not the service's results."
+        },
+        {
+          "id": "output",
+          "label": "Keep counting reports",
+          "effects": [
+            {
+              "set": "kpi",
+              "to": "\"output\""
+            },
+            {
+              "set": "kpiAt",
+              "to": "t"
+            },
+            {
+              "add": "exec",
+              "by": "-2"
+            },
+            {
+              "log": "Reports counted.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Counting reports rewards the wrong thing."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the PMO improvement plan summary.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Competencies and development",
+          "criteria": "Role framework; IDPs; mentoring and practice.",
+          "modelAnswer": "PMO roles now have competencies for facilitation and analysis; each analyst has a development plan with a mentor and real practice."
+        },
+        {
+          "label": "Measurement",
+          "criteria": "Outcome KPIs per service on a live dashboard.",
+          "modelAnswer": "We track clinic satisfaction, forecast accuracy and decision lead time monthly."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "governance",
+    "thresholds": {
+      "aboveAppetite": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No risk above appetite at the close without a treatment."
+        }
+      },
+      "supportTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Each key stakeholder at 6 of 10 or more at the close."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (roles == \"generic\") and (idp == \"course\") and (kpi == \"satisfaction\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "PMI, PMI PMO Certified Professional (PMI-PMOCP) Examination Content Outline and Specifications, January 2025 (v2): Organizational Development and Alignment 16%, PMO Strategic Elements 18%, PMO Design and Structuring 18%, PMO Operation and Performance 15%, PMO Enhancement and Effectiveness 18%, People 15%",
+        "checkedAt": "2026-11-17",
+        "url": "https://cb405383.masteryexamprep-com.pages.dev/exams/pmi/pmocp/overview",
+        "note": "Read 2026-11-17 through a summarizing fetch of a study page (masteryexamprep, dated 2025-12-20) that cites PMI's outline of January 2025 (v2) for these weights. The page lists no task statements; it says questions reward 'governance realism: decision rights, thresholds, escalation paths, and reporting that drives decisions'. PMI's PDF (the course seed cites it) was not opened; the task wording is the course seed's, to verify. Reused for REQ-336 from this course's water-utility-rebalance-pmipmocp (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "rolesHarm": {
+      "label": "Services stopped",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and roles == \"hireOnly\"",
+      "narrative": "Two analysts left and the clinics stopped."
+    },
+    "idpHarm": {
+      "label": "Customers leave",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and idp == \"nothing\"",
+      "narrative": "Satisfaction fell to 2.9 and departments stopped booking clinics."
+    },
+    "kpiHarm": {
+      "label": "The wrong target hit",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and kpi == \"output\"",
+      "narrative": "The PMO met its report count while value fell; its budget was cut."
+    },
+    "target": {
+      "label": "A PMO that improves itself",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (roles == \"roleFw\") and (idp == \"plans\") and (kpi == \"kpis\") and record == \"honest\" and openCount <= aboveAppetite and minSupport >= supportTarget",
+      "narrative": "The PMO team grows into its services and measures what they deliver."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "rolesHarm",
+    "idpHarm",
+    "kpiHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "rolesCrit",
+        "label": "Built a role-specific competency framework for the PMO team",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "roles == \"roleFw\"",
+            "score": "met",
+            "why": "Role-specific."
+          },
+          {
+            "when": "roles == \"generic\"",
+            "score": "partial",
+            "why": "Generic."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Harsh."
+          }
+        ]
+      },
+      {
+        "id": "idpCrit",
+        "label": "Set individual development plans with mentoring",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "idp == \"plans\"",
+            "score": "met",
+            "why": "Individual."
+          },
+          {
+            "when": "idp == \"course\"",
+            "score": "partial",
+            "why": "Generic."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "None."
+          }
+        ]
+      },
+      {
+        "id": "kpiCrit",
+        "label": "Measured service performance with outcome KPIs",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "kpi == \"kpis\"",
+            "score": "met",
+            "why": "Measured."
+          },
+          {
+            "when": "kpi == \"satisfaction\"",
+            "score": "partial",
+            "why": "Partial."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Output."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(surveyAt) and not isNull(skillsAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(surveyAt) or not isNull(skillsAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 10)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the survey and the analysts' skills first."
+      },
+      {
+        "at": "Week 1",
+        "text": "Define competencies per PMO role from the services."
+      },
+      {
+        "at": "Week 2",
+        "text": "Write individual plans with mentoring and practice."
+      },
+      {
+        "at": "Week 3",
+        "text": "Track outcome KPIs per service on a dashboard."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "rolesHarm": {
+        "headline": "Develop the team",
+        "body": "A role framework and development plans."
+      },
+      "idpHarm": {
+        "headline": "Plan development",
+        "body": "IDPs and mentoring close gaps."
+      },
+      "kpiHarm": {
+        "headline": "Measure outcomes",
+        "body": "Outcome KPIs per service."
+      },
+      "target": {
+        "headline": "Good: a PMO that improves itself",
+        "body": "Role competencies, development plans and outcome KPIs."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A PMO improves its effectiveness by assessing its own team against a role-specific competency framework, developing people through individual plans and mentoring, and measuring each service by outcome KPIs on a dashboard rather than output counts."
+  }
+}

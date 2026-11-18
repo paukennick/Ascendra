@@ -1,0 +1,1160 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "community-center-issue-risk-scope",
+  "title": "A community center renovation: issues versus risks, an assumption that broke, and a scope statement with gaps",
+  "screen": {
+    "type": "project-dashboard",
+    "level": 1,
+    "dashboard": {
+      "mode": "predictive",
+      "heading": "Community center renovation, week {p}",
+      "commitments": [
+        {
+          "id": "out",
+          "label": "Commitment",
+          "text": "Center reopened within 900 thousand dollars."
+        }
+      ],
+      "columns": [
+        {
+          "id": "open",
+          "label": "Open"
+        },
+        {
+          "id": "risk",
+          "label": "Off plan"
+        },
+        {
+          "id": "done",
+          "label": "Decided on plan"
+        }
+      ],
+      "items": [
+        {
+          "id": "wSort",
+          "label": "Log clean-up",
+          "column": "sort == \"separate\" ? \"done\" : sort == \"rename\" ? \"risk\" : sort == \"riskAll\" ? \"risk\" : \"open\"",
+          "when": "true",
+          "flag": "sort == \"riskAll\""
+        },
+        {
+          "id": "wAssume",
+          "label": "Grant assumption",
+          "column": "assume == \"validate\" ? \"done\" : assume == \"hope\" ? \"risk\" : assume == \"spendAhead\" ? \"risk\" : \"open\"",
+          "when": "true",
+          "flag": "assume == \"spendAhead\""
+        },
+        {
+          "id": "wGaps",
+          "label": "Scope statement review",
+          "column": "gaps == \"closeGaps\" ? \"done\" : gaps == \"later\" ? \"risk\" : gaps == \"addAll\" ? \"risk\" : \"open\"",
+          "when": "true",
+          "flag": "gaps == \"addAll\""
+        }
+      ],
+      "issues": [
+        {
+          "id": "iSort",
+          "label": "Log mixes issues and risks",
+          "when": "p >= 1",
+          "at": "604800",
+          "status": "{sort == \"separate\" ? \"Issue, risk, assumption and constraint separated\" : sort == \"rename\" ? \"Renamed, not sorted\" : sort == \"riskAll\" ? \"Everything a risk\" : \"Due\"}",
+          "open": "sort == \"none\""
+        },
+        {
+          "id": "iAssume",
+          "label": "Grant timing",
+          "when": "p >= 2",
+          "at": "1209600",
+          "status": "{assume == \"validate\" ? \"Assumption validated and replaced by a risk\" : assume == \"hope\" ? \"Assumption kept\" : assume == \"spendAhead\" ? \"Spent ahead of the grant\" : \"Due\"}",
+          "open": "assume == \"none\""
+        },
+        {
+          "id": "iGaps",
+          "label": "Scope gaps",
+          "when": "p >= 3",
+          "at": "1814400",
+          "status": "{gaps == \"closeGaps\" ? \"Criteria, exclusions and detail added\" : gaps == \"later\" ? \"Gaps left\" : gaps == \"addAll\" ? \"Scope expanded unchecked\" : \"Due\"}",
+          "open": "gaps == \"none\""
+        }
+      ],
+      "people": [
+        {
+          "id": "sSpon",
+          "label": "Sponsor",
+          "spokenLabel": "the sponsor's support",
+          "value": "spon",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sTeam",
+          "label": "Project team",
+          "spokenLabel": "the team's support",
+          "value": "team",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sBiz",
+          "label": "Business stakeholders",
+          "spokenLabel": "the business stakeholders' support",
+          "value": "biz",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "events": [
+        {
+          "id": "mSort",
+          "label": "Project manager review",
+          "at": "604800",
+          "status": "{sort == \"separate\" ? \"Issue, risk, assumption and constraint separated\" : sort == \"rename\" ? \"Renamed, not sorted\" : sort == \"riskAll\" ? \"Everything a risk\" : \"Due\"}"
+        },
+        {
+          "id": "mAssume",
+          "label": "Funding check",
+          "at": "1209600",
+          "status": "{assume == \"validate\" ? \"Assumption validated and replaced by a risk\" : assume == \"hope\" ? \"Assumption kept\" : assume == \"spendAhead\" ? \"Spent ahead of the grant\" : \"Due\"}"
+        },
+        {
+          "id": "mGaps",
+          "label": "Sponsor meeting",
+          "at": "1814400",
+          "status": "{gaps == \"closeGaps\" ? \"Criteria, exclusions and detail added\" : gaps == \"later\" ? \"Gaps left\" : gaps == \"addAll\" ? \"Scope expanded unchecked\" : \"Due\"}"
+        }
+      ],
+      "meters": [
+        {
+          "id": "mSpi",
+          "label": "SPI",
+          "value": "{spi}"
+        },
+        {
+          "id": "mCpi",
+          "label": "CPI",
+          "value": "{cpi}"
+        }
+      ]
+    }
+  },
+  "objective": "Telling apart an issue, a risk, an assumption, and a constraint, and reviewing a project scope statement for gaps",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "PMI, Certified Associate in Project Management (CAPM) Examination Content Outline, 2023 Exam Update: Fundamentals and Core Concepts 36%, Predictive Plan-Based Methodologies 17%, Agile Frameworks/Methodologies 20%, Business Analysis Frameworks 27%",
+      "checkedAt": "2026-11-17",
+      "url": "https://www-prod01.wku.edu/lp/fortknox/capmexaminationoutline.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch of a copy of PMI's PDF hosted by a university. Relevant text: Domain 1 Task 5 'Demonstrate an understanding of common problem-solving tools and techniques' ('Evaluate the effectiveness of a meeting'; 'Explain the purpose of focus groups, standup meetings, brainstorming, etc.'); Domain 2 Task 2 ('Apply critical path methods'; 'Calculate schedule variance') and Task 3 ('Calculate cost and schedule variances'). The objective wording here is the course seed's. Reused for REQ-336 from this course's sprint-status-meeting-daily-scrum-capm (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the project, the figures and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are a project coordinator on the fictional Elm Street community center renovation. Your project manager asks you to tidy the logs and review the scope statement before the sponsor meeting.",
+    "handover": [
+      "The 'risk log' mixes things that have happened with things that might.",
+      "The scope statement was written in one afternoon."
+    ],
+    "howItWorks": [
+      "The dashboard shows the commitments, the work items, the risks and issues, the people's support and the milestones.",
+      "Move on a week at a time. A decision comes to you at each status meeting; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-03-08T09:00",
+    "tick": "1d",
+    "maxDuration": "84d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "spon": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "team": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "biz": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "sort": {
+      "type": "enum",
+      "values": [
+        "none",
+        "separate",
+        "rename",
+        "riskAll"
+      ],
+      "init": "none"
+    },
+    "sortAt": {
+      "type": "time",
+      "init": null
+    },
+    "assume": {
+      "type": "enum",
+      "values": [
+        "none",
+        "validate",
+        "hope",
+        "spendAhead"
+      ],
+      "init": "none"
+    },
+    "assumeAt": {
+      "type": "time",
+      "init": null
+    },
+    "gaps": {
+      "type": "enum",
+      "values": [
+        "none",
+        "closeGaps",
+        "later",
+        "addAll"
+      ],
+      "init": "none"
+    },
+    "gapsAt": {
+      "type": "time",
+      "init": null
+    },
+    "logAt": {
+      "type": "time",
+      "init": null
+    },
+    "scopeAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(spon, team), biz)"
+    },
+    "missCount": {
+      "expr": "((sort == \"riskAll\") ? 1 : 0) + ((assume == \"spendAhead\") ? 1 : 0) + ((gaps == \"addAll\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(sort == \"none\" or (sort == \"riskAll\") ? 1 : 0) + (assume == \"none\" or (assume == \"spendAhead\") ? 1 : 0) + (gaps == \"none\" or (gaps == \"addAll\") ? 1 : 0)"
+    },
+    "spi": {
+      "expr": "1 - ((sort == \"rename\") ? 0.04 : (sort == \"riskAll\") ? 0.09 : 0) - ((assume == \"hope\") ? 0.04 : (assume == \"spendAhead\") ? 0.09 : 0) - ((gaps == \"later\") ? 0.04 : (gaps == \"addAll\") ? 0.09 : 0)"
+    },
+    "cpi": {
+      "expr": "1 - ((sort == \"rename\") ? 0.03 : (sort == \"riskAll\") ? 0.08 : 0) - ((assume == \"hope\") ? 0.03 : (assume == \"spendAhead\") ? 0.08 : 0) - ((gaps == \"later\") ? 0.03 : (gaps == \"addAll\") ? 0.08 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Project weeks",
+      "clock": "turns",
+      "actions": [
+        "log",
+        "scope"
+      ]
+    },
+    "close": {
+      "label": "Project log",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "log": {
+      "label": "Read the risk log",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(logAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "logAt",
+          "to": "t"
+        },
+        {
+          "log": "Read the risk log.",
+          "kind": "act"
+        },
+        {
+          "finding": "It lists 'roof leaking now', 'possible asbestos in tiles', 'grant arrives in March' and 'budget capped at 900 thousand dollars' side by side."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "scope": {
+      "label": "Read the scope statement",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(scopeAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "scopeAt",
+          "to": "t"
+        },
+        {
+          "log": "Read the scope statement.",
+          "kind": "act"
+        },
+        {
+          "finding": "It lists deliverables but no acceptance criteria and no exclusions; the kitchen is mentioned once with no detail."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Issues, risks, assumptions and constraints separated, the grant assumption validated, and the scope statement's gaps closed"
+                },
+                {
+                  "value": "summary",
+                  "label": "Logs and scope ready"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next status meeting",
+      "wait": {
+        "skipLabel": "Go to the next status meeting"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "sort == \"riskAll\"",
+              "then": [
+                {
+                  "log": "Week 2: rain soaks the hall's new drywall; the leaking roof had waited in the risk log.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "assume == \"spendAhead\"",
+              "then": [
+                {
+                  "log": "Week 3: asbestos is confirmed; contingency is already spent on the kitchen and work stops for six weeks.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "gaps == \"addAll\"",
+              "then": [
+                {
+                  "log": "Week 4: the expanded scope prices at 1.2 million dollars; the board refuses and the project pauses.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "7d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The sponsor meeting arrives.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "7d"
+        }
+      ]
+    },
+    {
+      "id": "t_sort",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 1: the log.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "sortPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_assume",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 2: the grant.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "assumePrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_gaps",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 3: the scope statement.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "gapsPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "sortPrompt": {
+      "title": "Everything in one log",
+      "context": "Events, possibilities, beliefs and limits are mixed.",
+      "choices": [
+        {
+          "id": "separate",
+          "label": "Move 'roof leaking now' to the issue log with an owner, keep 'possible asbestos' as a risk, record the March grant as an assumption to validate, and the budget cap as a constraint",
+          "effects": [
+            {
+              "set": "sort",
+              "to": "\"separate\""
+            },
+            {
+              "set": "sortAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "10"
+            },
+            {
+              "log": "Each item is in the right place with an owner.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "An issue has happened, a risk might, an assumption is believed true without proof, and a constraint is a fixed limit."
+        },
+        {
+          "id": "rename",
+          "label": "Rename the log 'RAID' and leave the items mixed",
+          "effects": [
+            {
+              "set": "sort",
+              "to": "\"rename\""
+            },
+            {
+              "set": "sortAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "-15"
+            },
+            {
+              "log": "The log is renamed.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The leaking roof still waits as if it might happen."
+        },
+        {
+          "id": "riskAll",
+          "label": "Treat everything as a risk and schedule a review next month",
+          "effects": [
+            {
+              "set": "sort",
+              "to": "\"riskAll\""
+            },
+            {
+              "set": "sortAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "-25"
+            },
+            {
+              "log": "All items wait for review.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The roof is already leaking; treating it as a risk delays action."
+        }
+      ]
+    },
+    "assumePrompt": {
+      "title": "An assumption under strain",
+      "context": "The funder says the grant may come in May, not March.",
+      "choices": [
+        {
+          "id": "validate",
+          "label": "Confirm the date with the funder, record the assumption as invalid, and add a risk with a response (stage the kitchen work after May)",
+          "effects": [
+            {
+              "set": "assume",
+              "to": "\"validate\""
+            },
+            {
+              "set": "assumeAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "10"
+            },
+            {
+              "log": "The plan reflects a May grant.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Assumptions are validated; when one fails, it becomes a risk or an issue with a response."
+        },
+        {
+          "id": "hope",
+          "label": "Keep the March assumption and hope",
+          "effects": [
+            {
+              "set": "assume",
+              "to": "\"hope\""
+            },
+            {
+              "set": "assumeAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-15"
+            },
+            {
+              "log": "Nothing changes.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The plan rests on a date the funder doubts."
+        },
+        {
+          "id": "spendAhead",
+          "label": "Start the kitchen in March using the contingency, expecting the grant to repay it",
+          "effects": [
+            {
+              "set": "assume",
+              "to": "\"spendAhead\""
+            },
+            {
+              "set": "assumeAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-25"
+            },
+            {
+              "log": "The kitchen starts.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "If the grant slips, contingency is gone before the asbestos risk is known."
+        }
+      ]
+    },
+    "gapsPrompt": {
+      "title": "A thin scope statement",
+      "context": "No acceptance criteria, no exclusions, a vague kitchen.",
+      "choices": [
+        {
+          "id": "closeGaps",
+          "label": "Add acceptance criteria for each deliverable, list exclusions (parking lot, furniture), and define the kitchen's scope with the sponsor",
+          "effects": [
+            {
+              "set": "gaps",
+              "to": "\"closeGaps\""
+            },
+            {
+              "set": "gapsAt",
+              "to": "t"
+            },
+            {
+              "add": "biz",
+              "by": "10"
+            },
+            {
+              "log": "The sponsor approves the revised statement.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A scope statement needs deliverables, acceptance criteria and exclusions; gaps become disputes later."
+        },
+        {
+          "id": "later",
+          "label": "Leave it; details will come up during the work",
+          "effects": [
+            {
+              "set": "gaps",
+              "to": "\"later\""
+            },
+            {
+              "set": "gapsAt",
+              "to": "t"
+            },
+            {
+              "add": "biz",
+              "by": "-15"
+            },
+            {
+              "log": "No change.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Every unstated expectation becomes a change request or a dispute."
+        },
+        {
+          "id": "addAll",
+          "label": "Add everything stakeholders mention, including the parking lot",
+          "effects": [
+            {
+              "set": "gaps",
+              "to": "\"addAll\""
+            },
+            {
+              "set": "gapsAt",
+              "to": "t"
+            },
+            {
+              "add": "biz",
+              "by": "-25"
+            },
+            {
+              "log": "The scope grows.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The cap of 900 thousand dollars cannot cover it."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the project log summary for the sponsor meeting.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Logs",
+          "criteria": "Roof as an issue; asbestos as a risk; grant as an assumption now invalid; budget cap as a constraint.",
+          "modelAnswer": "The leaking roof is an issue being fixed; asbestos is a risk; the March grant was an assumption, now a May risk with a response; the 900 thousand dollar cap is a constraint."
+        },
+        {
+          "label": "Scope",
+          "criteria": "Acceptance criteria, exclusions and kitchen detail added.",
+          "modelAnswer": "The scope statement now has acceptance criteria, lists exclusions and defines the kitchen work."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "project",
+    "thresholds": {
+      "spiTarget": {
+        "value": 0.95,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "SPI at the close."
+        }
+      },
+      "cpiTarget": {
+        "value": 0.95,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "CPI at the close."
+        }
+      },
+      "stakeholderTarget": {
+        "value": 60,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Every stakeholder at 60 of 100 or more."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (sort == \"rename\") and (assume == \"hope\") and (gaps == \"later\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "PMI, Certified Associate in Project Management (CAPM) Examination Content Outline, 2023 Exam Update: Fundamentals and Core Concepts 36%, Predictive Plan-Based Methodologies 17%, Agile Frameworks/Methodologies 20%, Business Analysis Frameworks 27%",
+        "checkedAt": "2026-11-17",
+        "url": "https://www-prod01.wku.edu/lp/fortknox/capmexaminationoutline.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch of a copy of PMI's PDF hosted by a university. Relevant text: Domain 1 Task 5 'Demonstrate an understanding of common problem-solving tools and techniques' ('Evaluate the effectiveness of a meeting'; 'Explain the purpose of focus groups, standup meetings, brainstorming, etc.'); Domain 2 Task 2 ('Apply critical path methods'; 'Calculate schedule variance') and Task 3 ('Calculate cost and schedule variances'). The objective wording here is the course seed's. Reused for REQ-336 from this course's sprint-status-meeting-daily-scrum-capm (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "sortHarm": {
+      "label": "Damage from a known issue",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and sort == \"riskAll\"",
+      "narrative": "Treating the leak as a risk delayed action and damaged new work."
+    },
+    "assumeHarm": {
+      "label": "No money for asbestos",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and assume == \"spendAhead\"",
+      "narrative": "Spending ahead of the grant left nothing for the asbestos removal."
+    },
+    "gapsHarm": {
+      "label": "A paused project",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and gaps == \"addAll\"",
+      "narrative": "Adding everything broke the budget constraint."
+    },
+    "target": {
+      "label": "A project the sponsor can follow",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (sort == \"separate\") and (assume == \"validate\") and (gaps == \"closeGaps\") and record == \"honest\" and spi >= spiTarget and cpi >= cpiTarget and minSupport >= stakeholderTarget",
+      "narrative": "Problems are acted on, assumptions are checked, and scope is clear."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "sortHarm",
+    "assumeHarm",
+    "gapsHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "sortCrit",
+        "label": "Separated issues, risks, assumptions and constraints",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sort == \"separate\"",
+            "score": "met",
+            "why": "Clear."
+          },
+          {
+            "when": "sort == \"rename\"",
+            "score": "partial",
+            "why": "Cosmetic."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Misclassified."
+          }
+        ]
+      },
+      {
+        "id": "assumeCrit",
+        "label": "Validated the assumption and turned it into a managed risk",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "assume == \"validate\"",
+            "score": "met",
+            "why": "Managed."
+          },
+          {
+            "when": "assume == \"hope\"",
+            "score": "partial",
+            "why": "Unvalidated."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Exposed."
+          }
+        ]
+      },
+      {
+        "id": "gapsCrit",
+        "label": "Reviewed the scope statement and closed its gaps",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "gaps == \"closeGaps\"",
+            "score": "met",
+            "why": "Complete."
+          },
+          {
+            "when": "gaps == \"later\"",
+            "score": "partial",
+            "why": "Open."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Over the constraint."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(logAt) and not isNull(scopeAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(logAt) or not isNull(scopeAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 100)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "70 or more"
+      },
+      {
+        "id": "spiK",
+        "label": "SPI at the close",
+        "value": "spi",
+        "format": "number",
+        "expert": "1.00"
+      },
+      {
+        "id": "cpiK",
+        "label": "CPI at the close",
+        "value": "cpi",
+        "format": "number",
+        "expert": "1.00"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the log and the scope statement first."
+      },
+      {
+        "at": "Week 1",
+        "text": "Separate the four kinds and give each an owner."
+      },
+      {
+        "at": "Week 2",
+        "text": "Validate the assumption and add a risk with a response."
+      },
+      {
+        "at": "Week 3",
+        "text": "Add criteria, exclusions and missing detail."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "sortHarm": {
+        "headline": "Act on issues",
+        "body": "Issues need action now; risks need responses."
+      },
+      "assumeHarm": {
+        "headline": "Validate assumptions",
+        "body": "Plan around what is confirmed."
+      },
+      "gapsHarm": {
+        "headline": "Close gaps within constraints",
+        "body": "Criteria, exclusions and agreed detail."
+      },
+      "target": {
+        "headline": "Good: a project the sponsor can follow",
+        "body": "Terms used right and scope closed."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "An issue has happened; a risk might happen; an assumption is believed true and must be validated; a constraint is a fixed limit. Separate them so each gets the right handling. A scope statement needs acceptance criteria and exclusions, closed within the project's constraints."
+  }
+}

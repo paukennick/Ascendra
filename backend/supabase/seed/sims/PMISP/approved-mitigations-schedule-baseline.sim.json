@@ -1,0 +1,1162 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "approved-mitigations-schedule-baseline",
+  "title": "Approved risk mitigations that never reached the schedule: change control, a new baseline, and honest variance",
+  "screen": {
+    "type": "project-dashboard",
+    "level": 1,
+    "dashboard": {
+      "mode": "predictive",
+      "heading": "Hospital lab refit, week {p}",
+      "commitments": [
+        {
+          "id": "out",
+          "label": "Commitment",
+          "text": "Lab back in service with validated analyzers."
+        }
+      ],
+      "columns": [
+        {
+          "id": "open",
+          "label": "Open"
+        },
+        {
+          "id": "risk",
+          "label": "Off plan"
+        },
+        {
+          "id": "done",
+          "label": "Decided on plan"
+        }
+      ],
+      "items": [
+        {
+          "id": "wCr",
+          "label": "Mitigation change request",
+          "column": "cr == \"changeRequest\" ? \"done\" : cr == \"notes\" ? \"risk\" : cr == \"quietAdd\" ? \"risk\" : \"open\"",
+          "when": "true",
+          "flag": "cr == \"quietAdd\""
+        },
+        {
+          "id": "wRebaseline",
+          "label": "Performance measurement baseline",
+          "column": "rebaseline == \"newPmb\" ? \"done\" : rebaseline == \"keepOld\" ? \"risk\" : rebaseline == \"overwrite\" ? \"risk\" : \"open\"",
+          "when": "true",
+          "flag": "rebaseline == \"overwrite\""
+        },
+        {
+          "id": "wReport",
+          "label": "Status report",
+          "column": "report == \"honestReport\" ? \"done\" : report == \"noMention\" ? \"risk\" : report == \"hide\" ? \"risk\" : \"open\"",
+          "when": "true",
+          "flag": "report == \"hide\""
+        }
+      ],
+      "issues": [
+        {
+          "id": "iCr",
+          "label": "Mitigations not scheduled",
+          "when": "p >= 1",
+          "at": "604800",
+          "status": "{cr == \"changeRequest\" ? \"Change request approved\" : cr == \"notes\" ? \"Notes only\" : cr == \"quietAdd\" ? \"Uncontrolled insertion\" : \"Due\"}",
+          "open": "cr == \"none\""
+        },
+        {
+          "id": "iRebaseline",
+          "label": "Baseline out of date",
+          "when": "p >= 2",
+          "at": "1209600",
+          "status": "{rebaseline == \"newPmb\" ? \"New baseline with history\" : rebaseline == \"keepOld\" ? \"Old baseline kept\" : rebaseline == \"overwrite\" ? \"Baseline overwritten\" : \"Due\"}",
+          "open": "rebaseline == \"none\""
+        },
+        {
+          "id": "iReport",
+          "label": "Stakeholders misinformed",
+          "when": "p >= 3",
+          "at": "1814400",
+          "status": "{report == \"honestReport\" ? \"Variance with the approved change shown\" : report == \"noMention\" ? \"Date without explanation\" : report == \"hide\" ? \"Old date reported\" : \"Due\"}",
+          "open": "report == \"none\""
+        }
+      ],
+      "people": [
+        {
+          "id": "sSpon",
+          "label": "Sponsor",
+          "spokenLabel": "the sponsor's support",
+          "value": "spon",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sTeam",
+          "label": "Project team",
+          "spokenLabel": "the team's support",
+          "value": "team",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sBiz",
+          "label": "Business stakeholders",
+          "spokenLabel": "the business stakeholders' support",
+          "value": "biz",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "events": [
+        {
+          "id": "mCr",
+          "label": "Change board",
+          "at": "604800",
+          "status": "{cr == \"changeRequest\" ? \"Change request approved\" : cr == \"notes\" ? \"Notes only\" : cr == \"quietAdd\" ? \"Uncontrolled insertion\" : \"Due\"}"
+        },
+        {
+          "id": "mRebaseline",
+          "label": "Baseline update",
+          "at": "1209600",
+          "status": "{rebaseline == \"newPmb\" ? \"New baseline with history\" : rebaseline == \"keepOld\" ? \"Old baseline kept\" : rebaseline == \"overwrite\" ? \"Baseline overwritten\" : \"Due\"}"
+        },
+        {
+          "id": "mReport",
+          "label": "Steering committee",
+          "at": "1814400",
+          "status": "{report == \"honestReport\" ? \"Variance with the approved change shown\" : report == \"noMention\" ? \"Date without explanation\" : report == \"hide\" ? \"Old date reported\" : \"Due\"}"
+        }
+      ],
+      "meters": [
+        {
+          "id": "mSpi",
+          "label": "SPI",
+          "value": "{spi}"
+        },
+        {
+          "id": "mCpi",
+          "label": "CPI",
+          "value": "{cpi}"
+        }
+      ]
+    }
+  },
+  "objective": "Incorporating approved risk-mitigation activities into the schedule under formal change control, establishing a new PMB",
+  "secondaryObjectives": [
+    "Updating the schedule model and documenting baseline changes through formal change-control processes"
+  ],
+  "sources": [
+    {
+      "cite": "PMI, PMI Scheduling Professional (PMI-SP) Examination Content Outline (2012, revision mark 4/20): Schedule Strategy 14%, Planning and Development 31%, Monitoring and Controlling 35%, Closeout 6%, Stakeholder Communications 14%",
+      "checkedAt": "2026-11-17",
+      "url": "https://mail.mosaicprojects.com.au/PDF-Gen/PMI-SP_exam_outline.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch of a copy of PMI's PDF hosted by a consultancy. Relevant text: Monitoring and Controlling Task 3 'Perform schedule analysis and audit ... in order to identify and report project schedule, status, changes, impacts or issues'; Task 5 'Incorporate approved risk mitigation activities into the schedule, by utilizing defined change control processes'; Task 6 'Update the schedule model and document schedule baseline changes, received through formal change-control processes'. The objective wording here is the course seed's. Reused for REQ-336 from this course's clinic-fitout-variance-pmisp (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the project, the figures and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the scheduler on a fictional hospital laboratory refit for Northgate Health. The risk board approved two mitigations last month: a second commissioning crew and a pre-delivery inspection of the analyzers.",
+    "handover": [
+      "The approved mitigations add 3 weeks of activities and 180 thousand dollars.",
+      "Neither is in the schedule; the baseline still shows the original finish."
+    ],
+    "howItWorks": [
+      "The dashboard shows the commitments, the work items, the risks and issues, the people's support and the milestones.",
+      "Move on a week at a time. A decision comes to you at each status meeting; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-03-01T09:00",
+    "tick": "1d",
+    "maxDuration": "84d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "spon": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "team": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "biz": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "cr": {
+      "type": "enum",
+      "values": [
+        "none",
+        "changeRequest",
+        "notes",
+        "quietAdd"
+      ],
+      "init": "none"
+    },
+    "crAt": {
+      "type": "time",
+      "init": null
+    },
+    "rebaseline": {
+      "type": "enum",
+      "values": [
+        "none",
+        "newPmb",
+        "keepOld",
+        "overwrite"
+      ],
+      "init": "none"
+    },
+    "rebaselineAt": {
+      "type": "time",
+      "init": null
+    },
+    "report": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honestReport",
+        "noMention",
+        "hide"
+      ],
+      "init": "none"
+    },
+    "reportAt": {
+      "type": "time",
+      "init": null
+    },
+    "riskregAt": {
+      "type": "time",
+      "init": null
+    },
+    "changelogAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(spon, team), biz)"
+    },
+    "missCount": {
+      "expr": "((cr == \"quietAdd\") ? 1 : 0) + ((rebaseline == \"overwrite\") ? 1 : 0) + ((report == \"hide\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(cr == \"none\" or (cr == \"quietAdd\") ? 1 : 0) + (rebaseline == \"none\" or (rebaseline == \"overwrite\") ? 1 : 0) + (report == \"none\" or (report == \"hide\") ? 1 : 0)"
+    },
+    "spi": {
+      "expr": "1 - ((cr == \"notes\") ? 0.04 : (cr == \"quietAdd\") ? 0.09 : 0) - ((rebaseline == \"keepOld\") ? 0.04 : (rebaseline == \"overwrite\") ? 0.09 : 0) - ((report == \"noMention\") ? 0.04 : (report == \"hide\") ? 0.09 : 0)"
+    },
+    "cpi": {
+      "expr": "1 - ((cr == \"notes\") ? 0.03 : (cr == \"quietAdd\") ? 0.08 : 0) - ((rebaseline == \"keepOld\") ? 0.03 : (rebaseline == \"overwrite\") ? 0.08 : 0) - ((report == \"noMention\") ? 0.03 : (report == \"hide\") ? 0.08 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Schedule control",
+      "clock": "turns",
+      "actions": [
+        "riskreg",
+        "changelog"
+      ]
+    },
+    "close": {
+      "label": "Schedule record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "riskreg": {
+      "label": "Read the risk register and board minutes",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(riskregAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "riskregAt",
+          "to": "t"
+        },
+        {
+          "log": "Read the risk register and board minutes.",
+          "kind": "act"
+        },
+        {
+          "finding": "Both mitigations are approved with owners and costs; the board asked for them to be scheduled."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "changelog": {
+      "label": "Read the change log",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(changelogAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "changelogAt",
+          "to": "t"
+        },
+        {
+          "log": "Read the change log.",
+          "kind": "act"
+        },
+        {
+          "finding": "No change request was raised for the mitigations; the baseline is unchanged."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "A change request for the mitigations, a new baseline with history, and status reported against it"
+                },
+                {
+                  "value": "summary",
+                  "label": "Schedule controlled"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next status meeting",
+      "wait": {
+        "skipLabel": "Go to the next status meeting"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "cr == \"quietAdd\"",
+              "then": [
+                {
+                  "log": "Week 2: the sponsor sees a 3-week slip with no approved change behind it and halts reporting.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "rebaseline == \"overwrite\"",
+              "then": [
+                {
+                  "log": "Week 3: an audit cannot reconcile the finish date with any approved change; the contractor disputes a delay claim.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "report == \"hide\"",
+              "then": [
+                {
+                  "log": "Week 4: hospital departments plan a move for the original date; the lab is not ready and patient tests are delayed.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "7d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The schedule review closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "7d"
+        }
+      ]
+    },
+    {
+      "id": "t_cr",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 1: the gap.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "crPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_rebaseline",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 2: after approval.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "rebaselinePrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_report",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 3: status.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "reportPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "crPrompt": {
+      "title": "Approved mitigations outside the schedule",
+      "context": "The work is approved but not scheduled.",
+      "choices": [
+        {
+          "id": "changeRequest",
+          "label": "Raise a change request with the activities, durations, costs and logic links for both mitigations, for the change board",
+          "effects": [
+            {
+              "set": "cr",
+              "to": "\"changeRequest\""
+            },
+            {
+              "set": "crAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "10"
+            },
+            {
+              "log": "The change board approves it.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Approved risk responses enter the schedule through formal change control, like any scope change."
+        },
+        {
+          "id": "notes",
+          "label": "Add the mitigations as notes on existing activities",
+          "effects": [
+            {
+              "set": "cr",
+              "to": "\"notes\""
+            },
+            {
+              "set": "crAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-15"
+            },
+            {
+              "log": "Notes are added.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The work is mentioned but not scheduled, resourced or linked."
+        },
+        {
+          "id": "quietAdd",
+          "label": "Insert the activities into the live schedule without a change request",
+          "effects": [
+            {
+              "set": "cr",
+              "to": "\"quietAdd\""
+            },
+            {
+              "set": "crAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-25"
+            },
+            {
+              "log": "Activities appear in the schedule.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The baseline and the live schedule now disagree with no record why."
+        }
+      ]
+    },
+    "rebaselinePrompt": {
+      "title": "Which baseline to measure against",
+      "context": "The change is approved; the old baseline remains.",
+      "choices": [
+        {
+          "id": "newPmb",
+          "label": "Update the schedule model and set a new performance measurement baseline, keeping the original for history and recording the change number",
+          "effects": [
+            {
+              "set": "rebaseline",
+              "to": "\"newPmb\""
+            },
+            {
+              "set": "rebaselineAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "10"
+            },
+            {
+              "log": "A new baseline is set; the history is kept.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "An approved change updates the baseline formally, with the change documented and the original kept."
+        },
+        {
+          "id": "keepOld",
+          "label": "Keep measuring against the original baseline",
+          "effects": [
+            {
+              "set": "rebaseline",
+              "to": "\"keepOld\""
+            },
+            {
+              "set": "rebaselineAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "-15"
+            },
+            {
+              "log": "The old baseline stays.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Every report now shows a 3-week variance that was approved."
+        },
+        {
+          "id": "overwrite",
+          "label": "Overwrite the original baseline with no record",
+          "effects": [
+            {
+              "set": "rebaseline",
+              "to": "\"overwrite\""
+            },
+            {
+              "set": "rebaselineAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "-25"
+            },
+            {
+              "log": "The baseline is overwritten.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Nobody can tell what changed, when or why."
+        }
+      ]
+    },
+    "reportPrompt": {
+      "title": "How to report the 3 weeks",
+      "context": "The sponsor wants status.",
+      "choices": [
+        {
+          "id": "honestReport",
+          "label": "Report status against the new baseline and show the approved change that moved the finish, with its reason",
+          "effects": [
+            {
+              "set": "report",
+              "to": "\"honestReport\""
+            },
+            {
+              "set": "reportAt",
+              "to": "t"
+            },
+            {
+              "add": "biz",
+              "by": "10"
+            },
+            {
+              "log": "The sponsor sees an on-plan project and why the date moved.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Status reports show variance against the current baseline and trace approved changes."
+        },
+        {
+          "id": "noMention",
+          "label": "Report only the new finish date",
+          "effects": [
+            {
+              "set": "report",
+              "to": "\"noMention\""
+            },
+            {
+              "set": "reportAt",
+              "to": "t"
+            },
+            {
+              "add": "biz",
+              "by": "-15"
+            },
+            {
+              "log": "The new date is reported.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Correct, but stakeholders may think the project slipped."
+        },
+        {
+          "id": "hide",
+          "label": "Report the original finish until the mitigations are done",
+          "effects": [
+            {
+              "set": "report",
+              "to": "\"hide\""
+            },
+            {
+              "set": "reportAt",
+              "to": "t"
+            },
+            {
+              "add": "biz",
+              "by": "-25"
+            },
+            {
+              "log": "The original date is reported.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The report promises a date the schedule no longer supports."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the schedule record for the steering committee.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Change",
+          "criteria": "Change request approved; activities, costs and links added.",
+          "modelAnswer": "The approved mitigations entered the schedule by change request: a second commissioning crew and an analyzer pre-delivery inspection, 3 weeks and 180 thousand dollars."
+        },
+        {
+          "label": "Baseline and status",
+          "criteria": "New baseline, original kept; status against it.",
+          "modelAnswer": "We set a new baseline, kept the original for history and report status against the new one, showing the approved change."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "project",
+    "thresholds": {
+      "spiTarget": {
+        "value": 0.95,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "SPI at the close."
+        }
+      },
+      "cpiTarget": {
+        "value": 0.95,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "CPI at the close."
+        }
+      },
+      "stakeholderTarget": {
+        "value": 60,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Every stakeholder at 60 of 100 or more."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (cr == \"notes\") and (rebaseline == \"keepOld\") and (report == \"noMention\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "PMI, PMI Scheduling Professional (PMI-SP) Examination Content Outline (2012, revision mark 4/20): Schedule Strategy 14%, Planning and Development 31%, Monitoring and Controlling 35%, Closeout 6%, Stakeholder Communications 14%",
+        "checkedAt": "2026-11-17",
+        "url": "https://mail.mosaicprojects.com.au/PDF-Gen/PMI-SP_exam_outline.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch of a copy of PMI's PDF hosted by a consultancy. Relevant text: Monitoring and Controlling Task 3 'Perform schedule analysis and audit ... in order to identify and report project schedule, status, changes, impacts or issues'; Task 5 'Incorporate approved risk mitigation activities into the schedule, by utilizing defined change control processes'; Task 6 'Update the schedule model and document schedule baseline changes, received through formal change-control processes'. The objective wording here is the course seed's. Reused for REQ-336 from this course's clinic-fitout-variance-pmisp (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "crHarm": {
+      "label": "Unexplained slip",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and cr == \"quietAdd\"",
+      "narrative": "Uncontrolled changes produced a slip nobody approved."
+    },
+    "rebaselineHarm": {
+      "label": "An unreconcilable schedule",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and rebaseline == \"overwrite\"",
+      "narrative": "Overwriting the baseline left no trail for the audit or the claim."
+    },
+    "reportHarm": {
+      "label": "Departments misled",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and report == \"hide\"",
+      "narrative": "Reporting the old date misled departments into an early move."
+    },
+    "target": {
+      "label": "A schedule that tells the truth",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (cr == \"changeRequest\") and (rebaseline == \"newPmb\") and (report == \"honestReport\") and record == \"honest\" and spi >= spiTarget and cpi >= cpiTarget and minSupport >= stakeholderTarget",
+      "narrative": "The risk responses are scheduled, the baseline is current, and everyone plans to the right date."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "crHarm",
+    "rebaselineHarm",
+    "reportHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "crCrit",
+        "label": "Raised a change request to bring the mitigations into the schedule",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "cr == \"changeRequest\"",
+            "score": "met",
+            "why": "Controlled."
+          },
+          {
+            "when": "cr == \"notes\"",
+            "score": "partial",
+            "why": "Invisible."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Uncontrolled."
+          }
+        ]
+      },
+      {
+        "id": "rebaselineCrit",
+        "label": "Set a new performance measurement baseline and documented the change",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "rebaseline == \"newPmb\"",
+            "score": "met",
+            "why": "Re-baselined."
+          },
+          {
+            "when": "rebaseline == \"keepOld\"",
+            "score": "partial",
+            "why": "Misleading variance."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Untraceable."
+          }
+        ]
+      },
+      {
+        "id": "reportCrit",
+        "label": "Reported variance against the new baseline and the approved change",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "report == \"honestReport\"",
+            "score": "met",
+            "why": "Transparent."
+          },
+          {
+            "when": "report == \"noMention\"",
+            "score": "partial",
+            "why": "Unexplained."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Untrue."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(riskregAt) and not isNull(changelogAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(riskregAt) or not isNull(changelogAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 100)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "70 or more"
+      },
+      {
+        "id": "spiK",
+        "label": "SPI at the close",
+        "value": "spi",
+        "format": "number",
+        "expert": "1.00"
+      },
+      {
+        "id": "cpiK",
+        "label": "CPI at the close",
+        "value": "cpi",
+        "format": "number",
+        "expert": "1.00"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the risk decisions and the change log first."
+      },
+      {
+        "at": "Week 1",
+        "text": "Raise a change request for the mitigation activities."
+      },
+      {
+        "at": "Week 2",
+        "text": "Set a new baseline and document it."
+      },
+      {
+        "at": "Week 3",
+        "text": "Report against the new baseline and show the change."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "crHarm": {
+        "headline": "Use change control",
+        "body": "Approved responses enter the schedule by change request."
+      },
+      "rebaselineHarm": {
+        "headline": "Document baseline changes",
+        "body": "New baseline, history kept."
+      },
+      "reportHarm": {
+        "headline": "Report the truth",
+        "body": "Current baseline and the approved change."
+      },
+      "target": {
+        "headline": "Good: a schedule that tells the truth",
+        "body": "Change control, re-baselining and honest status."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Approved risk responses are work: they enter the schedule through formal change control, the schedule model is updated, and a new performance measurement baseline is set with the change documented and the original kept. Status is then reported against the current baseline, with approved changes traced."
+  }
+}

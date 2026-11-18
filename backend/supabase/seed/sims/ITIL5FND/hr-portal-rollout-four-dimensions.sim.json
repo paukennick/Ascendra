@@ -1,0 +1,1064 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "hr-portal-rollout-four-dimensions",
+  "title": "A failed HR self-service rollout: the dimension nobody considered, outside factors, and a second launch",
+  "screen": {
+    "type": "service-desk",
+    "level": 1,
+    "desk": {
+      "matrix": {
+        "impacts": [
+          "High",
+          "Medium",
+          "Low"
+        ],
+        "urgencies": [
+          "High",
+          "Medium",
+          "Low"
+        ],
+        "priorities": [
+          [
+            1,
+            2,
+            3
+          ],
+          [
+            2,
+            3,
+            4
+          ],
+          [
+            3,
+            4,
+            5
+          ]
+        ],
+        "targets": [
+          {
+            "priority": 1,
+            "label": "P1: restore within 4 hours"
+          },
+          {
+            "priority": 2,
+            "label": "P2: within 8 hours"
+          },
+          {
+            "priority": 3,
+            "label": "P3: within 2 working days"
+          },
+          {
+            "priority": 4,
+            "label": "P4: within 5 working days"
+          },
+          {
+            "priority": 5,
+            "label": "P5: next planned release"
+          }
+        ]
+      },
+      "tickets": [
+        {
+          "id": "tDim",
+          "ref": "PRB-8201",
+          "kind": "problem",
+          "title": "Why did the portal fail?",
+          "when": "p >= 1",
+          "at": "86400",
+          "impact": "2",
+          "urgency": "2",
+          "priority": "3",
+          "status": "{dim == \"four\" ? \"Four-dimension analysis\" : dim == \"techOnly\" ? \"Technology examined only\" : dim == \"blameStaff\" ? \"Staff blamed\" : \"Due\"}",
+          "open": "dim == \"none\"",
+          "due": "172800"
+        },
+        {
+          "id": "tPestle",
+          "ref": "REQ-8202",
+          "kind": "request",
+          "title": "External constraints",
+          "when": "p >= 2",
+          "at": "172800",
+          "impact": "3",
+          "urgency": "2",
+          "priority": "4",
+          "status": "{pestle == \"pestle\" ? \"Legal, economic and social factors assessed\" : pestle == \"mobileOnly\" ? \"Mobile only\" : pestle == \"ignoreLaw\" ? \"Access duty ignored\" : \"Due\"}",
+          "open": "pestle == \"none\"",
+          "due": "259200"
+        },
+        {
+          "id": "tRelaunch",
+          "ref": "CHG-8203",
+          "kind": "change",
+          "title": "Relaunch plan",
+          "when": "p >= 3",
+          "at": "259200",
+          "impact": "2",
+          "urgency": "3",
+          "priority": "4",
+          "status": "{relaunch == \"together\" ? \"All four dimensions in the relaunch\" : relaunch == \"trainOnly\" ? \"Training only\" : relaunch == \"same\" ? \"Same launch\" : \"Due\"}",
+          "open": "relaunch == \"none\"",
+          "due": "345600"
+        }
+      ],
+      "services": [
+        {
+          "id": "vDim",
+          "label": "HR self-service",
+          "spokenLabel": "HR self-service",
+          "status": "{dim == \"four\" ? \"Four-dimension analysis\" : dim == \"techOnly\" ? \"Technology examined only\" : dim == \"blameStaff\" ? \"Staff blamed\" : \"Normal service\"}",
+          "tone": "dim == \"four\" ? \"ok\" : dim == \"techOnly\" ? \"degraded\" : dim == \"blameStaff\" ? \"down\" : \"ok\""
+        },
+        {
+          "id": "vPestle",
+          "label": "HR self-service",
+          "spokenLabel": "HR self-service",
+          "status": "{pestle == \"pestle\" ? \"Legal, economic and social factors assessed\" : pestle == \"mobileOnly\" ? \"Mobile only\" : pestle == \"ignoreLaw\" ? \"Access duty ignored\" : \"Normal service\"}",
+          "tone": "pestle == \"pestle\" ? \"ok\" : pestle == \"mobileOnly\" ? \"degraded\" : pestle == \"ignoreLaw\" ? \"down\" : \"ok\""
+        },
+        {
+          "id": "vRelaunch",
+          "label": "HR self-service",
+          "spokenLabel": "HR self-service",
+          "status": "{relaunch == \"together\" ? \"All four dimensions in the relaunch\" : relaunch == \"trainOnly\" ? \"Training only\" : relaunch == \"same\" ? \"Same launch\" : \"Normal service\"}",
+          "tone": "relaunch == \"together\" ? \"ok\" : relaunch == \"trainOnly\" ? \"degraded\" : relaunch == \"same\" ? \"down\" : \"ok\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Day",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Analyzing a failed rollout for the dimension that was neglected",
+  "secondaryObjectives": [
+    "Explaining why a product or service needs all four dimensions considered together",
+    "Assessing how political, economic, social, technological, legal and environmental factors act on the dimensions"
+  ],
+  "sources": [
+    {
+      "cite": "PeopleCert, ITIL Foundation Syllabus, Version 5.0 (February 2026), as printed in Van Haren's ITIL 5 Foundation Courseware (July 2026), sample pages",
+      "url": "https://download.boekhuis.nl/9789401814720_fragm-docb.pdf",
+      "checkedAt": "2026-11-16",
+      "note": "Read 2026-11-16 directly (PDF). Learning outcomes 1.5.5 'Define service quality, service level', 1.5.6 'Define Service Level Agreement (SLA)', 4.4.3 'Define incident, event', 4.4.7 'Define service request', 4.4.8 'Define disaster, problem, error, and known error', 4.4.10 'Distinguish between a problem, an error and a known error'. The fragment states the outcomes but does not print the definitions. Reused for REQ-336 from this course's monday-service-desk-wifi-problem (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the project, the figures and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are asked to fix the HR self-service portal at Linwood Retail, a fictional retailer. It launched last month; store staff aren't using it and HR calls doubled.",
+    "handover": [
+      "The technology works; tests passed.",
+      "Store staff have no work computers; the portal needs a company login."
+    ],
+    "howItWorks": [
+      "The desk shows the ticket queue against the priority matrix and each service's status.",
+      "Move on a day at a time. A decision comes to you at each service review; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-03-08T09:00",
+    "tick": "1h",
+    "maxDuration": "12d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "cust": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "users": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "team": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "dim": {
+      "type": "enum",
+      "values": [
+        "none",
+        "four",
+        "techOnly",
+        "blameStaff"
+      ],
+      "init": "none"
+    },
+    "dimAt": {
+      "type": "time",
+      "init": null
+    },
+    "pestle": {
+      "type": "enum",
+      "values": [
+        "none",
+        "pestle",
+        "mobileOnly",
+        "ignoreLaw"
+      ],
+      "init": "none"
+    },
+    "pestleAt": {
+      "type": "time",
+      "init": null
+    },
+    "relaunch": {
+      "type": "enum",
+      "values": [
+        "none",
+        "together",
+        "trainOnly",
+        "same"
+      ],
+      "init": "none"
+    },
+    "relaunchAt": {
+      "type": "time",
+      "init": null
+    },
+    "usageAt": {
+      "type": "time",
+      "init": null
+    },
+    "storesAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(cust, users), team)"
+    },
+    "missCount": {
+      "expr": "((dim == \"blameStaff\") ? 1 : 0) + ((pestle == \"ignoreLaw\") ? 1 : 0) + ((relaunch == \"same\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(dim == \"none\" or (dim == \"blameStaff\") ? 1 : 0) + (pestle == \"none\" or (pestle == \"ignoreLaw\") ? 1 : 0) + (relaunch == \"none\" or (relaunch == \"same\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Rollout recovery",
+      "clock": "turns",
+      "actions": [
+        "usage",
+        "stores"
+      ]
+    },
+    "close": {
+      "label": "Relaunch record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "usage": {
+      "label": "Look at portal usage and HR call data",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(usageAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "usageAt",
+          "to": "t"
+        },
+        {
+          "log": "Look at portal usage and HR call data.",
+          "kind": "act"
+        },
+        {
+          "finding": "Head-office staff use it; store staff don't; HR calls doubled from stores."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2h"
+        }
+      ]
+    },
+    "stores": {
+      "label": "Talk to store staff and managers",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(storesAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "storesAt",
+          "to": "t"
+        },
+        {
+          "log": "Talk to store staff and managers.",
+          "kind": "act"
+        },
+        {
+          "finding": "Staff were never trained, have no device at work, and the HR team still expects paper forms from stores."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2h"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "A four-dimension analysis, external factors assessed, and a relaunch addressing every dimension"
+                },
+                {
+                  "value": "summary",
+                  "label": "Portal relaunched"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next day",
+      "wait": {
+        "skipLabel": "Go to the next day"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "dim == \"blameStaff\"",
+              "then": [
+                {
+                  "log": "Day 2: managers are told to enforce use; staff complain to the union and calls rise further.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "pestle == \"ignoreLaw\"",
+              "then": [
+                {
+                  "log": "Day 3: a staff complaint about access to pay data reaches the regulator.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "relaunch == \"same\"",
+              "then": [
+                {
+                  "log": "Day 4: usage in stores stays near zero and HR calls stay doubled.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "1d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The relaunch plan is approved.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "1d"
+        }
+      ]
+    },
+    {
+      "id": "t_dim",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 1: why it failed.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "dimPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_pestle",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 2: constraints.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "pestlePrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_relaunch",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 3: the relaunch plan.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "relaunchPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "dimPrompt": {
+      "title": "Which dimension was missed?",
+      "context": "The technology works.",
+      "choices": [
+        {
+          "id": "four",
+          "label": "Analyze all four: organizations and people (no training, HR still on paper), value streams and processes (paper flow unchanged), partners (none), information and technology (fine, but no device access)",
+          "effects": [
+            {
+              "set": "dim",
+              "to": "\"four\""
+            },
+            {
+              "set": "dimAt",
+              "to": "t"
+            },
+            {
+              "log": "The analysis names the people and process gaps.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A service needs all four dimensions together; here people and processes were neglected."
+        },
+        {
+          "id": "techOnly",
+          "label": "Look for technical defects",
+          "effects": [
+            {
+              "set": "dim",
+              "to": "\"techOnly\""
+            },
+            {
+              "set": "dimAt",
+              "to": "t"
+            },
+            {
+              "log": "Defects are sought.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "There's no technical fault to find."
+        },
+        {
+          "id": "blameStaff",
+          "label": "Conclude store staff resist change",
+          "effects": [
+            {
+              "set": "dim",
+              "to": "\"blameStaff\""
+            },
+            {
+              "set": "dimAt",
+              "to": "t"
+            },
+            {
+              "log": "Staff are blamed.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The design ignored them."
+        }
+      ]
+    },
+    "pestlePrompt": {
+      "title": "Outside factors",
+      "context": "A new law requires pay data to be accessible to all staff; many store staff have no smartphone allowance.",
+      "choices": [
+        {
+          "id": "pestle",
+          "label": "Assess the legal duty (equal access), economic (no device allowance) and social factors, and plan shared store kiosks plus mobile access",
+          "effects": [
+            {
+              "set": "pestle",
+              "to": "\"pestle\""
+            },
+            {
+              "set": "pestleAt",
+              "to": "t"
+            },
+            {
+              "log": "External factors shape the relaunch.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "External (PESTLE) factors act on every dimension and must shape the design."
+        },
+        {
+          "id": "mobileOnly",
+          "label": "Make it mobile-only",
+          "effects": [
+            {
+              "set": "pestle",
+              "to": "\"mobileOnly\""
+            },
+            {
+              "set": "pestleAt",
+              "to": "t"
+            },
+            {
+              "log": "Mobile only.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Excludes staff without smartphones, against the access duty."
+        },
+        {
+          "id": "ignoreLaw",
+          "label": "Ignore the access law for now",
+          "effects": [
+            {
+              "set": "pestle",
+              "to": "\"ignoreLaw\""
+            },
+            {
+              "set": "pestleAt",
+              "to": "t"
+            },
+            {
+              "log": "Law ignored.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Staff without access can't see their pay data as the law requires."
+        }
+      ]
+    },
+    "relaunchPrompt": {
+      "title": "Relaunching",
+      "context": "The sponsor wants it relaunched next week.",
+      "choices": [
+        {
+          "id": "together",
+          "label": "Relaunch store by store with training, kiosks, HR's process switched off paper, and a partner for kiosk support",
+          "effects": [
+            {
+              "set": "relaunch",
+              "to": "\"together\""
+            },
+            {
+              "set": "relaunchAt",
+              "to": "t"
+            },
+            {
+              "log": "The relaunch addresses all dimensions.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Considering the dimensions together turns a working system into a working service."
+        },
+        {
+          "id": "trainOnly",
+          "label": "Run training only",
+          "effects": [
+            {
+              "set": "relaunch",
+              "to": "\"trainOnly\""
+            },
+            {
+              "set": "relaunchAt",
+              "to": "t"
+            },
+            {
+              "log": "Training only.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Staff still have no device and HR still uses paper."
+        },
+        {
+          "id": "same",
+          "label": "Relaunch the same way with an email",
+          "effects": [
+            {
+              "set": "relaunch",
+              "to": "\"same\""
+            },
+            {
+              "set": "relaunchAt",
+              "to": "t"
+            },
+            {
+              "log": "An email goes out.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Nothing changed."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the relaunch record for the HR director.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why it failed",
+          "criteria": "People and processes neglected; external factors.",
+          "modelAnswer": "The technology worked, but store staff had no training or device and HR's paper process didn't change; the access law and no device allowance mattered too."
+        },
+        {
+          "label": "Relaunch",
+          "criteria": "Training, kiosks, process change and a kiosk partner, store by store.",
+          "modelAnswer": "We relaunch store by store with training, shared kiosks, HR off paper, and a partner supporting kiosks."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "service",
+    "thresholds": {
+      "slaBreachTarget": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No incident restored after its service level target."
+        }
+      },
+      "unauthorizedChanges": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No change without the authorization its type needs."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (dim == \"techOnly\") and (pestle == \"mobileOnly\") and (relaunch == \"trainOnly\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "PeopleCert, ITIL Foundation Syllabus, Version 5.0 (February 2026), as printed in Van Haren's ITIL 5 Foundation Courseware (July 2026), sample pages",
+        "url": "https://download.boekhuis.nl/9789401814720_fragm-docb.pdf",
+        "checkedAt": "2026-11-16",
+        "note": "Read 2026-11-16 directly (PDF). Learning outcomes 1.5.5 'Define service quality, service level', 1.5.6 'Define Service Level Agreement (SLA)', 4.4.3 'Define incident, event', 4.4.7 'Define service request', 4.4.8 'Define disaster, problem, error, and known error', 4.4.10 'Distinguish between a problem, an error and a known error'. The fragment states the outcomes but does not print the definitions. Reused for REQ-336 from this course's monday-service-desk-wifi-problem (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "dimHarm": {
+      "label": "A worse rollout",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and dim == \"blameStaff\"",
+      "narrative": "Blaming staff led to enforcement, union complaints and more calls."
+    },
+    "pestleHarm": {
+      "label": "A regulatory complaint",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and pestle == \"ignoreLaw\"",
+      "narrative": "A staff complaint about pay-data access reached the regulator."
+    },
+    "relaunchHarm": {
+      "label": "A second failure",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and relaunch == \"same\"",
+      "narrative": "The unchanged relaunch failed again."
+    },
+    "target": {
+      "label": "A service, not just a system",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (dim == \"four\") and (pestle == \"pestle\") and (relaunch == \"together\") and record == \"honest\" and missCount <= slaBreachTarget and openCount <= unauthorizedChanges",
+      "narrative": "Store staff use the portal and HR calls fall."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "dimHarm",
+    "pestleHarm",
+    "relaunchHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "dimCrit",
+        "label": "Analyzed the failure across the four dimensions",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "dim == \"four\"",
+            "score": "met",
+            "why": "Holistic."
+          },
+          {
+            "when": "dim == \"techOnly\"",
+            "score": "partial",
+            "why": "One dimension."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Misdiagnosis."
+          }
+        ]
+      },
+      {
+        "id": "pestleCrit",
+        "label": "Assessed external factors acting on the dimensions",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "pestle == \"pestle\"",
+            "score": "met",
+            "why": "External view."
+          },
+          {
+            "when": "pestle == \"mobileOnly\"",
+            "score": "partial",
+            "why": "Partial."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Non-compliant."
+          }
+        ]
+      },
+      {
+        "id": "relaunchCrit",
+        "label": "Relaunched with all four dimensions addressed together",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "relaunch == \"together\"",
+            "score": "met",
+            "why": "Together."
+          },
+          {
+            "when": "relaunch == \"trainOnly\"",
+            "score": "partial",
+            "why": "One fix."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Repeat."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(usageAt) and not isNull(storesAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(usageAt) or not isNull(storesAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 10)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Look at usage and talk to store staff first."
+      },
+      {
+        "at": "Day 1",
+        "text": "Analyze all four dimensions."
+      },
+      {
+        "at": "Day 2",
+        "text": "Assess the external factors and plan kiosks and mobile access."
+      },
+      {
+        "at": "Day 3",
+        "text": "Relaunch with training, kiosks, process change and kiosk support."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "dimHarm": {
+        "headline": "Consider all four dimensions",
+        "body": "People and processes matter as much as technology."
+      },
+      "pestleHarm": {
+        "headline": "Assess outside factors",
+        "body": "Legal, economic and social factors shape a service."
+      },
+      "relaunchHarm": {
+        "headline": "Address all four",
+        "body": "People, processes, partners and technology together."
+      },
+      "target": {
+        "headline": "Good: a service, not just a system",
+        "body": "All four dimensions and the outside factors considered together."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A product or service succeeds only when all four dimensions are considered together: organizations and people, information and technology, partners and suppliers, value streams and processes. External political, economic, social, technological, legal and environmental factors act on each dimension and shape the design."
+  }
+}

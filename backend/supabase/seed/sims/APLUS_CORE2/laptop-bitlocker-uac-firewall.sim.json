@@ -1,0 +1,1036 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "laptop-bitlocker-uac-firewall",
+  "title": "Securing a mobile sales team's laptops: BitLocker, UAC and the firewall",
+  "screen": {
+    "type": "service-desk",
+    "level": 1,
+    "desk": {
+      "matrix": {
+        "impacts": [
+          "High",
+          "Medium",
+          "Low"
+        ],
+        "urgencies": [
+          "High",
+          "Medium",
+          "Low"
+        ],
+        "priorities": [
+          [
+            1,
+            2,
+            3
+          ],
+          [
+            2,
+            3,
+            4
+          ],
+          [
+            3,
+            4,
+            5
+          ]
+        ],
+        "targets": [
+          {
+            "priority": 1,
+            "label": "P1: restore within 4 hours"
+          },
+          {
+            "priority": 2,
+            "label": "P2: within 8 hours"
+          },
+          {
+            "priority": 3,
+            "label": "P3: within 2 working days"
+          },
+          {
+            "priority": 4,
+            "label": "P4: within 5 working days"
+          },
+          {
+            "priority": 5,
+            "label": "P5: next planned release"
+          }
+        ]
+      },
+      "tickets": [
+        {
+          "id": "tBl",
+          "ref": "CHG-6601",
+          "kind": "change",
+          "title": "Encrypt the sales laptops",
+          "when": "p >= 1",
+          "at": "1800",
+          "impact": "2",
+          "urgency": "1",
+          "priority": "2",
+          "status": "{bl == \"escrow\" ? \"BitLocker on; keys escrowed\" : bl == \"someOnly\" ? \"Four of twelve encrypted\" : bl == \"keyOnDesktop\" ? \"Recovery keys stored on the laptops\" : \"Due\"}",
+          "open": "bl == \"none\"",
+          "due": "3600"
+        },
+        {
+          "id": "tUac",
+          "ref": "CHG-6602",
+          "kind": "change",
+          "title": "Reps are local admins; UAC off on two",
+          "when": "p >= 2",
+          "at": "3600",
+          "impact": "2",
+          "urgency": "2",
+          "priority": "3",
+          "status": "{uac == \"standard\" ? \"Standard users; UAC on\" : uac == \"uacOnly\" ? \"UAC on; reps still admins\" : uac == \"leave\" ? \"UAC off, admins\" : \"Due\"}",
+          "open": "uac == \"none\"",
+          "due": "5400"
+        },
+        {
+          "id": "tFw",
+          "ref": "CHG-6603",
+          "kind": "change",
+          "title": "Firewall public profile off on three laptops",
+          "when": "p >= 3",
+          "at": "5400",
+          "impact": "3",
+          "urgency": "2",
+          "priority": "4",
+          "status": "{fw == \"on\" ? \"Firewall on, all profiles\" : fw == \"privateOnly\" ? \"Public profile still off\" : fw == \"off\" ? \"Firewall off everywhere\" : \"Due\"}",
+          "open": "fw == \"none\"",
+          "due": "7200"
+        }
+      ],
+      "services": [
+        {
+          "id": "vBl",
+          "label": "Sales laptops: encryption",
+          "spokenLabel": "Sales laptops: encryption",
+          "status": "{bl == \"escrow\" ? \"BitLocker on; keys escrowed\" : bl == \"someOnly\" ? \"Four of twelve encrypted\" : bl == \"keyOnDesktop\" ? \"Recovery keys stored on the laptops\" : \"Normal service\"}",
+          "tone": "bl == \"escrow\" ? \"ok\" : bl == \"someOnly\" ? \"degraded\" : bl == \"keyOnDesktop\" ? \"down\" : \"ok\""
+        },
+        {
+          "id": "vUac",
+          "label": "Sales laptops: accounts",
+          "spokenLabel": "Sales laptops: accounts",
+          "status": "{uac == \"standard\" ? \"Standard users; UAC on\" : uac == \"uacOnly\" ? \"UAC on; reps still admins\" : uac == \"leave\" ? \"UAC off, admins\" : \"Normal service\"}",
+          "tone": "uac == \"standard\" ? \"ok\" : uac == \"uacOnly\" ? \"degraded\" : uac == \"leave\" ? \"down\" : \"ok\""
+        },
+        {
+          "id": "vFw",
+          "label": "Sales laptops: firewall",
+          "spokenLabel": "Sales laptops: firewall",
+          "status": "{fw == \"on\" ? \"Firewall on, all profiles\" : fw == \"privateOnly\" ? \"Public profile still off\" : fw == \"off\" ? \"Firewall off everywhere\" : \"Normal service\"}",
+          "tone": "fw == \"on\" ? \"ok\" : fw == \"privateOnly\" ? \"degraded\" : fw == \"off\" ? \"down\" : \"ok\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Ticket round",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Configuring Windows security settings: Windows Defender/Firewall, BitLocker, and User Account Control",
+  "secondaryObjectives": [
+    "Logical security concepts: least privilege, multifactor authentication, ACLs, and encryption",
+    "Securing mobile and embedded devices: screen locks, remote wipe, and full-device encryption"
+  ],
+  "sources": [
+    {
+      "cite": "CompTIA A+ Core 2 (220-1202) V15 Exam Objectives, Document Version 4.0: domains Operating systems 28%, Security 28%, Software troubleshooting 23%, Operational procedures 21%; launched 2025-03-25",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.comptia.org/en-us/certifications/a/core-2-v15/",
+      "note": "Objective 2.6 'Given a scenario, implement procedures for basic small office/home office (SOHO) malware removal', read in primary text in the objectives PDF on 2026-11-14: '1. Investigate and verify malware symptoms. 2. Quarantine infected system. 3. Disable System Restore in Windows Home. 4. Remediate infected systems. 5. Update anti-malware software. 6. Scan and removal techniques (e.g., safe mode, preinstallation environment) 7. Reimage/reinstall. 8. Schedule scans and run updates. 9. Enable System Restore and create a restore point in Windows Home. 10. Educate the end user.' Objective 3.4 lists 'False alerts regarding antivirus protection', 'Random/frequent pop-ups' and 'Redirection'. The exam page (summarizing fetch, same day) gives the domains and launch date. Reused for REQ-336 from this course's home-office-laptop-malware (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The business, the users, the devices and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the IT technician at Fenwick Supplies, a fictional distributor. A sales rep's laptop was stolen from a car last week; it held a customer price list. The owner wants the other twelve sales laptops secured this week.",
+    "handover": [
+      "The laptops run Windows Pro with TPM 2.0; BitLocker is off on all of them.",
+      "Sales reps are local administrators; two turned UAC off because prompts annoyed them."
+    ],
+    "howItWorks": [
+      "The desk shows the ticket queue against the priority matrix and each service's status.",
+      "Move on a ticket round at a time. A decision comes to you at each ticket round; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-03-08T08:30",
+    "tick": "1min",
+    "maxDuration": "360min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "bl": {
+      "type": "enum",
+      "values": [
+        "none",
+        "escrow",
+        "someOnly",
+        "keyOnDesktop"
+      ],
+      "init": "none"
+    },
+    "blAt": {
+      "type": "time",
+      "init": null
+    },
+    "uac": {
+      "type": "enum",
+      "values": [
+        "none",
+        "standard",
+        "uacOnly",
+        "leave"
+      ],
+      "init": "none"
+    },
+    "uacAt": {
+      "type": "time",
+      "init": null
+    },
+    "fw": {
+      "type": "enum",
+      "values": [
+        "none",
+        "on",
+        "privateOnly",
+        "off"
+      ],
+      "init": "none"
+    },
+    "fwAt": {
+      "type": "time",
+      "init": null
+    },
+    "invAt": {
+      "type": "time",
+      "init": null
+    },
+    "theftAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((bl == \"keyOnDesktop\") ? 1 : 0) + ((uac == \"leave\") ? 1 : 0) + ((fw == \"off\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(bl == \"none\" or (bl == \"keyOnDesktop\") ? 1 : 0) + (uac == \"none\" or (uac == \"leave\") ? 1 : 0) + (fw == \"none\" or (fw == \"off\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The security work",
+      "clock": "turns",
+      "actions": [
+        "inv",
+        "theft"
+      ]
+    },
+    "close": {
+      "label": "Work notes",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "inv": {
+      "label": "Check each laptop's BitLocker, UAC and firewall status",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(invAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "invAt",
+          "to": "t"
+        },
+        {
+          "log": "You check the twelve laptops.",
+          "kind": "act"
+        },
+        {
+          "finding": "BitLocker off on all twelve; UAC off on two; the firewall's public profile is off on three because a rep's old VPN client complained."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "15min"
+        }
+      ]
+    },
+    "theft": {
+      "label": "Read the stolen laptop's ticket",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(theftAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "theftAt",
+          "to": "t"
+        },
+        {
+          "log": "You read the theft ticket.",
+          "kind": "act"
+        },
+        {
+          "finding": "The stolen laptop was unencrypted: anyone who removes its drive can read the price list and the rep's saved browser passwords."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the work notes",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the notes say",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "BitLocker with escrowed keys on all twelve, reps as standard users with UAC on, and the firewall on for every profile"
+                },
+                {
+                  "value": "summary",
+                  "label": "Laptops secured"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next ticket round",
+      "wait": {
+        "skipLabel": "Go to the next ticket round"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "bl == \"keyOnDesktop\"",
+              "then": [
+                {
+                  "log": "Round 2: a firmware update triggers BitLocker recovery on three laptops; their keys are inside the locked drives and the reps lose a day.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "uac == \"leave\"",
+              "then": [
+                {
+                  "log": "Round 3: a rep opens a fake invoice; with UAC off and admin rights, it installs a keylogger silently.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "fw == \"off\"",
+              "then": [
+                {
+                  "log": "Round 4: on a trade-show network, another attendee's infected laptop reaches the reps' shared folders.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "30min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The laptops are secured.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "30min"
+        }
+      ]
+    },
+    {
+      "id": "t_bl",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Round 1: encryption.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "blPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_uac",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Round 2: accounts and UAC.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "uacPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_fw",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Round 3: the firewall.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "fwPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "blPrompt": {
+      "title": "BitLocker on twelve laptops",
+      "context": "Each has a TPM 2.0.",
+      "choices": [
+        {
+          "id": "escrow",
+          "label": "Enable BitLocker with the TPM on each laptop, back up each recovery key to the company account (not the laptop itself), and confirm encryption completes",
+          "effects": [
+            {
+              "set": "bl",
+              "to": "\"escrow\""
+            },
+            {
+              "set": "blAt",
+              "to": "t"
+            },
+            {
+              "log": "Twelve laptops encrypted; recovery keys escrowed.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Full-disk encryption protects a stolen laptop's data; an escrowed recovery key lets IT unlock it when the TPM can't."
+        },
+        {
+          "id": "someOnly",
+          "label": "Encrypt the four laptops that hold price lists",
+          "effects": [
+            {
+              "set": "bl",
+              "to": "\"someOnly\""
+            },
+            {
+              "set": "blAt",
+              "to": "t"
+            },
+            {
+              "log": "Four laptops are encrypted.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The others hold customer data too."
+        },
+        {
+          "id": "keyOnDesktop",
+          "label": "Enable BitLocker and save each recovery key to a text file on the laptop's desktop",
+          "effects": [
+            {
+              "set": "bl",
+              "to": "\"keyOnDesktop\""
+            },
+            {
+              "set": "blAt",
+              "to": "t"
+            },
+            {
+              "log": "Recovery keys are saved on each laptop.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "A recovery key on the encrypted laptop is no use when you need it, and on a USB stick in the bag it unlocks the thief's copy."
+        }
+      ]
+    },
+    "uacPrompt": {
+      "title": "Admin rights and UAC",
+      "context": "Reps install a CRM plug-in a few times a year.",
+      "choices": [
+        {
+          "id": "standard",
+          "label": "Make the reps standard users, keep a separate admin account for IT, and turn UAC back on at the default level",
+          "effects": [
+            {
+              "set": "uac",
+              "to": "\"standard\""
+            },
+            {
+              "set": "uacAt",
+              "to": "t"
+            },
+            {
+              "log": "Reps are standard users; UAC is on.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Least privilege: malware running as a standard user can't install drivers or change system settings, and UAC prompts for elevation."
+        },
+        {
+          "id": "uacOnly",
+          "label": "Turn UAC back on but leave reps as administrators",
+          "effects": [
+            {
+              "set": "uac",
+              "to": "\"uacOnly\""
+            },
+            {
+              "set": "uacAt",
+              "to": "t"
+            },
+            {
+              "log": "UAC is back on.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Better, but a click on 'Yes' still gives malware full rights."
+        },
+        {
+          "id": "leave",
+          "label": "Leave UAC off so reps aren't interrupted",
+          "effects": [
+            {
+              "set": "uac",
+              "to": "\"leave\""
+            },
+            {
+              "set": "uacAt",
+              "to": "t"
+            },
+            {
+              "log": "UAC stays off.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Everything a rep runs, including malware, runs with full rights silently."
+        }
+      ]
+    },
+    "fwPrompt": {
+      "title": "Firewall off on hotel Wi-Fi",
+      "context": "The old VPN client complained; the current one works with the firewall on.",
+      "choices": [
+        {
+          "id": "on",
+          "label": "Turn Windows Defender Firewall on for all profiles and add a specific allow rule for the current VPN client only if it needs one",
+          "effects": [
+            {
+              "set": "fw",
+              "to": "\"on\""
+            },
+            {
+              "set": "fwAt",
+              "to": "t"
+            },
+            {
+              "log": "The firewall is on everywhere; the VPN works.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "The public profile matters most on hotel and café Wi-Fi; a specific rule beats turning the firewall off."
+        },
+        {
+          "id": "privateOnly",
+          "label": "Turn it on for the domain and private profiles only",
+          "effects": [
+            {
+              "set": "fw",
+              "to": "\"privateOnly\""
+            },
+            {
+              "set": "fwAt",
+              "to": "t"
+            },
+            {
+              "log": "Public stays off.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Public Wi-Fi is exactly where the reps need it."
+        },
+        {
+          "id": "off",
+          "label": "Turn the firewall off on all twelve so the VPN never complains",
+          "effects": [
+            {
+              "set": "fw",
+              "to": "\"off\""
+            },
+            {
+              "set": "fwAt",
+              "to": "t"
+            },
+            {
+              "log": "The firewall is off everywhere.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Every laptop's file sharing and services are exposed on every network."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the work notes for the owner: what a thief or malware could have done before, and what each setting now prevents.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Encryption",
+          "criteria": "BitLocker with TPM, recovery keys escrowed to the company.",
+          "modelAnswer": "A stolen laptop's drive is now encrypted; recovery keys are held by the company, not on the laptops."
+        },
+        {
+          "label": "Privilege and network",
+          "criteria": "Standard users with UAC; firewall on for every profile.",
+          "modelAnswer": "Reps are standard users with UAC on, and the firewall is on for public networks too."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "service",
+    "thresholds": {
+      "slaBreachTarget": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No incident restored after its service level target."
+        }
+      },
+      "unauthorizedChanges": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No change without the authorization its type needs."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (bl == \"someOnly\") and (uac == \"uacOnly\") and (fw == \"privateOnly\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CompTIA A+ Core 2 (220-1202) V15 Exam Objectives, Document Version 4.0: domains Operating systems 28%, Security 28%, Software troubleshooting 23%, Operational procedures 21%; launched 2025-03-25",
+        "checkedAt": "2026-11-14",
+        "url": "https://www.comptia.org/en-us/certifications/a/core-2-v15/",
+        "note": "Objective 2.6 'Given a scenario, implement procedures for basic small office/home office (SOHO) malware removal', read in primary text in the objectives PDF on 2026-11-14: '1. Investigate and verify malware symptoms. 2. Quarantine infected system. 3. Disable System Restore in Windows Home. 4. Remediate infected systems. 5. Update anti-malware software. 6. Scan and removal techniques (e.g., safe mode, preinstallation environment) 7. Reimage/reinstall. 8. Schedule scans and run updates. 9. Enable System Restore and create a restore point in Windows Home. 10. Educate the end user.' Objective 3.4 lists 'False alerts regarding antivirus protection', 'Random/frequent pop-ups' and 'Redirection'. The exam page (summarizing fetch, same day) gives the domains and launch date. Reused for REQ-336 from this course's home-office-laptop-malware (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "blHarm": {
+      "label": "Locked out by their own keys",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and bl == \"keyOnDesktop\"",
+      "narrative": "Three laptops entered BitLocker recovery with their keys locked inside; reps lost a day."
+    },
+    "uacHarm": {
+      "label": "A silent keylogger",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and uac == \"leave\"",
+      "narrative": "With UAC off and admin rights, a fake invoice silently installed a keylogger."
+    },
+    "fwHarm": {
+      "label": "Exposed on public Wi-Fi",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and fw == \"off\"",
+      "narrative": "With firewalls off, an infected laptop on a trade-show network reached the reps' shared folders."
+    },
+    "target": {
+      "label": "Laptops safe to lose",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (bl == \"escrow\") and (uac == \"standard\") and (fw == \"on\") and record == \"honest\" and missCount <= slaBreachTarget and openCount <= unauthorizedChanges",
+      "narrative": "A stolen laptop now gives a thief nothing, and malware can't silently take over."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "blHarm",
+    "uacHarm",
+    "fwHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "blCrit",
+        "label": "Turned on BitLocker with recovery keys escrowed",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "bl == \"escrow\"",
+            "score": "met",
+            "why": "Encrypted and recoverable."
+          },
+          {
+            "when": "bl == \"someOnly\"",
+            "score": "partial",
+            "why": "Partial."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Keys in the wrong place."
+          }
+        ]
+      },
+      {
+        "id": "uacCrit",
+        "label": "Applied least privilege with UAC on",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "uac == \"standard\"",
+            "score": "met",
+            "why": "Least privilege."
+          },
+          {
+            "when": "uac == \"uacOnly\"",
+            "score": "partial",
+            "why": "Half way."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No protection."
+          }
+        ]
+      },
+      {
+        "id": "fwCrit",
+        "label": "Turned the firewall on for all profiles with a specific rule if needed",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fw == \"on\"",
+            "score": "met",
+            "why": "On with a specific rule."
+          },
+          {
+            "when": "fw == \"privateOnly\"",
+            "score": "partial",
+            "why": "Wrong profile left off."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No firewall."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(invAt) and not isNull(theftAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(invAt) or not isNull(theftAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Check every laptop's encryption, UAC and firewall status first."
+      },
+      {
+        "at": "Round 1",
+        "text": "Enable BitLocker with the TPM and escrow the recovery keys."
+      },
+      {
+        "at": "Round 2",
+        "text": "Make reps standard users and turn UAC back on."
+      },
+      {
+        "at": "Round 3",
+        "text": "Turn the firewall on for all profiles, with a specific rule if needed."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "blHarm": {
+        "headline": "Escrow the recovery keys",
+        "body": "Back up recovery keys to the organization, never to the encrypted device."
+      },
+      "uacHarm": {
+        "headline": "Least privilege and UAC",
+        "body": "Standard users with UAC on stop silent installs."
+      },
+      "fwHarm": {
+        "headline": "Keep the firewall on",
+        "body": "Use specific rules, never turn the firewall off."
+      },
+      "target": {
+        "headline": "Good: laptops safe to lose",
+        "body": "Encryption with escrowed keys, least privilege with UAC, and the firewall on everywhere."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "BitLocker with a TPM encrypts the whole drive so a stolen laptop's data is unreadable; the recovery key must be escrowed with the organization. Least privilege means standard user accounts with UAC prompting for elevation, so malware can't install silently. Windows Defender Firewall should be on for every profile, especially public, with specific rules rather than turning it off."
+  }
+}

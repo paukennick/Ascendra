@@ -1,0 +1,1008 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "tekton-pipeline-updates-git",
+  "title": "A Tekton pipeline that deploys with kubectl: tests out of order, a missing cleanup, and updating desired state in Git",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "platform@whitcombe:~$",
+      "lines": [
+        {
+          "id": "firstLine",
+          "text": "argocd: 30 apps OutOfSync after pipeline deploys this week",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "lineDeploy",
+          "text": "{deploy == \"gitUpdate\" ? \"Pipeline updates Git; reconciler deploys\" : deploy == \"stagingOnly\" ? \"Split model\" : deploy == \"keepApply\" ? \"Push deploys, reconciler muted\" : \"\"}",
+          "when": "deploy != \"none\"",
+          "at": "timeAt(deployAt)",
+          "error": "deploy == \"keepApply\""
+        },
+        {
+          "id": "lineOrder",
+          "text": "{order == \"runAfter\" ? \"runAfter test with a shared workspace\" : order == \"tagUntested\" ? \"Tagged as untested\" : order == \"dropTests\" ? \"No tests\" : \"\"}",
+          "when": "order != \"none\"",
+          "at": "timeAt(orderAt)",
+          "error": "order == \"dropTests\""
+        },
+        {
+          "id": "lineCleanup",
+          "text": "{cleanup == \"finally\" ? \"finally tasks for cleanup and status\" : cleanup == \"cron\" ? \"Nightly cleanup\" : cleanup == \"lastTask\" ? \"Cleanup only on success\" : \"\"}",
+          "when": "cleanup != \"none\"",
+          "at": "timeAt(cleanupAt)",
+          "error": "cleanup == \"lastTask\""
+        }
+      ],
+      "nodes": [
+        {
+          "id": "nDeploy",
+          "label": "deploy Task",
+          "spokenLabel": "deploy Task",
+          "kind": "Task",
+          "status": "{deploy == \"gitUpdate\" ? \"Pipeline updates Git; reconciler deploys\" : deploy == \"stagingOnly\" ? \"Split model\" : deploy == \"keepApply\" ? \"Push deploys, reconciler muted\" : \"Waiting\"}",
+          "tone": "deploy == \"gitUpdate\" ? \"up\" : deploy == \"stagingOnly\" ? \"degraded\" : deploy == \"keepApply\" ? \"down\" : p >= 1 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nOrder",
+          "label": "build-push Task",
+          "spokenLabel": "build-push Task",
+          "kind": "Task",
+          "status": "{order == \"runAfter\" ? \"runAfter test with a shared workspace\" : order == \"tagUntested\" ? \"Tagged as untested\" : order == \"dropTests\" ? \"No tests\" : \"Waiting\"}",
+          "tone": "order == \"runAfter\" ? \"up\" : order == \"tagUntested\" ? \"degraded\" : order == \"dropTests\" ? \"down\" : p >= 2 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nCleanup",
+          "label": "finally tasks",
+          "spokenLabel": "finally tasks",
+          "kind": "Pipeline",
+          "status": "{cleanup == \"finally\" ? \"finally tasks for cleanup and status\" : cleanup == \"cron\" ? \"Nightly cleanup\" : cleanup == \"lastTask\" ? \"Cleanup only on success\" : \"Waiting\"}",
+          "tone": "cleanup == \"finally\" ? \"up\" : cleanup == \"cron\" ? \"degraded\" : cleanup == \"lastTask\" ? \"down\" : p >= 3 ? \"degraded\" : \"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "link0",
+          "from": "nDeploy",
+          "to": "nOrder",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        },
+        {
+          "id": "link1",
+          "from": "nOrder",
+          "to": "nCleanup",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Check-in",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Build and configure CI/CD pipelines integrated with Kubernetes: Tekton Pipelines and Tasks (or Argo Workflows), image build and push, and updating desired state in Git",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "CNCF, Certified Cloud Native Platform Engineer (CNPE) certification page",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.cncf.io/training/certification/cnpe/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the certification body's page, found by WebSearch. Confirms the exam domains and weights: Platform Architecture and Infrastructure 15%, GitOps and Continuous Delivery 25%, Platform APIs and Self-Service Capabilities 25%, Observability and Operations 20%, Security and Policy Enforcement 15%. The objective wording is the course seed's."
+    },
+    {
+      "cite": "Tekton documentation, Pipelines",
+      "checkedAt": "2026-11-17",
+      "url": "https://tekton.dev/docs/pipelines/pipelines/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: a Pipeline is an ordered collection of Tasks, each run as a Pod; runAfter makes a Task wait for others; Workspaces give Tasks shared volumes; parameters come from the PipelineRun; finally tasks always run after all tasks complete, whether they succeeded or failed."
+    },
+    {
+      "cite": "OpenGitOps, GitOps Principles v1.0.0 (opengitops.dev)",
+      "checkedAt": "2026-11-17",
+      "url": "https://opengitops.dev/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: desired state is declarative, versioned and immutable, pulled automatically by software agents, and continuously reconciled: agents continuously observe actual state and attempt to apply the desired state."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the systems and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are a platform engineer at Whitcombe Media, a fictional publisher. The shared Tekton pipeline builds and deploys 30 services. Argo CD manages the clusters, yet the pipeline's last task still runs kubectl apply.",
+    "handover": [
+      "The pipeline: clone, test and build-push run side by side; deploy runs kubectl apply with a cluster-admin token.",
+      "Failed runs leave temporary registry credentials behind."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the map shows each component and its status in words.",
+      "Move on a check-in at a time. A decision comes to you at each check-in; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-05-17T10:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "deploy": {
+      "type": "enum",
+      "values": [
+        "none",
+        "gitUpdate",
+        "stagingOnly",
+        "keepApply"
+      ],
+      "init": "none"
+    },
+    "deployAt": {
+      "type": "time",
+      "init": null
+    },
+    "order": {
+      "type": "enum",
+      "values": [
+        "none",
+        "runAfter",
+        "tagUntested",
+        "dropTests"
+      ],
+      "init": "none"
+    },
+    "orderAt": {
+      "type": "time",
+      "init": null
+    },
+    "cleanup": {
+      "type": "enum",
+      "values": [
+        "none",
+        "finally",
+        "cron",
+        "lastTask"
+      ],
+      "init": "none"
+    },
+    "cleanupAt": {
+      "type": "time",
+      "init": null
+    },
+    "pipeAt": {
+      "type": "time",
+      "init": null
+    },
+    "runAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((deploy == \"keepApply\") ? 1 : 0) + ((order == \"dropTests\") ? 1 : 0) + ((cleanup == \"lastTask\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(deploy == \"none\" or (deploy == \"keepApply\") ? 1 : 0) + (order == \"none\" or (order == \"dropTests\") ? 1 : 0) + (cleanup == \"none\" or (cleanup == \"lastTask\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Pipeline review",
+      "clock": "turns",
+      "actions": [
+        "pipe",
+        "run"
+      ]
+    },
+    "close": {
+      "label": "Pipeline record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "pipe": {
+      "label": "tkn pipeline describe build-deploy",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(pipeAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "pipeAt",
+          "to": "t"
+        },
+        {
+          "output": "Tasks: clone, test, build-push (no runAfter), deploy (kubectl apply, cluster-admin token); no workspaces declared; no finally tasks."
+        },
+        {
+          "log": "tkn pipeline describe build-deploy.",
+          "kind": "act"
+        },
+        {
+          "finding": "Tasks: clone, test, build-push (no runAfter), deploy (kubectl apply, cluster-admin token); no workspaces declared; no finally tasks."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "run": {
+      "label": "tkn pipelinerun logs (last failed run)",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(runAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "runAt",
+          "to": "t"
+        },
+        {
+          "output": "Tests failed, but build-push had already pushed the image; deploy was skipped and the temporary registry secret was never deleted."
+        },
+        {
+          "log": "tkn pipelinerun logs (last failed run).",
+          "kind": "act"
+        },
+        {
+          "finding": "Tests failed, but build-push had already pushed the image; deploy was skipped and the temporary registry secret was never deleted."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "The pipeline commits to Git for Argo CD, build runs after tests with a shared workspace, and cleanup runs in finally tasks"
+                },
+                {
+                  "value": "summary",
+                  "label": "Pipeline fixed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next check-in",
+      "wait": {
+        "skipLabel": "Go to the next check-in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "deploy == \"keepApply\"",
+              "then": [
+                {
+                  "log": "Check-in 2: Argo CD later syncs an old manifest over a pipeline deploy; a service rolls back by surprise.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "order == \"dropTests\"",
+              "then": [
+                {
+                  "log": "Check-in 3: a broken image goes all the way to production through the new Git flow.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "cleanup == \"lastTask\"",
+              "then": [
+                {
+                  "log": "Check-in 4: a leaked temporary registry credential from a failed run is used to push a fake image tag.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "10min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The pipeline review closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "10min"
+        }
+      ]
+    },
+    {
+      "id": "t_deploy",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 1: drift alerts.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "deployPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_order",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 2: a failed test.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "orderPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_cleanup",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 3: leftover secrets.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "cleanupPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "deployPrompt": {
+      "title": "kubectl apply beside Argo CD",
+      "context": "Argo CD reports drift after every pipeline deploy.",
+      "choices": [
+        {
+          "id": "gitUpdate",
+          "label": "Replace deploy with a task that commits the new image reference to the config repo as a pull request; Argo CD syncs it; remove the cluster-admin token",
+          "effects": [
+            {
+              "set": "deploy",
+              "to": "\"gitUpdate\""
+            },
+            {
+              "set": "deployAt",
+              "to": "t"
+            },
+            {
+              "log": "The pipeline opens config pull requests; Argo CD deploys.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "In GitOps the pipeline updates desired state in Git and the reconciler applies it; CI needs no cluster credentials."
+        },
+        {
+          "id": "stagingOnly",
+          "label": "Keep kubectl apply for staging only; production by Git",
+          "effects": [
+            {
+              "set": "deploy",
+              "to": "\"stagingOnly\""
+            },
+            {
+              "set": "deployAt",
+              "to": "t"
+            },
+            {
+              "log": "Production goes through Git.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Production is fixed, but staging still drifts and CI still holds credentials."
+        },
+        {
+          "id": "keepApply",
+          "label": "Keep kubectl apply and turn off Argo CD's self-heal to stop the drift alerts",
+          "effects": [
+            {
+              "set": "deploy",
+              "to": "\"keepApply\""
+            },
+            {
+              "set": "deployAt",
+              "to": "t"
+            },
+            {
+              "log": "Self-heal is off.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Two deployers now disagree silently; Git no longer describes the cluster."
+        }
+      ]
+    },
+    "orderPrompt": {
+      "title": "Images pushed before tests pass",
+      "context": "build-push runs alongside test.",
+      "choices": [
+        {
+          "id": "runAfter",
+          "label": "Declare a source workspace shared by the tasks and set build-push to runAfter test, so an image is pushed only after tests pass",
+          "effects": [
+            {
+              "set": "order",
+              "to": "\"runAfter\""
+            },
+            {
+              "set": "orderAt",
+              "to": "t"
+            },
+            {
+              "log": "Build waits for tests and uses the same source.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "runAfter orders Tasks, and a Workspace shares the cloned source between them."
+        },
+        {
+          "id": "tagUntested",
+          "label": "Keep parallel runs but tag images 'untested' until tests pass",
+          "effects": [
+            {
+              "set": "order",
+              "to": "\"tagUntested\""
+            },
+            {
+              "set": "orderAt",
+              "to": "t"
+            },
+            {
+              "log": "Images are tagged.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Untested images still land in the registry and can be deployed by mistake."
+        },
+        {
+          "id": "dropTests",
+          "label": "Remove the test task to make the pipeline faster",
+          "effects": [
+            {
+              "set": "order",
+              "to": "\"dropTests\""
+            },
+            {
+              "set": "orderAt",
+              "to": "t"
+            },
+            {
+              "log": "Tests are removed.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Nothing stops broken code reaching the registry and Git."
+        }
+      ]
+    },
+    "cleanupPrompt": {
+      "title": "Temporary credentials left behind",
+      "context": "Failed runs never reach the cleanup step.",
+      "choices": [
+        {
+          "id": "finally",
+          "label": "Move secret cleanup and status reporting into finally tasks, which run after all tasks whether they succeeded or failed",
+          "effects": [
+            {
+              "set": "cleanup",
+              "to": "\"finally\""
+            },
+            {
+              "set": "cleanupAt",
+              "to": "t"
+            },
+            {
+              "log": "Cleanup and status run on every outcome.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "finally tasks are guaranteed to run after all tasks complete, so cleanup and status do not depend on success."
+        },
+        {
+          "id": "cron",
+          "label": "Delete leftover secrets with a nightly CronJob",
+          "effects": [
+            {
+              "set": "cleanup",
+              "to": "\"cron\""
+            },
+            {
+              "set": "cleanupAt",
+              "to": "t"
+            },
+            {
+              "log": "A nightly job cleans up.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Credentials linger up to a day after each failure."
+        },
+        {
+          "id": "lastTask",
+          "label": "Add cleanup as the last regular task",
+          "effects": [
+            {
+              "set": "cleanup",
+              "to": "\"lastTask\""
+            },
+            {
+              "set": "cleanupAt",
+              "to": "t"
+            },
+            {
+              "log": "Cleanup is the last task.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "A regular task is skipped when an earlier one fails, which is exactly when secrets are left."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the pipeline record for the 30 service teams.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Delivery",
+          "criteria": "Pipeline commits the image to the config repo; Argo CD syncs; no cluster credentials in CI.",
+          "modelAnswer": "The last task now opens a pull request to the config repo; Argo CD deploys it. CI holds no cluster credentials."
+        },
+        {
+          "label": "Pipeline structure",
+          "criteria": "runAfter test with a shared workspace; finally tasks for cleanup and status.",
+          "modelAnswer": "build-push runs after test on the shared source; cleanup and status reporting run in finally tasks."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Service restored and the work closed within 60 minutes of the first report."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No fault introduced by the response itself."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (deploy == \"stagingOnly\") and (order == \"tagUntested\") and (cleanup == \"cron\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CNCF, Certified Cloud Native Platform Engineer (CNPE) certification page",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.cncf.io/training/certification/cnpe/",
+        "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the certification body's page, found by WebSearch. Confirms the exam domains and weights: Platform Architecture and Infrastructure 15%, GitOps and Continuous Delivery 25%, Platform APIs and Self-Service Capabilities 25%, Observability and Operations 20%, Security and Policy Enforcement 15%. The objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "deployHarm": {
+      "label": "A surprise rollback",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and deploy == \"keepApply\"",
+      "narrative": "Two deployers disagreed; Argo CD synced an old manifest over the pipeline's."
+    },
+    "orderHarm": {
+      "label": "Broken code shipped",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and order == \"dropTests\"",
+      "narrative": "Without tests, a broken build reached production."
+    },
+    "cleanupHarm": {
+      "label": "Leaked credentials used",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and cleanup == \"lastTask\"",
+      "narrative": "A temporary credential left by a failed run was abused."
+    },
+    "target": {
+      "label": "CI that feeds GitOps",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (deploy == \"gitUpdate\") and (order == \"runAfter\") and (cleanup == \"finally\") and record == \"honest\" and missCount <= newFaults and timeAt(doneAt) <= restoreWindow",
+      "narrative": "Only tested images are pushed, Git describes every deployment, and no credentials are left behind."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "deployHarm",
+    "orderHarm",
+    "cleanupHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "deployCrit",
+        "label": "Made the pipeline update desired state in Git",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "deploy == \"gitUpdate\"",
+            "score": "met",
+            "why": "GitOps delivery."
+          },
+          {
+            "when": "deploy == \"stagingOnly\"",
+            "score": "partial",
+            "why": "Half way."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Two sources of truth."
+          }
+        ]
+      },
+      {
+        "id": "orderCrit",
+        "label": "Ordered tasks so only tested code is pushed",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "order == \"runAfter\"",
+            "score": "met",
+            "why": "Gated."
+          },
+          {
+            "when": "order == \"tagUntested\"",
+            "score": "partial",
+            "why": "Leaky."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Ungated."
+          }
+        ]
+      },
+      {
+        "id": "cleanupCrit",
+        "label": "Used finally tasks for cleanup and status",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "cleanup == \"finally\"",
+            "score": "met",
+            "why": "Always cleaned up."
+          },
+          {
+            "when": "cleanup == \"cron\"",
+            "score": "partial",
+            "why": "Delayed."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Skipped on failure."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(pipeAt) and not isNull(runAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(pipeAt) or not isNull(runAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the pipeline definition and a failed run first."
+      },
+      {
+        "at": "Check-in 1",
+        "text": "Commit the new image to the config repo and let Argo CD sync."
+      },
+      {
+        "at": "Check-in 2",
+        "text": "Use a shared workspace and runAfter test."
+      },
+      {
+        "at": "Check-in 3",
+        "text": "Put cleanup and status in finally tasks."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "deployHarm": {
+        "headline": "One source of truth",
+        "body": "The pipeline writes Git; the reconciler applies."
+      },
+      "orderHarm": {
+        "headline": "Gate on tests",
+        "body": "Order build after tests."
+      },
+      "cleanupHarm": {
+        "headline": "Clean up in finally",
+        "body": "finally runs on every outcome."
+      },
+      "target": {
+        "headline": "Good: cI that feeds GitOps",
+        "body": "Desired state in Git, ordered tasks and finally cleanup."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A Kubernetes-native pipeline builds, tests and pushes images, then updates desired state in Git for the reconciler instead of applying to clusters. Tekton orders Tasks with runAfter, shares data through Workspaces, and runs finally tasks after everything completes, which is where cleanup and status belong."
+  }
+}

@@ -1,0 +1,1013 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "weak-crypto-findings-legacy-portal",
+  "title": "Cryptographic weaknesses in a legacy portal: an old protocol, unsalted hashes and a self-signed certificate",
+  "screen": {
+    "type": "security-console",
+    "level": 1,
+    "console": {
+      "alerts": [
+        {
+          "id": "aProto",
+          "severity": "high",
+          "title": "TLS 1.0 and weak cipher suites accepted",
+          "detail": "Downgrade to TLS 1.0 exposes sessions to known attacks.",
+          "when": "p >= 1",
+          "at": "600",
+          "status": "{proto == \"modern\" ? \"Modern TLS only, verified\" : proto == \"keep12\" ? \"TLS 1.0 dropped; weak suites stay\" : proto == \"lowRisk\" ? \"Rated informational\" : \"Due\"}",
+          "open": "proto == \"none\""
+        },
+        {
+          "id": "aHash",
+          "severity": "critical",
+          "title": "Unsalted MD5 password hashes",
+          "detail": "Precomputed tables reverse common passwords instantly.",
+          "when": "p >= 2",
+          "at": "1200",
+          "status": "{hash == \"argon\" ? \"Salted slow hash with migration\" : hash == \"sha256\" ? \"Salted SHA-256\" : hash == \"encrypt\" ? \"Encrypt the MD5 hashes\" : \"Due\"}",
+          "open": "hash == \"none\""
+        },
+        {
+          "id": "aPki",
+          "severity": "medium",
+          "title": "Self-signed certificate on the admin page",
+          "detail": "Staff are used to clicking through the warning, which also hides a man-in-the-middle.",
+          "when": "p >= 3",
+          "at": "1800",
+          "status": "{pki == \"internalCa\" ? \"Internal CA certificate with HSTS\" : pki == \"pinSelf\" ? \"Self-signed trusted per PC\" : pki == \"ignoreWarn\" ? \"Click-through continues\" : \"Due\"}",
+          "open": "pki == \"none\""
+        }
+      ],
+      "events": [
+        {
+          "id": "eProto",
+          "source": "Scanner",
+          "text": "{proto == \"modern\" ? \"Modern TLS only, verified\" : proto == \"keep12\" ? \"TLS 1.0 dropped; weak suites stay\" : proto == \"lowRisk\" ? \"Rated informational\" : \"\"}",
+          "when": "proto != \"none\"",
+          "at": "timeAt(protoAt)"
+        },
+        {
+          "id": "eHash",
+          "source": "Analyst",
+          "text": "{hash == \"argon\" ? \"Salted slow hash with migration\" : hash == \"sha256\" ? \"Salted SHA-256\" : hash == \"encrypt\" ? \"Encrypt the MD5 hashes\" : \"\"}",
+          "when": "hash != \"none\"",
+          "at": "timeAt(hashAt)"
+        },
+        {
+          "id": "ePki",
+          "source": "Analyst",
+          "text": "{pki == \"internalCa\" ? \"Internal CA certificate with HSTS\" : pki == \"pinSelf\" ? \"Self-signed trusted per PC\" : pki == \"ignoreWarn\" ? \"Click-through continues\" : \"\"}",
+          "when": "pki != \"none\"",
+          "at": "timeAt(pkiAt)"
+        },
+        {
+          "id": "iTls",
+          "source": "Scanner",
+          "text": "TLS 1.0 and CBC cipher suites without forward secrecy are accepted; the server prefers the client's order.",
+          "when": "not isNull(tlsAt)",
+          "at": "timeAt(tlsAt)"
+        },
+        {
+          "id": "iHashes",
+          "source": "Analyst",
+          "text": "Unsalted MD5: identical passwords give identical hashes, and precomputed tables reverse common ones instantly.",
+          "when": "not isNull(hashesAt)",
+          "at": "timeAt(hashesAt)"
+        }
+      ],
+      "assets": [
+        {
+          "id": "xProto",
+          "label": "Member portal TLS",
+          "spokenLabel": "Member portal TLS",
+          "kind": "service",
+          "status": "{proto == \"modern\" ? \"Modern TLS only, verified\" : proto == \"keep12\" ? \"TLS 1.0 dropped; weak suites stay\" : proto == \"lowRisk\" ? \"Rated informational\" : \"Under review\"}",
+          "tone": "proto == \"modern\" ? \"ok\" : proto == \"keep12\" ? \"watch\" : proto == \"lowRisk\" ? \"bad\" : p >= 1 ? \"watch\" : \"ok\""
+        },
+        {
+          "id": "xHash",
+          "label": "Member password store",
+          "spokenLabel": "Member password store",
+          "kind": "database",
+          "status": "{hash == \"argon\" ? \"Salted slow hash with migration\" : hash == \"sha256\" ? \"Salted SHA-256\" : hash == \"encrypt\" ? \"Encrypt the MD5 hashes\" : \"Under review\"}",
+          "tone": "hash == \"argon\" ? \"ok\" : hash == \"sha256\" ? \"watch\" : hash == \"encrypt\" ? \"bad\" : p >= 2 ? \"watch\" : \"ok\""
+        },
+        {
+          "id": "xPki",
+          "label": "Internal admin page certificate",
+          "spokenLabel": "Internal admin page certificate",
+          "kind": "certificate",
+          "status": "{pki == \"internalCa\" ? \"Internal CA certificate with HSTS\" : pki == \"pinSelf\" ? \"Self-signed trusted per PC\" : pki == \"ignoreWarn\" ? \"Click-through continues\" : \"Under review\"}",
+          "tone": "pki == \"internalCa\" ? \"ok\" : pki == \"pinSelf\" ? \"watch\" : pki == \"ignoreWarn\" ? \"bad\" : p >= 3 ? \"watch\" : \"ok\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Check-in",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Recognize cryptanalysis and cryptographic attacks, and choose countermeasures",
+  "secondaryObjectives": [
+    "Apply public key infrastructure, email encryption and disk encryption",
+    "Explain cryptography concepts and encryption algorithms: symmetric, asymmetric and hashing"
+  ],
+  "sources": [
+    {
+      "cite": "EC-Council, CEH Exam Blueprint v5.0 (CEH v13), Domain 4: Network and Perimeter Hacking",
+      "checkedAt": "2026-11-14",
+      "url": "https://cert.eccouncil.org/wp-content/uploads/2024/04/CEH-Exam-Blueprint-v5.pdf",
+      "note": "Read in full as text on 2026-11-14 for REQ-273. Sub-domain 'Sniffing': Sniffing Concepts; Sniffing Technique: MAC Attacks; DHCP Attacks; ARP Poisoning; Spoofing Attacks; DNS Poisoning; Sniffing Tools; Sniffing Countermeasures; Sniffing Detection Techniques. Sub-domain 'Session Hijacking': Application-Level and Network-Level Session Hijacking; Session Hijacking Countermeasures. Domain 4 weight 24% (30 of 125 questions). Reused for REQ-336 from this course's ceh-arp-poisoning-finance-vlan (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the systems, the findings and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the security tester on an authorized assessment of Torrent Mutual's member portal, a fictional insurer's legacy web application. Your findings go to the development lead in three check-ins.",
+    "handover": [
+      "The portal accepts TLS 1.0 and TLS 1.2 with old cipher suites.",
+      "A database copy for the test shows password hashes as unsalted MD5. The internal admin page uses a self-signed certificate."
+    ],
+    "howItWorks": [
+      "The console shows the alert queue, the event log and each asset's status.",
+      "Move on a check-in at a time. A decision comes to you at each check-in; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-04-07T10:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "proto": {
+      "type": "enum",
+      "values": [
+        "none",
+        "modern",
+        "keep12",
+        "lowRisk"
+      ],
+      "init": "none"
+    },
+    "protoAt": {
+      "type": "time",
+      "init": null
+    },
+    "hash": {
+      "type": "enum",
+      "values": [
+        "none",
+        "argon",
+        "sha256",
+        "encrypt"
+      ],
+      "init": "none"
+    },
+    "hashAt": {
+      "type": "time",
+      "init": null
+    },
+    "pki": {
+      "type": "enum",
+      "values": [
+        "none",
+        "internalCa",
+        "pinSelf",
+        "ignoreWarn"
+      ],
+      "init": "none"
+    },
+    "pkiAt": {
+      "type": "time",
+      "init": null
+    },
+    "tlsAt": {
+      "type": "time",
+      "init": null
+    },
+    "hashesAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((proto == \"lowRisk\") ? 1 : 0) + ((hash == \"encrypt\") ? 1 : 0) + ((pki == \"ignoreWarn\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(proto == \"none\" or (proto == \"lowRisk\") ? 1 : 0) + (hash == \"none\" or (hash == \"encrypt\") ? 1 : 0) + (pki == \"none\" or (pki == \"ignoreWarn\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The assessment",
+      "clock": "turns",
+      "actions": [
+        "tls",
+        "hashes"
+      ]
+    },
+    "close": {
+      "label": "Findings record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "tls": {
+      "label": "Read the TLS configuration report",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(tlsAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "tlsAt",
+          "to": "t"
+        },
+        {
+          "log": "You read the TLS report.",
+          "kind": "act"
+        },
+        {
+          "finding": "TLS 1.0 and CBC cipher suites without forward secrecy are accepted; the server prefers the client's order."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "hashes": {
+      "label": "Inspect the password hash format in the test copy",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(hashesAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "hashesAt",
+          "to": "t"
+        },
+        {
+          "log": "You inspect the hashes.",
+          "kind": "act"
+        },
+        {
+          "finding": "Unsalted MD5: identical passwords give identical hashes, and precomputed tables reverse common ones instantly."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the findings record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Downgradable TLS with modern-only settings, unsalted MD5 with a salted slow hash and migration, and the self-signed certificate replaced by the internal CA"
+                },
+                {
+                  "value": "summary",
+                  "label": "Crypto findings listed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next check-in",
+      "wait": {
+        "skipLabel": "Go to the next check-in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "proto == \"lowRisk\"",
+              "then": [
+                {
+                  "log": "Check-in 2: the development lead deprioritizes the TLS change based on the rating; it stays for another year.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "hash == \"encrypt\"",
+              "then": [
+                {
+                  "log": "Check-in 3: the team implements it; a later config leak exposes the key and the unsalted hashes reverse in minutes.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "pki == \"ignoreWarn\"",
+              "then": [
+                {
+                  "log": "Check-in 4: in the follow-up test, an intercepted admin session with a forged certificate succeeds because staff click through.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "10min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The assessment window closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "10min"
+        }
+      ]
+    },
+    {
+      "id": "t_proto",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 1: the TLS finding.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "protoPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_hash",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 2: the password store.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "hashPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_pki",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 3: the admin page.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "pkiPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "protoPrompt": {
+      "title": "Old protocols accepted",
+      "context": "Downgrade to TLS 1.0 exposes sessions to known attacks.",
+      "choices": [
+        {
+          "id": "modern",
+          "label": "Recommend disabling TLS 1.0 and 1.1, allowing TLS 1.2 with AEAD forward-secret suites and TLS 1.3, server cipher preference on, and verify after the change",
+          "effects": [
+            {
+              "set": "proto",
+              "to": "\"modern\""
+            },
+            {
+              "set": "protoAt",
+              "to": "t"
+            },
+            {
+              "log": "The recommendation is written with a verification step.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Removing old protocols and non-forward-secret suites closes the downgrade path."
+        },
+        {
+          "id": "keep12",
+          "label": "Recommend dropping TLS 1.0 only",
+          "effects": [
+            {
+              "set": "proto",
+              "to": "\"keep12\""
+            },
+            {
+              "set": "protoAt",
+              "to": "t"
+            },
+            {
+              "log": "Only TLS 1.0 is flagged.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Better, but the weak suites remain on TLS 1.2."
+        },
+        {
+          "id": "lowRisk",
+          "label": "Rate it informational: 'it still encrypts'",
+          "effects": [
+            {
+              "set": "proto",
+              "to": "\"lowRisk\""
+            },
+            {
+              "set": "protoAt",
+              "to": "t"
+            },
+            {
+              "log": "Rated informational.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Downgradable encryption on a portal with personal data is not informational."
+        }
+      ]
+    },
+    "hashPrompt": {
+      "title": "Unsalted MD5",
+      "context": "Precomputed tables reverse common passwords instantly.",
+      "choices": [
+        {
+          "id": "argon",
+          "label": "Recommend a salted, slow password-hashing function (Argon2id or bcrypt), rehashing each password at its next login and forcing resets for stale accounts",
+          "effects": [
+            {
+              "set": "hash",
+              "to": "\"argon\""
+            },
+            {
+              "set": "hashAt",
+              "to": "t"
+            },
+            {
+              "log": "The recommendation includes a migration path.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Salts defeat precomputed tables; slow, memory-hard hashes make guessing expensive."
+        },
+        {
+          "id": "sha256",
+          "label": "Recommend switching to salted SHA-256",
+          "effects": [
+            {
+              "set": "hash",
+              "to": "\"sha256\""
+            },
+            {
+              "set": "hashAt",
+              "to": "t"
+            },
+            {
+              "log": "Salted SHA-256 is recommended.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Salting helps, but a fast hash is still cheap to guess at scale."
+        },
+        {
+          "id": "encrypt",
+          "label": "Recommend encrypting the MD5 hashes with a key stored in the app config",
+          "effects": [
+            {
+              "set": "hash",
+              "to": "\"encrypt\""
+            },
+            {
+              "set": "hashAt",
+              "to": "t"
+            },
+            {
+              "log": "Encrypting the hashes is recommended.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Anyone who steals the database with the config gets the key; the hashes underneath are still unsalted MD5."
+        }
+      ]
+    },
+    "pkiPrompt": {
+      "title": "Staff click through a certificate warning",
+      "context": "Staff are used to clicking through the warning, which also hides a man-in-the-middle.",
+      "choices": [
+        {
+          "id": "internalCa",
+          "label": "Recommend a certificate from the company's internal CA trusted on managed devices, so warnings mean something again, and HSTS on the page",
+          "effects": [
+            {
+              "set": "pki",
+              "to": "\"internalCa\""
+            },
+            {
+              "set": "pkiAt",
+              "to": "t"
+            },
+            {
+              "log": "The recommendation is written.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A trusted chain lets browsers verify the server; habitual click-through trains staff to accept attacks."
+        },
+        {
+          "id": "pinSelf",
+          "label": "Recommend installing the self-signed certificate on each admin PC",
+          "effects": [
+            {
+              "set": "pki",
+              "to": "\"pinSelf\""
+            },
+            {
+              "set": "pkiAt",
+              "to": "t"
+            },
+            {
+              "log": "Per-PC trust is recommended.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Warnings stop, but it doesn't scale or rotate cleanly."
+        },
+        {
+          "id": "ignoreWarn",
+          "label": "Recommend staff keep clicking through: it's internal",
+          "effects": [
+            {
+              "set": "pki",
+              "to": "\"ignoreWarn\""
+            },
+            {
+              "set": "pkiAt",
+              "to": "t"
+            },
+            {
+              "log": "No change recommended.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "A user who always clicks through can't tell an attacker's certificate from the real one."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the findings record: each cryptographic weakness, the attack it enables, and the countermeasure.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Transport and certificates",
+          "criteria": "Downgrade risk; modern TLS only; internal CA and HSTS.",
+          "modelAnswer": "TLS 1.0 and weak suites allow downgrade; only TLS 1.2 with AEAD forward-secret suites and 1.3 should remain. The admin page needs an internal CA certificate and HSTS."
+        },
+        {
+          "label": "Passwords",
+          "criteria": "Unsalted MD5 reversed by precomputed tables; Argon2id or bcrypt with migration.",
+          "modelAnswer": "Unsalted MD5 falls to precomputed tables; use a salted, slow hash, rehashed at next login."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "security",
+    "thresholds": {
+      "containWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Contained and closed within 60 minutes of the first alert."
+        }
+      },
+      "containSpread": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No asset newly exposed by the response."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (proto == \"keep12\") and (hash == \"sha256\") and (pki == \"pinSelf\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "EC-Council, CEH Exam Blueprint v5.0 (CEH v13), Domain 4: Network and Perimeter Hacking",
+        "checkedAt": "2026-11-14",
+        "url": "https://cert.eccouncil.org/wp-content/uploads/2024/04/CEH-Exam-Blueprint-v5.pdf",
+        "note": "Read in full as text on 2026-11-14 for REQ-273. Sub-domain 'Sniffing': Sniffing Concepts; Sniffing Technique: MAC Attacks; DHCP Attacks; ARP Poisoning; Spoofing Attacks; DNS Poisoning; Sniffing Tools; Sniffing Countermeasures; Sniffing Detection Techniques. Sub-domain 'Session Hijacking': Application-Level and Network-Level Session Hijacking; Session Hijacking Countermeasures. Domain 4 weight 24% (30 of 125 questions). Reused for REQ-336 from this course's ceh-arp-poisoning-finance-vlan (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "protoHarm": {
+      "label": "A weakness left for a year",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and proto == \"lowRisk\"",
+      "narrative": "Rated informational, the downgradable TLS stayed on the portal for another year."
+    },
+    "hashHarm": {
+      "label": "Hashes reversed after a leak",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and hash == \"encrypt\"",
+      "narrative": "The key leaked with the config; the unsalted MD5 underneath reversed in minutes."
+    },
+    "pkiHarm": {
+      "label": "An intercepted admin session",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and pki == \"ignoreWarn\"",
+      "narrative": "Staff clicked through a forged certificate in the follow-up test; the admin session was intercepted."
+    },
+    "target": {
+      "label": "Weaknesses matched to countermeasures",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (proto == \"modern\") and (hash == \"argon\") and (pki == \"internalCa\") and record == \"honest\" and missCount <= containSpread and timeAt(doneAt) <= containWindow",
+      "narrative": "The development lead has three findings, each with the attack it enables and the fix."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "protoHarm",
+    "hashHarm",
+    "pkiHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "protoCrit",
+        "label": "Recommended the right protocol and cipher countermeasure",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "proto == \"modern\"",
+            "score": "met",
+            "why": "Right countermeasure."
+          },
+          {
+            "when": "proto == \"keep12\"",
+            "score": "partial",
+            "why": "Partial."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Under-rated."
+          }
+        ]
+      },
+      {
+        "id": "hashCrit",
+        "label": "Recommended a salted, slow password hash with a migration path",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "hash == \"argon\"",
+            "score": "met",
+            "why": "Right countermeasure."
+          },
+          {
+            "when": "hash == \"sha256\"",
+            "score": "partial",
+            "why": "Salted but fast."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Wrong control."
+          }
+        ]
+      },
+      {
+        "id": "pkiCrit",
+        "label": "Recommended a certificate from the internal CA and an end to click-through",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "pki == \"internalCa\"",
+            "score": "met",
+            "why": "Restores trust."
+          },
+          {
+            "when": "pki == \"pinSelf\"",
+            "score": "partial",
+            "why": "Works, fragile."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Normalized warnings."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(tlsAt) and not isNull(hashesAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(tlsAt) or not isNull(hashesAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the TLS report and the hash sample before writing findings."
+      },
+      {
+        "at": "Check-in 1",
+        "text": "Recommend TLS 1.2 with AEAD forward-secret suites and TLS 1.3 only."
+      },
+      {
+        "at": "Check-in 2",
+        "text": "Recommend Argon2id or bcrypt with rehash at next login."
+      },
+      {
+        "at": "Check-in 3",
+        "text": "Recommend an internal CA certificate and HSTS."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "protoHarm": {
+        "headline": "Rate by real risk",
+        "body": "Downgradable protocols on personal data are a real finding with a clear fix."
+      },
+      "hashHarm": {
+        "headline": "Hash passwords properly",
+        "body": "Use a salted, slow password hash; encryption with a nearby key is not a countermeasure."
+      },
+      "pkiHarm": {
+        "headline": "Make warnings meaningful",
+        "body": "Use a trusted internal CA so a warning signals a real problem."
+      },
+      "target": {
+        "headline": "Good: weaknesses matched to countermeasures",
+        "body": "Modern TLS, proper password hashing and a trusted certificate chain."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Cryptographic attacks exploit weak choices: downgrade to old protocols and suites, precomputed tables against unsalted fast hashes, and interception where users ignore certificate warnings. Countermeasures: allow only modern TLS with forward-secret AEAD suites, hash passwords with a salted, slow function, and use certificates from a trusted CA so warnings mean something."
+  }
+}

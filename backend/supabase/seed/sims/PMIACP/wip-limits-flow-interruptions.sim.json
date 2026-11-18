@@ -1,0 +1,1127 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "wip-limits-flow-interruptions",
+  "title": "Fourteen items in progress and nothing finished: WIP limits, interruptions, and the flow metric that matters",
+  "screen": {
+    "type": "project-dashboard",
+    "level": 1,
+    "dashboard": {
+      "mode": "sprint",
+      "heading": "Iteration 31 of the claims portal",
+      "commitments": [
+        {
+          "id": "sgoal",
+          "label": "Sprint Goal",
+          "text": "Claimants can upload documents to an open claim."
+        }
+      ],
+      "columns": [
+        {
+          "id": "todo",
+          "label": "To do"
+        },
+        {
+          "id": "blocked",
+          "label": "Off course"
+        },
+        {
+          "id": "done",
+          "label": "Handled"
+        }
+      ],
+      "items": [
+        {
+          "id": "wWip",
+          "label": "Board WIP",
+          "column": "wip == \"limits\" ? \"done\" : wip == \"prioritize\" ? \"blocked\" : wip == \"addMore\" ? \"blocked\" : \"todo\"",
+          "when": "true",
+          "flag": "wip == \"addMore\""
+        },
+        {
+          "id": "wShield",
+          "label": "Request intake",
+          "column": "shield == \"intake\" ? \"done\" : shield == \"dnd\" ? \"blocked\" : shield == \"acceptAll\" ? \"blocked\" : \"todo\"",
+          "when": "true",
+          "flag": "shield == \"acceptAll\""
+        },
+        {
+          "id": "wMetric",
+          "label": "Flow metrics",
+          "column": "metric == \"cycleTime\" ? \"done\" : metric == \"velocity\" ? \"blocked\" : metric == \"perPerson\" ? \"blocked\" : \"todo\"",
+          "when": "true",
+          "flag": "metric == \"perPerson\""
+        }
+      ],
+      "issues": [
+        {
+          "id": "iWip",
+          "label": "Work in progress too high",
+          "when": "p >= 1",
+          "at": "86400",
+          "status": "{wip == \"limits\" ? \"WIP limits with stop-starting rule\" : wip == \"prioritize\" ? \"Ranked, not limited\" : wip == \"addMore\" ? \"More started\" : \"Due\"}",
+          "open": "wip == \"none\""
+        },
+        {
+          "id": "iShield",
+          "label": "Constant interruptions",
+          "when": "p >= 2",
+          "at": "172800",
+          "status": "{shield == \"intake\" ? \"Single intake and rotating responder\" : shield == \"dnd\" ? \"Muted mornings\" : shield == \"acceptAll\" ? \"All interruptions accepted\" : \"Due\"}",
+          "open": "shield == \"none\""
+        },
+        {
+          "id": "iMetric",
+          "label": "Wrong metric",
+          "when": "p >= 3",
+          "at": "259200",
+          "status": "{metric == \"cycleTime\" ? \"Cycle time and throughput, team-level\" : metric == \"velocity\" ? \"Velocity only\" : metric == \"perPerson\" ? \"Points per person\" : \"Due\"}",
+          "open": "metric == \"none\""
+        }
+      ],
+      "people": [
+        {
+          "id": "sDevs",
+          "label": "Team",
+          "spokenLabel": "the team's trust",
+          "value": "devs",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sPo",
+          "label": "Product owner",
+          "spokenLabel": "the product owner's trust",
+          "value": "po",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sMgr",
+          "label": "Manager",
+          "spokenLabel": "the manager's trust",
+          "value": "mgr",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "events": [
+        {
+          "id": "mWip",
+          "label": "Iteration day 1",
+          "at": "86400",
+          "status": "{wip == \"limits\" ? \"WIP limits with stop-starting rule\" : wip == \"prioritize\" ? \"Ranked, not limited\" : wip == \"addMore\" ? \"More started\" : \"Ahead\"}"
+        },
+        {
+          "id": "mShield",
+          "label": "Iteration day 3",
+          "at": "172800",
+          "status": "{shield == \"intake\" ? \"Single intake and rotating responder\" : shield == \"dnd\" ? \"Muted mornings\" : shield == \"acceptAll\" ? \"All interruptions accepted\" : \"Ahead\"}"
+        },
+        {
+          "id": "mMetric",
+          "label": "Retrospective",
+          "at": "259200",
+          "status": "{metric == \"cycleTime\" ? \"Cycle time and throughput, team-level\" : metric == \"velocity\" ? \"Velocity only\" : metric == \"perPerson\" ? \"Points per person\" : \"Ahead\"}"
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Sprint day",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Optimizing flow: limiting work in progress at every level, shielding the team from interruptions, and using metrics to keep improving flow",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "PMI, PMI Agile Certified Practitioner (PMI-ACP) Examination Content Outline (March 2026): Mindset 28%, Leadership 25%, Product 19%, Delivery 28%",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/agile-certified-exam-outline.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch of PMI's PDF. Relevant text: Domain IV Task 1 'Seek early feedback' ('Deliver work in small increments'; 'Collect and incorporate stakeholders' feedback on a regular basis'); Task 3 'Manage impediments and risk' ('Proactively identify risks and impediments'; 'Prioritize impediment removal and risk mitigation activities'); Domain I Task 7 'Embrace Change' ('Embrace process adaptation by responding to changing requirements and priorities'; 'Adapt to product needs based on the learning and feedback'). The objective wording here is the course seed's. Reused for REQ-336 from this course's sprint-release-before-review-pmiacp (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The company, the product, the team and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You coach a fictional six-person team at Corbel Insurance that maintains the claims portal. The board shows 14 items in progress; few finish each week, and urgent requests arrive daily in chat.",
+    "handover": [
+      "Average cycle time has grown from 4 to 13 days over two months.",
+      "Managers message developers directly with 'quick' requests."
+    ],
+    "howItWorks": [
+      "The board shows the Sprint's commitments, the work, the impediments, the people's support and the Scrum events.",
+      "Move on a day at a time. A decision comes to you at each Daily Scrum; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-08-09T09:00",
+    "tick": "1h",
+    "maxDuration": "20d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "devs": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "po": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "mgr": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "wip": {
+      "type": "enum",
+      "values": [
+        "none",
+        "limits",
+        "prioritize",
+        "addMore"
+      ],
+      "init": "none"
+    },
+    "wipAt": {
+      "type": "time",
+      "init": null
+    },
+    "shield": {
+      "type": "enum",
+      "values": [
+        "none",
+        "intake",
+        "dnd",
+        "acceptAll"
+      ],
+      "init": "none"
+    },
+    "shieldAt": {
+      "type": "time",
+      "init": null
+    },
+    "metric": {
+      "type": "enum",
+      "values": [
+        "none",
+        "cycleTime",
+        "velocity",
+        "perPerson"
+      ],
+      "init": "none"
+    },
+    "metricAt": {
+      "type": "time",
+      "init": null
+    },
+    "boardAt": {
+      "type": "time",
+      "init": null
+    },
+    "chatAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(devs, po), mgr)"
+    },
+    "missCount": {
+      "expr": "((wip == \"addMore\") ? 1 : 0) + ((shield == \"acceptAll\") ? 1 : 0) + ((metric == \"perPerson\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(wip == \"none\" or (wip == \"addMore\") ? 1 : 0) + (shield == \"none\" or (shield == \"acceptAll\") ? 1 : 0) + (metric == \"none\" or (metric == \"perPerson\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The iteration",
+      "clock": "turns",
+      "actions": [
+        "board",
+        "chat"
+      ]
+    },
+    "close": {
+      "label": "Iteration notes",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "board": {
+      "label": "Read the board and cycle times",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(boardAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "boardAt",
+          "to": "t"
+        },
+        {
+          "log": "Read the board and cycle times.",
+          "kind": "act"
+        },
+        {
+          "finding": "14 items in progress across 6 people; 9 waiting on review or test; cycle time 13 days."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2h"
+        }
+      ]
+    },
+    "chat": {
+      "label": "Count interruptions for a week",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(chatAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "chatAt",
+          "to": "t"
+        },
+        {
+          "log": "Count interruptions for a week.",
+          "kind": "act"
+        },
+        {
+          "finding": "41 direct requests to developers; each switches someone's work."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2h"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "WIP limits with a finish-first rule, one ordered intake with a rotating responder, and team cycle time and throughput tracked"
+                },
+                {
+                  "value": "summary",
+                  "label": "Iteration closed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next working day",
+      "wait": {
+        "skipLabel": "Go to the next day"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "wip == \"addMore\"",
+              "then": [
+                {
+                  "log": "Day 2: cycle time passes 15 days; a regulatory fix misses its deadline in the review queue.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "shield == \"acceptAll\"",
+              "then": [
+                {
+                  "log": "Day 4: a developer makes a mistake while switching between three requests; claims payments fail for an hour.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "metric == \"perPerson\"",
+              "then": [
+                {
+                  "log": "Day 8: nobody picks up reviews, which earn no points; nine items sit in review.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "1d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The iteration ends.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "1d"
+        }
+      ]
+    },
+    {
+      "id": "t_wip",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 1: the board.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "wipPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_shield",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 3: chat requests.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "shieldPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_metric",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 7: the review.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "metricPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "wipPrompt": {
+      "title": "Too much started, too little finished",
+      "context": "14 items in progress for 6 people.",
+      "choices": [
+        {
+          "id": "limits",
+          "label": "Agree WIP limits per column (in progress 4, review 2) and a rule to finish or swarm on blocked items before starting new ones",
+          "effects": [
+            {
+              "set": "wip",
+              "to": "\"limits\""
+            },
+            {
+              "set": "wipAt",
+              "to": "t"
+            },
+            {
+              "add": "devs",
+              "by": "10"
+            },
+            {
+              "log": "Starting stops; review clears in two days.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Limiting work in progress reduces queues and switching, so work flows and finishes sooner."
+        },
+        {
+          "id": "prioritize",
+          "label": "Rank the 14 items and keep going",
+          "effects": [
+            {
+              "set": "wip",
+              "to": "\"prioritize\""
+            },
+            {
+              "set": "wipAt",
+              "to": "t"
+            },
+            {
+              "add": "devs",
+              "by": "-15"
+            },
+            {
+              "log": "Items are ranked.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Clearer order, but everything stays in progress."
+        },
+        {
+          "id": "addMore",
+          "label": "Start two more urgent items to show responsiveness",
+          "effects": [
+            {
+              "set": "wip",
+              "to": "\"addMore\""
+            },
+            {
+              "set": "wipAt",
+              "to": "t"
+            },
+            {
+              "add": "devs",
+              "by": "-25"
+            },
+            {
+              "log": "Two more are started.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Queues grow and everything slows."
+        }
+      ]
+    },
+    "shieldPrompt": {
+      "title": "41 direct requests a week",
+      "context": "Managers message developers directly.",
+      "choices": [
+        {
+          "id": "intake",
+          "label": "Route requests through one intake the product owner orders daily, with one rotating developer handling true urgencies so the others keep focus",
+          "effects": [
+            {
+              "set": "shield",
+              "to": "\"intake\""
+            },
+            {
+              "set": "shieldAt",
+              "to": "t"
+            },
+            {
+              "add": "mgr",
+              "by": "10"
+            },
+            {
+              "log": "Direct requests drop to 6 a week.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Shielding the team from interruptions protects flow; one intake keeps priority decisions with the product owner."
+        },
+        {
+          "id": "dnd",
+          "label": "Ask developers to mute chat in the mornings",
+          "effects": [
+            {
+              "set": "shield",
+              "to": "\"dnd\""
+            },
+            {
+              "set": "shieldAt",
+              "to": "t"
+            },
+            {
+              "add": "mgr",
+              "by": "-15"
+            },
+            {
+              "log": "Chat is muted in the mornings.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Fewer interruptions, but requests pile up and arrive in bursts."
+        },
+        {
+          "id": "acceptAll",
+          "label": "Accept that responsiveness to managers comes first",
+          "effects": [
+            {
+              "set": "shield",
+              "to": "\"acceptAll\""
+            },
+            {
+              "set": "shieldAt",
+              "to": "t"
+            },
+            {
+              "add": "mgr",
+              "by": "-25"
+            },
+            {
+              "log": "Nothing changes.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Every request breaks someone's focus."
+        }
+      ]
+    },
+    "metricPrompt": {
+      "title": "Which metric to watch",
+      "context": "The manager wants story points per developer.",
+      "choices": [
+        {
+          "id": "cycleTime",
+          "label": "Track cycle time and throughput for the team on a visible chart, review them in retrospectives, and adjust WIP limits from what they show",
+          "effects": [
+            {
+              "set": "metric",
+              "to": "\"cycleTime\""
+            },
+            {
+              "set": "metricAt",
+              "to": "t"
+            },
+            {
+              "add": "po",
+              "by": "10"
+            },
+            {
+              "log": "Cycle time falls to 6 days in two weeks.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Flow metrics such as cycle time and throughput show whether changes improve flow; teams use them to adjust."
+        },
+        {
+          "id": "velocity",
+          "label": "Track team velocity only",
+          "effects": [
+            {
+              "set": "metric",
+              "to": "\"velocity\""
+            },
+            {
+              "set": "metricAt",
+              "to": "t"
+            },
+            {
+              "add": "po",
+              "by": "-15"
+            },
+            {
+              "log": "Velocity is tracked.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Velocity says little about how long work waits."
+        },
+        {
+          "id": "perPerson",
+          "label": "Rank developers by story points completed",
+          "effects": [
+            {
+              "set": "metric",
+              "to": "\"perPerson\""
+            },
+            {
+              "set": "metricAt",
+              "to": "t"
+            },
+            {
+              "add": "po",
+              "by": "-25"
+            },
+            {
+              "log": "Individuals are ranked.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "People start work they can finish alone and avoid reviews; queues grow."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the iteration notes on flow.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "WIP and interruptions",
+          "criteria": "Limits of 4 in progress and 2 in review; one intake; rotating responder.",
+          "modelAnswer": "WIP limits stopped new starts; requests now go through one intake the product owner orders, with one developer on rotation for urgent ones."
+        },
+        {
+          "label": "Metrics",
+          "criteria": "Cycle time from 13 to 6 days; throughput tracked.",
+          "modelAnswer": "We track team cycle time and throughput and adjust WIP limits from them; cycle time fell from 13 to 6 days."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "scrum",
+    "thresholds": {
+      "undoneShown": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Nothing undone released or presented as done (Scrum Guide 2020)."
+        }
+      },
+      "trustTarget": {
+        "value": 60,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Every team and stakeholder gauge at 60 of 100 or more at the end."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (wip == \"prioritize\") and (shield == \"dnd\") and (metric == \"velocity\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "PMI, PMI Agile Certified Practitioner (PMI-ACP) Examination Content Outline (March 2026): Mindset 28%, Leadership 25%, Product 19%, Delivery 28%",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/agile-certified-exam-outline.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch of PMI's PDF. Relevant text: Domain IV Task 1 'Seek early feedback' ('Deliver work in small increments'; 'Collect and incorporate stakeholders' feedback on a regular basis'); Task 3 'Manage impediments and risk' ('Proactively identify risks and impediments'; 'Prioritize impediment removal and risk mitigation activities'); Domain I Task 7 'Embrace Change' ('Embrace process adaptation by responding to changing requirements and priorities'; 'Adapt to product needs based on the learning and feedback'). The objective wording here is the course seed's. Reused for REQ-336 from this course's sprint-release-before-review-pmiacp (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "wipHarm": {
+      "label": "A deadline missed",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and wip == \"addMore\"",
+      "narrative": "Starting more work pushed a regulatory fix past its deadline."
+    },
+    "shieldHarm": {
+      "label": "An error from switching",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and shield == \"acceptAll\"",
+      "narrative": "Constant switching caused a payments failure."
+    },
+    "metricHarm": {
+      "label": "Reviews abandoned",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and metric == \"perPerson\"",
+      "narrative": "Ranking by points emptied the review column of helpers."
+    },
+    "target": {
+      "label": "Work that flows again",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (wip == \"limits\") and (shield == \"intake\") and (metric == \"cycleTime\") and record == \"honest\" and missCount <= undoneShown and minSupport >= trustTarget",
+      "narrative": "Items finish in days, not weeks, and the team works without constant switching."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "wipHarm",
+    "shieldHarm",
+    "metricHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "wipCrit",
+        "label": "Set and kept work-in-progress limits",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "wip == \"limits\"",
+            "score": "met",
+            "why": "Flowing."
+          },
+          {
+            "when": "wip == \"prioritize\"",
+            "score": "partial",
+            "why": "Still overloaded."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Overloaded."
+          }
+        ]
+      },
+      {
+        "id": "shieldCrit",
+        "label": "Shielded the team with one intake and a rotating responder",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "shield == \"intake\"",
+            "score": "met",
+            "why": "Focused."
+          },
+          {
+            "when": "shield == \"dnd\"",
+            "score": "partial",
+            "why": "Partial."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Unshielded."
+          }
+        ]
+      },
+      {
+        "id": "metricCrit",
+        "label": "Used cycle time and throughput to improve flow",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "metric == \"cycleTime\"",
+            "score": "met",
+            "why": "Improving."
+          },
+          {
+            "when": "metric == \"velocity\"",
+            "score": "partial",
+            "why": "Indirect."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Corrupted."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(boardAt) and not isNull(chatAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(boardAt) or not isNull(chatAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 100)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "70 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the board and the interruption log first."
+      },
+      {
+        "at": "Day 1",
+        "text": "Set WIP limits and finish before starting."
+      },
+      {
+        "at": "Day 3",
+        "text": "One ordered intake and a rotating responder."
+      },
+      {
+        "at": "Day 7",
+        "text": "Track team cycle time and throughput."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "wipHarm": {
+        "headline": "Limit WIP",
+        "body": "Stop starting, start finishing."
+      },
+      "shieldHarm": {
+        "headline": "Shield the team",
+        "body": "One intake, ordered by the product owner."
+      },
+      "metricHarm": {
+        "headline": "Measure flow, not people",
+        "body": "Team cycle time and throughput."
+      },
+      "target": {
+        "headline": "Good: work that flows again",
+        "body": "WIP limits, shielding and flow metrics."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Flow improves when work in progress is limited, so the team finishes before starting; when the team is shielded from interruptions with one ordered intake; and when flow metrics such as cycle time and throughput, not individual points, guide adjustments."
+  }
+}

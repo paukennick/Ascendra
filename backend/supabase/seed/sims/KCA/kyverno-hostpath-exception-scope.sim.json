@@ -1,0 +1,1010 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "kyverno-hostpath-exception-scope",
+  "title": "A legacy app needs hostPath: a scoped PolicyException, who may grant it, and watching the reports",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "policy@kestrel:~$",
+      "lines": [
+        {
+          "id": "firstLine",
+          "text": "admission denied: scan/doc-scanner: disallow-host-path/host-path",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "lineScope",
+          "text": "{scope == \"narrow\" ? \"One rule, one workload, end date\" : scope == \"namespace\" ? \"scan excluded in the policy\" : scope == \"auditAll\" ? \"Audit cluster-wide\" : \"\"}",
+          "when": "scope != \"none\"",
+          "at": "timeAt(scopeAt)",
+          "error": "scope == \"auditAll\""
+        },
+        {
+          "id": "lineWho",
+          "text": "{who == \"restrict\" ? \"One exceptions namespace; security only\" : who == \"review\" ? \"Weekly after-the-fact review\" : who == \"leave\" ? \"Anyone may exempt anything\" : \"\"}",
+          "when": "who != \"none\"",
+          "at": "timeAt(whoAt)",
+          "error": "who == \"leave\""
+        },
+        {
+          "id": "lineWatch",
+          "text": "{watch == \"reports\" ? \"Skips watched; removal date tracked\" : watch == \"calendar\" ? \"Calendar reminder only\" : watch == \"forget\" ? \"Not tracked\" : \"\"}",
+          "when": "watch != \"none\"",
+          "at": "timeAt(watchAt)",
+          "error": "watch == \"forget\""
+        }
+      ],
+      "nodes": [
+        {
+          "id": "nScope",
+          "label": "PolicyException doc-scanner",
+          "spokenLabel": "PolicyException doc-scanner",
+          "kind": "PolicyException",
+          "status": "{scope == \"narrow\" ? \"One rule, one workload, end date\" : scope == \"namespace\" ? \"scan excluded in the policy\" : scope == \"auditAll\" ? \"Audit cluster-wide\" : \"Waiting\"}",
+          "tone": "scope == \"narrow\" ? \"up\" : scope == \"namespace\" ? \"degraded\" : scope == \"auditAll\" ? \"down\" : p >= 1 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nWho",
+          "label": "PolicyException permissions",
+          "spokenLabel": "PolicyException permissions",
+          "kind": "RBAC",
+          "status": "{who == \"restrict\" ? \"One exceptions namespace; security only\" : who == \"review\" ? \"Weekly after-the-fact review\" : who == \"leave\" ? \"Anyone may exempt anything\" : \"Waiting\"}",
+          "tone": "who == \"restrict\" ? \"up\" : who == \"review\" ? \"degraded\" : who == \"leave\" ? \"down\" : p >= 2 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nWatch",
+          "label": "policy reports",
+          "spokenLabel": "policy reports",
+          "kind": "PolicyReport",
+          "status": "{watch == \"reports\" ? \"Skips watched; removal date tracked\" : watch == \"calendar\" ? \"Calendar reminder only\" : watch == \"forget\" ? \"Not tracked\" : \"Waiting\"}",
+          "tone": "watch == \"reports\" ? \"up\" : watch == \"calendar\" ? \"degraded\" : watch == \"forget\" ? \"down\" : p >= 3 ? \"degraded\" : \"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "link0",
+          "from": "nScope",
+          "to": "nWho",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        },
+        {
+          "id": "link1",
+          "from": "nWho",
+          "to": "nWatch",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Check-in",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Configure PolicyExceptions: exempting specific resources from specific rules, scoping and approving exceptions",
+  "secondaryObjectives": [
+    "Policy reports: PolicyReport and ClusterPolicyReport resources, result statuses (pass, fail, warn, error, skip) and reading them with kubectl"
+  ],
+  "sources": [
+    {
+      "cite": "CNCF, Kyverno Certified Associate (KCA) certification page",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.cncf.io/training/certification/kca/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the certification body's page, found by WebSearch. Confirms the exam domains and weights: Fundamentals of Kyverno 18%, Installation, Configuration, and Upgrades 18%, Kyverno CLI 12%, Applying Policies 10%, Writing Policies 32%, Policy Management 10%. The objective wording is the course seed's."
+    },
+    {
+      "cite": "Kyverno documentation, Policy Exceptions (release 1.13)",
+      "checkedAt": "2026-11-17",
+      "url": "https://release-1-13-0.kyverno.io/docs/writing-policies/exceptions/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: a PolicyException names the policy and rule names it applies to and uses match and exclude to select resources; its creation should be controlled so it is authorized; exceptions turn report results from fail to skip."
+    },
+    {
+      "cite": "Kyverno documentation, Policy Exceptions (latest)",
+      "checkedAt": "2026-11-17",
+      "url": "https://kyverno.io/docs/writing-policies/exceptions/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: exceptions are disabled by default, and enabling them requires setting exceptionNamespace to say which namespaces they may be used in; a skip result records the applied exception."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The company, the clusters, the policies and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You run policy governance at Kestrel Mutual, a fictional insurer. The disallow-host-path policy is enforced cluster-wide. A legacy document-scanning app in the scan namespace needs one hostPath mount to reach a scanner driver until it is replaced next quarter.",
+    "handover": [
+      "The policy: disallow-host-path, rule host-path, Enforce, all namespaces except kube-system.",
+      "PolicyExceptions are enabled; today anyone with edit can create one in any namespace."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the map shows each component and its status in words.",
+      "Move on a check-in at a time. A decision comes to you at each check-in; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-05-17T13:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "scope": {
+      "type": "enum",
+      "values": [
+        "none",
+        "narrow",
+        "namespace",
+        "auditAll"
+      ],
+      "init": "none"
+    },
+    "scopeAt": {
+      "type": "time",
+      "init": null
+    },
+    "who": {
+      "type": "enum",
+      "values": [
+        "none",
+        "restrict",
+        "review",
+        "leave"
+      ],
+      "init": "none"
+    },
+    "whoAt": {
+      "type": "time",
+      "init": null
+    },
+    "watch": {
+      "type": "enum",
+      "values": [
+        "none",
+        "reports",
+        "calendar",
+        "forget"
+      ],
+      "init": "none"
+    },
+    "watchAt": {
+      "type": "time",
+      "init": null
+    },
+    "reqAt": {
+      "type": "time",
+      "init": null
+    },
+    "rbacAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((scope == \"auditAll\") ? 1 : 0) + ((who == \"leave\") ? 1 : 0) + ((watch == \"forget\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(scope == \"none\" or (scope == \"auditAll\") ? 1 : 0) + (who == \"none\" or (who == \"leave\") ? 1 : 0) + (watch == \"none\" or (watch == \"forget\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The exception request",
+      "clock": "turns",
+      "actions": [
+        "req",
+        "rbac"
+      ]
+    },
+    "close": {
+      "label": "Change record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "req": {
+      "label": "Read the exception request and the Deployment",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(reqAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "reqAt",
+          "to": "t"
+        },
+        {
+          "output": "Request: exempt the scan namespace from disallow-host-path\nDeployment doc-scanner: one hostPath /dev/scanner0 (read-only), one container"
+        },
+        {
+          "log": "You read the request.",
+          "kind": "act"
+        },
+        {
+          "finding": "The app needs one read-only hostPath for one Deployment; the request asks for the whole namespace, which also runs two other services."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "rbac": {
+      "label": "kubectl auth can-i create policyexceptions --as=group:developers -A",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(rbacAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "rbacAt",
+          "to": "t"
+        },
+        {
+          "output": "yes"
+        },
+        {
+          "log": "You check who can create exceptions.",
+          "kind": "act"
+        },
+        {
+          "finding": "Any developer can create a PolicyException in any namespace, so anyone can exempt themselves from any rule."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the change record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "A one-rule, one-workload exception with an owner and end date, exceptions accepted only from a security-owned namespace, and skip results watched"
+                },
+                {
+                  "value": "summary",
+                  "label": "Exception granted"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next check-in",
+      "wait": {
+        "skipLabel": "Go to the next check-in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "scope == \"auditAll\"",
+              "then": [
+                {
+                  "log": "Check-in 2: a team mounts the node's root filesystem for 'debugging'; Audit only reports it.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "who == \"leave\"",
+              "then": [
+                {
+                  "log": "Check-in 3: a team creates its own exception from the privileged-container rule to ship faster; it runs privileged for weeks.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "watch == \"forget\"",
+              "then": [
+                {
+                  "log": "Check-in 4: a year later, a new service is deployed into scan with a copy of doc-scanner's labels; the forgotten exception lets it mount host paths too.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "10min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The exception review closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "10min"
+        }
+      ]
+    },
+    {
+      "id": "t_scope",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 1: the scanner team is waiting.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "scopePrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_who",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 2: the security lead asks who can create exceptions.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "whoPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_watch",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 3: how will you know the exception is still needed?",
+          "kind": "sys"
+        },
+        {
+          "prompt": "watchPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "scopePrompt": {
+      "title": "How wide an exception?",
+      "context": "The request covers the whole namespace for the whole policy.",
+      "choices": [
+        {
+          "id": "narrow",
+          "label": "A PolicyException for policy disallow-host-path, rule host-path only, matching the doc-scanner Deployment and its Pods in scan, with an owner and a removal date next quarter",
+          "effects": [
+            {
+              "set": "scope",
+              "to": "\"narrow\""
+            },
+            {
+              "set": "scopeAt",
+              "to": "t"
+            },
+            {
+              "log": "One rule, one workload, an owner and a date.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "An exception names the policy, the rules and the resources it covers, and nothing else."
+        },
+        {
+          "id": "namespace",
+          "label": "Exclude the scan namespace in the policy itself",
+          "effects": [
+            {
+              "set": "scope",
+              "to": "\"namespace\""
+            },
+            {
+              "set": "scopeAt",
+              "to": "t"
+            },
+            {
+              "log": "The policy excludes scan.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The scanner works, but the other two services in scan lose the protection too, and the policy now carries an exception nobody tracks."
+        },
+        {
+          "id": "auditAll",
+          "label": "Switch disallow-host-path to Audit cluster-wide until the app is replaced",
+          "effects": [
+            {
+              "set": "scope",
+              "to": "\"auditAll\""
+            },
+            {
+              "set": "scopeAt",
+              "to": "t"
+            },
+            {
+              "log": "The policy goes to Audit for everyone.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Every namespace can now mount host paths for a quarter."
+        }
+      ]
+    },
+    "whoPrompt": {
+      "title": "Anyone can exempt themselves",
+      "context": "Exceptions can be created in any namespace by any developer.",
+      "choices": [
+        {
+          "id": "restrict",
+          "label": "Configure Kyverno to accept exceptions only from a policy-exceptions namespace, and give create rights there only to the security team, through a reviewed pull request",
+          "effects": [
+            {
+              "set": "who",
+              "to": "\"restrict\""
+            },
+            {
+              "set": "whoAt",
+              "to": "t"
+            },
+            {
+              "log": "Exceptions live in one namespace that only security can write.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Restricting where exceptions are accepted and who can write them turns exceptions into approvals."
+        },
+        {
+          "id": "review",
+          "label": "Keep the permissions and review new exceptions weekly",
+          "effects": [
+            {
+              "set": "who",
+              "to": "\"review\""
+            },
+            {
+              "set": "whoAt",
+              "to": "t"
+            },
+            {
+              "log": "A weekly review is scheduled.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "You will find self-granted exceptions, a week after they took effect."
+        },
+        {
+          "id": "leave",
+          "label": "Leave it: teams are trusted",
+          "effects": [
+            {
+              "set": "who",
+              "to": "\"leave\""
+            },
+            {
+              "set": "whoAt",
+              "to": "t"
+            },
+            {
+              "log": "Permissions stay as they are.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Any policy can be bypassed by anyone who can write an exception."
+        }
+      ]
+    },
+    "watchPrompt": {
+      "title": "Watching exceptions",
+      "context": "PolicyReports record pass, fail, warn, error and skip per resource and rule.",
+      "choices": [
+        {
+          "id": "reports",
+          "label": "Watch the skip results for doc-scanner in the PolicyReport, alert if any other resource is skipped by the exception, and put the removal date in the tracker",
+          "effects": [
+            {
+              "set": "watch",
+              "to": "\"reports\""
+            },
+            {
+              "set": "watchAt",
+              "to": "t"
+            },
+            {
+              "log": "Skips are watched; the date is tracked.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A skip result shows the exception being used; anything else skipped means the scope is wrong."
+        },
+        {
+          "id": "calendar",
+          "label": "Put a calendar reminder for next quarter",
+          "effects": [
+            {
+              "set": "watch",
+              "to": "\"calendar\""
+            },
+            {
+              "set": "watchAt",
+              "to": "t"
+            },
+            {
+              "log": "A reminder is set.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "You will remember to remove it, but not notice if it starts covering more than it should."
+        },
+        {
+          "id": "forget",
+          "label": "Nothing more: the exception is in Git",
+          "effects": [
+            {
+              "set": "watch",
+              "to": "\"forget\""
+            },
+            {
+              "set": "watchAt",
+              "to": "t"
+            },
+            {
+              "log": "Nothing is tracked.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Exceptions without an owner and a date outlive the reason for them."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the change record: what the exception covers, who can grant exceptions now, and how it will be watched and removed.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "The exception",
+          "criteria": "Policy disallow-host-path, rule host-path, doc-scanner only, with an owner and a removal date.",
+          "modelAnswer": "It exempts only the host-path rule for the doc-scanner Deployment's Pods in scan, until next quarter, owned by the scanner team."
+        },
+        {
+          "label": "Control",
+          "criteria": "Exceptions accepted only from one namespace that only security can write; skip results watched.",
+          "modelAnswer": "Kyverno accepts exceptions only from policy-exceptions, which only the security team can write; we watch the skips."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Service restored and the work closed within 60 minutes of the first report."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No fault introduced by the response itself."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (scope == \"namespace\") and (who == \"review\") and (watch == \"calendar\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CNCF, Kyverno Certified Associate (KCA) certification page",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.cncf.io/training/certification/kca/",
+        "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the certification body's page, found by WebSearch. Confirms the exam domains and weights: Fundamentals of Kyverno 18%, Installation, Configuration, and Upgrades 18%, Kyverno CLI 12%, Applying Policies 10%, Writing Policies 32%, Policy Management 10%. The objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "scopeHarm": {
+      "label": "Enforcement removed everywhere",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and scope == \"auditAll\"",
+      "narrative": "With the policy in Audit, a team mounted a node's root filesystem; nothing stopped it."
+    },
+    "whoHarm": {
+      "label": "A self-granted exception",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and who == \"leave\"",
+      "narrative": "A team exempted itself from the privileged-container rule and ran privileged for weeks."
+    },
+    "watchHarm": {
+      "label": "A forgotten exception reused",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and watch == \"forget\"",
+      "narrative": "The untracked exception outlived the scanner; a new service matched it and mounted host paths."
+    },
+    "target": {
+      "label": "A narrow, approved, watched exception",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (scope == \"narrow\") and (who == \"restrict\") and (watch == \"reports\") and record == \"honest\" and missCount <= newFaults and timeAt(doneAt) <= restoreWindow",
+      "narrative": "The scanner runs, the policy still protects everything else, and the exception has an approver, an owner and an end."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "scopeHarm",
+    "whoHarm",
+    "watchHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "scopeCrit",
+        "label": "Scoped the exception to one rule and one workload, with an end date",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "scope == \"narrow\"",
+            "score": "met",
+            "why": "Narrow and dated."
+          },
+          {
+            "when": "scope == \"namespace\"",
+            "score": "partial",
+            "why": "Too wide."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Removed enforcement everywhere."
+          }
+        ]
+      },
+      {
+        "id": "whoCrit",
+        "label": "Limited exceptions to one namespace and the security team",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "who == \"restrict\"",
+            "score": "met",
+            "why": "Approval enforced."
+          },
+          {
+            "when": "who == \"review\"",
+            "score": "partial",
+            "why": "Detects, doesn't prevent."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No approval at all."
+          }
+        ]
+      },
+      {
+        "id": "watchCrit",
+        "label": "Tracked the exception through reports and its removal date",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "watch == \"reports\"",
+            "score": "met",
+            "why": "Watched and dated."
+          },
+          {
+            "when": "watch == \"calendar\"",
+            "score": "partial",
+            "why": "Dated, not watched."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Untracked."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(reqAt) and not isNull(rbacAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(reqAt) or not isNull(rbacAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the request and the workload, and check who can create exceptions."
+      },
+      {
+        "at": "Check-in 1",
+        "text": "Exempt one rule for the doc-scanner workload only, with an owner and a removal date."
+      },
+      {
+        "at": "Check-in 2",
+        "text": "Accept exceptions only from one namespace that only the security team can write."
+      },
+      {
+        "at": "Check-in 3",
+        "text": "Watch the exception's skip results and track its removal date."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "scopeHarm": {
+        "headline": "Exempt one workload, not the cluster",
+        "body": "A scoped PolicyException covers one rule and one workload."
+      },
+      "whoHarm": {
+        "headline": "Exceptions need an approver",
+        "body": "Accept exceptions from one namespace and let only the security team write there."
+      },
+      "watchHarm": {
+        "headline": "Every exception has an owner and an end",
+        "body": "Watch its skip results and remove it on its date."
+      },
+      "target": {
+        "headline": "Good: a narrow, approved, watched exception",
+        "body": "Scoped to one rule and workload, granted only by security, and watched through reports."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A PolicyException exempts named resources from named rules of a named policy, so it can be as narrow as one Deployment and one rule; excluding a namespace in the policy or switching to Audit removes protection from everything else. Because an exception bypasses policy, Kyverno should accept exceptions only from a namespace that only approvers can write. PolicyReports show skip results where an exception applies, which is how you see it being used and notice when it covers more than intended."
+  }
+}

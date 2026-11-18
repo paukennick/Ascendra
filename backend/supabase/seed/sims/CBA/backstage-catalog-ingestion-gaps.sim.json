@@ -1,0 +1,1011 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "backstage-catalog-ingestion-gaps",
+  "title": "Forty services missing from the Backstage catalog: validation errors, orphans and a refresh schedule",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "portal@corvant:~$",
+      "lines": [
+        {
+          "id": "firstLine",
+          "text": "catalog: 560 components (expected about 600); 37 processing errors",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "lineSchema",
+          "text": "{schema == \"fixSource\" ? \"Fixed at the source; template corrected\" : schema == \"manualReg\" ? \"Registered by hand\" : schema == \"disableValidation\" ? \"Validation switched off\" : \"\"}",
+          "when": "schema != \"none\"",
+          "at": "timeAt(schemaAt)",
+          "error": "schema == \"disableValidation\""
+        },
+        {
+          "id": "lineOrphans",
+          "text": "{orphans == \"addOrg\" ? \"New organization scanned; confirmed orphans removed\" : orphans == \"keepOrphans\" ? \"New organization scanned; duplicates remain\" : orphans == \"wipe\" ? \"Catalog wiped to rebuild\" : \"\"}",
+          "when": "orphans != \"none\"",
+          "at": "timeAt(orphansAt)",
+          "error": "orphans == \"wipe\""
+        },
+        {
+          "id": "lineRefresh",
+          "text": "{refresh == \"webhook\" ? \"30-minute schedule plus push events\" : refresh == \"manualRefresh\" ? \"Manual refresh\" : refresh == \"tenSeconds\" ? \"Scanning every 10 seconds\" : \"\"}",
+          "when": "refresh != \"none\"",
+          "at": "timeAt(refreshAt)",
+          "error": "refresh == \"tenSeconds\""
+        }
+      ],
+      "nodes": [
+        {
+          "id": "nSchema",
+          "label": "catalog processing",
+          "spokenLabel": "catalog processing",
+          "kind": "processor",
+          "status": "{schema == \"fixSource\" ? \"Fixed at the source; template corrected\" : schema == \"manualReg\" ? \"Registered by hand\" : schema == \"disableValidation\" ? \"Validation switched off\" : \"Waiting\"}",
+          "tone": "schema == \"fixSource\" ? \"up\" : schema == \"manualReg\" ? \"degraded\" : schema == \"disableValidation\" ? \"down\" : p >= 1 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nOrphans",
+          "label": "orphaned entities",
+          "spokenLabel": "orphaned entities",
+          "kind": "entities",
+          "status": "{orphans == \"addOrg\" ? \"New organization scanned; confirmed orphans removed\" : orphans == \"keepOrphans\" ? \"New organization scanned; duplicates remain\" : orphans == \"wipe\" ? \"Catalog wiped to rebuild\" : \"Waiting\"}",
+          "tone": "orphans == \"addOrg\" ? \"up\" : orphans == \"keepOrphans\" ? \"degraded\" : orphans == \"wipe\" ? \"down\" : p >= 2 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nRefresh",
+          "label": "GitHub discovery schedule",
+          "spokenLabel": "GitHub discovery schedule",
+          "kind": "provider",
+          "status": "{refresh == \"webhook\" ? \"30-minute schedule plus push events\" : refresh == \"manualRefresh\" ? \"Manual refresh\" : refresh == \"tenSeconds\" ? \"Scanning every 10 seconds\" : \"Waiting\"}",
+          "tone": "refresh == \"webhook\" ? \"up\" : refresh == \"manualRefresh\" ? \"degraded\" : refresh == \"tenSeconds\" ? \"down\" : p >= 3 ? \"degraded\" : \"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "link0",
+          "from": "nSchema",
+          "to": "nOrphans",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        },
+        {
+          "id": "link1",
+          "from": "nOrphans",
+          "to": "nRefresh",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Check-in",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Troubleshoot entity ingestion: processing errors, orphaned entities, schema validation failures and refresh intervals",
+  "secondaryObjectives": [
+    "Configure automated ingestion: entity providers (GitHub discovery, LDAP and other integrations), schedules and processors",
+    "Populate the Backstage Catalog: catalog-info.yaml files, static locations in app-config, and the entity model's apiVersion, kind, metadata and spec"
+  ],
+  "sources": [
+    {
+      "cite": "CNCF, Certified Backstage Associate (CBA) certification page",
+      "checkedAt": "2026-11-17",
+      "url": "https://cncf.io/training/certification/cba",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the certification body's page, found by WebSearch. Confirms the exam domains and weights: Backstage Development Workflow 24%, Backstage Infrastructure 22%, Backstage Catalog 22%, Customizing Backstage 32%. The objective wording is the course seed's."
+    },
+    {
+      "cite": "Backstage documentation, The Life of an Entity",
+      "checkedAt": "2026-11-17",
+      "url": "https://backstage.io/docs/features/software-catalog/life-of-an-entity",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: an entity whose processing emits errors does not replace its last error-free version and carries the problem in its status; an entity becomes orphaned when its parent no longer emits it; the catalog removes orphans automatically by default, and orphanStrategy: keep turns that off, after which orphans are deleted through the API or the entity page."
+    },
+    {
+      "cite": "Backstage documentation, GitHub Discovery",
+      "checkedAt": "2026-11-17",
+      "url": "https://backstage.io/docs/integrations/github/discovery",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: the GitHub entity provider's organization and schedule (frequency, timeout); GitHub's limit of 5,000 API requests an hour, which frequent refreshes exhaust; events support refreshing entities from push and repository webhooks through the events backend module for GitHub."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The company, the repositories, the services and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You run the developer portal at Corvant Logistics, a fictional shipping company. Its catalog is fed by GitHub discovery over 600 repositories. Teams report 40 services missing, stale entries for repositories that were archived, and the security team needs the ownership list for an audit tomorrow.",
+    "handover": [
+      "Ingestion: the GitHub discovery provider, scanning catalog-info.yaml in every repository.",
+      "A migration last week moved 35 repositories to a new organization."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the map shows each component and its status in words.",
+      "Move on a check-in at a time. A decision comes to you at each check-in; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-06-07T09:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "schema": {
+      "type": "enum",
+      "values": [
+        "none",
+        "fixSource",
+        "manualReg",
+        "disableValidation"
+      ],
+      "init": "none"
+    },
+    "schemaAt": {
+      "type": "time",
+      "init": null
+    },
+    "orphans": {
+      "type": "enum",
+      "values": [
+        "none",
+        "addOrg",
+        "keepOrphans",
+        "wipe"
+      ],
+      "init": "none"
+    },
+    "orphansAt": {
+      "type": "time",
+      "init": null
+    },
+    "refresh": {
+      "type": "enum",
+      "values": [
+        "none",
+        "webhook",
+        "manualRefresh",
+        "tenSeconds"
+      ],
+      "init": "none"
+    },
+    "refreshAt": {
+      "type": "time",
+      "init": null
+    },
+    "errorsAt": {
+      "type": "time",
+      "init": null
+    },
+    "providerAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((schema == \"disableValidation\") ? 1 : 0) + ((orphans == \"wipe\") ? 1 : 0) + ((refresh == \"tenSeconds\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(schema == \"none\" or (schema == \"disableValidation\") ? 1 : 0) + (orphans == \"none\" or (orphans == \"wipe\") ? 1 : 0) + (refresh == \"none\" or (refresh == \"tenSeconds\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The catalog",
+      "clock": "turns",
+      "actions": [
+        "errors",
+        "provider"
+      ]
+    },
+    "close": {
+      "label": "Change record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "errors": {
+      "label": "curl $BACKEND/api/catalog/entities?filter=... (processing errors)",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(errorsAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "errorsAt",
+          "to": "t"
+        },
+        {
+          "output": "37 errors: 'apiVersion backstage.io/v1aplha1 is not supported' (31), 'metadata.name must match ^[a-z0-9A-Z-_.]+$' (6)"
+        },
+        {
+          "log": "You read the processing errors.",
+          "kind": "act"
+        },
+        {
+          "finding": "31 repositories copied a template with a typo in apiVersion and 6 use spaces in metadata.name; schema validation rejects them, so they never enter the catalog."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "provider": {
+      "label": "grep -A8 githubDiscovery app-config.yaml",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(providerAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "providerAt",
+          "to": "t"
+        },
+        {
+          "output": "catalog:\n  providers:\n    github:\n      corvant:\n        organization: corvant\n        schedule: frequency 30 minutes, timeout 3 minutes\n  orphanStrategy: keep"
+        },
+        {
+          "log": "You read the provider configuration.",
+          "kind": "act"
+        },
+        {
+          "finding": "Discovery scans only the old organization, so the 35 moved repositories' new locations are never read; their old entities are now orphaned, and orphanStrategy: keep stops the catalog removing orphans on its own."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the change record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "37 validation errors fixed at their source and in the template, the new organization scanned and confirmed orphans removed, and event-driven refresh"
+                },
+                {
+                  "value": "summary",
+                  "label": "Catalog fixed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next check-in",
+      "wait": {
+        "skipLabel": "Go to the next check-in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "schema == \"disableValidation\"",
+              "then": [
+                {
+                  "log": "Check-in 2: entities with invalid names break the search index; search returns nothing for an hour.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "orphans == \"wipe\"",
+              "then": [
+                {
+                  "log": "Check-in 3: the rebuild is a third done; manually registered systems and groups are gone, and the audit list cannot be produced.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "refresh == \"tenSeconds\"",
+              "then": [
+                {
+                  "log": "Check-in 4: the GitHub rate limit is exhausted; ingestion stalls and CI cannot fetch code for an hour.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "10min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The audit list is due.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "10min"
+        }
+      ]
+    },
+    {
+      "id": "t_schema",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 1: the owning teams are online.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "schemaPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_orphans",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 2: the moved repositories still show their old entries.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "orphansPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_refresh",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 3: teams want changes to show faster.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "refreshPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "schemaPrompt": {
+      "title": "37 entities fail validation",
+      "context": "31 have an apiVersion typo; 6 have invalid names.",
+      "choices": [
+        {
+          "id": "fixSource",
+          "label": "Open pull requests fixing apiVersion and metadata.name in the 37 catalog-info.yaml files, and fix the template they were copied from",
+          "effects": [
+            {
+              "set": "schema",
+              "to": "\"fixSource\""
+            },
+            {
+              "set": "schemaAt",
+              "to": "t"
+            },
+            {
+              "log": "The fixes merge; the next refresh ingests them.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "The entity files are the source of truth; fixing them and the template stops the error coming back."
+        },
+        {
+          "id": "manualReg",
+          "label": "Register the 37 services by hand in the UI with corrected YAML pasted in",
+          "effects": [
+            {
+              "set": "schema",
+              "to": "\"manualReg\""
+            },
+            {
+              "set": "schemaAt",
+              "to": "t"
+            },
+            {
+              "log": "37 manual registrations are created.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "They appear, but the repositories still hold broken files, and the hand-made entries drift from them."
+        },
+        {
+          "id": "disableValidation",
+          "label": "Add a custom processor that accepts any apiVersion and skips name validation",
+          "effects": [
+            {
+              "set": "schema",
+              "to": "\"disableValidation\""
+            },
+            {
+              "set": "schemaAt",
+              "to": "t"
+            },
+            {
+              "log": "Validation is relaxed for everything.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Invalid entities now enter the catalog and break the pages and plugins that rely on the schema."
+        }
+      ]
+    },
+    "orphansPrompt": {
+      "title": "35 orphaned entities",
+      "context": "The 35 moved repositories' old entities are marked orphaned: no location produces them any more. Their new locations are not scanned.",
+      "choices": [
+        {
+          "id": "addOrg",
+          "label": "Add the new organization to the discovery provider, check each orphan has a new entity, then delete the 35 orphans",
+          "effects": [
+            {
+              "set": "orphans",
+              "to": "\"addOrg\""
+            },
+            {
+              "set": "orphansAt",
+              "to": "t"
+            },
+            {
+              "log": "The new organization is scanned; the confirmed orphans are deleted.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Fix the location first so the entities come back from their new home, then remove the orphans you confirmed."
+        },
+        {
+          "id": "keepOrphans",
+          "label": "Add the new organization but keep the orphans for now",
+          "effects": [
+            {
+              "set": "orphans",
+              "to": "\"keepOrphans\""
+            },
+            {
+              "set": "orphansAt",
+              "to": "t"
+            },
+            {
+              "log": "The new organization is scanned; the orphans stay.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Each moved service now appears twice, once orphaned, until someone cleans up."
+        },
+        {
+          "id": "wipe",
+          "label": "Delete every entity from the catalog database and let it rebuild",
+          "effects": [
+            {
+              "set": "orphans",
+              "to": "\"wipe\""
+            },
+            {
+              "set": "orphansAt",
+              "to": "t"
+            },
+            {
+              "log": "Every entity is deleted.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The rebuild loses manually registered entities and takes hours; the audit list is not there tomorrow."
+        }
+      ]
+    },
+    "refreshPrompt": {
+      "title": "Changes take 30 minutes to show",
+      "context": "Discovery runs every 30 minutes. The GitHub app's rate limit is shared with CI.",
+      "choices": [
+        {
+          "id": "webhook",
+          "label": "Keep the 30-minute discovery schedule and add GitHub push events so changed repositories refresh at once",
+          "effects": [
+            {
+              "set": "refresh",
+              "to": "\"webhook\""
+            },
+            {
+              "set": "refreshAt",
+              "to": "t"
+            },
+            {
+              "log": "Push events refresh changed repositories at once.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Event-driven refresh is fast without scanning 600 repositories more often."
+        },
+        {
+          "id": "manualRefresh",
+          "label": "Tell teams to press 'Refresh' on their entity page after a change",
+          "effects": [
+            {
+              "set": "refresh",
+              "to": "\"manualRefresh\""
+            },
+            {
+              "set": "refreshAt",
+              "to": "t"
+            },
+            {
+              "log": "Teams are told to refresh by hand.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "It works for those who know, and nothing else changes."
+        },
+        {
+          "id": "tenSeconds",
+          "label": "Set the schedule to every 10 seconds",
+          "effects": [
+            {
+              "set": "refresh",
+              "to": "\"tenSeconds\""
+            },
+            {
+              "set": "refreshAt",
+              "to": "t"
+            },
+            {
+              "log": "Discovery now scans 600 repositories every 10 seconds.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Scanning 600 repositories every 10 seconds exhausts the shared rate limit; ingestion and CI both stop."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the change record: why 40 services were missing, how the orphans were handled, and how refresh works now.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Ingestion",
+          "criteria": "Validation errors fixed in the files and template; the new organization added to discovery; confirmed orphans removed.",
+          "modelAnswer": "31 files had an apiVersion typo and 6 invalid names; we fixed them and the template. Discovery now scans the new organization; the 35 old entities were deleted once their replacements appeared."
+        },
+        {
+          "label": "Refresh",
+          "criteria": "Schedule kept within the rate limit with push events for speed.",
+          "modelAnswer": "Discovery stays every 30 minutes; push events refresh changed repositories at once."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Service restored and the work closed within 60 minutes of the first report."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No fault introduced by the response itself."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (schema == \"manualReg\") and (orphans == \"keepOrphans\") and (refresh == \"manualRefresh\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CNCF, Certified Backstage Associate (CBA) certification page",
+        "checkedAt": "2026-11-17",
+        "url": "https://cncf.io/training/certification/cba",
+        "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the certification body's page, found by WebSearch. Confirms the exam domains and weights: Backstage Development Workflow 24%, Backstage Infrastructure 22%, Backstage Catalog 22%, Customizing Backstage 32%. The objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "schemaHarm": {
+      "label": "Invalid entities ingested",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and schema == \"disableValidation\"",
+      "narrative": "With validation off, invalid entities broke the search index and search was down for an hour."
+    },
+    "orphansHarm": {
+      "label": "The catalog wiped",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and orphans == \"wipe\"",
+      "narrative": "Deleting every entity lost the manual registrations; the audit's ownership list could not be produced."
+    },
+    "refreshHarm": {
+      "label": "The rate limit exhausted",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and refresh == \"tenSeconds\"",
+      "narrative": "The 10-second schedule exhausted the shared GitHub rate limit; ingestion and CI stalled for an hour."
+    },
+    "target": {
+      "label": "A complete, current catalog",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (schema == \"fixSource\") and (orphans == \"addOrg\") and (refresh == \"webhook\") and record == \"honest\" and missCount <= newFaults and timeAt(doneAt) <= restoreWindow",
+      "narrative": "All 600 services are in the catalog with owners, the orphans are gone, and changes show within a minute."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "schemaHarm",
+    "orphansHarm",
+    "refreshHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "schemaCrit",
+        "label": "Fixed the entity files at their source",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "schema == \"fixSource\"",
+            "score": "met",
+            "why": "Fixed in the files and the template."
+          },
+          {
+            "when": "schema == \"manualReg\"",
+            "score": "partial",
+            "why": "Visible, but the source stays broken."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Disabled validation."
+          }
+        ]
+      },
+      {
+        "id": "orphansCrit",
+        "label": "Pointed ingestion at the new organization and cleaned up only the true orphans",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "orphans == \"addOrg\"",
+            "score": "met",
+            "why": "Fixed the location, then cleaned up."
+          },
+          {
+            "when": "orphans == \"keepOrphans\"",
+            "score": "partial",
+            "why": "Duplicates left."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Wiped everything."
+          }
+        ]
+      },
+      {
+        "id": "refreshCrit",
+        "label": "Kept the refresh within the rate limit",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "refresh == \"webhook\"",
+            "score": "met",
+            "why": "Fast without more scanning."
+          },
+          {
+            "when": "refresh == \"manualRefresh\"",
+            "score": "partial",
+            "why": "Manual workaround."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Exhausted the rate limit."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(errorsAt) and not isNull(providerAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(errorsAt) or not isNull(providerAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the processing errors and the provider's configuration first."
+      },
+      {
+        "at": "Check-in 1",
+        "text": "Fix the 37 files and the template they came from."
+      },
+      {
+        "at": "Check-in 2",
+        "text": "Add the new organization to discovery, confirm each replacement, then delete the orphans."
+      },
+      {
+        "at": "Check-in 3",
+        "text": "Keep the schedule and refresh changed repositories on push events."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "schemaHarm": {
+        "headline": "Fix the data, keep the schema",
+        "body": "Validation errors point at the entity file; fix it at the source."
+      },
+      "orphansHarm": {
+        "headline": "Remove orphans, not the catalog",
+        "body": "Fix the location, confirm the new entity, and delete only the orphans."
+      },
+      "refreshHarm": {
+        "headline": "Refresh on events, not on a tight loop",
+        "body": "Keep a sane schedule and add event-driven refresh."
+      },
+      "target": {
+        "headline": "Good: a complete, current catalog",
+        "body": "Fixed at the source, the location corrected before cleanup, and refresh driven by events."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Processing errors name the entity file and the rule it breaks: fix catalog-info.yaml (and the template it came from) instead of relaxing validation or registering copies by hand. Entities whose location no longer produces them become orphans; fix ingestion so the moved repositories are discovered, confirm the new entities, then delete the orphans, never the whole catalog. Refresh on a schedule the integration's rate limit allows, and use events for speed."
+  }
+}

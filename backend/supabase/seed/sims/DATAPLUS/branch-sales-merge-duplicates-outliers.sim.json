@@ -1,0 +1,1004 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "branch-sales-merge-duplicates-outliers",
+  "title": "Preparing a quarter's branch sales: a join that duplicated rows, missing values, and outliers that were real",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "branch_sales_q1 (merged extract)",
+      "flags": [
+        {
+          "id": "fDup",
+          "label": "Rows multiplied by the join",
+          "text": "{dup == \"dedupeDim\" ? \"Store table deduplicated; 412,000 rows\" : dup == \"distinctAll\" ? \"DISTINCT on merged rows\" : dup == \"ignoreDup\" ? \"Duplicated rows reported\" : \"Open\"}",
+          "when": "p >= 1",
+          "severity": "error"
+        },
+        {
+          "id": "fMissing",
+          "label": "3,100 transactions without a store",
+          "text": "{missing == \"categorize\" ? \"Reported as an Online channel\" : missing == \"note\" ? \"Excluded with a footnote\" : missing == \"impute\" ? \"Imputed to the busiest store\" : \"Open\"}",
+          "when": "p >= 2",
+          "severity": "warning"
+        },
+        {
+          "id": "fOutlier",
+          "label": "Three stores' unusually large days",
+          "text": "{outlier == \"keepReal\" ? \"Kept with context; median shown\" : outlier == \"cap\" ? \"Capped at p99\" : outlier == \"delete\" ? \"Outlier days deleted\" : \"Open\"}",
+          "when": "p >= 3",
+          "severity": "info"
+        },
+        {
+          "id": "iCounts",
+          "label": "Compare row counts before and after the join",
+          "text": "The merge produced 437,800 rows from 412,000 transactions: the duplicated store rows multiplied those stores' sales.",
+          "when": "not isNull(countsAt)",
+          "severity": "info"
+        },
+        {
+          "id": "iProfile",
+          "label": "Profile missing values and outliers",
+          "text": "3,100 transactions lack a store code, all from online orders; three stores have days 6 times the median, matching the Easter weekend and a festival.",
+          "when": "not isNull(profileAt)",
+          "severity": "info"
+        }
+      ],
+      "tables": [
+        {
+          "id": "checks",
+          "label": "Checks and decisions",
+          "spokenLabel": "checks and decisions",
+          "columns": [
+            {
+              "id": "check",
+              "label": "Check"
+            },
+            {
+              "id": "result",
+              "label": "Decision"
+            }
+          ],
+          "rows": [
+            {
+              "id": "rDup",
+              "cells": [
+                "Join produced duplicates",
+                "{dup == \"dedupeDim\" ? \"Store table deduplicated; 412,000 rows\" : dup == \"distinctAll\" ? \"DISTINCT on merged rows\" : dup == \"ignoreDup\" ? \"Duplicated rows reported\" : \"Not decided\"}"
+              ],
+              "when": "p >= 1",
+              "flag": "dup == \"ignoreDup\""
+            },
+            {
+              "id": "rMissing",
+              "cells": [
+                "Missing values",
+                "{missing == \"categorize\" ? \"Reported as an Online channel\" : missing == \"note\" ? \"Excluded with a footnote\" : missing == \"impute\" ? \"Imputed to the busiest store\" : \"Not decided\"}"
+              ],
+              "when": "p >= 2",
+              "flag": "missing == \"impute\""
+            },
+            {
+              "id": "rOutlier",
+              "cells": [
+                "Outliers",
+                "{outlier == \"keepReal\" ? \"Kept with context; median shown\" : outlier == \"cap\" ? \"Capped at p99\" : outlier == \"delete\" ? \"Outlier days deleted\" : \"Not decided\"}"
+              ],
+              "when": "p >= 3",
+              "flag": "outlier == \"delete\""
+            }
+          ]
+        }
+      ],
+      "charts": [],
+      "code": [],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Step",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Exploration: finding missing values, duplication, redundancy, and outliers",
+  "secondaryObjectives": [
+    "Transformation: cleansing, merging, parsing, and formatting data",
+    "Acquisition methods: data integration and queries to gather and combine data"
+  ],
+  "sources": [
+    {
+      "cite": "CompTIA Data+ (V2), exam DA0-002, certification page: Data concepts and environments 20%, Acquisition and preparation 22%, Data analysis 24%, Visualization and reporting 20%, Data governance 14%",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.comptia.org/en-us/certifications/data/v2/",
+      "note": "Read 2026-11-17 through a summarizing fetch of CompTIA's page. Relevant text: use tools and resources to resolve analysis problems; apply validation and review to solve reporting issues; compare privacy and protection strategies, including access control, encryption and masking. The objective wording here is the course seed's. Reused for REQ-336 from this course's sql-not-in-null-empty-list-dataplus (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the systems, the data and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the data analyst at Thornbury Garden Centres, a fictional chain of 18 stores. The finance director wants Q1 sales by branch by noon. Your merged extract joins sales transactions to a store table.",
+    "handover": [
+      "Sales: 412,000 transactions. Store table: 18 stores, but two stores appear twice after a manager change.",
+      "Some transactions have no store code; three stores show unusually large days."
+    ],
+    "howItWorks": [
+      "The console shows the open dataset, its quality flags and a table of the checks and their results.",
+      "Move on a step at a time. A decision comes to you at each step; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-05-10T09:00",
+    "tick": "1min",
+    "maxDuration": "240min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "dup": {
+      "type": "enum",
+      "values": [
+        "none",
+        "dedupeDim",
+        "distinctAll",
+        "ignoreDup"
+      ],
+      "init": "none"
+    },
+    "dupAt": {
+      "type": "time",
+      "init": null
+    },
+    "missing": {
+      "type": "enum",
+      "values": [
+        "none",
+        "categorize",
+        "note",
+        "impute"
+      ],
+      "init": "none"
+    },
+    "missingAt": {
+      "type": "time",
+      "init": null
+    },
+    "outlier": {
+      "type": "enum",
+      "values": [
+        "none",
+        "keepReal",
+        "cap",
+        "delete"
+      ],
+      "init": "none"
+    },
+    "outlierAt": {
+      "type": "time",
+      "init": null
+    },
+    "countsAt": {
+      "type": "time",
+      "init": null
+    },
+    "profileAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((dup == \"ignoreDup\") ? 1 : 0) + ((missing == \"impute\") ? 1 : 0) + ((outlier == \"delete\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(dup == \"none\" or (dup == \"ignoreDup\") ? 1 : 0) + (missing == \"none\" or (missing == \"impute\") ? 1 : 0) + (outlier == \"none\" or (outlier == \"delete\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Data preparation",
+      "clock": "turns",
+      "actions": [
+        "counts",
+        "profile"
+      ]
+    },
+    "close": {
+      "label": "Data notes",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "counts": {
+      "label": "Compare row counts before and after the join",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(countsAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "countsAt",
+          "to": "t"
+        },
+        {
+          "log": "You compare row counts.",
+          "kind": "act"
+        },
+        {
+          "finding": "The merge produced 437,800 rows from 412,000 transactions: the duplicated store rows multiplied those stores' sales."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "profile": {
+      "label": "Profile missing values and outliers",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(profileAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "profileAt",
+          "to": "t"
+        },
+        {
+          "log": "You profile the data.",
+          "kind": "act"
+        },
+        {
+          "finding": "3,100 transactions lack a store code, all from online orders; three stores have days 6 times the median, matching the Easter weekend and a festival."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the data notes",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the notes say",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "The store table deduplicated and the row count verified, online orders reported as a channel, and real peaks kept with context"
+                },
+                {
+                  "value": "summary",
+                  "label": "Data cleaned"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next step",
+      "wait": {
+        "skipLabel": "Go to the next step"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "dup == \"ignoreDup\"",
+              "then": [
+                {
+                  "log": "Step 2: the finance director quotes the two stores' doubled sales to the board.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "missing == \"impute\"",
+              "then": [
+                {
+                  "log": "Step 3: the busiest store's manager is praised for online sales it never made; bonuses are calculated on it.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "outlier == \"delete\"",
+              "then": [
+                {
+                  "log": "Step 4: the report understates Q1 by 6%; stock for next Easter is ordered too low.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "20min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The report is due.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "20min"
+        }
+      ]
+    },
+    {
+      "id": "t_dup",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Step 1: the join.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "dupPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_missing",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Step 2: missing values.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "missingPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_outlier",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Step 3: outliers.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "outlierPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "dupPrompt": {
+      "title": "25,800 extra rows",
+      "context": "Two stores appear twice in the store table.",
+      "choices": [
+        {
+          "id": "dedupeDim",
+          "label": "Deduplicate the store table to one current row per store code, rerun the join, and check the row count equals the transactions",
+          "effects": [
+            {
+              "set": "dup",
+              "to": "\"dedupeDim\""
+            },
+            {
+              "set": "dupAt",
+              "to": "t"
+            },
+            {
+              "log": "The join returns 412,000 rows.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A one-to-many join on a key that isn't unique multiplies rows; fix the dimension and verify the count."
+        },
+        {
+          "id": "distinctAll",
+          "label": "Apply DISTINCT to the merged rows",
+          "effects": [
+            {
+              "set": "dup",
+              "to": "\"distinctAll\""
+            },
+            {
+              "set": "dupAt",
+              "to": "t"
+            },
+            {
+              "log": "DISTINCT is applied.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "It removes exact duplicates, but rows that differ only in the store manager column survive."
+        },
+        {
+          "id": "ignoreDup",
+          "label": "Report from the merged extract as it is",
+          "effects": [
+            {
+              "set": "dup",
+              "to": "\"ignoreDup\""
+            },
+            {
+              "set": "dupAt",
+              "to": "t"
+            },
+            {
+              "log": "The extract is used as it is.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Two stores' sales are double-counted in the finance report."
+        }
+      ]
+    },
+    "missingPrompt": {
+      "title": "No store code",
+      "context": "All 3,100 are online orders.",
+      "choices": [
+        {
+          "id": "categorize",
+          "label": "Assign them to an 'Online' channel row, documented, rather than a store",
+          "effects": [
+            {
+              "set": "missing",
+              "to": "\"categorize\""
+            },
+            {
+              "set": "missingAt",
+              "to": "t"
+            },
+            {
+              "log": "Online orders are reported as their own channel.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Missing values often mean something; here, a channel, not an error."
+        },
+        {
+          "id": "note",
+          "label": "Leave them out and add a footnote",
+          "effects": [
+            {
+              "set": "missing",
+              "to": "\"note\""
+            },
+            {
+              "set": "missingAt",
+              "to": "t"
+            },
+            {
+              "log": "They're excluded with a footnote.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Transparent, but online revenue disappears from the totals."
+        },
+        {
+          "id": "impute",
+          "label": "Fill them with the most common store code",
+          "effects": [
+            {
+              "set": "missing",
+              "to": "\"impute\""
+            },
+            {
+              "set": "missingAt",
+              "to": "t"
+            },
+            {
+              "log": "They're assigned to the busiest store.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "That credits one store with all online sales, inventing its performance."
+        }
+      ]
+    },
+    "outlierPrompt": {
+      "title": "Real or error?",
+      "context": "The big days match Easter and a local festival.",
+      "choices": [
+        {
+          "id": "keepReal",
+          "label": "Keep them: they match real events; note them in the report and show a median alongside the mean",
+          "effects": [
+            {
+              "set": "outlier",
+              "to": "\"keepReal\""
+            },
+            {
+              "set": "outlierAt",
+              "to": "t"
+            },
+            {
+              "log": "The real peaks stay, with context.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Outliers that reflect real events are information; context and robust statistics keep the picture fair."
+        },
+        {
+          "id": "cap",
+          "label": "Cap them at the 99th percentile",
+          "effects": [
+            {
+              "set": "outlier",
+              "to": "\"cap\""
+            },
+            {
+              "set": "outlierAt",
+              "to": "t"
+            },
+            {
+              "log": "The peaks are capped.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The averages look smoother, but real Easter sales are understated."
+        },
+        {
+          "id": "delete",
+          "label": "Delete the outlier days",
+          "effects": [
+            {
+              "set": "outlier",
+              "to": "\"delete\""
+            },
+            {
+              "set": "outlierAt",
+              "to": "t"
+            },
+            {
+              "log": "The outlier days are deleted.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Those were the stores' best days; deleting them understates Q1."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the data notes for the finance director: what you found in the data and how each issue was treated.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Duplication and missing values",
+          "criteria": "Non-unique store keys fixed; row count matches; online channel.",
+          "modelAnswer": "Two stores appeared twice, inflating rows; the store table was deduplicated and the join now returns 412,000 rows. The 3,100 rows without a store are online orders, reported as their own channel."
+        },
+        {
+          "label": "Outliers",
+          "criteria": "Real event peaks kept, with median shown.",
+          "modelAnswer": "Three stores' peaks match Easter and a festival; we kept them and show the median beside the mean."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 7200,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "The right result delivered within 2 hours of the request."
+        }
+      },
+      "alteredRowsMax": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No data altered beyond the fix."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (dup == \"distinctAll\") and (missing == \"note\") and (outlier == \"cap\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CompTIA Data+ (V2), exam DA0-002, certification page: Data concepts and environments 20%, Acquisition and preparation 22%, Data analysis 24%, Visualization and reporting 20%, Data governance 14%",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.comptia.org/en-us/certifications/data/v2/",
+        "note": "Read 2026-11-17 through a summarizing fetch of CompTIA's page. Relevant text: use tools and resources to resolve analysis problems; apply validation and review to solve reporting issues; compare privacy and protection strategies, including access control, encryption and masking. The objective wording here is the course seed's. Reused for REQ-336 from this course's sql-not-in-null-empty-list-dataplus (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "dupHarm": {
+      "label": "Double-counted sales",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and dup == \"ignoreDup\"",
+      "narrative": "Two stores' sales were double-counted and quoted to the board."
+    },
+    "missingHarm": {
+      "label": "Invented store sales",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and missing == \"impute\"",
+      "narrative": "Imputation credited one store with all online sales; bonuses were calculated on it."
+    },
+    "outlierHarm": {
+      "label": "Real sales deleted",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and outlier == \"delete\"",
+      "narrative": "Deleting the peak days understated Q1 by 6%; next Easter's stock was under-ordered."
+    },
+    "target": {
+      "label": "Clean, honest Q1 figures",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (dup == \"dedupeDim\") and (missing == \"categorize\") and (outlier == \"keepReal\") and record == \"honest\" and missCount <= alteredRowsMax and timeAt(doneAt) <= deliverWindow",
+      "narrative": "The finance director's report has the right totals, the online channel, and the real peaks explained."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "dupHarm",
+    "missingHarm",
+    "outlierHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "dupCrit",
+        "label": "Fixed the duplication at the join, not after",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "dup == \"dedupeDim\"",
+            "score": "met",
+            "why": "Fixed at the cause."
+          },
+          {
+            "when": "dup == \"distinctAll\"",
+            "score": "partial",
+            "why": "Patched downstream."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Wrong totals."
+          }
+        ]
+      },
+      {
+        "id": "missingCrit",
+        "label": "Handled the missing values by what they mean",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "missing == \"categorize\"",
+            "score": "met",
+            "why": "Meaning preserved."
+          },
+          {
+            "when": "missing == \"note\"",
+            "score": "partial",
+            "why": "Lost revenue."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Invented data."
+          }
+        ]
+      },
+      {
+        "id": "outlierCrit",
+        "label": "Investigated outliers before treating them",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "outlier == \"keepReal\"",
+            "score": "met",
+            "why": "Investigated."
+          },
+          {
+            "when": "outlier == \"cap\"",
+            "score": "partial",
+            "why": "Distorted real data."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Deleted real data."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(countsAt) and not isNull(profileAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(countsAt) or not isNull(profileAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Compare row counts and profile missing values and outliers before reporting."
+      },
+      {
+        "at": "Step 1",
+        "text": "Deduplicate the store table, rejoin and check the row count."
+      },
+      {
+        "at": "Step 2",
+        "text": "Report the missing-store rows as an Online channel."
+      },
+      {
+        "at": "Step 3",
+        "text": "Keep the real peaks, note them, show the median too."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "dupHarm": {
+        "headline": "Check the join",
+        "body": "Compare row counts and fix non-unique keys before reporting."
+      },
+      "missingHarm": {
+        "headline": "Missing values have meanings",
+        "body": "Find out what a missing value means before filling it."
+      },
+      "outlierHarm": {
+        "headline": "Investigate outliers",
+        "body": "Check whether an outlier is real before treating it."
+      },
+      "target": {
+        "headline": "Good: clean, honest Q1 figures",
+        "body": "Joins verified, missing values understood, and outliers investigated."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Exploring data before reporting means checking that a join didn't multiply rows (compare counts; keys must be unique on the dimension side), finding what missing values mean before treating them, and investigating outliers before capping or deleting them. Fix problems where they arise (deduplicate the dimension, then rejoin) rather than patching the output."
+  }
+}

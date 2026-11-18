@@ -1,0 +1,1093 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "rail-signalling-risk-plan",
+  "title": "Planning risk management for a rail signalling upgrade: thresholds, a risk breakdown structure and who does what",
+  "screen": {
+    "type": "governance-board",
+    "level": 1,
+    "governance": {
+      "risks": [
+        {
+          "id": "rThr",
+          "label": "No agreed thresholds",
+          "spokenLabel": "No agreed thresholds",
+          "owner": "\"Risk manager\"",
+          "rating": "thr == \"perObjective\" ? \"low\" : thr == \"costOnly\" ? \"medium\" : thr == \"nothing\" ? \"critical\" : p >= 1 ? \"high\" : \"medium\"",
+          "appetite": "thr == \"perObjective\" ? \"within\" : thr == \"costOnly\" ? \"within\" : thr == \"nothing\" ? \"above\" : p >= 1 ? \"above\" : \"within\"",
+          "status": "{thr == \"perObjective\" ? \"Thresholds per objective agreed\" : thr == \"costOnly\" ? \"Cost threshold only\" : thr == \"nothing\" ? \"No project thresholds\" : \"Open\"}"
+        },
+        {
+          "id": "rRbs",
+          "label": "Inconsistent risk data",
+          "spokenLabel": "Inconsistent risk data",
+          "owner": "\"Risk manager\"",
+          "rating": "rbs == \"rbs\" ? \"low\" : rbs == \"mapping\" ? \"medium\" : rbs == \"keepThree\" ? \"critical\" : p >= 2 ? \"high\" : \"medium\"",
+          "appetite": "rbs == \"rbs\" ? \"within\" : rbs == \"mapping\" ? \"within\" : rbs == \"keepThree\" ? \"above\" : p >= 2 ? \"above\" : \"within\"",
+          "status": "{rbs == \"rbs\" ? \"One RBS and scale\" : rbs == \"mapping\" ? \"Monthly scale mapping\" : rbs == \"keepThree\" ? \"Three incompatible scales\" : \"Open\"}"
+        },
+        {
+          "id": "rRaci",
+          "label": "No risk ownership",
+          "spokenLabel": "No risk ownership",
+          "owner": "\"Risk manager\"",
+          "rating": "raci == \"raci\" ? \"low\" : raci == \"pmOwns\" ? \"medium\" : raci == \"noRoles\" ? \"critical\" : p >= 3 ? \"high\" : \"medium\"",
+          "appetite": "raci == \"raci\" ? \"within\" : raci == \"pmOwns\" ? \"within\" : raci == \"noRoles\" ? \"above\" : p >= 3 ? \"above\" : \"within\"",
+          "status": "{raci == \"raci\" ? \"RACI and communication plan\" : raci == \"pmOwns\" ? \"PM owns all risks\" : raci == \"noRoles\" ? \"Everyone (nobody) responsible\" : \"Open\"}"
+        }
+      ],
+      "stakeholders": [
+        {
+          "id": "sSpon",
+          "label": "Sponsor",
+          "spokenLabel": "the sponsor's support",
+          "value": "spon",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sPm",
+          "label": "Project manager",
+          "spokenLabel": "the project manager's support",
+          "value": "pm",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sOwners",
+          "label": "Risk owners",
+          "spokenLabel": "the risk owners' support",
+          "value": "owners",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "docket": [
+        {
+          "id": "dThr",
+          "kind": "Risk thresholds",
+          "label": "Week 1: thresholds",
+          "status": "{thr == \"perObjective\" ? \"Thresholds per objective agreed\" : thr == \"costOnly\" ? \"Cost threshold only\" : thr == \"nothing\" ? \"No project thresholds\" : \"Due\"}",
+          "when": "p >= 1",
+          "flag": "p >= 1 and thr == \"none\""
+        },
+        {
+          "id": "dRbs",
+          "kind": "Risk breakdown structure",
+          "label": "Week 2: the RBS and scales",
+          "status": "{rbs == \"rbs\" ? \"One RBS and scale\" : rbs == \"mapping\" ? \"Monthly scale mapping\" : rbs == \"keepThree\" ? \"Three incompatible scales\" : \"Due\"}",
+          "when": "p >= 2",
+          "flag": "p >= 2 and rbs == \"none\""
+        },
+        {
+          "id": "dRaci",
+          "kind": "Roles and communication",
+          "label": "Week 3: RACI and communication",
+          "status": "{raci == \"raci\" ? \"RACI and communication plan\" : raci == \"pmOwns\" ? \"PM owns all risks\" : raci == \"noRoles\" ? \"Everyone (nobody) responsible\" : \"Due\"}",
+          "when": "p >= 3",
+          "flag": "p >= 3 and raci == \"none\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Week",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Documenting a risk management plan: roles/responsibilities (RACI), a risk breakdown structure (RBS), and a risk communication plan",
+  "secondaryObjectives": [
+    "Establishing a risk management strategy: processes, templates, metrics, and risk categories",
+    "Confirming risk thresholds against organizational risk appetite, and leading stakeholder conflict resolution when appetites disagree"
+  ],
+  "sources": [
+    {
+      "cite": "PMI, PMI Risk Management Professional (PMI-RMP) Examination Content Outline and Specifications (updated January 2023): Strategy and Planning 22%, Identification 23%, Analysis 23%, Response 13%, Monitor and Close 19%",
+      "checkedAt": "2026-11-17",
+      "url": "https://itta.net/wp-content/uploads/2025/03/risk-management-exam-outline_2024.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch of a copy of PMI's PDF hosted by a training provider. Relevant text: Risk Response Task 2 'Implement risk response' ('Execute the risk response plan(s)'; 'Execute the contingency plan(s)'; 'Evaluate and react to secondary and residual risks from the response implementation'); Risk Identification Task 3 'Document risk triggers and thresholds based on context/environment'. The objective wording here is the course seed's. Reused for REQ-336 from this course's clinic-fitout-contingency-pmirmp (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the project, the figures and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the risk manager for a fictional regional railway's signalling upgrade: two years, 60 million dollars, work on a live railway. The project has no risk management plan yet.",
+    "handover": [
+      "The sponsor (finance) wants a low cost threshold; the operations director cares most about safety and service.",
+      "Contractors keep their own risk lists."
+    ],
+    "howItWorks": [
+      "The board shows the risk register against the appetite, each stakeholder's support in words and the docket.",
+      "Move on a week at a time. A decision comes to you at each review; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-01-18T09:00",
+    "tick": "1d",
+    "maxDuration": "84d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "spon": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "pm": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "owners": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "thr": {
+      "type": "enum",
+      "values": [
+        "none",
+        "perObjective",
+        "costOnly",
+        "nothing"
+      ],
+      "init": "none"
+    },
+    "thrAt": {
+      "type": "time",
+      "init": null
+    },
+    "rbs": {
+      "type": "enum",
+      "values": [
+        "none",
+        "rbs",
+        "mapping",
+        "keepThree"
+      ],
+      "init": "none"
+    },
+    "rbsAt": {
+      "type": "time",
+      "init": null
+    },
+    "raci": {
+      "type": "enum",
+      "values": [
+        "none",
+        "raci",
+        "pmOwns",
+        "noRoles"
+      ],
+      "init": "none"
+    },
+    "raciAt": {
+      "type": "time",
+      "init": null
+    },
+    "appetiteAt": {
+      "type": "time",
+      "init": null
+    },
+    "listsAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(spon, pm), owners)"
+    },
+    "missCount": {
+      "expr": "((thr == \"nothing\") ? 1 : 0) + ((rbs == \"keepThree\") ? 1 : 0) + ((raci == \"noRoles\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(thr == \"none\" or (thr == \"nothing\") ? 1 : 0) + (rbs == \"none\" or (rbs == \"keepThree\") ? 1 : 0) + (raci == \"none\" or (raci == \"noRoles\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Risk planning",
+      "clock": "turns",
+      "actions": [
+        "appetite",
+        "lists"
+      ]
+    },
+    "close": {
+      "label": "Plan decision",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "appetite": {
+      "label": "Interview the sponsor and the operations director about appetite",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(appetiteAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "appetiteAt",
+          "to": "t"
+        },
+        {
+          "log": "You interview both.",
+          "kind": "act"
+        },
+        {
+          "finding": "Finance: escalate any cost risk over 500 thousand dollars. Operations: zero tolerance for safety risk, low tolerance for service disruption."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "lists": {
+      "label": "Read the contractors' risk lists",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(listsAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "listsAt",
+          "to": "t"
+        },
+        {
+          "log": "You read the lists.",
+          "kind": "act"
+        },
+        {
+          "finding": "Three contractors use three scoring scales and none uses categories; safety risks are mixed in with commercial ones."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Record the plan decision",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the decision says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Thresholds per objective agreed by both stakeholders, one RBS and scoring scheme, and a RACI with a communication plan"
+                },
+                {
+                  "value": "summary",
+                  "label": "Risk plan approved"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next review",
+      "wait": {
+        "skipLabel": "Go to the next review"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "thr == \"nothing\"",
+              "then": [
+                {
+                  "log": "Week 2: a contractor rates a signal-interlock risk 'medium' on its own scale and never escalates it; operations finds out from an inspection.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "rbs == \"keepThree\"",
+              "then": [
+                {
+                  "log": "Week 3: the project risk report adds scores from three scales; a high contractor risk appears low overall.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "raci == \"noRoles\"",
+              "then": [
+                {
+                  "log": "Week 4: a possession overrun risk has no owner; nobody acts on its trigger and trains are delayed the next morning.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "7d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The risk management plan is approved.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "7d"
+        }
+      ]
+    },
+    {
+      "id": "t_thr",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 1: thresholds.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "thrPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_rbs",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 2: categories.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "rbsPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_raci",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 3: roles.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "raciPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "thrPrompt": {
+      "title": "Two appetites",
+      "context": "Finance and operations disagree on what matters.",
+      "choices": [
+        {
+          "id": "perObjective",
+          "label": "Facilitate agreed thresholds per objective: any safety risk escalates at once, service disruption over 4 hours escalates, cost over 500 thousand dollars escalates",
+          "effects": [
+            {
+              "set": "thr",
+              "to": "\"perObjective\""
+            },
+            {
+              "set": "thrAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "1"
+            },
+            {
+              "log": "Thresholds per objective are agreed.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Thresholds translate appetite per objective; facilitating resolves the conflict."
+        },
+        {
+          "id": "costOnly",
+          "label": "Use the sponsor's cost threshold for everything",
+          "effects": [
+            {
+              "set": "thr",
+              "to": "\"costOnly\""
+            },
+            {
+              "set": "thrAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-1"
+            },
+            {
+              "log": "One cost threshold.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Safety and service risks below the cost line are never escalated."
+        },
+        {
+          "id": "nothing",
+          "label": "Leave thresholds to each contractor",
+          "effects": [
+            {
+              "set": "thr",
+              "to": "\"nothing\""
+            },
+            {
+              "set": "thrAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-2"
+            },
+            {
+              "log": "No project thresholds.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Escalation becomes random."
+        }
+      ]
+    },
+    "rbsPrompt": {
+      "title": "Three scales, no categories",
+      "context": "Contractors' lists can't be combined.",
+      "choices": [
+        {
+          "id": "rbs",
+          "label": "Define one risk breakdown structure (technical, safety, operational, commercial, external) and one probability-impact scheme every contractor uses",
+          "effects": [
+            {
+              "set": "rbs",
+              "to": "\"rbs\""
+            },
+            {
+              "set": "rbsAt",
+              "to": "t"
+            },
+            {
+              "add": "owners",
+              "by": "1"
+            },
+            {
+              "log": "One RBS and scale for everyone.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A common RBS and scale let risks be combined, compared and traced to sources."
+        },
+        {
+          "id": "mapping",
+          "label": "Map the three scales to each other each month",
+          "effects": [
+            {
+              "set": "rbs",
+              "to": "\"mapping\""
+            },
+            {
+              "set": "rbsAt",
+              "to": "t"
+            },
+            {
+              "add": "owners",
+              "by": "-1"
+            },
+            {
+              "log": "A monthly mapping exercise.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Possible, but error-prone and slow."
+        },
+        {
+          "id": "keepThree",
+          "label": "Keep the three scales",
+          "effects": [
+            {
+              "set": "rbs",
+              "to": "\"keepThree\""
+            },
+            {
+              "set": "rbsAt",
+              "to": "t"
+            },
+            {
+              "add": "owners",
+              "by": "-2"
+            },
+            {
+              "log": "Nothing changes.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Risks can't be compared or rolled up."
+        }
+      ]
+    },
+    "raciPrompt": {
+      "title": "Who does what?",
+      "context": "Nobody owns risk responses today.",
+      "choices": [
+        {
+          "id": "raci",
+          "label": "A RACI for identification, analysis, response and monitoring with named risk owners, and a communication plan: weekly contractor reviews, monthly steering report, immediate escalation per threshold",
+          "effects": [
+            {
+              "set": "raci",
+              "to": "\"raci\""
+            },
+            {
+              "set": "raciAt",
+              "to": "t"
+            },
+            {
+              "add": "pm",
+              "by": "1"
+            },
+            {
+              "log": "Roles and communication are documented.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A plan names who identifies, analyzes, owns and reports, and how risk information flows."
+        },
+        {
+          "id": "pmOwns",
+          "label": "The project manager owns every risk",
+          "effects": [
+            {
+              "set": "raci",
+              "to": "\"pmOwns\""
+            },
+            {
+              "set": "raciAt",
+              "to": "t"
+            },
+            {
+              "add": "pm",
+              "by": "-1"
+            },
+            {
+              "log": "One owner for all.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "One person can't own every response on a live railway."
+        },
+        {
+          "id": "noRoles",
+          "label": "Skip roles: everyone is responsible for risk",
+          "effects": [
+            {
+              "set": "raci",
+              "to": "\"noRoles\""
+            },
+            {
+              "set": "raciAt",
+              "to": "t"
+            },
+            {
+              "add": "pm",
+              "by": "-2"
+            },
+            {
+              "log": "No roles.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Shared by all means owned by none."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the summary of the risk management plan for the sponsor.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Thresholds and RBS",
+          "criteria": "Thresholds per objective (safety, service, cost); one RBS and scale.",
+          "modelAnswer": "Any safety risk escalates at once, service over 4 hours and cost over 500 thousand dollars escalate; everyone uses one RBS and one scale."
+        },
+        {
+          "label": "Roles and communication",
+          "criteria": "RACI with named owners; weekly, monthly and threshold-triggered communication.",
+          "modelAnswer": "A RACI names risk owners; contractors review weekly, the steering committee gets a monthly report, and threshold breaches escalate immediately."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "governance",
+    "thresholds": {
+      "aboveAppetite": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No risk above appetite at the close without a treatment."
+        }
+      },
+      "supportTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Each key stakeholder at 6 of 10 or more at the close."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (thr == \"costOnly\") and (rbs == \"mapping\") and (raci == \"pmOwns\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "PMI, PMI Risk Management Professional (PMI-RMP) Examination Content Outline and Specifications (updated January 2023): Strategy and Planning 22%, Identification 23%, Analysis 23%, Response 13%, Monitor and Close 19%",
+        "checkedAt": "2026-11-17",
+        "url": "https://itta.net/wp-content/uploads/2025/03/risk-management-exam-outline_2024.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch of a copy of PMI's PDF hosted by a training provider. Relevant text: Risk Response Task 2 'Implement risk response' ('Execute the risk response plan(s)'; 'Execute the contingency plan(s)'; 'Evaluate and react to secondary and residual risks from the response implementation'); Risk Identification Task 3 'Document risk triggers and thresholds based on context/environment'. The objective wording here is the course seed's. Reused for REQ-336 from this course's clinic-fitout-contingency-pmirmp (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "thrHarm": {
+      "label": "A safety risk never escalated",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and thr == \"nothing\"",
+      "narrative": "With no project thresholds, a signal-interlock safety risk was never escalated."
+    },
+    "rbsHarm": {
+      "label": "A misleading risk report",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and rbs == \"keepThree\"",
+      "narrative": "Adding three scales hid a high risk in the project report."
+    },
+    "raciHarm": {
+      "label": "A trigger nobody acted on",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and raci == \"noRoles\"",
+      "narrative": "With no owner, a possession overrun trigger was missed and morning trains were delayed."
+    },
+    "target": {
+      "label": "A plan that makes risk work happen",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (thr == \"perObjective\") and (rbs == \"rbs\") and (raci == \"raci\") and record == \"honest\" and openCount <= aboveAppetite and minSupport >= supportTarget",
+      "narrative": "Risk is managed consistently across contractors, with clear thresholds and owners."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "thrHarm",
+    "rbsHarm",
+    "raciHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "thrCrit",
+        "label": "Set thresholds per objective that reflect both appetites",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "thr == \"perObjective\"",
+            "score": "met",
+            "why": "Agreed thresholds."
+          },
+          {
+            "when": "thr == \"costOnly\"",
+            "score": "partial",
+            "why": "One-dimensional."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No thresholds."
+          }
+        ]
+      },
+      {
+        "id": "rbsCrit",
+        "label": "Established one RBS and scoring scheme for all parties",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "rbs == \"rbs\"",
+            "score": "met",
+            "why": "Consistent."
+          },
+          {
+            "when": "rbs == \"mapping\"",
+            "score": "partial",
+            "why": "Workaround."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Incoherent."
+          }
+        ]
+      },
+      {
+        "id": "raciCrit",
+        "label": "Documented roles (RACI) and a risk communication plan",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "raci == \"raci\"",
+            "score": "met",
+            "why": "Roles clear."
+          },
+          {
+            "when": "raci == \"pmOwns\"",
+            "score": "partial",
+            "why": "Overloaded owner."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No ownership."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(appetiteAt) and not isNull(listsAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(appetiteAt) or not isNull(listsAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 10)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Interview the key stakeholders and read the contractors' lists first."
+      },
+      {
+        "at": "Week 1",
+        "text": "Agree thresholds per objective with both stakeholders."
+      },
+      {
+        "at": "Week 2",
+        "text": "Define one RBS and scoring scheme for all contractors."
+      },
+      {
+        "at": "Week 3",
+        "text": "Document a RACI with risk owners and a communication plan."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "thrHarm": {
+        "headline": "Thresholds from appetite",
+        "body": "Agree thresholds per objective with the stakeholders."
+      },
+      "rbsHarm": {
+        "headline": "One RBS, one scale",
+        "body": "Common categories and scales make risks comparable."
+      },
+      "raciHarm": {
+        "headline": "Name owners",
+        "body": "A RACI and communication plan make risk work happen."
+      },
+      "target": {
+        "headline": "Good: a plan that makes risk work happen",
+        "body": "Agreed thresholds, a common RBS and a RACI with communication."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A risk management plan turns appetite into thresholds per objective (agreed by facilitating conflicting stakeholders), sets one strategy, RBS and scoring scheme so risks can be compared, and documents roles (RACI with named owners) and how risk information is communicated and escalated."
+  }
+}

@@ -1,0 +1,1022 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "otel-missing-traces-pipeline-debug",
+  "title": "Traces stopped arriving: debugging a Collector pipeline stage by stage",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "oncall@quaymark:~$",
+      "lines": [
+        {
+          "id": "firstLine",
+          "text": "backend: spans ingested in last 30 min: 112 (usual: 2.4 million)",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "lineFilt",
+          "text": "{filt == \"debugExp\" ? \"Filter fixed and verified\" : filt == \"removeFilter\" ? \"Filter removed\" : filt == \"restart\" ? \"Everything restarted; nothing changed\" : \"\"}",
+          "when": "filt != \"none\"",
+          "at": "timeAt(filtAt)",
+          "error": "filt == \"restart\""
+        },
+        {
+          "id": "lineAuth",
+          "text": "{auth == \"fixKey\" ? \"Key fixed; sending\" : auth == \"retry\" ? \"Longer retries; still 401\" : auth == \"inline\" ? \"Key in the ConfigMap\" : \"\"}",
+          "when": "auth != \"none\"",
+          "at": "timeAt(authAt)",
+          "error": "auth == \"inline\""
+        },
+        {
+          "id": "lineLoss",
+          "text": "{loss == \"honest\" ? \"Gap reported; alerts added\" : loss == \"noAlert\" ? \"Gap reported; no alert\" : loss == \"claimReplay\" ? \"Told the spans will be replayed\" : \"\"}",
+          "when": "loss != \"none\"",
+          "at": "timeAt(lossAt)",
+          "error": "loss == \"claimReplay\""
+        }
+      ],
+      "nodes": [
+        {
+          "id": "nFilt",
+          "label": "filter processor",
+          "spokenLabel": "filter processor",
+          "kind": "processor",
+          "status": "{filt == \"debugExp\" ? \"Filter fixed and verified\" : filt == \"removeFilter\" ? \"Filter removed\" : filt == \"restart\" ? \"Everything restarted; nothing changed\" : \"Waiting\"}",
+          "tone": "filt == \"debugExp\" ? \"up\" : filt == \"removeFilter\" ? \"degraded\" : filt == \"restart\" ? \"down\" : p >= 1 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nAuth",
+          "label": "otlphttp/backend exporter",
+          "spokenLabel": "otlphttp/backend exporter",
+          "kind": "exporter",
+          "status": "{auth == \"fixKey\" ? \"Key fixed; sending\" : auth == \"retry\" ? \"Longer retries; still 401\" : auth == \"inline\" ? \"Key in the ConfigMap\" : \"Waiting\"}",
+          "tone": "auth == \"fixKey\" ? \"up\" : auth == \"retry\" ? \"degraded\" : auth == \"inline\" ? \"down\" : p >= 2 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nLoss",
+          "label": "trace gap 13:20 to now",
+          "spokenLabel": "trace gap 13:20 to now",
+          "kind": "data",
+          "status": "{loss == \"honest\" ? \"Gap reported; alerts added\" : loss == \"noAlert\" ? \"Gap reported; no alert\" : loss == \"claimReplay\" ? \"Told the spans will be replayed\" : \"Waiting\"}",
+          "tone": "loss == \"honest\" ? \"up\" : loss == \"noAlert\" ? \"degraded\" : loss == \"claimReplay\" ? \"down\" : p >= 3 ? \"degraded\" : \"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "link0",
+          "from": "nFilt",
+          "to": "nAuth",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        },
+        {
+          "id": "link1",
+          "from": "nAuth",
+          "to": "nLoss",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Check-in",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Debugging pipelines: the debug exporter, Collector internal telemetry (zpages, metrics), logging levels and checking each stage",
+  "secondaryObjectives": [
+    "Error handling: exporter failures, retries and queue behavior, backpressure, and what is dropped when"
+  ],
+  "sources": [
+    {
+      "cite": "Linux Foundation, OpenTelemetry Certified Associate (OTCA) exam page: Fundamentals of Observability 18%, The OpenTelemetry API and SDK 46%, The OpenTelemetry Collector 26%, Maintaining and Debugging Observability Pipelines 10%",
+      "checkedAt": "2026-11-17",
+      "url": "https://training.linuxfoundation.org/certification/opentelemetry-certified-associate-otca/",
+      "note": "Read through a summarizing fetch on 2026-11-17: the four domains and weights above, with context propagation named under the API and SDK domain and under maintaining and debugging pipelines. The objective wording is the course seed's. Reused for REQ-336 from this course's split-traces-b3-propagator (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "OpenTelemetry documentation, Collector Internal telemetry",
+      "checkedAt": "2026-11-17",
+      "url": "https://opentelemetry.io/docs/collector/internal-telemetry/index.md",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: internal metrics on port 8888 (/metrics), including otelcol_receiver_accepted_spans, otelcol_processor_incoming_items and outgoing_items, otelcol_exporter_sent_spans, otelcol_exporter_send_failed_spans, otelcol_exporter_queue_size and queue_capacity; sustained send failures mean the Collector is not exporting as expected."
+    },
+    {
+      "cite": "OpenTelemetry documentation, Collector Troubleshooting",
+      "checkedAt": "2026-11-17",
+      "url": "https://opentelemetry.io/docs/collector/troubleshooting",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: the debug exporter with verbosity: detailed prints the entire payload a pipeline passes on."
+    },
+    {
+      "cite": "OpenTelemetry Collector, exporterhelper README (v0.98.0, GitHub)",
+      "checkedAt": "2026-11-17",
+      "url": "https://github.com/open-telemetry/opentelemetry-collector/blob/v0.98.0/exporter/exporterhelper/README.md",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: retry_on_failure (initial_interval 5s, max_interval 30s, max_elapsed_time 300s) and sending_queue (num_consumers 10, queue_size 1000 batches, storage for a persistent queue) are set per exporter; permanent failures are dropped, temporary ones retried."
+    },
+    {
+      "cite": "OpenTelemetry documentation, Collector Resiliency",
+      "checkedAt": "2026-11-17",
+      "url": "https://opentelemetry.io/es/docs/collector/resiliency/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: an in-memory sending queue drops new data when full and loses its contents on a crash; retries back off for up to 5 minutes by default; a file_storage extension referenced from sending_queue makes the queue persistent across restarts. (English page on the Spanish-language site; not yet translated.)"
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The company, the services, the backends and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are on call for observability at Quaymark Shipping, a fictional freight company. Since a config rollout at 13:20, the tracing backend shows almost no new traces. The services say they are sending.",
+    "handover": [
+      "The rollout rotated the backend's API key in the Collector's exporter headers and added a filter processor.",
+      "Agent Collectors forward to a gateway Collector, which exports to the backend."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the map shows each component and its status in words.",
+      "Move on a check-in at a time. A decision comes to you at each check-in; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-04-05T14:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "filt": {
+      "type": "enum",
+      "values": [
+        "none",
+        "debugExp",
+        "removeFilter",
+        "restart"
+      ],
+      "init": "none"
+    },
+    "filtAt": {
+      "type": "time",
+      "init": null
+    },
+    "auth": {
+      "type": "enum",
+      "values": [
+        "none",
+        "fixKey",
+        "retry",
+        "inline"
+      ],
+      "init": "none"
+    },
+    "authAt": {
+      "type": "time",
+      "init": null
+    },
+    "loss": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "noAlert",
+        "claimReplay"
+      ],
+      "init": "none"
+    },
+    "lossAt": {
+      "type": "time",
+      "init": null
+    },
+    "internalAt": {
+      "type": "time",
+      "init": null
+    },
+    "logsAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((filt == \"restart\") ? 1 : 0) + ((auth == \"inline\") ? 1 : 0) + ((loss == \"claimReplay\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(filt == \"none\" or (filt == \"restart\") ? 1 : 0) + (auth == \"none\" or (auth == \"inline\") ? 1 : 0) + (loss == \"none\" or (loss == \"claimReplay\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The investigation",
+      "clock": "turns",
+      "actions": [
+        "internal",
+        "logs"
+      ]
+    },
+    "close": {
+      "label": "Incident record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "internal": {
+      "label": "curl -s otel-gateway:8888/metrics | grep -E 'receiver_accepted|processor.*dropped|exporter_sen'",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(internalAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "internalAt",
+          "to": "t"
+        },
+        {
+          "output": "otelcol_receiver_accepted_spans 2.3M\notelcol_processor_incoming_items (filter) 2.3M\notelcol_processor_outgoing_items (filter) 9k\notelcol_exporter_sent_spans 9k\notelcol_exporter_send_failed_spans 9k"
+        },
+        {
+          "log": "You read the gateway's internal metrics.",
+          "kind": "act"
+        },
+        {
+          "finding": "The receiver accepts spans; the new filter processor drops almost all of them; the few left fail at the exporter. Two problems, at two stages."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "logs": {
+      "label": "kubectl logs otel-gateway-0 | grep -i error | tail -3",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(logsAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "logsAt",
+          "to": "t"
+        },
+        {
+          "output": "exporter otlphttp/backend: Permanent error: 401 Unauthorized"
+        },
+        {
+          "log": "You read the gateway's log.",
+          "kind": "act"
+        },
+        {
+          "finding": "The exporter gets 401: the rotated key in the headers is wrong. A permanent error is not retried; those spans are dropped."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the incident record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Two faults found stage by stage (a filter matching everything, a wrong key), each fix verified in the metrics, and the gap reported with alerts added"
+                },
+                {
+                  "value": "summary",
+                  "label": "Traces restored"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next check-in",
+      "wait": {
+        "skipLabel": "Go to the next check-in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "filt == \"restart\"",
+              "then": [
+                {
+                  "log": "Check-in 2: the restarts drop in-flight data and the services' warm caches; checkout latency spikes, and traces are still missing.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "auth == \"inline\"",
+              "then": [
+                {
+                  "log": "Check-in 3: the ConfigMap is synced to the shared GitOps repository; the backend key has to be revoked again.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "loss == \"claimReplay\"",
+              "then": [
+                {
+                  "log": "Check-in 4: the fraud team holds a disputed case open waiting for replayed traces that never arrive.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "10min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The incident is closed.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "10min"
+        }
+      ]
+    },
+    {
+      "id": "t_filt",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 1: 99% of spans are filtered.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "filtPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_auth",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 2: spans reach the exporter; it gets 401.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "authPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_loss",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 3: data flows again.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "lossPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "filtPrompt": {
+      "title": "A filter that drops almost everything",
+      "context": "The new filter was meant to drop health-check spans only.",
+      "choices": [
+        {
+          "id": "debugExp",
+          "label": "Add a debug exporter at detailed verbosity on a copy of the pipeline, see that the condition matches every span (it tests attributes on the wrong level), fix it to match url.path /healthz only, and watch filtered spans fall to the health-check rate",
+          "effects": [
+            {
+              "set": "filt",
+              "to": "\"debugExp\""
+            },
+            {
+              "set": "filtAt",
+              "to": "t"
+            },
+            {
+              "log": "The filter now drops only health checks.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "The debug exporter shows exactly what each stage passes on; internal metrics confirm the fix."
+        },
+        {
+          "id": "removeFilter",
+          "label": "Remove the filter processor for now",
+          "effects": [
+            {
+              "set": "filt",
+              "to": "\"removeFilter\""
+            },
+            {
+              "set": "filtAt",
+              "to": "t"
+            },
+            {
+              "log": "The filter is removed.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Spans flow again, including millions of health checks the backend bills for."
+        },
+        {
+          "id": "restart",
+          "label": "Restart all Collectors and the services to 'reset' the pipeline",
+          "effects": [
+            {
+              "set": "filt",
+              "to": "\"restart\""
+            },
+            {
+              "set": "filtAt",
+              "to": "t"
+            },
+            {
+              "log": "Collectors and services restart.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Restarts change nothing about a wrong filter or a wrong key, and lose the data in flight."
+        }
+      ]
+    },
+    "authPrompt": {
+      "title": "401 from the backend",
+      "context": "The rotated key in the exporter's headers is wrong.",
+      "choices": [
+        {
+          "id": "fixKey",
+          "label": "Correct the key in the Kubernetes Secret the header reads from (an environment variable reference), roll the gateway, and confirm sent spans rise and send failures stop",
+          "effects": [
+            {
+              "set": "auth",
+              "to": "\"fixKey\""
+            },
+            {
+              "set": "authAt",
+              "to": "t"
+            },
+            {
+              "log": "The exporter sends successfully again.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A 401 is permanent, not retried; fix the credential and confirm in the exporter metrics."
+        },
+        {
+          "id": "retry",
+          "label": "Raise retry_on_failure's max elapsed time so spans keep retrying until the key is sorted",
+          "effects": [
+            {
+              "set": "auth",
+              "to": "\"retry\""
+            },
+            {
+              "set": "authAt",
+              "to": "t"
+            },
+            {
+              "log": "Retries are extended.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Permanent errors are not retried at all; nothing changes."
+        },
+        {
+          "id": "inline",
+          "label": "Paste the new key straight into the ConfigMap's exporter headers",
+          "effects": [
+            {
+              "set": "auth",
+              "to": "\"inline\""
+            },
+            {
+              "set": "authAt",
+              "to": "t"
+            },
+            {
+              "log": "The key is pasted into the ConfigMap.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "It works, and the key is now readable by anyone who can read ConfigMaps and in the GitOps repository."
+        }
+      ]
+    },
+    "lossPrompt": {
+      "title": "What was lost?",
+      "context": "The fraud team asks whether the gap can be filled.",
+      "choices": [
+        {
+          "id": "honest",
+          "label": "Report the gap from the metrics: spans filtered or permanently rejected are gone; add an alert on send_failed_spans and on the filter processor's outgoing/incoming ratio, and a persistent queue for transient failures",
+          "effects": [
+            {
+              "set": "loss",
+              "to": "\"honest\""
+            },
+            {
+              "set": "lossAt",
+              "to": "t"
+            },
+            {
+              "log": "The gap is reported; alerts and a persistent queue are added.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Permanent errors and filtered spans are dropped by design; alerts on the Collector's own metrics catch the next one in minutes."
+        },
+        {
+          "id": "noAlert",
+          "label": "Report the gap but add no alert",
+          "effects": [
+            {
+              "set": "loss",
+              "to": "\"noAlert\""
+            },
+            {
+              "set": "lossAt",
+              "to": "t"
+            },
+            {
+              "log": "The gap is reported.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Honest, but the next gap is found by a human again."
+        },
+        {
+          "id": "claimReplay",
+          "label": "Tell the fraud team the Collector will replay the missing spans",
+          "effects": [
+            {
+              "set": "loss",
+              "to": "\"claimReplay\""
+            },
+            {
+              "set": "lossAt",
+              "to": "t"
+            },
+            {
+              "log": "The fraud team is told the spans will be replayed.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Dropped spans are gone; the fraud team waits for data that will never come."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the incident record: where the spans were lost, how you found each stage, and what will catch it next time.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Finding it",
+          "criteria": "Internal metrics showed accepted, filtered and failed counts per stage; the debug exporter showed the filter's matches; the log showed 401.",
+          "modelAnswer": "Accepted spans were fine; the filter dropped 99%; the rest failed with a permanent 401. The debug exporter showed the filter matched every span."
+        },
+        {
+          "label": "Fixing and preventing",
+          "criteria": "Filter fixed and verified, key fixed via the Secret, the gap reported, alerts on Collector metrics.",
+          "modelAnswer": "The filter now matches /healthz only; the key comes from the Secret; we alert on send failures and the filtered ratio."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Service restored and the work closed within 60 minutes of the first report."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No fault introduced by the response itself."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (filt == \"removeFilter\") and (auth == \"retry\") and (loss == \"noAlert\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "Linux Foundation, OpenTelemetry Certified Associate (OTCA) exam page: Fundamentals of Observability 18%, The OpenTelemetry API and SDK 46%, The OpenTelemetry Collector 26%, Maintaining and Debugging Observability Pipelines 10%",
+        "checkedAt": "2026-11-17",
+        "url": "https://training.linuxfoundation.org/certification/opentelemetry-certified-associate-otca/",
+        "note": "Read through a summarizing fetch on 2026-11-17: the four domains and weights above, with context propagation named under the API and SDK domain and under maintaining and debugging pipelines. The objective wording is the course seed's. Reused for REQ-336 from this course's split-traces-b3-propagator (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "filtHarm": {
+      "label": "Restarts with no fix",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and filt == \"restart\"",
+      "narrative": "Restarting the Collectors and services lost in-flight data and spiked checkout latency; traces were still missing."
+    },
+    "authHarm": {
+      "label": "The key exposed",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and auth == \"inline\"",
+      "narrative": "The pasted key reached the shared GitOps repository and had to be revoked again, dropping traces once more."
+    },
+    "lossHarm": {
+      "label": "A promise of lost data",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and loss == \"claimReplay\"",
+      "narrative": "The fraud team waited for replayed traces that could never arrive; a disputed case stalled."
+    },
+    "target": {
+      "label": "Found by stage, fixed with evidence",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (filt == \"debugExp\") and (auth == \"fixKey\") and (loss == \"honest\") and record == \"honest\" and missCount <= newFaults and timeAt(doneAt) <= restoreWindow",
+      "narrative": "Traces flow again, both faults are fixed and verified, and the next gap will page in minutes."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "filtHarm",
+    "authHarm",
+    "lossHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "filtCrit",
+        "label": "Verified the filter's effect with the debug exporter before relying on it",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "filt == \"debugExp\"",
+            "score": "met",
+            "why": "Verified with evidence."
+          },
+          {
+            "when": "filt == \"removeFilter\"",
+            "score": "partial",
+            "why": "Rolled back, not fixed."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Restarted instead of debugging."
+          }
+        ]
+      },
+      {
+        "id": "authCrit",
+        "label": "Fixed the credential through the secret and confirmed sent spans",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "auth == \"fixKey\"",
+            "score": "met",
+            "why": "Fixed and confirmed."
+          },
+          {
+            "when": "auth == \"retry\"",
+            "score": "partial",
+            "why": "Misread the error."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Key exposed."
+          }
+        ]
+      },
+      {
+        "id": "lossCrit",
+        "label": "Stated what was dropped and why, and protected against the next gap",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "loss == \"honest\"",
+            "score": "met",
+            "why": "Honest and prevented."
+          },
+          {
+            "when": "loss == \"noAlert\"",
+            "score": "partial",
+            "why": "No prevention."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Promised data that does not exist."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(internalAt) and not isNull(logsAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(internalAt) or not isNull(logsAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the internal metrics stage by stage before changing anything."
+      },
+      {
+        "at": "Check-in 1",
+        "text": "Use the debug exporter to see what the filter matches, fix it, confirm in the metrics."
+      },
+      {
+        "at": "Check-in 2",
+        "text": "Fix the key in the Secret, roll the gateway and confirm sent spans."
+      },
+      {
+        "at": "Check-in 3",
+        "text": "Report what was dropped and alert on the Collector's own metrics."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "filtHarm": {
+        "headline": "Debug stage by stage",
+        "body": "Internal metrics and the debug exporter show where data stops; restarts don't."
+      },
+      "authHarm": {
+        "headline": "Credentials from Secrets",
+        "body": "Exporter headers read credentials from a Secret through environment variables."
+      },
+      "lossHarm": {
+        "headline": "Know what is dropped when",
+        "body": "Filtered spans and permanent errors are not retried; say so, and alert on them."
+      },
+      "target": {
+        "headline": "Good: found by stage, fixed with evidence",
+        "body": "Internal metrics and the debug exporter found each stage; fixes were confirmed; alerts were added."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Debug a Collector pipeline stage by stage with its own telemetry: receiver accepted, processor dropped or filtered, exporter sent and failed counts show where data stops, and a debug exporter shows exactly what a stage passes on. Transient exporter errors are retried from the queue; permanent ones such as 401 are dropped, as are filtered spans, so fix the cause and say plainly what was lost. Credentials belong in Secrets, and alerts on the Collector's own metrics catch the next gap."
+  }
+}

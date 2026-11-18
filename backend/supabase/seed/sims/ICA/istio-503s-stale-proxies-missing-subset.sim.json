@@ -1,0 +1,1011 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "istio-503s-stale-proxies-missing-subset",
+  "title": "503s after a canary change: a missing subset, stale proxies and an mTLS mismatch",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "oncall@tamberly:~$",
+      "lines": [
+        {
+          "id": "firstLine",
+          "text": "productpage: 503 from reviews on 20% of requests since 15:40",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "lineSubset",
+          "text": "{subset == \"addSubset\" ? \"Subset v2 defined; analyze clean\" : subset == \"rollback\" ? \"Rolled back to v1\" : subset == \"restartAll\" ? \"All Pods restarted; subset still missing\" : \"\"}",
+          "when": "subset != \"none\"",
+          "at": "timeAt(subsetAt)",
+          "error": "subset == \"restartAll\""
+        },
+        {
+          "id": "lineStale",
+          "text": "{stale == \"fixIstiod\" ? \"istiod stable; all proxies SYNCED\" : stale == \"restartStale\" ? \"Two Pods resynced; istiod unchanged\" : stale == \"deleteIstiod\" ? \"istiod deleted\" : \"\"}",
+          "when": "stale != \"none\"",
+          "at": "timeAt(staleAt)",
+          "error": "stale == \"deleteIstiod\""
+        },
+        {
+          "id": "lineTls",
+          "text": "{tls == \"fixTls\" ? \"TLS mode ISTIO_MUTUAL; ratings answers\" : tls == \"permissive\" ? \"ratings PERMISSIVE\" : tls == \"disableMesh\" ? \"ratings out of the mesh\" : \"\"}",
+          "when": "tls != \"none\"",
+          "at": "timeAt(tlsAt)",
+          "error": "tls == \"disableMesh\""
+        }
+      ],
+      "nodes": [
+        {
+          "id": "nSubset",
+          "label": "reviews VirtualService and DestinationRule",
+          "spokenLabel": "reviews VirtualService and DestinationRule",
+          "kind": "traffic config",
+          "status": "{subset == \"addSubset\" ? \"Subset v2 defined; analyze clean\" : subset == \"rollback\" ? \"Rolled back to v1\" : subset == \"restartAll\" ? \"All Pods restarted; subset still missing\" : \"Waiting\"}",
+          "tone": "subset == \"addSubset\" ? \"up\" : subset == \"rollback\" ? \"degraded\" : subset == \"restartAll\" ? \"down\" : p >= 1 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nStale",
+          "label": "istiod",
+          "spokenLabel": "istiod",
+          "kind": "control plane",
+          "status": "{stale == \"fixIstiod\" ? \"istiod stable; all proxies SYNCED\" : stale == \"restartStale\" ? \"Two Pods resynced; istiod unchanged\" : stale == \"deleteIstiod\" ? \"istiod deleted\" : \"Waiting\"}",
+          "tone": "stale == \"fixIstiod\" ? \"up\" : stale == \"restartStale\" ? \"degraded\" : stale == \"deleteIstiod\" ? \"down\" : p >= 2 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nTls",
+          "label": "ratings DestinationRule TLS",
+          "spokenLabel": "ratings DestinationRule TLS",
+          "kind": "data plane",
+          "status": "{tls == \"fixTls\" ? \"TLS mode ISTIO_MUTUAL; ratings answers\" : tls == \"permissive\" ? \"ratings PERMISSIVE\" : tls == \"disableMesh\" ? \"ratings out of the mesh\" : \"Waiting\"}",
+          "tone": "tls == \"fixTls\" ? \"up\" : tls == \"permissive\" ? \"degraded\" : tls == \"disableMesh\" ? \"down\" : p >= 3 ? \"degraded\" : \"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "link0",
+          "from": "nSubset",
+          "to": "nStale",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        },
+        {
+          "id": "link1",
+          "from": "nStale",
+          "to": "nTls",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Check-in",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Troubleshoot configuration with istioctl analyze, istioctl x describe and validation messages, and common conflicts between VirtualServices and DestinationRules",
+  "secondaryObjectives": [
+    "Troubleshoot the mesh control plane: istiod health, configuration distribution status (istioctl proxy-status), revision mismatches and injection failures",
+    "Troubleshoot the mesh data plane: Envoy access logs and response flags, istioctl proxy-config for listeners, routes, clusters and endpoints, and debugging mTLS and policy denials"
+  ],
+  "sources": [
+    {
+      "cite": "Linux Foundation Education, Istio Certified Associate (ICA) certification page",
+      "checkedAt": "2026-11-17",
+      "url": "https://training.linuxfoundation.org/certification/istio-certified-associate-ica/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the certification body's page, found by WebSearch. Confirms the exam domains and weights: Installation, Upgrade and Configuration 20%, Traffic Management 35%, Securing Workloads 25%, Troubleshooting 20%. The objective wording is the course seed's."
+    },
+    {
+      "cite": "Istio documentation, ReferencedResourceNotFound (IST0101)",
+      "checkedAt": "2026-11-17",
+      "url": "https://istio.io/docs/reference/config/analysis/ist0101",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: istioctl analyze reports IST0101 when a resource references another that does not exist; fix the reference and apply the configuration again."
+    },
+    {
+      "cite": "Istio documentation, Debugging Envoy and Istiod (v1.6)",
+      "checkedAt": "2026-11-17",
+      "url": "https://istio.io/v1.6/docs/ops/diagnostic-tools/proxy-cmd",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: istioctl proxy-status: SYNCED means Envoy acknowledged istiod's last configuration, STALE means istiod sent an update that was not acknowledged; istioctl proxy-config cluster shows a proxy's clusters."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The company, the mesh, the services and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are on call for the mesh at Tamberly Books, a fictional online bookstore. Twenty minutes ago a developer shifted 20% of reviews traffic to a v2 canary. Since then 20% of product pages show 503 errors.",
+    "handover": [
+      "The change: a VirtualService routes 20% of reviews to subset v2.",
+      "istiod restarted twice this afternoon."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the map shows each component and its status in words.",
+      "Move on a check-in at a time. A decision comes to you at each check-in; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-03-15T16:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "subset": {
+      "type": "enum",
+      "values": [
+        "none",
+        "addSubset",
+        "rollback",
+        "restartAll"
+      ],
+      "init": "none"
+    },
+    "subsetAt": {
+      "type": "time",
+      "init": null
+    },
+    "stale": {
+      "type": "enum",
+      "values": [
+        "none",
+        "fixIstiod",
+        "restartStale",
+        "deleteIstiod"
+      ],
+      "init": "none"
+    },
+    "staleAt": {
+      "type": "time",
+      "init": null
+    },
+    "tls": {
+      "type": "enum",
+      "values": [
+        "none",
+        "fixTls",
+        "permissive",
+        "disableMesh"
+      ],
+      "init": "none"
+    },
+    "tlsAt": {
+      "type": "time",
+      "init": null
+    },
+    "analyzeAt": {
+      "type": "time",
+      "init": null
+    },
+    "pstatusAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((subset == \"restartAll\") ? 1 : 0) + ((stale == \"deleteIstiod\") ? 1 : 0) + ((tls == \"disableMesh\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(subset == \"none\" or (subset == \"restartAll\") ? 1 : 0) + (stale == \"none\" or (stale == \"deleteIstiod\") ? 1 : 0) + (tls == \"none\" or (tls == \"disableMesh\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The incident",
+      "clock": "turns",
+      "actions": [
+        "analyze",
+        "pstatus"
+      ]
+    },
+    "close": {
+      "label": "Incident record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "analyze": {
+      "label": "istioctl analyze -n bookstore",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(analyzeAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "analyzeAt",
+          "to": "t"
+        },
+        {
+          "output": "Error [IST0101] (VirtualService bookstore/reviews) Referenced host+subset in destinationrule not found: \"reviews+v2\""
+        },
+        {
+          "log": "You run the analyzer.",
+          "kind": "act"
+        },
+        {
+          "finding": "The VirtualService sends 20% to subset v2, but the reviews DestinationRule defines only v1. Envoy has no cluster for v2, so those requests fail with response flag NC."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "pstatus": {
+      "label": "istioctl proxy-status",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(pstatusAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "pstatusAt",
+          "to": "t"
+        },
+        {
+          "output": "productpage-7c9  SYNCED  SYNCED  SYNCED\nreviews-v1-5d4    STALE   SYNCED  SYNCED\nratings-6b8       STALE   STALE   SYNCED"
+        },
+        {
+          "log": "You check configuration distribution.",
+          "kind": "act"
+        },
+        {
+          "finding": "Two proxies are STALE: istiod sent them configuration they have not acknowledged since its restarts. istiod's log shows it hitting its memory limit."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the incident record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "The missing v2 subset found by analyze and defined, istiod's memory fixed and every proxy SYNCED, and the TLS override corrected from the proxy config"
+                },
+                {
+                  "value": "summary",
+                  "label": "503s resolved"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next check-in",
+      "wait": {
+        "skipLabel": "Go to the next check-in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "subset == \"restartAll\"",
+              "then": [
+                {
+                  "log": "Check-in 2: the restarts take capacity down during the evening peak; 503s continue at 20% on top of slow pages.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "stale == \"deleteIstiod\"",
+              "then": [
+                {
+                  "log": "Check-in 3: during the reinstall, autoscaled Pods start without certificates and fail every mTLS call.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "tls == \"disableMesh\"",
+              "then": [
+                {
+                  "log": "Check-in 4: with ratings outside the mesh, STRICT clients cannot reach it at all; every product page loses its ratings.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "10min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The incident is closed.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "10min"
+        }
+      ]
+    },
+    {
+      "id": "t_subset",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 1: 503s continue.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "subsetPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_stale",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 2: some proxies still behave differently.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "stalePrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_tls",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 3: one path still fails.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "tlsPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "subsetPrompt": {
+      "title": "Route to a subset that doesn't exist",
+      "context": "The DestinationRule has no v2 subset. The v2 Pods are labeled version=v2.",
+      "choices": [
+        {
+          "id": "addSubset",
+          "label": "Add subset v2 (version: v2) to the DestinationRule, apply it before relying on the route, and rerun istioctl analyze until clean",
+          "effects": [
+            {
+              "set": "subset",
+              "to": "\"addSubset\""
+            },
+            {
+              "set": "subsetAt",
+              "to": "t"
+            },
+            {
+              "log": "Subset v2 exists; analyze is clean; 503s stop.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A route to a subset needs the DestinationRule to define it first; analyze confirms the conflict is gone."
+        },
+        {
+          "id": "rollback",
+          "label": "Roll the VirtualService back to 100% v1 and leave the canary for tomorrow",
+          "effects": [
+            {
+              "set": "subset",
+              "to": "\"rollback\""
+            },
+            {
+              "set": "subsetAt",
+              "to": "t"
+            },
+            {
+              "log": "All traffic goes to v1.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "503s stop, but the canary is canceled and nobody fixed the missing subset."
+        },
+        {
+          "id": "restartAll",
+          "label": "Restart every Pod in the namespace to clear Envoy's state",
+          "effects": [
+            {
+              "set": "subset",
+              "to": "\"restartAll\""
+            },
+            {
+              "set": "subsetAt",
+              "to": "t"
+            },
+            {
+              "log": "Every Pod restarts.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Restarts don't create a missing subset; the 503s continue, now with a capacity dip."
+        }
+      ]
+    },
+    "stalePrompt": {
+      "title": "STALE proxies",
+      "context": "istiod is hitting its memory limit and restarting; two proxies never acknowledged the latest config.",
+      "choices": [
+        {
+          "id": "fixIstiod",
+          "label": "Raise istiod's memory request and limit and run two replicas, then confirm every proxy is SYNCED in istioctl proxy-status",
+          "effects": [
+            {
+              "set": "stale",
+              "to": "\"fixIstiod\""
+            },
+            {
+              "set": "staleAt",
+              "to": "t"
+            },
+            {
+              "log": "istiod is stable; every proxy is SYNCED.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "STALE means istiod sent configuration the proxy has not acknowledged; with istiod restarting at its memory limit, fix istiod and verify every proxy is SYNCED."
+        },
+        {
+          "id": "restartStale",
+          "label": "Restart the two STALE Pods so they reconnect",
+          "effects": [
+            {
+              "set": "stale",
+              "to": "\"restartStale\""
+            },
+            {
+              "set": "staleAt",
+              "to": "t"
+            },
+            {
+              "log": "The two Pods restart and sync.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "They sync, but istiod will run out of memory again and leave more proxies stale."
+        },
+        {
+          "id": "deleteIstiod",
+          "label": "Delete the istiod Deployment and reinstall it from scratch",
+          "effects": [
+            {
+              "set": "stale",
+              "to": "\"deleteIstiod\""
+            },
+            {
+              "set": "staleAt",
+              "to": "t"
+            },
+            {
+              "log": "istiod is deleted for a reinstall.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "With istiod gone, no new Pod gets a certificate or configuration; anything that restarts cannot join the mesh."
+        }
+      ]
+    },
+    "tlsPrompt": {
+      "title": "ratings fails with UF",
+      "context": "productpage to ratings fails with 503 and flag UF. The namespace is STRICT; ratings' DestinationRule sets tls mode DISABLE from an old test.",
+      "choices": [
+        {
+          "id": "fixTls",
+          "label": "Confirm with istioctl proxy-config cluster that the client sends plaintext, then set the DestinationRule's tls mode to ISTIO_MUTUAL (or remove the override)",
+          "effects": [
+            {
+              "set": "tls",
+              "to": "\"fixTls\""
+            },
+            {
+              "set": "tlsAt",
+              "to": "t"
+            },
+            {
+              "log": "The client now sends mTLS; ratings answers.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A client-side DISABLE against a STRICT server fails the connection; the proxy's cluster config shows it."
+        },
+        {
+          "id": "permissive",
+          "label": "Set ratings' PeerAuthentication to PERMISSIVE",
+          "effects": [
+            {
+              "set": "tls",
+              "to": "\"permissive\""
+            },
+            {
+              "set": "tlsAt",
+              "to": "t"
+            },
+            {
+              "log": "ratings accepts plaintext again.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "It works, but ratings now accepts plaintext from anyone, and the wrong DestinationRule stays."
+        },
+        {
+          "id": "disableMesh",
+          "label": "Remove ratings from the mesh by disabling sidecar injection",
+          "effects": [
+            {
+              "set": "tls",
+              "to": "\"disableMesh\""
+            },
+            {
+              "set": "tlsAt",
+              "to": "t"
+            },
+            {
+              "log": "ratings leaves the mesh.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "STRICT callers can no longer reach a workload without a sidecar, and ratings loses mTLS and policy."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the incident record: the three causes of the 503s and the evidence for each.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Configuration and control plane",
+          "criteria": "IST0101 named the missing subset; proxy-status showed STALE proxies from an istiod memory limit.",
+          "modelAnswer": "analyze reported the v2 subset missing, so 20% of requests had no cluster (NC); istiod was OOM-restarting, leaving two proxies STALE."
+        },
+        {
+          "label": "Data plane",
+          "criteria": "A UF flag on ratings; proxy-config showed the client sending plaintext due to tls DISABLE.",
+          "modelAnswer": "ratings calls failed with UF; the client's cluster config showed tls DISABLE against a STRICT namespace; we set ISTIO_MUTUAL."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Service restored and the work closed within 60 minutes of the first report."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No fault introduced by the response itself."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (subset == \"rollback\") and (stale == \"restartStale\") and (tls == \"permissive\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "Linux Foundation Education, Istio Certified Associate (ICA) certification page",
+        "checkedAt": "2026-11-17",
+        "url": "https://training.linuxfoundation.org/certification/istio-certified-associate-ica/",
+        "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the certification body's page, found by WebSearch. Confirms the exam domains and weights: Installation, Upgrade and Configuration 20%, Traffic Management 35%, Securing Workloads 25%, Troubleshooting 20%. The objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "subsetHarm": {
+      "label": "Restarts made it worse",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and subset == \"restartAll\"",
+      "narrative": "Restarting every Pod in the evening peak cut capacity while the missing subset kept failing 20% of requests."
+    },
+    "staleHarm": {
+      "label": "The control plane removed",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and stale == \"deleteIstiod\"",
+      "narrative": "Deleting istiod left new Pods without certificates or configuration; autoscaled Pods failed every mTLS call."
+    },
+    "tlsHarm": {
+      "label": "ratings cut off",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and tls == \"disableMesh\"",
+      "narrative": "Removing ratings from the mesh left STRICT clients unable to reach it; every page lost ratings."
+    },
+    "target": {
+      "label": "Every cause found with evidence",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (subset == \"addSubset\") and (stale == \"fixIstiod\") and (tls == \"fixTls\") and record == \"honest\" and missCount <= newFaults and timeAt(doneAt) <= restoreWindow",
+      "narrative": "The 503s stopped, the canary runs, istiod is stable and every proxy is in sync."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "subsetHarm",
+    "staleHarm",
+    "tlsHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "subsetCrit",
+        "label": "Fixed the configuration conflict the analyzer reported",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "subset == \"addSubset\"",
+            "score": "met",
+            "why": "Fixed the conflict."
+          },
+          {
+            "when": "subset == \"rollback\"",
+            "score": "partial",
+            "why": "Safe rollback, cause left."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Restarted instead of fixing."
+          }
+        ]
+      },
+      {
+        "id": "staleCrit",
+        "label": "Fixed istiod's health so configuration reaches every proxy",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "stale == \"fixIstiod\"",
+            "score": "met",
+            "why": "Fixed the control plane."
+          },
+          {
+            "when": "stale == \"restartStale\"",
+            "score": "partial",
+            "why": "Treated the symptom."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Removed the control plane."
+          }
+        ]
+      },
+      {
+        "id": "tlsCrit",
+        "label": "Found and fixed the TLS mismatch from the data-plane evidence",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "tls == \"fixTls\"",
+            "score": "met",
+            "why": "Fixed the mismatch."
+          },
+          {
+            "when": "tls == \"permissive\"",
+            "score": "partial",
+            "why": "Weakened the server instead."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Left the mesh."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(analyzeAt) and not isNull(pstatusAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(analyzeAt) or not isNull(pstatusAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Run istioctl analyze and check proxy sync status before changing anything."
+      },
+      {
+        "at": "Check-in 1",
+        "text": "Define the v2 subset in the DestinationRule and rerun analyze."
+      },
+      {
+        "at": "Check-in 2",
+        "text": "Give istiod the resources and replicas it needs and confirm every proxy is SYNCED."
+      },
+      {
+        "at": "Check-in 3",
+        "text": "Read the client's cluster TLS settings and set ISTIO_MUTUAL."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "subsetHarm": {
+        "headline": "Read the analyzer first",
+        "body": "istioctl analyze names the conflict; restarts don't fix configuration."
+      },
+      "staleHarm": {
+        "headline": "Fix istiod, don't remove it",
+        "body": "Give istiod the resources it needs and check proxy-status until every proxy is SYNCED."
+      },
+      "tlsHarm": {
+        "headline": "Fix the client's TLS setting",
+        "body": "A DestinationRule with tls DISABLE against a STRICT server fails; set ISTIO_MUTUAL."
+      },
+      "target": {
+        "headline": "Good: every cause found with evidence",
+        "body": "The analyzer, proxy-status and proxy-config each pointed at one cause, and each fix was verified."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Read the mesh's own evidence. istioctl analyze reports conflicts such as a VirtualService routing to a subset its DestinationRule does not define (requests then fail with NC). istioctl proxy-status shows whether istiod's configuration reached each proxy; STALE points at the control plane. Envoy's response flags and istioctl proxy-config show the data plane: a client DestinationRule with tls DISABLE against a STRICT server fails with UF. Restarting Pods, deleting istiod or leaving the mesh removes evidence and capacity without fixing the cause."
+  }
+}

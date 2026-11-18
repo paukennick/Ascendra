@@ -1,0 +1,867 @@
+{
+  "slug": "hospital-wing-monte-carlo-milestone-rmp",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Estimates and network read; Monte Carlo; near-critical path treated; confidence reported; an honest report",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "est",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "net",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 7,
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "choose",
+          "prompt": "simPrompt",
+          "choice": "monte",
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 14,
+          "seq": 7,
+          "tick": 7
+        },
+        {
+          "type": "choose",
+          "prompt": "nearPrompt",
+          "choice": "focus",
+          "seq": 8,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 21,
+          "seq": 9,
+          "tick": 14
+        },
+        {
+          "type": "choose",
+          "prompt": "rerunPrompt",
+          "choice": "report",
+          "seq": 10,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 28,
+          "seq": 11,
+          "tick": 21
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 28
+        }
+      ],
+      "expect": {
+        "ending": "target",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "simCrit": "met",
+          "nearCrit": "met",
+          "rerunCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0,
+          "supK": 80,
+          "spiK": 1,
+          "cpiK": 1
+        },
+        "stateHash": "16dab93eeb84617f"
+      },
+      "reasoning": {
+        "reflection": "met"
+      }
+    },
+    {
+      "id": "partialSim",
+      "title": "Partly right on the analysis, the rest on plan",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "est",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 7,
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "choose",
+          "prompt": "simPrompt",
+          "choice": "pert",
+          "seq": 4,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 14,
+          "seq": 5,
+          "tick": 7
+        },
+        {
+          "type": "choose",
+          "prompt": "nearPrompt",
+          "choice": "focus",
+          "seq": 6,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 21,
+          "seq": 7,
+          "tick": 14
+        },
+        {
+          "type": "choose",
+          "prompt": "rerunPrompt",
+          "choice": "report",
+          "seq": 8,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 28,
+          "seq": 9,
+          "tick": 21
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 10,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 11,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 12,
+          "tick": 28
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "simCrit": "partial",
+          "nearCrit": "met",
+          "rerunCrit": "met",
+          "evidenceCrit": "partial",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0,
+          "supK": 55,
+          "spiK": 0.96,
+          "cpiK": 0.97
+        },
+        "stateHash": "8ac7bee15b1bcc96"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "partialRerun",
+      "title": "Partly right on the result, and a one-line record",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 7,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "simPrompt",
+          "choice": "monte",
+          "seq": 2,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 2,
+          "to": 14,
+          "seq": 3,
+          "tick": 7
+        },
+        {
+          "type": "choose",
+          "prompt": "nearPrompt",
+          "choice": "focus",
+          "seq": 4,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 21,
+          "seq": 5,
+          "tick": 14
+        },
+        {
+          "type": "choose",
+          "prompt": "rerunPrompt",
+          "choice": "p50",
+          "seq": 6,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 28,
+          "seq": 7,
+          "tick": 21
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 8,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "summary"
+          },
+          "seq": 9,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 10,
+          "tick": 28
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "simCrit": "met",
+          "nearCrit": "met",
+          "rerunCrit": "partial",
+          "evidenceCrit": "missed",
+          "recordCrit": "missed"
+        },
+        "kpis": {
+          "missK": 0,
+          "supK": 55,
+          "spiK": 0.96,
+          "cpiK": 0.97
+        },
+        "stateHash": "e14f87626eb47669"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "allPartial",
+      "title": "Every decision only partly right",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 7,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "simPrompt",
+          "choice": "pert",
+          "seq": 2,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 2,
+          "to": 14,
+          "seq": 3,
+          "tick": 7
+        },
+        {
+          "type": "choose",
+          "prompt": "nearPrompt",
+          "choice": "cpOnly",
+          "seq": 4,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 21,
+          "seq": 5,
+          "tick": 14
+        },
+        {
+          "type": "choose",
+          "prompt": "rerunPrompt",
+          "choice": "p50",
+          "seq": 6,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 28,
+          "seq": 7,
+          "tick": 21
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 8,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 9,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 10,
+          "tick": 28
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "simCrit": "partial",
+          "nearCrit": "partial",
+          "rerunCrit": "partial",
+          "evidenceCrit": "missed",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0,
+          "supK": 55,
+          "spiK": 0.8799999999999999,
+          "cpiK": 0.9099999999999999
+        },
+        "stateHash": "fd01ab1f1a261326"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "badSim",
+      "title": "The deterministic date reported as safe",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "est",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "net",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 7,
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "choose",
+          "prompt": "simPrompt",
+          "choice": "deterministic",
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 14,
+          "seq": 7,
+          "tick": 7
+        },
+        {
+          "type": "choose",
+          "prompt": "nearPrompt",
+          "choice": "focus",
+          "seq": 8,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 21,
+          "seq": 9,
+          "tick": 14
+        },
+        {
+          "type": "choose",
+          "prompt": "rerunPrompt",
+          "choice": "report",
+          "seq": 10,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 28,
+          "seq": 11,
+          "tick": 21
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 28
+        }
+      ],
+      "expect": {
+        "ending": "simHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "simCrit": "missed",
+          "nearCrit": "met",
+          "rerunCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1,
+          "supK": 45,
+          "spiK": 0.91,
+          "cpiK": 0.92
+        },
+        "stateHash": "1390d23f4925a4f0"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    },
+    {
+      "id": "badNear",
+      "title": "The near-critical path ignored",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "est",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "net",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 7,
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "choose",
+          "prompt": "simPrompt",
+          "choice": "monte",
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 14,
+          "seq": 7,
+          "tick": 7
+        },
+        {
+          "type": "choose",
+          "prompt": "nearPrompt",
+          "choice": "ignore",
+          "seq": 8,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 21,
+          "seq": 9,
+          "tick": 14
+        },
+        {
+          "type": "choose",
+          "prompt": "rerunPrompt",
+          "choice": "report",
+          "seq": 10,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 28,
+          "seq": 11,
+          "tick": 21
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 28
+        }
+      ],
+      "expect": {
+        "ending": "nearHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "simCrit": "met",
+          "nearCrit": "missed",
+          "rerunCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1,
+          "supK": 45,
+          "spiK": 0.91,
+          "cpiK": 0.92
+        },
+        "stateHash": "34cc0db0ec8642a8"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    },
+    {
+      "id": "badRerun",
+      "title": "Hidden padding on every activity",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "est",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "net",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 7,
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "choose",
+          "prompt": "simPrompt",
+          "choice": "monte",
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 14,
+          "seq": 7,
+          "tick": 7
+        },
+        {
+          "type": "choose",
+          "prompt": "nearPrompt",
+          "choice": "focus",
+          "seq": 8,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 21,
+          "seq": 9,
+          "tick": 14
+        },
+        {
+          "type": "choose",
+          "prompt": "rerunPrompt",
+          "choice": "pad",
+          "seq": 10,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 28,
+          "seq": 11,
+          "tick": 21
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 28
+        }
+      ],
+      "expect": {
+        "ending": "rerunHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "simCrit": "met",
+          "nearCrit": "met",
+          "rerunCrit": "missed",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1,
+          "supK": 45,
+          "spiK": 0.91,
+          "cpiK": 0.92
+        },
+        "stateHash": "206fceb11f2a2a8c"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    }
+  ]
+}

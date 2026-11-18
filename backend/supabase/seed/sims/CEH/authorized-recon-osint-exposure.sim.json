@@ -1,0 +1,1013 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "authorized-recon-osint-exposure",
+  "title": "Authorized reconnaissance for a retailer: footprinting from public sources, staying passive, and what to report",
+  "screen": {
+    "type": "security-console",
+    "level": 1,
+    "console": {
+      "alerts": [
+        {
+          "id": "aPassive",
+          "severity": "medium",
+          "title": "Unpatched-looking staging subdomain",
+          "detail": "The staging site looks unpatched.",
+          "when": "p >= 1",
+          "at": "600",
+          "status": "{passive == \"note\" ? \"Recorded; probing deferred\" : passive == \"lightTouch\" ? \"One request sent\" : passive == \"scan\" ? \"Active scan in a passive phase\" : \"Due\"}",
+          "open": "passive == \"none\""
+        },
+        {
+          "id": "aPeople",
+          "severity": "low",
+          "title": "Public staff data",
+          "detail": "Staff emails and roles are public.",
+          "when": "p >= 2",
+          "at": "1200",
+          "status": "{people == \"minimal\" ? \"Pattern recorded; leak flagged\" : people == \"list\" ? \"Full staff list\" : people == \"contact\" ? \"Contacted staff\" : \"Due\"}",
+          "open": "people == \"none\""
+        },
+        {
+          "id": "aReport",
+          "severity": "medium",
+          "title": "Findings report",
+          "detail": "The VPN version in the job post has a known flaw.",
+          "when": "p >= 3",
+          "at": "1800",
+          "status": "{report == \"risk\" ? \"Prioritized findings with remediation\" : report == \"raw\" ? \"Raw dump\" : report == \"publish\" ? \"Client finding published\" : \"Due\"}",
+          "open": "report == \"none\""
+        }
+      ],
+      "events": [
+        {
+          "id": "ePassive",
+          "source": "DNS",
+          "text": "{passive == \"note\" ? \"Recorded; probing deferred\" : passive == \"lightTouch\" ? \"One request sent\" : passive == \"scan\" ? \"Active scan in a passive phase\" : \"\"}",
+          "when": "passive != \"none\"",
+          "at": "timeAt(passiveAt)"
+        },
+        {
+          "id": "ePeople",
+          "source": "Social",
+          "text": "{people == \"minimal\" ? \"Pattern recorded; leak flagged\" : people == \"list\" ? \"Full staff list\" : people == \"contact\" ? \"Contacted staff\" : \"\"}",
+          "when": "people != \"none\"",
+          "at": "timeAt(peopleAt)"
+        },
+        {
+          "id": "eReport",
+          "source": "Analyst",
+          "text": "{report == \"risk\" ? \"Prioritized findings with remediation\" : report == \"raw\" ? \"Raw dump\" : report == \"publish\" ? \"Client finding published\" : \"\"}",
+          "when": "report != \"none\"",
+          "at": "timeAt(reportAt)"
+        },
+        {
+          "id": "iOsint",
+          "source": "Analyst",
+          "text": "A forgotten staging subdomain, a job post naming the VPN product and version, and staff emails in a public code repository.",
+          "when": "not isNull(osintAt)",
+          "at": "timeAt(osintAt)"
+        },
+        {
+          "id": "iRoe",
+          "source": "Analyst",
+          "text": "Phase one is passive only; phase two (active) starts after the client reviews phase one.",
+          "when": "not isNull(roeAt)",
+          "at": "timeAt(roeAt)"
+        }
+      ],
+      "assets": [
+        {
+          "id": "xPassive",
+          "label": "staging subdomain",
+          "spokenLabel": "staging subdomain",
+          "kind": "web",
+          "status": "{passive == \"note\" ? \"Recorded; probing deferred\" : passive == \"lightTouch\" ? \"One request sent\" : passive == \"scan\" ? \"Active scan in a passive phase\" : \"Under review\"}",
+          "tone": "passive == \"note\" ? \"ok\" : passive == \"lightTouch\" ? \"watch\" : passive == \"scan\" ? \"bad\" : p >= 1 ? \"watch\" : \"ok\""
+        },
+        {
+          "id": "xPeople",
+          "label": "Staff identities",
+          "spokenLabel": "Staff identities",
+          "kind": "people",
+          "status": "{people == \"minimal\" ? \"Pattern recorded; leak flagged\" : people == \"list\" ? \"Full staff list\" : people == \"contact\" ? \"Contacted staff\" : \"Under review\"}",
+          "tone": "people == \"minimal\" ? \"ok\" : people == \"list\" ? \"watch\" : people == \"contact\" ? \"bad\" : p >= 2 ? \"watch\" : \"ok\""
+        },
+        {
+          "id": "xReport",
+          "label": "Report",
+          "spokenLabel": "Report",
+          "kind": "report",
+          "status": "{report == \"risk\" ? \"Prioritized findings with remediation\" : report == \"raw\" ? \"Raw dump\" : report == \"publish\" ? \"Client finding published\" : \"Under review\"}",
+          "tone": "report == \"risk\" ? \"ok\" : report == \"raw\" ? \"watch\" : report == \"publish\" ? \"bad\" : p >= 3 ? \"watch\" : \"ok\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Check-in",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Plan passive footprinting with search engines, web services, social networking sites and people search services",
+  "secondaryObjectives": [
+    "Analyze website, email header, WHOIS, DNS and network footprinting results",
+    "Recommend footprinting countermeasures that reduce what an organization exposes"
+  ],
+  "sources": [
+    {
+      "cite": "EC-Council, CEH Exam Blueprint v5.0 (CEH v13), Domain 4: Network and Perimeter Hacking",
+      "checkedAt": "2026-11-14",
+      "url": "https://cert.eccouncil.org/wp-content/uploads/2024/04/CEH-Exam-Blueprint-v5.pdf",
+      "note": "Read in full as text on 2026-11-14 for REQ-273. Sub-domain 'Sniffing': Sniffing Concepts; Sniffing Technique: MAC Attacks; DHCP Attacks; ARP Poisoning; Spoofing Attacks; DNS Poisoning; Sniffing Tools; Sniffing Countermeasures; Sniffing Detection Techniques. Sub-domain 'Session Hijacking': Application-Level and Network-Level Session Hijacking; Session Hijacking Countermeasures. Domain 4 weight 24% (30 of 125 questions). Reused for REQ-336 from this course's ceh-arp-poisoning-finance-vlan (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the systems and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the security tester on an authorized assessment of a fictional retailer, Galloway Home. Phase one is passive footprinting from public sources only.",
+    "handover": [
+      "Rules of engagement: phase one is passive; no contact with the client's systems or staff.",
+      "Findings go to the client's security lead."
+    ],
+    "howItWorks": [
+      "The console shows the alert queue, the event log and each asset's status.",
+      "Move on a check-in at a time. A decision comes to you at each check-in; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-07-12T09:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "passive": {
+      "type": "enum",
+      "values": [
+        "none",
+        "note",
+        "lightTouch",
+        "scan"
+      ],
+      "init": "none"
+    },
+    "passiveAt": {
+      "type": "time",
+      "init": null
+    },
+    "people": {
+      "type": "enum",
+      "values": [
+        "none",
+        "minimal",
+        "list",
+        "contact"
+      ],
+      "init": "none"
+    },
+    "peopleAt": {
+      "type": "time",
+      "init": null
+    },
+    "report": {
+      "type": "enum",
+      "values": [
+        "none",
+        "risk",
+        "raw",
+        "publish"
+      ],
+      "init": "none"
+    },
+    "reportAt": {
+      "type": "time",
+      "init": null
+    },
+    "osintAt": {
+      "type": "time",
+      "init": null
+    },
+    "roeAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((passive == \"scan\") ? 1 : 0) + ((people == \"contact\") ? 1 : 0) + ((report == \"publish\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(passive == \"none\" or (passive == \"scan\") ? 1 : 0) + (people == \"none\" or (people == \"contact\") ? 1 : 0) + (report == \"none\" or (report == \"publish\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Footprinting",
+      "clock": "turns",
+      "actions": [
+        "osint",
+        "roe"
+      ]
+    },
+    "close": {
+      "label": "Findings record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "osint": {
+      "label": "Gather public sources: DNS, WHOIS, certificate logs, job posts",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(osintAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "osintAt",
+          "to": "t"
+        },
+        {
+          "log": "Gather public sources: DNS, WHOIS, certificate logs, job posts.",
+          "kind": "act"
+        },
+        {
+          "finding": "A forgotten staging subdomain, a job post naming the VPN product and version, and staff emails in a public code repository."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "roe": {
+      "label": "Re-read the rules of engagement",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(roeAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "roeAt",
+          "to": "t"
+        },
+        {
+          "log": "Re-read the rules of engagement.",
+          "kind": "act"
+        },
+        {
+          "finding": "Phase one is passive only; phase two (active) starts after the client reviews phase one."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Passive footprinting kept passive, personal data minimized, and a prioritized private report with remediation"
+                },
+                {
+                  "value": "summary",
+                  "label": "Phase one done"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next check-in",
+      "wait": {
+        "skipLabel": "Go to the next check-in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "passive == \"scan\"",
+              "then": [
+                {
+                  "log": "Check-in 2: the client's monitoring flags the scan; the engagement is paused for a breach of the rules.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "people == \"contact\"",
+              "then": [
+                {
+                  "log": "Check-in 3: a manager reports the suspicious connection requests to the client's security team; trust in the engagement drops.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "report == \"publish\"",
+              "then": [
+                {
+                  "log": "Check-in 4: attackers probe the client's VPN days after the post.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "10min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "Phase one closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "10min"
+        }
+      ]
+    },
+    {
+      "id": "t_passive",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 1: the staging subdomain.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "passivePrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_people",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 2: staff emails.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "peoplePrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_report",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 3: reporting.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "reportPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "passivePrompt": {
+      "title": "Probe it?",
+      "context": "The staging site looks unpatched.",
+      "choices": [
+        {
+          "id": "note",
+          "label": "Record it from public data only and schedule it for phase two",
+          "effects": [
+            {
+              "set": "passive",
+              "to": "\"note\""
+            },
+            {
+              "set": "passiveAt",
+              "to": "t"
+            },
+            {
+              "log": "Recorded for phase two.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Footprinting is passive; active probing waits for its authorized phase."
+        },
+        {
+          "id": "lightTouch",
+          "label": "Load its home page once",
+          "effects": [
+            {
+              "set": "passive",
+              "to": "\"lightTouch\""
+            },
+            {
+              "set": "passiveAt",
+              "to": "t"
+            },
+            {
+              "log": "One page load.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Small, but it's contact outside the phase."
+        },
+        {
+          "id": "scan",
+          "label": "Scan it now",
+          "effects": [
+            {
+              "set": "passive",
+              "to": "\"scan\""
+            },
+            {
+              "set": "passiveAt",
+              "to": "t"
+            },
+            {
+              "log": "A scan runs.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Active scanning breaks the rules of engagement."
+        }
+      ]
+    },
+    "peoplePrompt": {
+      "title": "Using staff data",
+      "context": "Staff emails and roles are public.",
+      "choices": [
+        {
+          "id": "minimal",
+          "label": "Record the pattern (first.last) and the number of exposed addresses, not a list of people, and flag the code repository leak",
+          "effects": [
+            {
+              "set": "people",
+              "to": "\"minimal\""
+            },
+            {
+              "set": "peopleAt",
+              "to": "t"
+            },
+            {
+              "log": "Findings are recorded minimally.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Reconnaissance records what the client needs, minimizing personal data."
+        },
+        {
+          "id": "list",
+          "label": "Compile a full staff list with roles",
+          "effects": [
+            {
+              "set": "people",
+              "to": "\"list\""
+            },
+            {
+              "set": "peopleAt",
+              "to": "t"
+            },
+            {
+              "log": "A list is compiled.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "More personal data than the finding needs."
+        },
+        {
+          "id": "contact",
+          "label": "Connect with staff on social networks to learn more",
+          "effects": [
+            {
+              "set": "people",
+              "to": "\"contact\""
+            },
+            {
+              "set": "peopleAt",
+              "to": "t"
+            },
+            {
+              "log": "Connection requests sent.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Contact with staff is social engineering, outside phase one and the rules."
+        }
+      ]
+    },
+    "reportPrompt": {
+      "title": "What the client gets",
+      "context": "The VPN version in the job post has a known flaw.",
+      "choices": [
+        {
+          "id": "risk",
+          "label": "Report each exposure with its risk and remediation: the staging host, the VPN version disclosure and known flaw, the leaked emails, and advice on job-post detail",
+          "effects": [
+            {
+              "set": "report",
+              "to": "\"risk\""
+            },
+            {
+              "set": "reportAt",
+              "to": "t"
+            },
+            {
+              "log": "A prioritized report goes to the security lead.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Footprinting results are reported as exposures with risk and fixes."
+        },
+        {
+          "id": "raw",
+          "label": "Send the raw data dump",
+          "effects": [
+            {
+              "set": "report",
+              "to": "\"raw\""
+            },
+            {
+              "set": "reportAt",
+              "to": "t"
+            },
+            {
+              "log": "Raw data sent.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The client must do the analysis."
+        },
+        {
+          "id": "publish",
+          "label": "Post the VPN finding in a public forum to warn others",
+          "effects": [
+            {
+              "set": "report",
+              "to": "\"publish\""
+            },
+            {
+              "set": "reportAt",
+              "to": "t"
+            },
+            {
+              "log": "Posted publicly.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Publishing a client's exposure breaks confidentiality and helps attackers."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the phase-one findings record for the client's security lead.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Findings",
+          "criteria": "Staging host, VPN version disclosure, leaked staff emails.",
+          "modelAnswer": "Public data shows a forgotten staging host, a job post revealing the VPN version with a known flaw, and staff emails in a public repository."
+        },
+        {
+          "label": "Conduct",
+          "criteria": "Passive only; minimal personal data; private report.",
+          "modelAnswer": "We stayed passive, recorded email patterns rather than people, and report privately with remediation."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "security",
+    "thresholds": {
+      "containWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Contained and closed within 60 minutes of the first alert."
+        }
+      },
+      "containSpread": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No asset newly exposed by the response."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (passive == \"lightTouch\") and (people == \"list\") and (report == \"raw\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "EC-Council, CEH Exam Blueprint v5.0 (CEH v13), Domain 4: Network and Perimeter Hacking",
+        "checkedAt": "2026-11-14",
+        "url": "https://cert.eccouncil.org/wp-content/uploads/2024/04/CEH-Exam-Blueprint-v5.pdf",
+        "note": "Read in full as text on 2026-11-14 for REQ-273. Sub-domain 'Sniffing': Sniffing Concepts; Sniffing Technique: MAC Attacks; DHCP Attacks; ARP Poisoning; Spoofing Attacks; DNS Poisoning; Sniffing Tools; Sniffing Countermeasures; Sniffing Detection Techniques. Sub-domain 'Session Hijacking': Application-Level and Network-Level Session Hijacking; Session Hijacking Countermeasures. Domain 4 weight 24% (30 of 125 questions). Reused for REQ-336 from this course's ceh-arp-poisoning-finance-vlan (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "passiveHarm": {
+      "label": "Engagement paused",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and passive == \"scan\"",
+      "narrative": "The scan broke the rules of engagement; the client paused the work."
+    },
+    "peopleHarm": {
+      "label": "Out-of-scope contact",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and people == \"contact\"",
+      "narrative": "Contacting staff broke the rules of engagement."
+    },
+    "reportHarm": {
+      "label": "The client exposed",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and report == \"publish\"",
+      "narrative": "The published finding drew attackers to the client's VPN."
+    },
+    "target": {
+      "label": "Footprinting done right",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (passive == \"note\") and (people == \"minimal\") and (report == \"risk\") and record == \"honest\" and missCount <= containSpread and timeAt(doneAt) <= containWindow",
+      "narrative": "The client learns its public exposure without any contact or breach of the rules."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "passiveHarm",
+    "peopleHarm",
+    "reportHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "passiveCrit",
+        "label": "Stayed within the passive phase",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "passive == \"note\"",
+            "score": "met",
+            "why": "In scope."
+          },
+          {
+            "when": "passive == \"lightTouch\"",
+            "score": "partial",
+            "why": "Edge of scope."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Out of scope."
+          }
+        ]
+      },
+      {
+        "id": "peopleCrit",
+        "label": "Handled personal data minimally and within scope",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "people == \"minimal\"",
+            "score": "met",
+            "why": "Minimal."
+          },
+          {
+            "when": "people == \"list\"",
+            "score": "partial",
+            "why": "Excessive."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Out of scope."
+          }
+        ]
+      },
+      {
+        "id": "reportCrit",
+        "label": "Reported exposures with risk and remediation",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "report == \"risk\"",
+            "score": "met",
+            "why": "Useful."
+          },
+          {
+            "when": "report == \"raw\"",
+            "score": "partial",
+            "why": "Unhelpful."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Confidentiality breach."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(osintAt) and not isNull(roeAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(osintAt) or not isNull(roeAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the rules of engagement and gather public sources first."
+      },
+      {
+        "at": "Check-in 1",
+        "text": "Record it and defer probing to phase two."
+      },
+      {
+        "at": "Check-in 2",
+        "text": "Record patterns and counts, not people."
+      },
+      {
+        "at": "Check-in 3",
+        "text": "Report exposures with risk and remediation."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "passiveHarm": {
+        "headline": "Respect the phase",
+        "body": "Footprinting stays passive."
+      },
+      "peopleHarm": {
+        "headline": "No contact in footprinting",
+        "body": "Use public data minimally."
+      },
+      "reportHarm": {
+        "headline": "Report privately",
+        "body": "Findings go to the client, with remediation."
+      },
+      "target": {
+        "headline": "Good: footprinting done right",
+        "body": "Passive, minimal and private."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Footprinting and reconnaissance gather public information (DNS, WHOIS, certificate logs, job posts, social and code sites) passively, within the rules of engagement; personal data is minimized; results are reported privately as exposures with risk and remediation."
+  }
+}

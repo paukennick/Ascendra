@@ -1,0 +1,1023 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "kyverno-webhook-timeouts-node-drain",
+  "title": "Kyverno blocking the API during a node drain: replicas, webhook timeouts and resource filters",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "policy@dunmore:~$",
+      "lines": [
+        {
+          "id": "firstLine",
+          "text": "apiserver: failed calling webhook validate.kyverno.svc: context deadline exceeded",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "lineHa",
+          "text": "{ha == \"replicas\" ? \"3 replicas, PDB, anti-affinity; Fail kept\" : ha == \"two\" ? \"2 replicas, no PDB\" : ha == \"ignore\" ? \"failurePolicy Ignore: fails open\" : \"\"}",
+          "when": "ha != \"none\"",
+          "at": "timeAt(haAt)",
+          "error": "ha == \"ignore\""
+        },
+        {
+          "id": "lineTimeout",
+          "text": "{timeout == \"perPolicy\" ? \"15 s for verifyImages only\" : timeout == \"global30\" ? \"30 s global timeout\" : timeout == \"dropVerify\" ? \"verifyImages deleted\" : \"\"}",
+          "when": "timeout != \"none\"",
+          "at": "timeAt(timeoutAt)",
+          "error": "timeout == \"dropVerify\""
+        },
+        {
+          "id": "lineFilters",
+          "text": "{filters == \"restore\" ? \"Default filters restored\" : filters == \"moreCpu\" ? \"More CPU, filters still empty\" : filters == \"excludeAll\" ? \"Almost every namespace excluded\" : \"\"}",
+          "when": "filters != \"none\"",
+          "at": "timeAt(filtersAt)",
+          "error": "filters == \"excludeAll\""
+        }
+      ],
+      "nodes": [
+        {
+          "id": "nHa",
+          "label": "kyverno-admission-controller",
+          "spokenLabel": "kyverno-admission-controller",
+          "kind": "Deployment",
+          "status": "{ha == \"replicas\" ? \"3 replicas, PDB, anti-affinity; Fail kept\" : ha == \"two\" ? \"2 replicas, no PDB\" : ha == \"ignore\" ? \"failurePolicy Ignore: fails open\" : \"Waiting\"}",
+          "tone": "ha == \"replicas\" ? \"up\" : ha == \"two\" ? \"degraded\" : ha == \"ignore\" ? \"down\" : p >= 1 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nTimeout",
+          "label": "verifyImages webhook timeout",
+          "spokenLabel": "verifyImages webhook timeout",
+          "kind": "webhook",
+          "status": "{timeout == \"perPolicy\" ? \"15 s for verifyImages only\" : timeout == \"global30\" ? \"30 s global timeout\" : timeout == \"dropVerify\" ? \"verifyImages deleted\" : \"Waiting\"}",
+          "tone": "timeout == \"perPolicy\" ? \"up\" : timeout == \"global30\" ? \"degraded\" : timeout == \"dropVerify\" ? \"down\" : p >= 2 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nFilters",
+          "label": "kyverno ConfigMap resourceFilters",
+          "spokenLabel": "kyverno ConfigMap resourceFilters",
+          "kind": "ConfigMap",
+          "status": "{filters == \"restore\" ? \"Default filters restored\" : filters == \"moreCpu\" ? \"More CPU, filters still empty\" : filters == \"excludeAll\" ? \"Almost every namespace excluded\" : \"Waiting\"}",
+          "tone": "filters == \"restore\" ? \"up\" : filters == \"moreCpu\" ? \"degraded\" : filters == \"excludeAll\" ? \"down\" : p >= 3 ? \"degraded\" : \"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "link0",
+          "from": "nHa",
+          "to": "nTimeout",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        },
+        {
+          "id": "link1",
+          "from": "nTimeout",
+          "to": "nFilters",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Check-in",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Configure the controllers with flags and the kyverno ConfigMap: webhook timeouts, excluded namespaces and resource filters, and generate/background behavior",
+  "secondaryObjectives": [
+    "Plan a highly available installation: replica counts per controller, pod disruption budgets, leader election and webhook failurePolicy",
+    "Install and configure Kyverno with Helm: chart values for the admission, background, cleanup and reports controllers, resource filters and webhook settings"
+  ],
+  "sources": [
+    {
+      "cite": "CNCF, Kyverno Certified Associate (KCA) certification page",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.cncf.io/training/certification/kca/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the certification body's page, found by WebSearch. Confirms the exam domains and weights: Fundamentals of Kyverno 18%, Installation, Configuration, and Upgrades 18%, Kyverno CLI 12%, Applying Policies 10%, Writing Policies 32%, Policy Management 10%. The objective wording is the course seed's."
+    },
+    {
+      "cite": "Kyverno documentation, High Availability",
+      "checkedAt": "2026-11-17",
+      "url": "https://kyverno.io/docs/high-availability",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: the minimum supported replica count for a highly available admission controller is three."
+    },
+    {
+      "cite": "Kyverno documentation, Installation",
+      "checkedAt": "2026-11-17",
+      "url": "https://kyverno.io/docs/installation/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: Kyverno's resource webhooks fail closed by default, so a full Kyverno outage can make the cluster inoperable unless the Kyverno namespace is excluded; HA needs two or more replicas, three in the admission controller example; the kyverno ConfigMap's resourceFilters entry."
+    },
+    {
+      "cite": "Kyverno documentation, Policy Settings (release 1.12)",
+      "checkedAt": "2026-11-17",
+      "url": "https://release-1-12-0.kyverno.io/docs/writing-policies/policy-settings/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: webhookTimeoutSeconds is set per policy, defaults to 10 seconds and must be 1 to 30; failurePolicy is Fail or Ignore and defaults to Fail."
+    },
+    {
+      "cite": "Kyverno documentation, Troubleshooting (release 1.15)",
+      "checkedAt": "2026-11-17",
+      "url": "https://release-1-15-0.kyverno.io/docs/troubleshooting/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: the kyverno ConfigMap filters out high-volume requests; wildcard policies cause heavy load; fail-closed policies on Pods time out the API server when Kyverno is down; run three admission replicas and exclude system namespaces."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The company, the clusters, the policies and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You run the policy platform at Dunmore Rail, a fictional rail operator. This morning a node drain moved Kyverno's only admission controller Pod, and for four minutes every Deployment change in the cluster failed. Teams also report slow kubectl applies and an admission latency alert.",
+    "handover": [
+      "Kyverno: one admission controller replica, webhook failurePolicy Fail, default resourceFilters removed last month by mistake.",
+      "verifyImages rules call the registry and sometimes take 12 seconds; the webhook timeout is 10 seconds."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the map shows each component and its status in words.",
+      "Move on a check-in at a time. A decision comes to you at each check-in; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-03-08T11:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "ha": {
+      "type": "enum",
+      "values": [
+        "none",
+        "replicas",
+        "two",
+        "ignore"
+      ],
+      "init": "none"
+    },
+    "haAt": {
+      "type": "time",
+      "init": null
+    },
+    "timeout": {
+      "type": "enum",
+      "values": [
+        "none",
+        "perPolicy",
+        "global30",
+        "dropVerify"
+      ],
+      "init": "none"
+    },
+    "timeoutAt": {
+      "type": "time",
+      "init": null
+    },
+    "filters": {
+      "type": "enum",
+      "values": [
+        "none",
+        "restore",
+        "moreCpu",
+        "excludeAll"
+      ],
+      "init": "none"
+    },
+    "filtersAt": {
+      "type": "time",
+      "init": null
+    },
+    "deployAt": {
+      "type": "time",
+      "init": null
+    },
+    "cmAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((ha == \"ignore\") ? 1 : 0) + ((timeout == \"dropVerify\") ? 1 : 0) + ((filters == \"excludeAll\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(ha == \"none\" or (ha == \"ignore\") ? 1 : 0) + (timeout == \"none\" or (timeout == \"dropVerify\") ? 1 : 0) + (filters == \"none\" or (filters == \"excludeAll\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The configuration change",
+      "clock": "turns",
+      "actions": [
+        "deploy",
+        "cm"
+      ]
+    },
+    "close": {
+      "label": "Change record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "deploy": {
+      "label": "kubectl -n kyverno get deploy,pdb",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(deployAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "deployAt",
+          "to": "t"
+        },
+        {
+          "output": "kyverno-admission-controller   1/1\nkyverno-background-controller  1/1\nNo PodDisruptionBudgets"
+        },
+        {
+          "log": "You read the Kyverno Deployments.",
+          "kind": "act"
+        },
+        {
+          "finding": "One admission controller replica and no PodDisruptionBudget: any drain or crash leaves no webhook endpoint, and with failurePolicy Fail the API server rejects matching requests."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "cm": {
+      "label": "kubectl -n kyverno get cm kyverno -o yaml",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(cmAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "cmAt",
+          "to": "t"
+        },
+        {
+          "output": "resourceFilters: (empty)\nwebhookTimeoutSeconds: 10\nexcludeGroups: system:nodes"
+        },
+        {
+          "log": "You read the kyverno ConfigMap.",
+          "kind": "act"
+        },
+        {
+          "finding": "resourceFilters is empty, so Kyverno receives Events, Leases and other high-churn kinds it has no policies for; the 10-second timeout is shorter than the slowest verifyImages call."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the change record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Three admission replicas with a PDB and Fail kept, a per-policy timeout, and the default resource filters restored"
+                },
+                {
+                  "value": "summary",
+                  "label": "Kyverno tuned"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next check-in",
+      "wait": {
+        "skipLabel": "Go to the next check-in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "ha == \"ignore\"",
+              "then": [
+                {
+                  "log": "Check-in 2: during the 15:00 drain, a privileged Pod is created while Kyverno is unreachable; Ignore admits it unchecked.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "timeout == \"dropVerify\"",
+              "then": [
+                {
+                  "log": "Check-in 3: an unsigned test image is deployed to production by a misconfigured pipeline; nothing stops it.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "filters == \"excludeAll\"",
+              "then": [
+                {
+                  "log": "Check-in 4: a Pod running as root with a hostPath mount is created in the payments namespace; no policy is applied there any more.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "10min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The change window closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "10min"
+        }
+      ]
+    },
+    {
+      "id": "t_ha",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 1: another drain is scheduled this afternoon.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "haPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_timeout",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 2: verifyImages calls still time out.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "timeoutPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_filters",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 3: admission latency is still high.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "filtersPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "haPrompt": {
+      "title": "One replica, failurePolicy Fail",
+      "context": "Another node drain runs at 15:00.",
+      "choices": [
+        {
+          "id": "replicas",
+          "label": "Set the admission controller to 3 replicas with a PodDisruptionBudget and anti-affinity through Helm values, keeping failurePolicy Fail",
+          "effects": [
+            {
+              "set": "ha",
+              "to": "\"replicas\""
+            },
+            {
+              "set": "haAt",
+              "to": "t"
+            },
+            {
+              "log": "Three replicas spread across nodes, with a PDB.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "With replicas and a PDB, a drain never removes every webhook endpoint, so failing closed stays safe."
+        },
+        {
+          "id": "two",
+          "label": "Set 2 replicas without a PDB",
+          "effects": [
+            {
+              "set": "ha",
+              "to": "\"two\""
+            },
+            {
+              "set": "haAt",
+              "to": "t"
+            },
+            {
+              "log": "Two replicas, no PDB.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Better, but a drain can still evict both together."
+        },
+        {
+          "id": "ignore",
+          "label": "Switch the webhook failurePolicy to Ignore so the API never blocks",
+          "effects": [
+            {
+              "set": "ha",
+              "to": "\"ignore\""
+            },
+            {
+              "set": "haAt",
+              "to": "t"
+            },
+            {
+              "log": "The webhook now fails open.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "When Kyverno is unreachable, every request is admitted unchecked: the policies silently stop applying."
+        }
+      ]
+    },
+    "timeoutPrompt": {
+      "title": "12-second calls, a 10-second timeout",
+      "context": "Only the verifyImages policy is slow; the API server's webhook timeout maximum is 30 seconds.",
+      "choices": [
+        {
+          "id": "perPolicy",
+          "label": "Set webhookTimeoutSeconds 15 on the verifyImages policy only, leaving other policies at the 10-second default",
+          "effects": [
+            {
+              "set": "timeout",
+              "to": "\"perPolicy\""
+            },
+            {
+              "set": "timeoutAt",
+              "to": "t"
+            },
+            {
+              "log": "The slow policy gets 15 seconds.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A per-policy timeout fits the one slow registry call without slowing every other policy's failure."
+        },
+        {
+          "id": "global30",
+          "label": "Raise the global webhook timeout to 30 seconds",
+          "effects": [
+            {
+              "set": "timeout",
+              "to": "\"global30\""
+            },
+            {
+              "set": "timeoutAt",
+              "to": "t"
+            },
+            {
+              "log": "Every webhook may now take 30 seconds.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The timeouts stop, but a stuck Kyverno now holds every API request for 30 seconds."
+        },
+        {
+          "id": "dropVerify",
+          "label": "Delete the verifyImages policy until the registry is faster",
+          "effects": [
+            {
+              "set": "timeout",
+              "to": "\"dropVerify\""
+            },
+            {
+              "set": "timeoutAt",
+              "to": "t"
+            },
+            {
+              "log": "Image verification is removed.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Unsigned images can now run anywhere."
+        }
+      ]
+    },
+    "filtersPrompt": {
+      "title": "Kyverno sees everything",
+      "context": "With resourceFilters empty, Kyverno processes thousands of Events and Leases a minute that no policy matches.",
+      "choices": [
+        {
+          "id": "restore",
+          "label": "Restore the default resourceFilters (Events, Leases, TokenReviews and the like) and keep application namespaces in scope",
+          "effects": [
+            {
+              "set": "filters",
+              "to": "\"restore\""
+            },
+            {
+              "set": "filtersAt",
+              "to": "t"
+            },
+            {
+              "log": "Noisy kinds are filtered; latency drops.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "resourceFilters keep high-churn kinds no policy cares about away from Kyverno."
+        },
+        {
+          "id": "moreCpu",
+          "label": "Give the admission controller more CPU",
+          "effects": [
+            {
+              "set": "filters",
+              "to": "\"moreCpu\""
+            },
+            {
+              "set": "filtersAt",
+              "to": "t"
+            },
+            {
+              "log": "CPU limits are raised.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Latency improves, but Kyverno still does pointless work for every Event."
+        },
+        {
+          "id": "excludeAll",
+          "label": "Add every namespace except one to the excluded namespaces to cut the load",
+          "effects": [
+            {
+              "set": "filters",
+              "to": "\"excludeAll\""
+            },
+            {
+              "set": "filtersAt",
+              "to": "t"
+            },
+            {
+              "log": "Nearly every namespace is excluded.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "That removes the noise and the policies with it: application namespaces are no longer checked."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the change record: why the API blocked during the drain, and what you changed in the controllers and the ConfigMap.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Availability",
+          "criteria": "One replica with failurePolicy Fail blocked the API; three replicas, a PDB and anti-affinity fix it without failing open.",
+          "modelAnswer": "One admission replica and Fail meant the drain left no endpoint; we run three with a PDB, still failing closed."
+        },
+        {
+          "label": "Timeouts and filters",
+          "criteria": "A 15-second timeout on the verifyImages policy; default resourceFilters restored.",
+          "modelAnswer": "Only verifyImages needed more time, so its policy has 15 seconds; the default filters keep Events and Leases away."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Service restored and the work closed within 60 minutes of the first report."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No fault introduced by the response itself."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (ha == \"two\") and (timeout == \"global30\") and (filters == \"moreCpu\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CNCF, Kyverno Certified Associate (KCA) certification page",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.cncf.io/training/certification/kca/",
+        "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the certification body's page, found by WebSearch. Confirms the exam domains and weights: Fundamentals of Kyverno 18%, Installation, Configuration, and Upgrades 18%, Kyverno CLI 12%, Applying Policies 10%, Writing Policies 32%, Policy Management 10%. The objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "haHarm": {
+      "label": "Policies bypassed",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and ha == \"ignore\"",
+      "narrative": "With failurePolicy Ignore, a privileged Pod was admitted unchecked while Kyverno was unreachable during the drain."
+    },
+    "timeoutHarm": {
+      "label": "Unsigned images admitted",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and timeout == \"dropVerify\"",
+      "narrative": "With verifyImages deleted, an unsigned test image reached production."
+    },
+    "filtersHarm": {
+      "label": "Policies stopped applying",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and filters == \"excludeAll\"",
+      "narrative": "Excluding nearly every namespace let a root Pod with a hostPath mount into payments unchecked."
+    },
+    "target": {
+      "label": "Available, closed and quiet",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (ha == \"replicas\") and (timeout == \"perPolicy\") and (filters == \"restore\") and record == \"honest\" and missCount <= newFaults and timeAt(doneAt) <= restoreWindow",
+      "narrative": "Kyverno survives drains, the slow policy no longer times out, and admission latency is back to normal."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "haHarm",
+    "timeoutHarm",
+    "filtersHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "haCrit",
+        "label": "Made the admission controller highly available instead of failing open",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "ha == \"replicas\"",
+            "score": "met",
+            "why": "Highly available, still closed."
+          },
+          {
+            "when": "ha == \"two\"",
+            "score": "partial",
+            "why": "Partly available."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Failed open."
+          }
+        ]
+      },
+      {
+        "id": "timeoutCrit",
+        "label": "Set the timeout for the slow policy without slowing everything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "timeout == \"perPolicy\"",
+            "score": "met",
+            "why": "Scoped to the slow policy."
+          },
+          {
+            "when": "timeout == \"global30\"",
+            "score": "partial",
+            "why": "Global and slow."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Removed the control."
+          }
+        ]
+      },
+      {
+        "id": "filtersCrit",
+        "label": "Restored resource filters for noise without excluding what policies need",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "filters == \"restore\"",
+            "score": "met",
+            "why": "Filtered the noise."
+          },
+          {
+            "when": "filters == \"moreCpu\"",
+            "score": "partial",
+            "why": "Paid for the noise."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Excluded what policies protect."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(deployAt) and not isNull(cmAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(deployAt) or not isNull(cmAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the Deployments, the webhook settings and the kyverno ConfigMap first."
+      },
+      {
+        "at": "Check-in 1",
+        "text": "Run three admission replicas with a PDB and anti-affinity, keeping failurePolicy Fail."
+      },
+      {
+        "at": "Check-in 2",
+        "text": "Raise the timeout only on the verifyImages policy."
+      },
+      {
+        "at": "Check-in 3",
+        "text": "Restore the default resourceFilters for high-churn kinds."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "haHarm": {
+        "headline": "Make it available, not open",
+        "body": "Replicas and a PDB keep the webhook up; Ignore turns every outage into a bypass."
+      },
+      "timeoutHarm": {
+        "headline": "Tune the timeout, keep the control",
+        "body": "Set webhookTimeoutSeconds on the slow policy and keep it."
+      },
+      "filtersHarm": {
+        "headline": "Filter kinds, not your workloads",
+        "body": "resourceFilters drop noisy kinds; excluded namespaces drop protection."
+      },
+      "target": {
+        "headline": "Good: available, closed and quiet",
+        "body": "HA without failing open, a scoped timeout, and filters on noise rather than on workloads."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Kyverno's admission webhook with failurePolicy Fail rejects matching requests whenever no Kyverno endpoint answers, so run several admission replicas with a PodDisruptionBudget and anti-affinity rather than failing open with Ignore, which turns any outage into a policy bypass. Webhook timeouts are set per policy where one rule is slow (up to the API server's 30-second limit), with verification caching. The kyverno ConfigMap's resourceFilters keep high-churn kinds no policy needs away from Kyverno; excluding namespaces removes protection."
+  }
+}

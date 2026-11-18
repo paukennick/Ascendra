@@ -1,0 +1,1104 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "platform-metrics-dora-review",
+  "title": "Proving the platform's value: DORA metrics, how they are used, and measuring developer experience",
+  "screen": {
+    "type": "governance-board",
+    "level": 1,
+    "governance": {
+      "risks": [
+        {
+          "id": "rWhich",
+          "label": "Measuring activity instead of outcomes",
+          "spokenLabel": "Measuring activity instead of outcomes",
+          "owner": "\"Platform lead\"",
+          "rating": "which == \"four\" ? \"low\" : which == \"speedOnly\" ? \"medium\" : which == \"activity\" ? \"critical\" : p >= 1 ? \"high\" : \"medium\"",
+          "appetite": "which == \"four\" ? \"within\" : which == \"speedOnly\" ? \"within\" : which == \"activity\" ? \"above\" : p >= 1 ? \"above\" : \"within\"",
+          "status": "{which == \"four\" ? \"Four DORA metrics per team, with baseline\" : which == \"speedOnly\" ? \"Deployment frequency only\" : which == \"activity\" ? \"Commits and tickets per developer\" : \"Open\"}"
+        },
+        {
+          "id": "rUse",
+          "label": "Metrics used to rank people",
+          "spokenLabel": "Metrics used to rank people",
+          "owner": "\"VP of engineering\"",
+          "rating": "use == \"improve\" ? \"low\" : use == \"teamsRank\" ? \"medium\" : use == \"people\" ? \"critical\" : p >= 2 ? \"high\" : \"medium\"",
+          "appetite": "use == \"improve\" ? \"within\" : use == \"teamsRank\" ? \"within\" : use == \"people\" ? \"above\" : p >= 2 ? \"above\" : \"within\"",
+          "status": "{use == \"improve\" ? \"Team trends for improvement\" : use == \"teamsRank\" ? \"Team league table\" : use == \"people\" ? \"Individuals ranked\" : \"Open\"}"
+        },
+        {
+          "id": "rDx",
+          "label": "Teams bypassing the platform",
+          "spokenLabel": "Teams bypassing the platform",
+          "owner": "\"Platform lead\"",
+          "rating": "dx == \"product\" ? \"low\" : dx == \"adoptionOnly\" ? \"medium\" : dx == \"mandate\" ? \"critical\" : p >= 3 ? \"high\" : \"medium\"",
+          "appetite": "dx == \"product\" ? \"within\" : dx == \"adoptionOnly\" ? \"within\" : dx == \"mandate\" ? \"above\" : p >= 3 ? \"above\" : \"within\"",
+          "status": "{dx == \"product\" ? \"Adoption, time to first deploy, support load, satisfaction\" : dx == \"adoptionOnly\" ? \"Adoption only\" : dx == \"mandate\" ? \"Mandated, unmeasured\" : \"Open\"}"
+        }
+      ],
+      "stakeholders": [
+        {
+          "id": "sVp",
+          "label": "VP of engineering",
+          "spokenLabel": "the VP of engineering's support",
+          "value": "vp",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sTeams",
+          "label": "Product team leads",
+          "spokenLabel": "the product team leads' support",
+          "value": "teams",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sPlat",
+          "label": "Platform team",
+          "spokenLabel": "the platform team's support",
+          "value": "plat",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "docket": [
+        {
+          "id": "dWhich",
+          "kind": "Measurement",
+          "label": "Week 1: which metrics",
+          "status": "{which == \"four\" ? \"Four DORA metrics per team, with baseline\" : which == \"speedOnly\" ? \"Deployment frequency only\" : which == \"activity\" ? \"Commits and tickets per developer\" : \"Due\"}",
+          "when": "p >= 1",
+          "flag": "p >= 1 and which == \"none\""
+        },
+        {
+          "id": "dUse",
+          "kind": "Measurement use",
+          "label": "Week 2: how the numbers are used",
+          "status": "{use == \"improve\" ? \"Team trends for improvement\" : use == \"teamsRank\" ? \"Team league table\" : use == \"people\" ? \"Individuals ranked\" : \"Due\"}",
+          "when": "p >= 2",
+          "flag": "p >= 2 and use == \"none\""
+        },
+        {
+          "id": "dDx",
+          "kind": "Platform adoption",
+          "label": "Week 3: adoption and satisfaction",
+          "status": "{dx == \"product\" ? \"Adoption, time to first deploy, support load, satisfaction\" : dx == \"adoptionOnly\" ? \"Adoption only\" : dx == \"mandate\" ? \"Mandated, unmeasured\" : \"Due\"}",
+          "when": "p >= 3",
+          "flag": "p >= 3 and dx == \"none\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Week",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Measure platform initiatives with DORA metrics: deployment frequency, lead time for changes, change failure rate and time to restore, and how a platform moves them",
+  "secondaryObjectives": [
+    "Platform efficiency and team productivity: adoption, time to first deploy, support load, cost per workload and developer satisfaction surveys"
+  ],
+  "sources": [
+    {
+      "cite": "CNCF Certified Cloud Native Platform Engineering Associate (CNPA) curriculum: Platform Engineering Core Fundamentals 36%, Platform Observability, Security and Conformance 20%, Continuous Delivery and Platform Engineering 16%, Platform APIs and Provisioning Infrastructure 12%, IDPs and Developer Experience 8%, Measuring your Platform 8%",
+      "checkedAt": "2026-11-17",
+      "url": "https://kube-dojo.github.io/k8s/cnpa",
+      "note": "On 2026-11-17 the weights were confirmed through a third-party study page (kube-dojo.github.io/k8s/cnpa, summarizing fetch), which lists 'GitOps fundamentals' and continuous delivery in the core fundamentals domain and says to 'understand why GitOps uses pull-based reconciliation'. The official curriculum was not re-read; the objective wording is the course seed's. Reused for REQ-336 from this course's service-selector-no-endpoints-cnpa (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "DORA, 'DORA's software delivery performance metrics' (dora.dev)",
+      "checkedAt": "2026-11-17",
+      "url": "https://dora.dev/guides/dora-metrics-four-keys",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: throughput (change lead time, deployment frequency, failed deployment recovery time, which replaced time to restore) and instability (change fail rate, deployment rework rate), applied per application or service; the aim is a team improving on itself, not competing with other teams, and broad targets invite gaming (Goodhart's law)."
+    },
+    {
+      "cite": "CNCF TAG App Delivery, Platform Engineering Maturity Model",
+      "checkedAt": "2026-11-17",
+      "url": "https://tag-app-delivery.cncf.io/whitepapers/platform-eng-maturity-model/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: platform measurement through standardized surveys and feedback channels, adoption and time saved, and lead time and build times; at higher maturity a platform is run as a product with product management, user research and shared roadmaps."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The company, the platform, the tenant teams and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You lead the internal developer platform at Halberd Insurance, a fictional insurer. The CFO wants to know whether the platform's budget is paying off. You have three weekly reviews to agree how the platform will be measured.",
+    "handover": [
+      "Data available: pipeline runs and deploy events, change tickets, incident records, platform support tickets, and an annual survey.",
+      "A proposal from finance: rank developers by commits and tickets closed."
+    ],
+    "howItWorks": [
+      "The board shows the risk register against the appetite, each stakeholder's support in words and the docket.",
+      "Move on a week at a time. A decision comes to you at each platform review; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-03-01T09:00",
+    "tick": "1d",
+    "maxDuration": "84d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "vp": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "teams": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "plat": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "which": {
+      "type": "enum",
+      "values": [
+        "none",
+        "four",
+        "speedOnly",
+        "activity"
+      ],
+      "init": "none"
+    },
+    "whichAt": {
+      "type": "time",
+      "init": null
+    },
+    "use": {
+      "type": "enum",
+      "values": [
+        "none",
+        "improve",
+        "teamsRank",
+        "people"
+      ],
+      "init": "none"
+    },
+    "useAt": {
+      "type": "time",
+      "init": null
+    },
+    "dx": {
+      "type": "enum",
+      "values": [
+        "none",
+        "product",
+        "adoptionOnly",
+        "mandate"
+      ],
+      "init": "none"
+    },
+    "dxAt": {
+      "type": "time",
+      "init": null
+    },
+    "dataAt": {
+      "type": "time",
+      "init": null
+    },
+    "baseAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(vp, teams), plat)"
+    },
+    "missCount": {
+      "expr": "((which == \"activity\") ? 1 : 0) + ((use == \"people\") ? 1 : 0) + ((dx == \"mandate\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(which == \"none\" or (which == \"activity\") ? 1 : 0) + (use == \"none\" or (use == \"people\") ? 1 : 0) + (dx == \"none\" or (dx == \"mandate\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The platform reviews",
+      "clock": "turns",
+      "actions": [
+        "data",
+        "base"
+      ]
+    },
+    "close": {
+      "label": "Measurement decision",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "data": {
+      "label": "Check what the pipeline and incident data can measure",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(dataAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "dataAt",
+          "to": "t"
+        },
+        {
+          "log": "You check the data sources.",
+          "kind": "act"
+        },
+        {
+          "finding": "Deploy events give deployment frequency and lead time from commit to production; incident records linked to deploys give change failure rate and time to restore, per team."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "base": {
+      "label": "Read last quarter's baseline for teams on and off the platform",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(baseAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "baseAt",
+          "to": "t"
+        },
+        {
+          "log": "You read the baseline.",
+          "kind": "act"
+        },
+        {
+          "finding": "Teams on the platform deploy 4 times a week with 2-day lead time; teams off it deploy twice a month with 9-day lead time; change failure rates are similar."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Record the measurement decision",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the decision says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "The four DORA metrics per team with a baseline, used for team improvement only, plus adoption, time to first deploy, support load and satisfaction"
+                },
+                {
+                  "value": "summary",
+                  "label": "Platform metrics agreed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next platform review",
+      "wait": {
+        "skipLabel": "Go to the next platform review"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "which == \"activity\"",
+              "then": [
+                {
+                  "log": "Week 2: commit counts double as people split changes; incidents rise 30% and nothing about delivery improved.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "use == \"people\"",
+              "then": [
+                {
+                  "log": "Week 3: two senior engineers leave; teams stop reporting incidents linked to deploys to protect their change failure rate.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "dx == \"mandate\"",
+              "then": [
+                {
+                  "log": "Week 4: two of the six teams build a shadow deploy script around the platform to meet the mandate; one bypasses its security checks.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "7d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The measurement plan is agreed.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "7d"
+        }
+      ]
+    },
+    {
+      "id": "t_which",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 1: choosing the metrics.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "whichPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_use",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 2: how the numbers are used.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "usePrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_dx",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 3: adoption.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "dxPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "whichPrompt": {
+      "title": "What to measure",
+      "context": "Finance proposes commits and tickets closed per developer.",
+      "choices": [
+        {
+          "id": "four",
+          "label": "Use the DORA delivery metrics per team (deployment frequency, change lead time, change fail rate, and failed deployment recovery time, DORA's current name for time to restore), from pipeline and incident data, with the pre-platform baseline",
+          "effects": [
+            {
+              "set": "which",
+              "to": "\"four\""
+            },
+            {
+              "set": "whichAt",
+              "to": "t"
+            },
+            {
+              "add": "vp",
+              "by": "1"
+            },
+            {
+              "log": "The four keys are agreed, per team, with a baseline.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "The four keys balance speed (frequency, lead time) against stability (failure rate, restore time)."
+        },
+        {
+          "id": "speedOnly",
+          "label": "Report deployment frequency only: it is the easiest to show",
+          "effects": [
+            {
+              "set": "which",
+              "to": "\"speedOnly\""
+            },
+            {
+              "set": "whichAt",
+              "to": "t"
+            },
+            {
+              "add": "vp",
+              "by": "-1"
+            },
+            {
+              "log": "Only deployment frequency is reported.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Speed without stability can be gamed by shipping smaller broken changes."
+        },
+        {
+          "id": "activity",
+          "label": "Accept finance's commits and tickets per developer",
+          "effects": [
+            {
+              "set": "which",
+              "to": "\"activity\""
+            },
+            {
+              "set": "whichAt",
+              "to": "t"
+            },
+            {
+              "add": "vp",
+              "by": "-2"
+            },
+            {
+              "log": "Commits and tickets per developer are adopted.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Activity counts reward splitting work and closing tickets, not delivering safely."
+        }
+      ]
+    },
+    "usePrompt": {
+      "title": "A league table?",
+      "context": "The VP asks for a ranking of teams and individuals in the monthly all-hands.",
+      "choices": [
+        {
+          "id": "improve",
+          "label": "Show each team its own trend and the platform's effect, use them in team retrospectives, and never rank individuals",
+          "effects": [
+            {
+              "set": "use",
+              "to": "\"improve\""
+            },
+            {
+              "set": "useAt",
+              "to": "t"
+            },
+            {
+              "add": "teams",
+              "by": "1"
+            },
+            {
+              "log": "Teams see their own trends.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "DORA metrics guide a team's improvement; ranking turns them into targets that get gamed."
+        },
+        {
+          "id": "teamsRank",
+          "label": "Rank teams, not individuals, at the all-hands",
+          "effects": [
+            {
+              "set": "use",
+              "to": "\"teamsRank\""
+            },
+            {
+              "set": "useAt",
+              "to": "t"
+            },
+            {
+              "add": "teams",
+              "by": "-1"
+            },
+            {
+              "log": "A team ranking is shown.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Less harmful, but teams with harder systems look worst and start optimizing the number."
+        },
+        {
+          "id": "people",
+          "label": "Rank individuals and tie it to reviews",
+          "effects": [
+            {
+              "set": "use",
+              "to": "\"people\""
+            },
+            {
+              "set": "useAt",
+              "to": "t"
+            },
+            {
+              "add": "teams",
+              "by": "-2"
+            },
+            {
+              "log": "Individuals are ranked.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "When a measure becomes a target for people's reviews, it stops measuring anything."
+        }
+      ]
+    },
+    "dxPrompt": {
+      "title": "Mandate or measure?",
+      "context": "Six teams still deploy outside the platform. Support tickets about the platform doubled last quarter.",
+      "choices": [
+        {
+          "id": "product",
+          "label": "Track adoption, time to first deploy, support load and a short quarterly satisfaction survey; interview the six teams and fix what keeps them off",
+          "effects": [
+            {
+              "set": "dx",
+              "to": "\"product\""
+            },
+            {
+              "set": "dxAt",
+              "to": "t"
+            },
+            {
+              "add": "plat",
+              "by": "1"
+            },
+            {
+              "log": "Platform-as-product measures and interviews.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A platform is a product: adoption earned by solving users' problems, measured with their feedback."
+        },
+        {
+          "id": "adoptionOnly",
+          "label": "Track adoption only",
+          "effects": [
+            {
+              "set": "dx",
+              "to": "\"adoptionOnly\""
+            },
+            {
+              "set": "dxAt",
+              "to": "t"
+            },
+            {
+              "add": "plat",
+              "by": "-1"
+            },
+            {
+              "log": "Adoption is tracked.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "You see who uses it, not why the six don't, or how painful it is."
+        },
+        {
+          "id": "mandate",
+          "label": "Mandate the platform for everyone by next month; no survey",
+          "effects": [
+            {
+              "set": "dx",
+              "to": "\"mandate\""
+            },
+            {
+              "set": "dxAt",
+              "to": "t"
+            },
+            {
+              "add": "plat",
+              "by": "-2"
+            },
+            {
+              "log": "The platform is mandated.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Forced adoption without fixing the pain points pushes teams to workarounds."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the measurement decision for the CFO: what the platform will be measured on, how the numbers will be used, and what it shows so far.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Delivery",
+          "criteria": "The four DORA metrics per team against the baseline; used for team improvement, not ranking.",
+          "modelAnswer": "Teams on the platform deploy 4 times a week with 2-day lead time against twice a month and 9 days; failure rates are similar. We use these for team improvement only."
+        },
+        {
+          "label": "The platform as a product",
+          "criteria": "Adoption, time to first deploy, support load and satisfaction; the six teams interviewed.",
+          "modelAnswer": "We track adoption, time to first deploy, support load and a quarterly survey, and are fixing what keeps six teams off."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "governance",
+    "thresholds": {
+      "aboveAppetite": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No risk above appetite at the close without a treatment."
+        }
+      },
+      "supportTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Each key stakeholder at 6 of 10 or more at the close."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (which == \"speedOnly\") and (use == \"teamsRank\") and (dx == \"adoptionOnly\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CNCF Certified Cloud Native Platform Engineering Associate (CNPA) curriculum: Platform Engineering Core Fundamentals 36%, Platform Observability, Security and Conformance 20%, Continuous Delivery and Platform Engineering 16%, Platform APIs and Provisioning Infrastructure 12%, IDPs and Developer Experience 8%, Measuring your Platform 8%",
+        "checkedAt": "2026-11-17",
+        "url": "https://kube-dojo.github.io/k8s/cnpa",
+        "note": "On 2026-11-17 the weights were confirmed through a third-party study page (kube-dojo.github.io/k8s/cnpa, summarizing fetch), which lists 'GitOps fundamentals' and continuous delivery in the core fundamentals domain and says to 'understand why GitOps uses pull-based reconciliation'. The official curriculum was not re-read; the objective wording is the course seed's. Reused for REQ-336 from this course's service-selector-no-endpoints-cnpa (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "whichHarm": {
+      "label": "Metrics gamed",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and which == \"activity\"",
+      "narrative": "Commit and ticket counts doubled through splitting work while incidents rose 30%."
+    },
+    "useHarm": {
+      "label": "The metrics corrupted",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and use == \"people\"",
+      "narrative": "Ranking individuals drove two engineers out and teams stopped linking incidents to deploys."
+    },
+    "dxHarm": {
+      "label": "Shadow workarounds",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and dx == \"mandate\"",
+      "narrative": "The mandate produced shadow deploy scripts; one bypassed the platform's security checks."
+    },
+    "target": {
+      "label": "Measured on outcomes, used for learning",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (which == \"four\") and (use == \"improve\") and (dx == \"product\") and record == \"honest\" and openCount <= aboveAppetite and minSupport >= supportTarget",
+      "narrative": "The CFO gets an honest picture of the platform's effect, and the teams get numbers that help them improve."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "whichHarm",
+    "useHarm",
+    "dxHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "whichCrit",
+        "label": "Measured delivery outcomes with the four DORA metrics",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "which == \"four\"",
+            "score": "met",
+            "why": "Balanced outcome metrics."
+          },
+          {
+            "when": "which == \"speedOnly\"",
+            "score": "partial",
+            "why": "Half the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Measured activity."
+          }
+        ]
+      },
+      {
+        "id": "useCrit",
+        "label": "Used metrics for team improvement, not to rank people",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "use == \"improve\"",
+            "score": "met",
+            "why": "Used for learning."
+          },
+          {
+            "when": "use == \"teamsRank\"",
+            "score": "partial",
+            "why": "Ranking invites gaming."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Ranked people."
+          }
+        ]
+      },
+      {
+        "id": "dxCrit",
+        "label": "Measured adoption, satisfaction and support load and treated the platform as a product",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "dx == \"product\"",
+            "score": "met",
+            "why": "Product measures."
+          },
+          {
+            "when": "dx == \"adoptionOnly\"",
+            "score": "partial",
+            "why": "Partial view."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Forced, not earned."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(dataAt) and not isNull(baseAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(dataAt) or not isNull(baseAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 10)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Check the data and the teams' baseline before the first review."
+      },
+      {
+        "at": "Week 1",
+        "text": "Measure the four DORA metrics per team against the baseline."
+      },
+      {
+        "at": "Week 2",
+        "text": "Share team trends for improvement and never rank individuals."
+      },
+      {
+        "at": "Week 3",
+        "text": "Measure adoption, time to first deploy, support load and satisfaction; fix what keeps teams off."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "whichHarm": {
+        "headline": "Measure outcomes",
+        "body": "The four DORA metrics measure delivery speed and stability, per team."
+      },
+      "useHarm": {
+        "headline": "Team learning, not ranking",
+        "body": "DORA metrics guide team improvement; ranking people corrupts them."
+      },
+      "dxHarm": {
+        "headline": "Earn adoption",
+        "body": "Treat the platform as a product: measure adoption and satisfaction, and fix what users hit."
+      },
+      "target": {
+        "headline": "Good: measured on outcomes, used for learning",
+        "body": "DORA metrics per team, used for improvement, with product measures of the platform itself."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "DORA's keys measure software delivery outcomes (DORA's current model calls time to restore failed deployment recovery time and adds deployment rework rate): deployment frequency and lead time for speed, change failure rate and time to restore for stability, per team and against a baseline. They guide improvement; ranking teams or people makes them targets and corrupts them. A platform is a product: its own measures are adoption, time to first deploy, support load and developer satisfaction, and adoption is earned rather than mandated."
+  }
+}

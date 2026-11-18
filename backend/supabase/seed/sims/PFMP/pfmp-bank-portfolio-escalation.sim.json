@@ -1,0 +1,1093 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pfmp-bank-portfolio-escalation",
+  "title": "A bank's change portfolio: an issue escalated to the right level, performance consolidated for the board, and resources rebalanced",
+  "screen": {
+    "type": "governance-board",
+    "level": 1,
+    "governance": {
+      "risks": [
+        {
+          "id": "rEsc",
+          "label": "Shared vendor delay across components",
+          "spokenLabel": "Shared vendor delay across components",
+          "owner": "\"Portfolio manager\"",
+          "rating": "esc == \"board\" ? \"low\" : esc == \"later\" ? \"medium\" : esc == \"bury\" ? \"critical\" : p >= 1 ? \"high\" : \"medium\"",
+          "appetite": "esc == \"board\" ? \"within\" : esc == \"later\" ? \"within\" : esc == \"bury\" ? \"above\" : p >= 1 ? \"above\" : \"within\"",
+          "status": "{esc == \"board\" ? \"Escalated to the board with options\" : esc == \"later\" ? \"Escalation delayed a month\" : esc == \"bury\" ? \"Absorbed without the board\" : \"Open\"}"
+        },
+        {
+          "id": "rPerf",
+          "label": "Board can't see portfolio performance",
+          "spokenLabel": "Board can't see portfolio performance",
+          "owner": "\"Portfolio manager\"",
+          "rating": "perf == \"consolidate\" ? \"low\" : perf == \"bundle\" ? \"medium\" : perf == \"rag\" ? \"critical\" : p >= 2 ? \"high\" : \"medium\"",
+          "appetite": "perf == \"consolidate\" ? \"within\" : perf == \"bundle\" ? \"within\" : perf == \"rag\" ? \"above\" : p >= 2 ? \"above\" : \"within\"",
+          "status": "{perf == \"consolidate\" ? \"Consolidated dashboard\" : perf == \"bundle\" ? \"24 separate reports\" : perf == \"rag\" ? \"RAG list only\" : \"Open\"}"
+        },
+        {
+          "id": "rRes",
+          "label": "Skills shortage on strategic components",
+          "spokenLabel": "Skills shortage on strategic components",
+          "owner": "\"Portfolio manager\"",
+          "rating": "res == \"rebalance\" ? \"low\" : res == \"hire\" ? \"medium\" : res == \"grab\" ? \"critical\" : p >= 3 ? \"high\" : \"medium\"",
+          "appetite": "res == \"rebalance\" ? \"within\" : res == \"hire\" ? \"within\" : res == \"grab\" ? \"above\" : p >= 3 ? \"above\" : \"within\"",
+          "status": "{res == \"rebalance\" ? \"Reallocation approved by priority\" : res == \"hire\" ? \"Contractors requested\" : res == \"grab\" ? \"Moved without agreement\" : \"Open\"}"
+        }
+      ],
+      "stakeholders": [
+        {
+          "id": "sBoard",
+          "label": "Portfolio board chair",
+          "spokenLabel": "the board chair's support",
+          "value": "board",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sCfo",
+          "label": "CFO",
+          "spokenLabel": "the CFO's support",
+          "value": "cfo",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sPms",
+          "label": "Program and project managers",
+          "spokenLabel": "the managers' support",
+          "value": "pms",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "docket": [
+        {
+          "id": "dEsc",
+          "kind": "Issue escalation",
+          "label": "Meeting 1: vendor delay",
+          "status": "{esc == \"board\" ? \"Escalated to the board with options\" : esc == \"later\" ? \"Escalation delayed a month\" : esc == \"bury\" ? \"Absorbed without the board\" : \"Due\"}",
+          "when": "p >= 1",
+          "flag": "p >= 1 and esc == \"none\""
+        },
+        {
+          "id": "dPerf",
+          "kind": "Performance reporting",
+          "label": "Meeting 2: board report",
+          "status": "{perf == \"consolidate\" ? \"Consolidated dashboard\" : perf == \"bundle\" ? \"24 separate reports\" : perf == \"rag\" ? \"RAG list only\" : \"Due\"}",
+          "when": "p >= 2",
+          "flag": "p >= 2 and perf == \"none\""
+        },
+        {
+          "id": "dRes",
+          "kind": "Resource allocation",
+          "label": "Meeting 3: data engineers",
+          "status": "{res == \"rebalance\" ? \"Reallocation approved by priority\" : res == \"hire\" ? \"Contractors requested\" : res == \"grab\" ? \"Moved without agreement\" : \"Due\"}",
+          "when": "p >= 3",
+          "flag": "p >= 3 and res == \"none\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Meeting",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Managing and escalating issues to appropriate decision-makers for timely resolution",
+  "secondaryObjectives": [
+    "Collecting and consolidating key performance metrics defined by the portfolio governance model",
+    "Analyzing and optimizing resource allocation/reallocation (people, tools, technology, finance) via supply/demand analysis"
+  ],
+  "sources": [
+    {
+      "cite": "PMI, Portfolio Management Professional (PfMP) Examination Content Outline (PRA-206-2017, July 2017): Strategic Alignment 25%, Governance 20%, Portfolio Performance 25%, Portfolio Risk Management 15%, Communications Management 15%",
+      "checkedAt": "2026-11-17",
+      "url": "https://prothoughtssolutions.com/wp-content/uploads/2020/04/portfolio-management-professional-exam-outline.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch of a copy of PMI's PDF hosted by a training provider. Relevant text: Strategic Alignment Task 5 scenarios 'in order to evaluate and select viable options'; Task 6 'Recommend portfolio scenario(s) and related components, based on prioritization analysis/criteria'; Task 7 'Determine the impact to portfolio and portfolio components due to changes in strategic goals and objectives'; Portfolio Performance Task 6 'Balance portfolio and prioritize portfolio components, using established criteria and methods'; Task 7 'Analyze and optimize the consolidated allocation/reallocation of capacity'; Governance Task 5 'Make recommendations and obtain approval regarding portfolio decisions'. Whether PMI has a newer outline was not checked. The objective wording is the course seed's. Reused for REQ-336 from this course's pfmp-water-utility-rebalance (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the portfolio or program, the figures and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the portfolio manager for Harrowby Bank's change portfolio, a fictional bank: 24 components and 180 million dollars. The portfolio board meets fortnightly and decides on anything above the thresholds in the governance model.",
+    "handover": [
+      "Governance model: issues affecting more than one component or more than 2 million dollars go to the portfolio board.",
+      "Each component reports its own metrics in its own format."
+    ],
+    "howItWorks": [
+      "The board shows the risk register against the appetite, each stakeholder's support in words and the docket.",
+      "Move on a fortnight at a time. A decision comes to you at each board meeting; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-02-01T09:00",
+    "tick": "1d",
+    "maxDuration": "168d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "board": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "cfo": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "pms": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "esc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "board",
+        "later",
+        "bury"
+      ],
+      "init": "none"
+    },
+    "escAt": {
+      "type": "time",
+      "init": null
+    },
+    "perf": {
+      "type": "enum",
+      "values": [
+        "none",
+        "consolidate",
+        "bundle",
+        "rag"
+      ],
+      "init": "none"
+    },
+    "perfAt": {
+      "type": "time",
+      "init": null
+    },
+    "res": {
+      "type": "enum",
+      "values": [
+        "none",
+        "rebalance",
+        "hire",
+        "grab"
+      ],
+      "init": "none"
+    },
+    "resAt": {
+      "type": "time",
+      "init": null
+    },
+    "metricsAt": {
+      "type": "time",
+      "init": null
+    },
+    "supplyAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(board, cfo), pms)"
+    },
+    "missCount": {
+      "expr": "((esc == \"bury\") ? 1 : 0) + ((perf == \"rag\") ? 1 : 0) + ((res == \"grab\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(esc == \"none\" or (esc == \"bury\") ? 1 : 0) + (perf == \"none\" or (perf == \"rag\") ? 1 : 0) + (res == \"none\" or (res == \"grab\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Portfolio performance",
+      "clock": "turns",
+      "actions": [
+        "metrics",
+        "supply"
+      ]
+    },
+    "close": {
+      "label": "Board record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "metrics": {
+      "label": "Consolidate the components' metrics against the governance model",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(metricsAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "metricsAt",
+          "to": "t"
+        },
+        {
+          "log": "Consolidate the components' metrics against the governance model.",
+          "kind": "act"
+        },
+        {
+          "finding": "Six components are behind; two share a vendor whose delay affects both, a 4 million dollar issue across components."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2d"
+        }
+      ]
+    },
+    "supply": {
+      "label": "Run a supply and demand analysis for key skills",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(supplyAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "supplyAt",
+          "to": "t"
+        },
+        {
+          "log": "Run a supply and demand analysis for key skills.",
+          "kind": "act"
+        },
+        {
+          "finding": "Demand for data engineers is 140% of supply in Q3; two low-priority components hold six of them."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2d"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Record the board decisions",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "The vendor issue escalated with options, consolidated metrics, and the reallocation approved by priority"
+                },
+                {
+                  "value": "summary",
+                  "label": "Portfolio on track"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next board meeting",
+      "wait": {
+        "skipLabel": "Go to the next board meeting"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "esc == \"bury\"",
+              "then": [
+                {
+                  "log": "Meeting 2: both contingencies run out; the board learns of the 4 million dollar overrun when the CFO's forecast breaks.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "perf == \"rag\"",
+              "then": [
+                {
+                  "log": "Meeting 3: the board funds a new initiative from a 'green' portfolio that is actually 6 million dollars over forecast.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "res == \"grab\"",
+              "then": [
+                {
+                  "log": "Meeting 4: two component managers discover the moves from their burn-down; one escalates to the COO and the reallocation is reversed.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "14d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The quarter closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "14d"
+        }
+      ]
+    },
+    {
+      "id": "t_esc",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Meeting 1: the shared vendor delay.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "escPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_perf",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Meeting 2: the board report.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "perfPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_res",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Meeting 3: data engineers.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "resPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "escPrompt": {
+      "title": "A 4 million dollar issue across two components",
+      "context": "Both program managers want to handle it themselves.",
+      "choices": [
+        {
+          "id": "board",
+          "label": "Escalate to the portfolio board with the impact on both components, options and a recommendation, as the governance model requires",
+          "effects": [
+            {
+              "set": "esc",
+              "to": "\"board\""
+            },
+            {
+              "set": "escAt",
+              "to": "t"
+            },
+            {
+              "add": "board",
+              "by": "1"
+            },
+            {
+              "log": "The board decides the vendor response.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Issues above the thresholds or across components go to the level with authority, in time."
+        },
+        {
+          "id": "later",
+          "label": "Let the two managers try for a month, then escalate",
+          "effects": [
+            {
+              "set": "esc",
+              "to": "\"later\""
+            },
+            {
+              "set": "escAt",
+              "to": "t"
+            },
+            {
+              "add": "board",
+              "by": "-1"
+            },
+            {
+              "log": "It waits a month.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The board loses a month to act."
+        },
+        {
+          "id": "bury",
+          "label": "Absorb it in the components' contingencies without telling the board",
+          "effects": [
+            {
+              "set": "esc",
+              "to": "\"bury\""
+            },
+            {
+              "set": "escAt",
+              "to": "t"
+            },
+            {
+              "add": "board",
+              "by": "-2"
+            },
+            {
+              "log": "It's absorbed quietly.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "A 4 million dollar cross-component issue is above your authority."
+        }
+      ]
+    },
+    "perfPrompt": {
+      "title": "24 formats",
+      "context": "Each component reports differently.",
+      "choices": [
+        {
+          "id": "consolidate",
+          "label": "Report the governance model's metrics consolidated across components (strategic contribution, SPI and CPI, benefits forecast, risk exposure) on one dashboard",
+          "effects": [
+            {
+              "set": "perf",
+              "to": "\"consolidate\""
+            },
+            {
+              "set": "perfAt",
+              "to": "t"
+            },
+            {
+              "add": "cfo",
+              "by": "1"
+            },
+            {
+              "log": "The board sees one consolidated view.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Consolidated metrics show portfolio performance against strategy."
+        },
+        {
+          "id": "bundle",
+          "label": "Attach all 24 component reports",
+          "effects": [
+            {
+              "set": "perf",
+              "to": "\"bundle\""
+            },
+            {
+              "set": "perfAt",
+              "to": "t"
+            },
+            {
+              "add": "cfo",
+              "by": "-1"
+            },
+            {
+              "log": "24 reports go to the board.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The board can't see the portfolio as a whole."
+        },
+        {
+          "id": "rag",
+          "label": "Show a red-amber-green list only",
+          "effects": [
+            {
+              "set": "perf",
+              "to": "\"rag\""
+            },
+            {
+              "set": "perfAt",
+              "to": "t"
+            },
+            {
+              "add": "cfo",
+              "by": "-2"
+            },
+            {
+              "log": "A RAG list is shown.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Colors without figures hide the 4 million issue's effect on strategy."
+        }
+      ]
+    },
+    "resPrompt": {
+      "title": "Demand 140% of supply",
+      "context": "Two low-priority components hold six engineers.",
+      "choices": [
+        {
+          "id": "rebalance",
+          "label": "Recommend moving four engineers from the two low-priority components to the strategic ones, with the schedule effect on each, for the board to approve",
+          "effects": [
+            {
+              "set": "res",
+              "to": "\"rebalance\""
+            },
+            {
+              "set": "resAt",
+              "to": "t"
+            },
+            {
+              "add": "pms",
+              "by": "1"
+            },
+            {
+              "log": "The board approves the reallocation.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Supply and demand analysis plus the prioritization model justify reallocation; the board approves it."
+        },
+        {
+          "id": "hire",
+          "label": "Ask for budget to hire contractors",
+          "effects": [
+            {
+              "set": "res",
+              "to": "\"hire\""
+            },
+            {
+              "set": "resAt",
+              "to": "t"
+            },
+            {
+              "add": "pms",
+              "by": "-1"
+            },
+            {
+              "log": "A contractor request goes in.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "It may help in months; priorities stay misaligned now."
+        },
+        {
+          "id": "grab",
+          "label": "Move the engineers yourself without telling the component managers",
+          "effects": [
+            {
+              "set": "res",
+              "to": "\"grab\""
+            },
+            {
+              "set": "resAt",
+              "to": "t"
+            },
+            {
+              "add": "pms",
+              "by": "-2"
+            },
+            {
+              "log": "Engineers are moved quietly.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Moving people without the board or the managers breaks trust and plans."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the portfolio performance note for the board.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Issues and performance",
+          "criteria": "The vendor issue escalated per the model; consolidated metrics.",
+          "modelAnswer": "The 4 million dollar vendor issue across two components came to you as the model requires; the dashboard consolidates the governance metrics."
+        },
+        {
+          "label": "Resources",
+          "criteria": "Supply and demand; reallocation by priority approved.",
+          "modelAnswer": "Data engineers were at 140% of supply; you approved moving four from low-priority components."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "governance",
+    "thresholds": {
+      "aboveAppetite": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No risk above appetite at the close without a treatment."
+        }
+      },
+      "supportTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Each key stakeholder at 6 of 10 or more at the close."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (esc == \"later\") and (perf == \"bundle\") and (res == \"hire\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "PMI, Portfolio Management Professional (PfMP) Examination Content Outline (PRA-206-2017, July 2017): Strategic Alignment 25%, Governance 20%, Portfolio Performance 25%, Portfolio Risk Management 15%, Communications Management 15%",
+        "checkedAt": "2026-11-17",
+        "url": "https://prothoughtssolutions.com/wp-content/uploads/2020/04/portfolio-management-professional-exam-outline.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch of a copy of PMI's PDF hosted by a training provider. Relevant text: Strategic Alignment Task 5 scenarios 'in order to evaluate and select viable options'; Task 6 'Recommend portfolio scenario(s) and related components, based on prioritization analysis/criteria'; Task 7 'Determine the impact to portfolio and portfolio components due to changes in strategic goals and objectives'; Portfolio Performance Task 6 'Balance portfolio and prioritize portfolio components, using established criteria and methods'; Task 7 'Analyze and optimize the consolidated allocation/reallocation of capacity'; Governance Task 5 'Make recommendations and obtain approval regarding portfolio decisions'. Whether PMI has a newer outline was not checked. The objective wording is the course seed's. Reused for REQ-336 from this course's pfmp-water-utility-rebalance (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "escHarm": {
+      "label": "A hidden overrun",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and esc == \"bury\"",
+      "narrative": "The board learned of the overrun only when the forecast broke."
+    },
+    "perfHarm": {
+      "label": "A decision on colors",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and perf == \"rag\"",
+      "narrative": "The board approved new spending on a 'green' portfolio that was over forecast."
+    },
+    "resHarm": {
+      "label": "A reversed reallocation",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and res == \"grab\"",
+      "narrative": "Moving engineers quietly was escalated and reversed; the strategic components lost a month."
+    },
+    "target": {
+      "label": "Portfolio steered through governance",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (esc == \"board\") and (perf == \"consolidate\") and (res == \"rebalance\") and record == \"honest\" and openCount <= aboveAppetite and minSupport >= supportTarget",
+      "narrative": "Issues reached the board in time, performance was visible, and resources followed priority."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "escHarm",
+    "perfHarm",
+    "resHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "escCrit",
+        "label": "Escalated the cross-component issue to the board per the governance model",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "esc == \"board\"",
+            "score": "met",
+            "why": "Right level."
+          },
+          {
+            "when": "esc == \"later\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Bypassed governance."
+          }
+        ]
+      },
+      {
+        "id": "perfCrit",
+        "label": "Consolidated metrics per the governance model for the board",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "perf == \"consolidate\"",
+            "score": "met",
+            "why": "Consolidated."
+          },
+          {
+            "when": "perf == \"bundle\"",
+            "score": "partial",
+            "why": "Not consolidated."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Uninformative."
+          }
+        ]
+      },
+      {
+        "id": "resCrit",
+        "label": "Rebalanced resources by priority through the board",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "res == \"rebalance\"",
+            "score": "met",
+            "why": "By priority."
+          },
+          {
+            "when": "res == \"hire\"",
+            "score": "partial",
+            "why": "Slow."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Outside authority."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(metricsAt) and not isNull(supplyAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(metricsAt) or not isNull(supplyAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 10)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Consolidate the metrics and check the escalation thresholds first."
+      },
+      {
+        "at": "Meeting 1",
+        "text": "Escalate the cross-component issue to the board with options."
+      },
+      {
+        "at": "Meeting 2",
+        "text": "Consolidate the governance model's metrics on one dashboard."
+      },
+      {
+        "at": "Meeting 3",
+        "text": "Recommend reallocating by priority for the board's approval."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "escHarm": {
+        "headline": "Escalate per the model",
+        "body": "Issues above thresholds go to the board, in time."
+      },
+      "perfHarm": {
+        "headline": "Consolidate the metrics",
+        "body": "Report the governance model's metrics across the portfolio."
+      },
+      "resHarm": {
+        "headline": "Rebalance through governance",
+        "body": "Recommend, and let the board decide."
+      },
+      "target": {
+        "headline": "Good: portfolio steered through governance",
+        "body": "Escalation per the model, consolidated metrics, and governed rebalancing."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Portfolio performance management consolidates the governance model's metrics so the board sees the whole portfolio against strategy. Issues are escalated to the level with authority, as the thresholds say, in time to act. Resources are rebalanced from supply and demand analysis and the prioritization model, with the board's approval."
+  }
+}
