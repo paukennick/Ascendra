@@ -233,4 +233,47 @@ describe("REQ-336: the robust rule for every course in scope", () => {
       }
     }
   });
+
+  // The lead's follow-up: purpose-written cases (not only bands) for each
+  // course's top two domains. Rank units by weight; w2 is the second unit's
+  // weight. Every unit weighted above w2 needs a scenario, and enough of the
+  // units tied at w2 do to make two domains (one tied unit when a single unit
+  // leads; two when several share the top weight).
+  test("each course's top two domains have a purpose-written case, not only a band", () => {
+    for (const code of SCOPE) {
+      const track = CATALOG_TRACKS.find((t) => t.code === code)!;
+      const units = activeUnits(track).filter((u) => typeof u.weight === "number");
+      if (units.length < 2) continue; // no unit weights (Linux Fundamentals)
+      const w2 = units.map((u) => u.weight as number).sort((a, b) => b - a)[1];
+      const scenarioUnits = new Set(
+        ALL_DOCUMENTS.filter((e) => e.course === code && e.kind === "scenario").map((e) => mainUnit(code, loadDocument(e).objective)?.title),
+      );
+      const higher = units.filter((x) => (x.weight as number) > w2);
+      for (const u of higher) assert.ok(scenarioUnits.has(u.title), `${code}: top domain "${u.title}" has no purpose-written case`);
+      const tied = units.filter((x) => x.weight === w2);
+      const covered = tied.filter((u) => scenarioUnits.has(u.title)).length;
+      assert.ok(covered >= 2 - higher.length, `${code}: ${covered} purpose-written case(s) among the domains tied at ${w2} (${tied.map((u) => u.title).join(", ")})`);
+    }
+  });
+});
+
+describe("REQ-336: sources", () => {
+  // Facts a case's scoring depends on cite the primary page, read with
+  // WebFetch; a search-listing source marked "to verify" may remain only as a
+  // course outline (the first source) or in this allow-list of pages a band
+  // inherits from another builder's base and that could not be reached here.
+  const INHERITED_UNVERIFIED = new Set([
+    "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+    "https://www.nist.gov/publications/guide-test-training-and-exercise-programs-it-plans-and-capabilities-0",
+  ]);
+  test("no non-outline source is marked to verify, and every primary reading has an address and a read date", () => {
+    for (const w of DEPTH_ISP) {
+      const d = docOf(w.slug);
+      const [, ...rest] = d.sources ?? [];
+      for (const s of rest as { cite: string; note?: string; url?: string; checkedAt?: string }[]) {
+        if ((s.note ?? "").includes("to verify")) assert.ok(s.url && INHERITED_UNVERIFIED.has(s.url), `${w.slug}: "${s.cite}" is still marked to verify`);
+        if ((s.note ?? "").includes("with WebFetch")) assert.ok(s.url && /^\d{4}-\d{2}-\d{2}$/.test(s.checkedAt ?? ""), `${w.slug}: "${s.cite}" lacks an address or read date`);
+      }
+    }
+  });
 });

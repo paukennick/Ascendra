@@ -7712,7 +7712,7 @@ document by slug; `lib/sim/depth-isp.test.ts` checks registration, objectives,
 goldens, bands, the claim words, the behavior of every new case (the expert
 choices reach target with no harm; each harm choice, with every other decision
 right, reaches its own harm ending; a partly right first decision is
-recovered), and the robust rule for all 41 courses.
+recovered), the robust rule for all 41 courses, a purpose-written case in each course's top two domains (units ranked by weight, ties counted), and source quality (no non-outline source left marked to verify, apart from two NIST pages two bands inherit; every WebFetch reading has an address and a read date).
 
 Bands (4.7) register a case on another course's objective that it teaches,
 with this course's outline first. Cross-level bands, flagged as in 22.29
@@ -7738,27 +7738,27 @@ the seed):
 | CAPA | 16 | 4 | 1 | 4 | 3 / 0 |
 | CBA | 20 | 4 | 1 | 4 | 3 / 0 |
 | CCA | 27 | 4 | 1 | 4 | 3 / 0 |
-| CGOA | 27 | 4 | 1 | 4 | 2 / 1 |
+| CGOA | 27 | 4 | 1 | 5 | 3 / 1 |
 | CKS | 28 | 4 | 1 | 4 | 2 / 1 |
 | ICA | 18 | 4 | 1 | 4 | 3 / 0 |
 | KCA | 31 | 4 | 1 | 4 | 3 / 0 |
 | OTCA | 22 | 4 | 1 | 4 | 3 / 0 |
 | PCA | 30 | 4 | 1 | 4 | 3 / 0 |
 | CKAD | 33 | 4 | 2 | 4 | 2 / 0 |
-| CNPA | 27 | 4 | 2 | 4 | 2 / 0 |
-| CNPE | 18 | 4 | 2 | 5 | 3 / 0 |
-| KCSA | 41 | 4 | 2 | 4 | 1 / 1 |
-| KCNA | 32 | 4 | 3 | 4 | 0 / 1 |
+| CNPA | 27 | 4 | 2 | 6 | 4 / 0 |
+| CNPE | 18 | 4 | 2 | 6 | 4 / 0 |
+| KCSA | 41 | 4 | 2 | 5 | 2 / 1 |
+| KCNA | 32 | 4 | 3 | 5 | 1 / 1 |
 | APLUS_CORE1 | 34 | 4 | 1 | 4 | 3 / 0 |
 | APLUS_CORE2 | 28 | 4 | 2 | 4 | 2 / 0 |
-| DATAAI | 26 | 4 | 2 | 4 | 2 / 0 |
+| DATAAI | 26 | 4 | 2 | 5 | 3 / 0 |
 | PENTESTPLUS | 22 | 4 | 2 | 4 | 2 / 0 |
 | SECAIPLUS | 15 | 4 | 2 | 5 | 3 / 0 |
 | SECURITYX | 19 | 4 | 2 | 5 | 2 / 1 |
-| AUTOOPSPLUS | 14 | 4 | 3 | 4 | 1 / 0 |
-| CYSAPLUS | 56 | 4 | 3 | 8 | 2 / 3 |
-| DATAPLUS | 18 | 4 | 3 | 4 | 1 / 0 |
-| TECHPLUS | 29 | 4 | 3 | 4 | 1 / 0 |
+| AUTOOPSPLUS | 14 | 4 | 3 | 6 | 3 / 0 |
+| CYSAPLUS | 56 | 4 | 3 | 9 | 3 / 3 |
+| DATAPLUS | 18 | 4 | 3 | 5 | 2 / 0 |
+| TECHPLUS | 29 | 4 | 3 | 6 | 3 / 0 |
 | LINUXFUND | 48 | 4 | 3 | 4 | 1 / 0 |
 | CEH | 35 | 4 | 3 | 7 | 2 / 2 |
 | CSPP | 21 | 4 | 1 | 4 | 3 / 0 |
@@ -7766,15 +7766,15 @@ the seed):
 | PFMP | 34 | 4 | 1 | 5 | 3 / 1 |
 | PGMP | 35 | 4 | 1 | 5 | 3 / 1 |
 | PMIPBA | 28 | 4 | 1 | 4 | 3 / 0 |
-| PMIPMOCP | 23 | 4 | 1 | 6 | 4 / 1 |
-| PMISP | 27 | 4 | 1 | 4 | 3 / 0 |
+| PMIPMOCP | 23 | 4 | 1 | 7 | 5 / 1 |
+| PMISP | 27 | 4 | 1 | 5 | 4 / 0 |
 | CSSGB | 43 | 4 | 2 | 4 | 2 / 0 |
-| PMICP | 16 | 4 | 2 | 4 | 2 / 0 |
-| PMICPMAI | 31 | 4 | 2 | 5 | 2 / 1 |
-| PMIRMP | 20 | 4 | 2 | 5 | 2 / 1 |
-| CAPM | 30 | 4 | 3 | 5 | 0 / 2 |
-| CSM | 44 | 4 | 3 | 4 | 0 / 1 |
-| PMIACP | 24 | 4 | 3 | 5 | 2 / 0 |
+| PMICP | 16 | 4 | 2 | 5 | 3 / 0 |
+| PMICPMAI | 31 | 4 | 2 | 6 | 3 / 1 |
+| PMIRMP | 20 | 4 | 2 | 6 | 3 / 1 |
+| CAPM | 30 | 4 | 3 | 7 | 2 / 2 |
+| CSM | 44 | 4 | 3 | 6 | 2 / 1 |
+| PMIACP | 24 | 4 | 3 | 7 | 4 / 0 |
 | PSMI | 37 | 4 | 3 | 5 | 2 / 0 |
 
 | Course / slug | Kind | Main objective (start) |
@@ -7791,6 +7791,7 @@ the seed):
 | CGOA/gitops-claim-review-push-pipeline | scenario | Evaluate a design against the four principles and identify which are v... |
 | CGOA/gitops-store-fleet-patterns | scenario | Architecture patterns: in-cluster versus external reconcilers, hub-and... |
 | CGOA/argocd-prune-moved-database-cgoa | band of CAPA/argocd-prune-moved-database | State drift and state reconciliation: how the actual state diverges an... |
+| CGOA/gitops-rollback-feedback-loop | scenario | Feedback loop and rollback: how observed state informs operators, and ... |
 | CKS/restricted-profile-payments-rollout | scenario | Write a hardened container securityContext: runAsNonRoot, readOnlyRoot... |
 | CKS/image-admission-unsigned-critical-cve | scenario | Secure your supply chain: permit only approved registries with admissi... |
 | CKS/cilium-default-deny-breaks-dns-cks | band of CCA/cilium-default-deny-breaks-dns | Use network security policies to restrict cluster-level access: defaul... |
@@ -7810,12 +7811,17 @@ the seed):
 | CKAD/stuck-rollout-helm-upgrade-failed | scenario | Understand Deployments and perform rolling updates and rollbacks: stra... |
 | CNPA/platform-ingress-outage-tabletop | scenario | Plan incident response in platform engineering: on-call for the platfo... |
 | CNPA/platform-metrics-dora-review | scenario | Measure platform initiatives with DORA metrics: deployment frequency, ... |
+| CNPA/platform-as-product-golden-path | scenario | Platform engineering goals, objectives and approaches: reducing cognit... |
+| CNPA/platform-pipeline-supply-chain | scenario | Secure CI/CD pipelines: supply chain controls, signed artifacts, SBOMs... |
 | CNPE/opencost-rightsizing-review | scenario | Use cost management solutions for right-sizing and scaling: OpenCost a... |
 | CNPE/platform-deploys-failing-webhook-quota | scenario | Diagnose and remediate platform issues and incident scenarios: from al... |
 | CNPE/crossplane-database-claim-api | scenario | Design and create CustomResourceDefinitions for platform services: Ope... |
+| CNPE/tekton-pipeline-updates-git | scenario | Build and configure CI/CD pipelines integrated with Kubernetes: Tekton... |
 | KCSA/secret-read-by-unknown-serviceaccount | scenario | Audit logging: audit stages and levels, writing a policy, what to log ... |
 | KCSA/restricted-profile-payments-rollout-kcsa | band of CKS/restricted-profile-payments-rollout | Malicious code execution and compromised applications in containers: w... |
+| KCSA/kubelet-anonymous-alwaysallow | scenario | Kubelet security: the 10250 API, anonymous authentication and Webhook ... |
 | KCNA/checkout-dashboard-misleading-latency-alert-kcna | band of PCA/checkout-dashboard-misleading-latency-alert | Observability: designing SLIs, SLOs and alerts, and the difference bet... |
+| KCNA/pending-pods-requests-taints-selectors | scenario | Scheduling: how kube-scheduler filters and scores nodes using resource... |
 | APLUS_CORE1/office-server-raid-psu-printer | scenario | Installing and configuring storage devices: SATA and NVMe SSDs, HDDs, ... |
 | APLUS_CORE1/soho-router-forwarding-guest-wifi | scenario | Configuring a SOHO network: static vs. DHCP addressing, NAT, firewall ... |
 | APLUS_CORE1/developer-vm-resources-host-starved | scenario | Configuring and troubleshooting resource allocation for a client-side ... |
@@ -7823,6 +7829,7 @@ the seed):
 | APLUS_CORE2/laptop-bitlocker-uac-firewall | scenario | Configuring Windows security settings: Windows Defender/Firewall, BitL... |
 | DATAAI/churn-model-selection-leakage | scenario | Analyzing experiment and testing results to justify a final model reco... |
 | DATAAI/pricing-ab-test-significance | scenario | Temporal models compared and contrasted: time series (AR, MA, ARIMA), ... |
+| DATAAI/loan-default-trees-forest-boosting | scenario | Tree-based supervised machine-learning concepts: decision trees, rando... |
 | PENTESTPLUS/pentest-password-spray-lockouts | scenario | Password attacks: cracking, spraying, credential stuffing concepts... |
 | PENTESTPLUS/pentest-recon-ot-printer-scope | scenario | Active reconnaissance: port scanning, service enumeration with Nmap... |
 | SECAIPLUS/ai-hiring-screener-compliance | scenario | The impact of compliance on AI business use and development: the EU AI... |
@@ -7832,13 +7839,19 @@ the seed):
 | SECURITYX/threat-intel-campaign-enterprise-hunt | scenario | Enterprise-scale threat management and threat intelligence integration... |
 | SECURITYX/devsecops-pipeline-iot-fleet-crypto | scenario | Secure software development lifecycle and DevSecOps integration... |
 | AUTOOPSPLUS/pipeline-blue-green-slo-iam | scenario | Continuous delivery techniques: canary, blue-green, rolling, and in-pl... |
+| AUTOOPSPLUS/shared-repo-revert-semver-hotfix | scenario | Source control practices: Git remote/local operations, branching strat... |
+| AUTOOPSPLUS/terraform-drift-state-lock | scenario | Configuration management techniques: drift detection, remediation, and... |
 | CYSAPLUS/phish-to-account-takeover-cysa | band of SECPLUS/phish-to-account-takeover | Given a scenario, analyze identity-based indicators (IAM account compr... |
 | CYSAPLUS/ransomware-file-server-cysa | band of SECPLUS/ransomware-file-server | Given a scenario, contain and recover: isolating affected targets, rem... |
 | CYSAPLUS/ransomware-tabletop-cysa | band of CISM/cism-ransomware-tabletop | Communication plan (stakeholder identification, legal team, public rel... |
 | CYSAPLUS/container-cve-compensating-controls | scenario | Mitigation strategies (attack surface management, secure coding best p... |
 | CYSAPLUS/vuln-reporting-kpis-inhibitors | scenario | Vulnerability scan reports, compliance findings, and risk scorecards -... |
+| CYSAPLUS/network-indicators-rogue-scan-beacon | scenario | Given a scenario, analyze network-related indicators: rogue devices, e... |
 | DATAPLUS/branch-sales-merge-duplicates-outliers | scenario | Exploration: finding missing values, duplication, redundancy, and outl... |
+| DATAPLUS/delivery-times-skew-rates-correlation | scenario | Applying basic statistical techniques to data... |
 | TECHPLUS/browser-passwords-ai-assistant-help | scenario | Web browser features: private browsing, add-ons, password management, ... |
+| TECHPLUS/office-wifi-printer-new-ap | scenario | Wireless networks: 802.11 standards, speed, and interference considera... |
+| TECHPLUS/laptop-hotel-wifi-phones-encryption | scenario | Encryption: data at rest, data in transit, HTTPS, VPNs, and mobile dev... |
 | LINUXFUND/ssh-keys-listening-port-copy | scenario | Configure key-based SSH login with ssh-keygen and ssh-copy-id... |
 | CEH/pentest-scope-boundary-ceh | band of PENTESTPLUS/pentest-scope-boundary | Distinguish ethical hacking from attacking: written authorization, sco... |
 | CEH/cloud-iam-backdoor-ceh | band of SECPLUS/cloud-iam-backdoor | Analyze cloud threats and cloud hacking techniques, and apply cloud se... |
@@ -7866,24 +7879,35 @@ the seed):
 | PMIPMOCP/pmo-opm-competency-framework | scenario | Elevating organizational project management (OPM): assessing current c... |
 | PMIPMOCP/pmo-team-competency-kpis | scenario | Assessing and improving PMO team competencies: a role-specific compete... |
 | PMIPMOCP/clinic-fitout-schedule-variance-pmocp | band of PMP/pmp-clinic-fitout-schedule-variance | Leveraging technical skills to deliver results: process optimization, ... |
+| PMIPMOCP/pmo-mandate-charter-sponsor | scenario | Stewarding the PMO mandate: defining scope and authority, drafting a P... |
 | PMISP/hospital-wing-monte-carlo-milestone | scenario | Performing schedule risk analysis (what-if scenarios, Monte Carlo simu... |
 | PMISP/data-center-schedule-plan-integration | scenario | Integrating scheduling-related components into the broader project man... |
 | PMISP/schedule-status-to-steering-committee | scenario | Providing verbal/written schedule status updates and corrective-action... |
+| PMISP/approved-mitigations-schedule-baseline | scenario | Incorporating approved risk-mitigation activities into the schedule un... |
 | CSSGB/define-charter-dpmo-claims | scenario | Writing a project charter: problem statement, scope, primary and conse... |
 | CSSGB/fmea-dispatch-takt-lean | scenario | Building a basic FMEA and calculating and interpreting risk priority n... |
 | PMICP/school-build-change-orders | scenario | Building and managing a change-order process: timing it appropriately ... |
 | PMICP/school-build-stakeholders-culture | scenario | Managing stakeholders effectively: identifying and assessing stakehold... |
+| PMICP/transit-depot-interface-points | scenario | Implementing interface management: planning interface points (IPs) acr... |
 | PMICPMAI/ai-triage-feasibility-risk | scenario | Evaluating initial AI feasibility: technical viability, data availabil... |
 | PMICPMAI/ai-model-selection-interpretability | scenario | Overseeing AI/ML model technique and algorithm selection: supervised/u... |
 | PMICPMAI/ai-hiring-screener-compliance-cpmai | band of SECAIPLUS/ai-hiring-screener-compliance | Overseeing a privacy and security plan: PII governance protocols, encr... |
+| PMICPMAI/returns-forecast-data-readiness | scenario | Determining whether available data meets solution needs, and conveying... |
 | PMIRMP/rail-signalling-risk-plan | scenario | Documenting a risk management plan: roles/responsibilities (RACI), a r... |
 | PMIRMP/airport-baggage-residual-secondary-risks | scenario | Monitoring residual and secondary risks resulting from implemented res... |
 | PMIRMP/hospital-wing-monte-carlo-milestone-rmp | band of PMISP/hospital-wing-monte-carlo-milestone | Performing quantitative analysis: sensitivity analysis (Monte Carlo, d... |
+| PMIRMP/stadium-roof-qualitative-analysis | scenario | Performing qualitative analysis: classifying risks in an RBS, applying... |
 | CAPM/increment-goal-early-feedback-pilot-capm | band of PMIACP/increment-goal-early-feedback-pilot | Preparing and executing task-management steps: interpreting success cr... |
 | CAPM/pba-requirement-change-impact-capm | band of PMIPBA/pba-requirement-change-impact | Using a requirements traceability matrix or product backlog... |
+| CAPM/community-center-issue-risk-scope | scenario | Telling apart an issue, a risk, an assumption, and a constraint, and r... |
+| CAPM/library-app-requirements-techniques | scenario | Matching a requirements-gathering technique to a scenario: user storie... |
 | CSM/po-delegates-backlog-to-analyst-csm | band of PSMI/po-delegates-backlog-to-analyst | Deciding who stays accountable when the Product Owner delegates Produc... |
+| CSM/sprint-review-demo-to-working-session | scenario | Running a Sprint Review as a working session with stakeholders that ca... |
+| CSM/undone-work-end-of-sprint | scenario | Deciding what happens to work that does not meet the Definition of Don... |
 | PMIACP/agile-team-conflict-root-cause | scenario | Facilitating conflict management: identifying a conflict's root cause ... |
 | PMIACP/increment-goal-early-feedback-pilot | scenario | Managing increments: aligning each increment to business priorities, d... |
+| PMIACP/blameless-retro-psychological-safety | scenario | Fostering psychological safety: promoting a no-blame culture, encourag... |
+| PMIACP/wip-limits-flow-interruptions | scenario | Optimizing flow: limiting work in progress at every level, shielding t... |
 | PSMI/po-delegates-backlog-to-analyst | scenario | Deciding who stays accountable when the Product Owner delegates Produc... |
 | PSMI/scrum-master-task-assigner-status-daily | scenario | Recognizing Scrum anti-patterns -- the Scrum Master as task assigner, ... |
 
@@ -7891,38 +7915,94 @@ the seed):
 objective that fits the selection rule now has a sim whose main objective is in
 it (`depth-isp.test.ts`, "the robust rule"); no unit is recorded as no fit.
 
-**Top two domains.** Every top-two domain that had no sim at all now has a
-purpose-written case (CNPE Platform APIs, SecAI+ AI-assisted Security, SecurityX
-Security Engineering, CEH Reconnaissance, besides those listed above); KCA and
-CKAD's ties at the second weight have a purpose-written case in one of the tied
-domains. Still covered only by a band in a top-two domain (open for a later
-round; the rule prefers, but does not require, purpose-written cases there):
-CGOA Terminology; CNPA Core Fundamentals and Observability; CNPE GitOps; KCSA
-Cluster Component Security; KCNA Fundamentals; DataAI Machine Learning;
-AutoOps+ Coding and System Configuration; CySA+ Security Operations
-(CS0-004); Data+ Data Analysis; Tech+ Infrastructure and Security; PMI-PMOCP
-Strategic Elements; PMI-SP Monitoring and Controlling; PMI-CP Contracts; PMI-CPMAI
-Data Needs; PMI-RMP Risk Analysis; CAPM Fundamentals and Business Analysis; CSM
-Events and Artifacts (Scrum Sprint bands of the PSMI cases); PMI-ACP Mindset and
-Delivery. Linux Fundamentals has no unit weights.
+**Top two domains.** Every top-two domain now has a purpose-written case. The
+first pass covered the domains that had no sim at all (CNPE Platform APIs,
+SecAI+ AI-assisted Security, SecurityX Security Engineering, CEH
+Reconnaissance); KCA and CKAD's ties at the second weight have one in a tied
+domain. A second pass (the lead's follow-up the same evening) added 24 cases for
+the top-two units that had only band coverage, one per unit, with the bands
+kept as extra coverage: CGOA GitOps Terminology (rollback as a change to desired
+state, the feedback loop, what continuous means); CNPA Core Fundamentals
+(platform as a product, an optional golden path, product measures) and
+Observability, Security and Conformance (OIDC pipeline identity, signed
+provenance verified at admission, SBOM attestations); CNPE GitOps and CD (a
+Tekton pipeline that updates Git, runAfter and workspaces, finally tasks); KCSA
+Cluster Component Security (kubelet anonymous access, Webhook authorization,
+least-privilege monitoring); KCNA Kubernetes Fundamentals (Pending Pods:
+requests, taints and tolerations, node selectors); AutoOps+ Coding (git
+revert, semantic versioning, hotfix branches) and System Configuration
+(Terraform drift, state locking, remote state); CySA+ Security Operations
+(rogue device, enumeration, a beacon on an unexpected port); DataAI Machine
+Learning (random forest, early stopping, permutation importance); Data+ Data
+Analysis (median for skewed data, rates, correlation versus cause); Tech+
+Infrastructure (Wi-Fi survey, wired fixed devices, a current WPA3 access
+point) and Security (encryption at rest, in transit and on phones); PMI-PMOCP
+Strategic Elements (mandate, charter, sponsor); PMI-SP Monitoring and
+Controlling (approved mitigations by change request, a new baseline, honest
+variance); PMI-CP Contracts (interface points, classification, settlement);
+PMI-CPMAI Data Needs (readiness against need, a phased plan, business terms);
+PMI-RMP Risk Analysis (RBS, agreed matrix, urgency); CAPM Fundamentals (issue,
+risk, assumption, constraint; scope gaps) and Business Analysis (workshop,
+observation, survey and user stories); CSM Events (a Sprint Review as a working
+session) and Artifacts (undone work at Sprint end); PMI-ACP Mindset
+(psychological safety) and Delivery (WIP limits, interruptions, flow metrics).
+Tech+ Security's and the PM courses' second units counted separately, so the
+lead's 18 named domains are 24 units. Linux Fundamentals has no unit weights.
 
-**Sources** (read 2026-11-17 unless stated). Each case's first source is its
-course's outline as the course's earlier sims cite it (same reading and date,
-noted in each source; ten of those readings are dated 2026-11-11 to 2026-11-16).
-Technical facts come from WebSearch result listings, cited with their addresses
-and marked "read only through the search listing; to verify", except three pages
-read through summarizing fetches: Argo CD Sync Options, Cilium Policy
-Enforcement Modes and the GrokDevOps Backstage footguns page (2026-11-17). Every
-case also cites the author's scenario figures (fictional organizations and
-teaching figures). Listings used: Argo Rollouts analysis, KodeKloud CAPA/CCA/KCA/OTCA
-notes, OneUptime articles (Argo Events, Istio, OpenTelemetry Collector, Kyverno,
-cosign, PSA, rollouts), Kyverno installation and troubleshooting pages, Istio
-security problems, Sigstore policy-controller, KEP-2579, kubernetes.io Pod QoS
-and auditing, CNCF blog (quota and LimitRange), Helm rollback, PromLabs and
-GrokDevOps Prometheus pages, DORA four keys, the CNCF Platform Engineering
-Maturity Model, Google SRE book (postmortem culture), opengitops.dev. CompTIA,
-PMI, service management, quality and security management cases rest on the
-course outlines and the author's scenarios; no clinical content.
+**Sources** (read 2026-11-17). Each case's first source is its course's
+outline. CBA, KCA, CCA, CNPE and ICA outlines were re-read today on the
+certification bodies' pages (WebFetch); the others reuse the reading the
+course's earlier sims cite, with its date. Every fact a technical case's
+scoring depends on (a command, flag, field or behavior) now cites the primary
+page, read with WebFetch at a URL that came up in WebSearch, and the
+third-party listings marked "to verify" were dropped: Argo CD (Sync Options,
+Sync Phases and Waves, Automated Sync Policy, Diffing, notification triggers),
+Argo Rollouts (Analysis), Argo Events (data filters, parameterization,
+JetStream EventBus), Backstage (Keeping Backstage Updated, Database,
+Composability, Life of an Entity, GitHub Discovery), Cilium (DNS-based
+policies, WireGuard, Gateway API, Cluster Mesh setup, Global Services, Service
+Affinity), Istio (AuthorizationPolicy reference, mTLS migration, proxy-status,
+IST0101, canary upgrades), Kyverno (High Availability, Installation,
+Troubleshooting 1.15, Policy Settings 1.12, Selecting Resources, Policy
+Exceptions), OpenTelemetry (memory_limiter, exporterhelper, Resiliency,
+Internal telemetry, Troubleshooting, attributes processor, Java and Python
+zero-code, context propagation, HTTP semantic conventions), Prometheus
+(Configuration, naming, histograms), Grafana ($__rate_interval), Google SRE
+(Alerting on SLOs, Postmortem Culture), kubernetes.io (Resource Quotas, Pod QoS,
+Assign Memory, rolling updates, Pod Security Admission and Standards, namespace
+labels, Secrets good practices, Validating Admission Policy, Auditing,
+encryption at rest, VPA, priority and preemption, kubelet authn/authz,
+scheduling, taints), Helm (rollback, upgrade), Sigstore policy-controller,
+Trivy, Syft, Tekton, OpenGitOps, CNCF Platforms white paper and Maturity
+Model, DORA metrics, OpenCost specification, SLSA levels, GitHub OIDC,
+semver.org, git-revert, Terraform (state locking, refresh-only), scikit-learn
+ensembles, the NIST/SEMATECH e-Handbook and the Wi-Fi Alliance WPA3 overview.
+Every case also cites the author's scenario figures (fictional organizations
+and teaching figures). PMI, service-management, quality and most CompTIA
+cases rest on the course outlines and the author's scenarios.
+
+**Corrections from the primary pages.** Five cases changed where the primary
+page contradicted them: Kyverno's match without an operations list covers only
+CREATE and UPDATE, so the KCA case's policy now lists DELETE explicitly;
+Backstage removes orphaned entities by default, so the CBA case's config sets
+orphanStrategy: keep; Cilium verifies WireGuard with cilium-dbg status and a
+capture on cilium_wg0, so the CCA case's commands match; DORA's current model
+names failed deployment recovery time and adds rework rate, now in the CNPA
+case; and the CKAD case no longer says a Helm rollback is a new revision,
+which the helm rollback page does not state. Two unverifiable details were
+removed rather than kept: Kyverno image-verification caching (the KCA case)
+and STALE proxies meaning an overloaded istiod (the ICA case now cites the
+istiod memory evidence in its own log).
+
+**Still marked to verify** (not reachable with the tools here, listed for a
+later pass): the PMI outlines for PMI-PMOCP, PMI-CPMAI, PgMP, PMI-PBA and
+PMI-CP (no pmi.org page came up in search; the cited copies stay marked), the
+CompTIA A+ Core 2 page and the Tech+ FC0-U71 PDF, and NIST SP 800-61r3 and SP
+800-84 (inherited by two bands from other builders' bases); their fetches were
+blocked when a permission prompt went unanswered. Also blocked and not needed
+after other primary pages covered the facts: the OpenGitOps glossary on
+GitHub, prometheus.io's alerting practices page and Kyverno's 1.18
+verify-images page.
 
 **Findings for Nick** (no code defect, so no FAIL entry):
 
