@@ -1,0 +1,1231 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cscs-shuttle-test-trait-on-file",
+  "title": "The shuttle test and a trait on file",
+  "screen": {
+    "type": "trainer",
+    "level": 1,
+    "trainer": {
+      "client": {
+        "name": "Marcus Reid, 19, freshman linebacker",
+        "presentation": "{not isNull(worseAt) and isNull(emsAt) ? \"Unresponsive on the turf, gasping.\" : not isNull(emsAt) ? \"With the paramedics.\" : not isNull(slumpAt) ? \"Slumped on the turf, awake, saying his legs won't work, breathing fast.\" : heldOut ? \"On the sideline, sniffling, watching the test.\" : not isNull(startAt) ? \"Running the shuttle.\" : \"Nervous about his first conditioning test.\"}"
+      },
+      "gauges": [
+        {
+          "id": "gReady",
+          "label": "Readiness",
+          "spokenLabel": "His readiness to test today",
+          "value": "isNull(readyAt) ? 6 : 3",
+          "max": 10,
+          "bands": [
+            4,
+            7
+          ],
+          "words": [
+            "poor",
+            "fair",
+            "good"
+          ]
+        }
+      ],
+      "readings": [
+        {
+          "id": "breath",
+          "label": "Breathing",
+          "spokenLabel": "His breathing",
+          "value": "{not isNull(worseAt) and isNull(emsAt) ? \"gasping, slow\" : not isNull(slumpAt) ? \"fast; air moving well\" : \"normal\"}",
+          "when": "not isNull(slumpAt)",
+          "flag": "true"
+        },
+        {
+          "id": "musc",
+          "label": "Legs",
+          "spokenLabel": "His leg muscles",
+          "value": "soft, weak, painful; no visible cramping",
+          "when": "not isNull(slumpAt)",
+          "flag": "true"
+        },
+        {
+          "id": "o2",
+          "label": "Oxygen",
+          "spokenLabel": "Oxygen",
+          "value": "{isNull(o2At) ? \"none\" : \"high-flow by mask\"}",
+          "when": "not isNull(slumpAt)"
+        }
+      ],
+      "intake": {
+        "label": "Testing file",
+        "items": [
+          {
+            "id": "t1",
+            "question": "Preparticipation exam",
+            "answer": "Sickle cell trait, confirmed; cleared to play.",
+            "when": "true",
+            "flag": "true"
+          },
+          {
+            "id": "t2",
+            "question": "Today's plan",
+            "answer": "Two timed 300-yard shuttles, 5 minutes apart, the whole squad.",
+            "when": "true"
+          },
+          {
+            "id": "t3",
+            "question": "Readiness check",
+            "answer": "A cold since yesterday, slept 5 hours, has drunk little today.",
+            "when": "not isNull(readyAt)",
+            "flag": "true"
+          }
+        ]
+      },
+      "findings": [
+        {
+          "id": "slump",
+          "label": "Second shuttle",
+          "result": "He slowed, then slumped to the turf. Awake and talking: 'My legs just quit.' Muscles soft, not knotted. Not hot to the touch.",
+          "when": "not isNull(slumpAt)",
+          "flag": "true"
+        }
+      ],
+      "program": {
+        "label": "Test protocol",
+        "items": [
+          {
+            "label": "Standard: two timed all-out 300-yard shuttles, 5 minutes apart",
+            "when": "protocol == \"standard\""
+          },
+          {
+            "label": "Modified for the trait: no timed all-out runs early in the year, paced runs with long breaks, water at hand, he may stop at any time",
+            "when": "protocol == \"modified\""
+          },
+          {
+            "label": "Held out today: ill and under-slept; retest when well",
+            "when": "heldOut"
+          },
+          {
+            "label": "Full dynamic warm-up before any testing",
+            "when": "not isNull(warmAt)"
+          }
+        ]
+      },
+      "journal": [
+        {
+          "id": "jSlump",
+          "text": "Marcus slumped during the shuttle.",
+          "when": "not isNull(slumpAt)",
+          "at": "timeAt(slumpAt)"
+        },
+        {
+          "id": "jCall",
+          "text": "911 called; athletic trainer on the way.",
+          "when": "not isNull(callAt)",
+          "at": "timeAt(callAt)"
+        },
+        {
+          "id": "jO2",
+          "text": "High-flow oxygen.",
+          "when": "not isNull(o2At)",
+          "at": "timeAt(o2At)"
+        },
+        {
+          "id": "jEms",
+          "text": "Paramedics took over.",
+          "when": "not isNull(emsAt)",
+          "at": "timeAt(emsAt)"
+        }
+      ],
+      "rules": [
+        {
+          "id": "rTrait",
+          "label": "Sickle cell trait",
+          "text": "No timed all-out runs early on; pace the work, rest between efforts, water, and hold an ill athlete out.",
+          "met": "protocol == \"standard\""
+        },
+        {
+          "id": "rSlump",
+          "label": "A slump during conditioning",
+          "text": "Stop, call 911, oxygen, be ready for CPR. Do not treat it as cramps or walk it off.",
+          "met": "not isNull(slumpAt) and isNull(emsAt)"
+        }
+      ]
+    }
+  },
+  "objective": "Administering testing and monitoring: data collection, warm-up, rest between trials and athlete readiness",
+  "secondaryObjectives": [
+    "Selecting evidence-based tests and monitoring protocols, including readiness measures such as HRV",
+    "Scope of practice, NSCA codes and policies, collaboration with allied health and when to refer"
+  ],
+  "sources": [
+    {
+      "cite": "NSCA Certification Handbook: CSCS detailed content outline (Scientific Foundations; Practical/Applied: program design, exercise technique, program implementation, organization and administration)",
+      "checkedAt": "2026-10-08",
+      "url": "https://www.nsca.com/globalassets/certification/certification-pdfs/nsca-certification-handbook.pdf",
+      "note": "Relayed from the course seed (backend/supabase/seed/tracks/fitness.ts, read 2026-10-08), not re-read for this case. The objective titles are the course's own words."
+    },
+    {
+      "cite": "Korey Stringer Institute (University of Connecticut). Exertional Sickling (undated page)",
+      "checkedAt": "2026-11-17",
+      "url": "https://koreystringer.institute.uconn.edu/exertional-sickling/",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: most common with high-intensity exercise and little recovery between drills; the athlete 'slumps' rather than collapsing suddenly, can speak, muscles look normal, weakness more than pain, rapid breathing with normal air movement, rectal temperature below 103 F; treatment: stop, check vital signs, activate EMS and prepare for CPR, high-flow oxygen (15 L/min) and cool if needed, tell the hospital to 'expect explosive rhabdomyolysis'; prevention: acclimatize by slowly increasing intensity, avoid timed runs and add breaks between runs for athletes with the trait."
+    },
+    {
+      "cite": "Caterisano A, Decker D, Snyder B, et al. CSCCa and NSCA Joint Consensus Guidelines for Transition Periods: Safe Return to Training Following Inactivity. Strength Cond J. 2019;41(3)",
+      "checkedAt": "2026-11-17",
+      "url": "https://dxpprod.nsca.com/contentassets/202023e9d6c440dab582d9d87c0f3729/cscca_and_nsca_joint_consensus_guidelines_for.1.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes (first 100,000 of 127,339 characters): after 2 weeks or more of inactivity, conditioning 'phased in gradually and progressively'; the 50/30/20/10 rule (returning athletes at least 50% less volume in week 1 and 30% less in week 2; new athletes 50, 30, 20, 10% over four weeks); weight training work-to-rest 1:4 or more in week 1, 1:3 in week 2, at least 1:2 after; no more than 3 days of weight training in the first week; heat acclimatization over 7-14 days, exertional heat stroke cooled to 38.9 C (102 F) or less within 30 minutes of collapse, cold-water immersion fastest; sickle cell trait raises the risk of collapse and sudden death; exertional rhabdomyolysis mostly follows 'a novel workout regimen', especially after detraining, and 'Athletes who develop the symptoms associated with ER need to be quickly admitted to the hospital'."
+    },
+    {
+      "cite": "NSCA. Inter-Association Task Force for Preventing Sudden Death in Collegiate Conditioning Sessions (introduction page, May 2017; citing Casa DJ, et al. J Athl Train. 2012;47(4))",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.nsca.com/education/articles/inter-association-task-force-for-preventing-sudden-death-in-collegiate-conditioning-sessions",
+      "note": "Read 2026-11-17 through a summarizing fetch; only the introduction was on the page: the leading causes of conditioning deaths are exertional sickling with sickle cell trait, exertional heat stroke and cardiac conditions; workouts 'too novel, too much, too soon, or too intense' are linked to exertional rhabdomyolysis; 11 of 21 deaths were on day 1 or 2. The full recommendations were not read."
+    },
+    {
+      "cite": "Ascendra teaching model (REQ-338, authored)",
+      "checkedAt": "2026-11-17",
+      "note": "That the timed all-out shuttle brings on exertional sickling in this athlete on the second trial, and that he becomes unresponsive six minutes after slumping unless EMS is called and oxygen given, are authored for the case. The presentation (a slump, conscious and talking, weak rather than locked muscles) and the response follow the Korey Stringer Institute page. Simplified teaching model written for exam practice; not a validated physiological model."
+    },
+    {
+      "cite": "Ascendra strength and conditioning course catalog (backend/supabase/seed/tracks/fitness.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    }
+  ],
+  "brief": {
+    "situation": "You are a strength and conditioning coach at a college. This morning is the football team's first conditioning test of the summer. Marcus Reid, 19, a freshman, has sickle cell trait on file from his preparticipation exam.",
+    "handover": [
+      "The athletic trainer is at the end of the field with oxygen and the AED; the emergency action plan is 911 plus the athletic trainer.",
+      "The head coach wants everyone tested today."
+    ],
+    "howItWorks": [
+      "Each task takes time: choose it, then let it finish, which moves the clock by the minutes it takes.",
+      "The screen shows the client, your read-outs and findings, the plan and the rules that apply now.",
+      "When you end the session you write the record and explain your reasoning."
+    ]
+  },
+  "safetyNote": "Teaching case for exam practice; fictional client. Not medical advice.",
+  "clock": {
+    "start": "07:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {
+    "slumpDelay": {
+      "value": 720,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-338)",
+        "checkedAt": "2026-11-17",
+        "note": "Twelve minutes into the test (the second all-out shuttle) is the author's figure."
+      }
+    },
+    "worseDelay": {
+      "value": 360,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-338)",
+        "checkedAt": "2026-11-17",
+        "note": "Six minutes from the slump to unresponsiveness without EMS or oxygen is the author's figure for teaching; the real course varies."
+      }
+    },
+    "atDelay": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-338)",
+        "checkedAt": "2026-11-17",
+        "note": "The athletic trainer is at the end of the field: one minute."
+      }
+    },
+    "emsDelay": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-338)",
+        "checkedAt": "2026-11-17",
+        "note": "Ten minutes for the ambulance is the author's figure."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "protocol": {
+      "type": "enum",
+      "values": [
+        "none",
+        "standard",
+        "modified"
+      ],
+      "init": "none"
+    },
+    "protocolAt": {
+      "type": "time",
+      "init": null
+    },
+    "readyAt": {
+      "type": "time",
+      "init": null
+    },
+    "heldOut": {
+      "type": "bool",
+      "init": false
+    },
+    "warmAt": {
+      "type": "time",
+      "init": null
+    },
+    "startAt": {
+      "type": "time",
+      "init": null
+    },
+    "slumpAt": {
+      "type": "time",
+      "init": null
+    },
+    "stopAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "o2At": {
+      "type": "time",
+      "init": null
+    },
+    "atHere": {
+      "type": "time",
+      "init": null
+    },
+    "emsAt": {
+      "type": "time",
+      "init": null
+    },
+    "walkAt": {
+      "type": "time",
+      "init": null
+    },
+    "crampAt": {
+      "type": "time",
+      "init": null
+    },
+    "toldAt": {
+      "type": "time",
+      "init": null
+    },
+    "worseAt": {
+      "type": "time",
+      "init": null
+    },
+    "cprAt": {
+      "type": "time",
+      "init": null
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "enum",
+      "values": [
+        "none",
+        "nothing",
+        "brief",
+        "full"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "session": {
+      "label": "Testing",
+      "clock": "turns",
+      "actions": [
+        "protocol",
+        "ready",
+        "holdOut",
+        "warm",
+        "start",
+        "stopCall",
+        "lateCall",
+        "oxygen",
+        "cramp",
+        "walk",
+        "monitor",
+        "cpr",
+        "tell",
+        "closeSession"
+      ]
+    },
+    "close": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "session",
+  "actions": {
+    "protocol": {
+      "label": "Set today's test protocol for Marcus",
+      "group": "Plan",
+      "available": "not busy and (isNull(protocolAt))",
+      "why": "Already set.",
+      "params": [
+        {
+          "id": "p",
+          "kind": "choice",
+          "label": "Protocol",
+          "options": [
+            {
+              "value": "standard",
+              "label": "The standard test: two timed all-out shuttles, like everyone"
+            },
+            {
+              "value": "modified",
+              "label": "Modified for the trait: paced runs, long breaks, water, free to stop"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(protocolAt)",
+          "then": [
+            {
+              "set": "protocolAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "protocol",
+          "to": "p"
+        },
+        {
+          "log": "Protocol set.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "ready": {
+      "label": "Run the readiness check: illness, sleep, fluids",
+      "group": "Assess",
+      "available": "not busy and (isNull(readyAt) and isNull(startAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(readyAt)",
+          "then": [
+            {
+              "set": "readyAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You ask how he slept, whether he is ill, what he has drunk.",
+          "kind": "find"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "holdOut": {
+      "label": "Hold him out of testing today and reschedule when he is well",
+      "group": "Plan",
+      "available": "not busy and (not heldOut and isNull(startAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "heldOut",
+          "to": "true"
+        },
+        {
+          "log": "He sits this one out.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "warm": {
+      "label": "Run the full dynamic warm-up",
+      "group": "Train",
+      "available": "not busy and (isNull(warmAt) and isNull(startAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(warmAt)",
+          "then": [
+            {
+              "set": "warmAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Fifteen-minute dynamic warm-up for the squad.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "start": {
+      "label": "Start the test",
+      "group": "Train",
+      "available": "not busy and (isNull(startAt) and not isNull(protocolAt))",
+      "why": "Set the protocol first.",
+      "effects": [
+        {
+          "if": "isNull(startAt)",
+          "then": [
+            {
+              "set": "startAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "The squad lines up.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "25min"
+        }
+      ]
+    },
+    "stopCall": {
+      "label": "Stop the test, stay with him, call 911 and the athletic trainer",
+      "group": "Respond",
+      "available": "not isNull(slumpAt) and isNull(callAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "if": "isNull(stopAt)",
+          "then": [
+            {
+              "set": "stopAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(callAt)",
+          "then": [
+            {
+              "set": "callAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Test stopped; 911 called; the athletic trainer is running over.",
+          "kind": "good"
+        },
+        {
+          "schedule": "at",
+          "after": "atDelay"
+        },
+        {
+          "schedule": "ems",
+          "after": "emsDelay"
+        }
+      ]
+    },
+    "oxygen": {
+      "label": "High-flow oxygen by mask from the athletic trainer's kit",
+      "group": "Respond",
+      "available": "not isNull(atHere) and isNull(o2At)",
+      "why": "The athletic trainer brings the oxygen.",
+      "effects": [
+        {
+          "if": "isNull(o2At)",
+          "then": [
+            {
+              "set": "o2At",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "High-flow oxygen on.",
+          "kind": "good"
+        }
+      ]
+    },
+    "cramp": {
+      "label": "Treat it as cramps: stretch his legs and push fluids",
+      "group": "Respond",
+      "available": "not isNull(slumpAt) and isNull(crampAt) and isNull(emsAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(crampAt)",
+          "then": [
+            {
+              "set": "crampAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You stretch his legs and hand him a sports drink.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "walk": {
+      "label": "Get him up to walk it off so the test can finish",
+      "group": "Respond",
+      "available": "not isNull(slumpAt) and isNull(walkAt) and isNull(emsAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(walkAt)",
+          "then": [
+            {
+              "set": "walkAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You pull him up; he staggers and sinks back down.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "monitor": {
+      "label": "Stay with him, watch his breathing and keep the AED beside him",
+      "group": "Respond",
+      "available": "not busy and (not isNull(slumpAt) and isNull(emsAt))",
+      "why": "Not now.",
+      "effects": [
+        {
+          "log": "You watch his breathing; the AED is open beside him.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "cpr": {
+      "label": "Start CPR and use the AED",
+      "group": "Respond",
+      "available": "not isNull(worseAt) and isNull(cprAt)",
+      "why": "Only if he stops responding.",
+      "effects": [
+        {
+          "if": "isNull(cprAt)",
+          "then": [
+            {
+              "set": "cprAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "CPR started; AED pads on.",
+          "kind": "good"
+        }
+      ]
+    },
+    "tell": {
+      "label": "Tell the paramedics: sickle cell trait, slumped during all-out shuttles, expect severe rhabdomyolysis",
+      "group": "Respond",
+      "available": "not isNull(emsAt) and isNull(toldAt)",
+      "why": "When the paramedics are here.",
+      "effects": [
+        {
+          "if": "isNull(toldAt)",
+          "then": [
+            {
+              "set": "toldAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You hand over what happened and the trait.",
+          "kind": "good"
+        }
+      ]
+    },
+    "closeSession": {
+      "label": "End the session and write it up",
+      "group": "Close",
+      "available": "not busy and (isNull(slumpAt) or not isNull(emsAt))",
+      "why": "Finish what you are doing first; an athlete in trouble is handed over before anything is written.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "if": "isNull(closedAt)",
+          "then": [
+            {
+              "set": "closedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You end the session.",
+          "kind": "act"
+        },
+        {
+          "phase": "close"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the record",
+      "group": "Record",
+      "available": "documented == \"none\"",
+      "why": "Written.",
+      "params": [
+        {
+          "id": "what",
+          "kind": "choice",
+          "label": "Record",
+          "options": [
+            {
+              "value": "full",
+              "label": "Protocol and why, readiness findings, warm-up, test times or the slump, EAP times and the handover"
+            },
+            {
+              "value": "brief",
+              "label": "One line: 'Test run; one athlete unwell'"
+            },
+            {
+              "value": "nothing",
+              "label": "Nothing written"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "documented",
+          "to": "what"
+        }
+      ]
+    },
+    "lateCall": {
+      "label": "Call 911 now",
+      "group": "Respond",
+      "available": "not isNull(worseAt) and isNull(callAt)",
+      "why": "Already called.",
+      "effects": [
+        {
+          "if": "isNull(callAt)",
+          "then": [
+            {
+              "set": "callAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "911 called.",
+          "kind": "good"
+        },
+        {
+          "schedule": "ems",
+          "after": "emsDelay"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Work in progress",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-338)",
+        "checkedAt": "2026-11-17",
+        "note": "How many sim minutes each task takes and when the fictional events happen are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "at": {
+      "label": "Athletic trainer on the way",
+      "wait": {
+        "skipLabel": "Wait for the athletic trainer"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Author's scenario timing (REQ-338)",
+        "checkedAt": "2026-11-17",
+        "note": "The athletic trainer is at the end of the field: one minute."
+      },
+      "effects": [
+        {
+          "if": "isNull(atHere)",
+          "then": [
+            {
+              "set": "atHere",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "The athletic trainer arrives with oxygen and the AED.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "ems": {
+      "label": "Ambulance on the way",
+      "wait": {
+        "skipLabel": "Wait for the ambulance"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Author's scenario timing (REQ-338)",
+        "checkedAt": "2026-11-17",
+        "note": "Ten minutes for the ambulance is the author's figure."
+      },
+      "effects": [
+        {
+          "if": "isNull(emsAt)",
+          "then": [
+            {
+              "set": "emsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(callAt)",
+          "then": [
+            {
+              "if": "isNull(callAt)",
+              "then": [
+                {
+                  "set": "callAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "log": "Paramedics arrive and take over.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "slump",
+      "when": "not isNull(startAt) and isNull(slumpAt) and protocol == \"standard\" and not heldOut and t - timeAt(startAt) >= slumpDelay",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "isNull(slumpAt)",
+          "then": [
+            {
+              "set": "slumpAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "log": "On the second shuttle Marcus slows, then slumps to the turf: 'My legs just quit.'",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "worse",
+      "when": "not isNull(slumpAt) and isNull(worseAt) and isNull(emsAt) and (isNull(callAt) or isNull(o2At) or not isNull(walkAt)) and t - timeAt(slumpAt) >= worseDelay",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "isNull(worseAt)",
+          "then": [
+            {
+              "set": "worseAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "He stops answering; his breathing is slow and gasping.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "done",
+      "when": "not isNull(startAt) and isNull(slumpAt) and not busy and isNull(doneAt)",
+      "mode": "once",
+      "effects": [
+        {
+          "if": "isNull(doneAt)",
+          "then": [
+            {
+              "set": "doneAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Testing finished without incident.",
+          "kind": "act"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "not isNull(closedAt)",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the testing record: how you set the test for an athlete with sickle cell trait, what you checked on the day, and what happened.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Protocol",
+          "criteria": "Sickle cell trait raises the risk of exertional collapse in intense sustained efforts with little recovery; early in the year avoid timed all-out runs, pace the work, long breaks, water, free to stop.",
+          "modelAnswer": "With the trait on file, no timed all-out shuttles this early: paced runs, long breaks, water, and he can stop at any time."
+        },
+        {
+          "label": "Readiness",
+          "criteria": "A readiness check before testing; illness, short sleep and poor fluids raise the risk; hold him out and retest when well.",
+          "modelAnswer": "He has a cold, slept five hours and drank little: I held him out and will retest him when he is well."
+        },
+        {
+          "label": "If he slumps",
+          "criteria": "A slump with weak, soft muscles while conscious is exertional sickling until proven otherwise: stop, 911, high-flow oxygen, cool if hot, be ready for CPR; never treat as cramps or walk it off; tell EMS about the trait (expect rhabdomyolysis).",
+          "modelAnswer": "If he slumped I would stop the test, call 911, get oxygen on him, keep the AED ready and tell the paramedics about the trait; never stretch it out or walk it off."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "fitness",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Fitness outcome profile (docs/sims.md 9.2, 22.27)",
+          "checkedAt": "2026-11-16",
+          "note": "Exercise stopped within 2 minutes of a warning sign; a teaching figure, as for the physical therapy profile."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "not isNull(closedAt) and isNull(protocolAt)",
+      "class": "recovered",
+      "rationale": "Closing without setting a protocol tests no one and harms no one, but the testing day is lost.",
+      "source": {
+        "cite": "Korey Stringer Institute (University of Connecticut). Exertional Sickling (undated page)",
+        "checkedAt": "2026-11-17",
+        "url": "https://koreystringer.institute.uconn.edu/exertional-sickling/",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: most common with high-intensity exercise and little recovery between drills; the athlete 'slumps' rather than collapsing suddenly, can speak, muscles look normal, weakness more than pain, rapid breathing with normal air movement, rectal temperature below 103 F; treatment: stop, check vital signs, activate EMS and prepare for CPR, high-flow oxygen (15 L/min) and cool if needed, tell the hospital to 'expect explosive rhabdomyolysis'; prevention: acclimatize by slowly increasing intensity, avoid timed runs and add breaks between runs for athletes with the trait."
+      }
+    }
+  },
+  "endings": {
+    "arrest": {
+      "label": "He stopped responding",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented != \"none\" and not isNull(worseAt)",
+      "narrative": "Marcus became unresponsive on the turf. {isNull(cprAt) ? \"No one started CPR.\" : \"CPR and the AED were used until the paramedics took over.\"} He spent weeks in hospital."
+    },
+    "screened": {
+      "label": "Screened, modified, held out",
+      "class": "target",
+      "terminal": true,
+      "when": "documented == \"full\" and protocol == \"modified\" and not isNull(readyAt) and heldOut and not isNull(warmAt)",
+      "narrative": "A protocol built for the trait, a readiness check that found a cold and a short night, and a retest when he is well. The test went on without him."
+    },
+    "handled": {
+      "label": "Sickling recognized and handled",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented != \"none\" and not isNull(slumpAt)",
+      "narrative": "He slumped during an all-out shuttle; you stopped, called 911 and got oxygen on him, and he recovered in hospital. The test itself was the risk."
+    },
+    "gaps": {
+      "label": "Tested, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented != \"none\"",
+      "narrative": "{heldOut ? \"He sat out, but the protocol or the record has gaps\" : \"He tested ill and under-slept; nothing happened this time\"}."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "Time ran out."
+    }
+  },
+  "endingOrder": [
+    "arrest",
+    "screened",
+    "handled",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "protocol",
+        "label": "A protocol modified for sickle cell trait",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "protocol == \"modified\"",
+            "score": "met",
+            "why": "Paced, long breaks, water."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Timed all-out shuttles."
+          }
+        ]
+      },
+      {
+        "id": "ready",
+        "label": "Readiness checked and acted on",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(readyAt) and heldOut",
+            "score": "met",
+            "why": "Checked; held out while ill."
+          },
+          {
+            "when": "not isNull(readyAt) or heldOut",
+            "score": "partial",
+            "why": "Checked but tested anyway, or held out without checking."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No readiness check."
+          }
+        ]
+      },
+      {
+        "id": "respond",
+        "label": "A slump: stop, 911 and oxygen at once; not cramps, not walked off",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(slumpAt)",
+            "score": "na",
+            "why": "No collapse."
+          },
+          {
+            "when": "not isNull(callAt) and timeAt(callAt) - timeAt(slumpAt) <= 120 and not isNull(o2At) and isNull(walkAt) and isNull(crampAt) and isNull(worseAt)",
+            "score": "met",
+            "why": "Stopped, called, oxygen."
+          },
+          {
+            "when": "not isNull(callAt) and isNull(worseAt)",
+            "score": "partial",
+            "why": "Called, but late or after treating it as cramps."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Treated as cramps or walked off until he stopped responding."
+          }
+        ]
+      },
+      {
+        "id": "warm",
+        "label": "Full warm-up before testing",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(warmAt)",
+            "score": "met",
+            "why": "Warm-up done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No warm-up."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Testing record",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "documented == \"full\"",
+            "score": "met",
+            "why": "A full record."
+          },
+          {
+            "when": "documented == \"brief\"",
+            "score": "partial",
+            "why": "One line."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nothing written."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written protocol, readiness and response",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toCall",
+        "label": "Minutes from the slump to the 911 call",
+        "value": "isNull(slumpAt) or isNull(callAt) ? -1 : (timeAt(callAt) - timeAt(slumpAt)) / 60",
+        "format": "number",
+        "expert": "0-1 (or no slump)"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before",
+        "text": "A protocol for the trait: paced, long breaks, water, free to stop. Readiness check: a cold, 5 hours of sleep, little to drink: hold him out and retest when well. Warm-up for the squad."
+      },
+      {
+        "at": "If he slumps",
+        "text": "Stop, 911 and the athletic trainer, oxygen, AED beside him, tell the paramedics about the trait."
+      },
+      {
+        "at": "Close",
+        "text": "A full record."
+      }
+    ],
+    "debrief": {
+      "screened": {
+        "headline": "The safest test is the one built for him",
+        "body": "Sickle cell trait does not bar him from sport, but timed all-out efforts with little recovery, illness and poor fluids raise the risk. Modify, check readiness, and retest when he is well."
+      },
+      "handled": {
+        "headline": "Recognized and handled, but avoidable",
+        "body": "A conscious slump with weak, soft muscles during all-out shuttles is exertional sickling: stop, 911, oxygen. The standard test was the risk."
+      },
+      "gaps": {
+        "headline": "Tested, with gaps",
+        "body": "He tested ill and under-slept. Check readiness and act on what you find."
+      },
+      "arrest": {
+        "headline": "It was not cramps",
+        "body": "A slump with soft muscles in an athlete with the trait is a medical emergency. Stretching, fluids or walking it off cost the minutes that mattered."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Time ran out."
+      }
+    },
+    "modelReasoning": "Sickle cell trait raises the risk of exertional collapse during intense, sustained efforts with little recovery. Early in the year modify testing for him: no timed all-out shuttles, paced work, long breaks, water, free to stop. Check readiness first; a cold, short sleep and little fluid add risk, so hold him out and retest when well. A slump with soft, weak muscles while conscious is exertional sickling: stop, call 911 and the athletic trainer, high-flow oxygen, cool if hot, be ready for CPR, and tell EMS about the trait; never treat it as cramps or walk it off."
+  }
+}
