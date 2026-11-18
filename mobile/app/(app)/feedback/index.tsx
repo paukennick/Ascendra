@@ -6,6 +6,7 @@ import { Body, Button, Card, EmptyState, H2, Loading, Muted, Screen, SectionHead
 import { LoadError } from "@/components/LoadError";
 import { friendlyError } from "@/lib/errorMessage";
 import { spacing } from "@/lib/theme";
+import { isQuickNote, quickNoteAbout, quickNoteBadge } from "@/lib/quickNote";
 import {
   aboutLine,
   canGiveFeedback,
@@ -66,7 +67,10 @@ export default function YourFeedback() {
       {list.length ? (
         list.map((f) => (
           <Card key={f.id} style={{ gap: spacing.xs }}>
-            <Body>{aboutLine(f)}</Body>
+            {/* REQ-332: a quick note shows its tag, where it was sent from and the note. */}
+            {isQuickNote(f) ? <Muted>{quickNoteBadge(f)}</Muted> : null}
+            <Body>{isQuickNote(f) ? quickNoteAbout(f) : aboutLine(f)}</Body>
+            {isQuickNote(f) && f.texts.otherComments ? <Body>{f.texts.otherComments}</Body> : null}
             <Muted>{whenLine(f)}</Muted>
             {ratingsLine(f) ? <Muted>{ratingsLine(f)}</Muted> : null}
             {recommendLine(f) ? <Muted>{recommendLine(f)}</Muted> : null}
@@ -76,7 +80,7 @@ export default function YourFeedback() {
               icon="edit-2"
               size="sm"
               fullWidth={false}
-              accessibilityLabel={`Edit feedback: ${aboutLine(f)}, ${whenLine(f)}`}
+              accessibilityLabel={`Edit feedback: ${isQuickNote(f) ? quickNoteAbout(f) : aboutLine(f)}, ${whenLine(f)}`}
               onPress={() => router.push({ pathname: "/feedback/edit", params: { id: f.id } })}
             />
           </Card>

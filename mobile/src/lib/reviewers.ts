@@ -135,6 +135,14 @@ export interface Feedback {
   texts: Partial<Record<TextKey, string | null>>;
   recommend: string | null;
   followUp: boolean | null;
+  // REQ-332 (089): a quick note from the floating Feedback button, with its
+  // tag and where it was sent from (src/lib/quickNote.ts). Absent from an
+  // older server: read as the full form.
+  kind?: "form" | "quick";
+  quickTag?: string | null;
+  context?: Record<string, string | number> | null;
+  unitTitle?: string | null;
+  objectiveTitle?: string | null;
   createdAt: string;
   updatedAt: string;
 }

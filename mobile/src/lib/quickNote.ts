@@ -361,3 +361,42 @@ export function quickNoteLinkLabel(f: { simId: string | null; context: QuickCont
   if (c.examSessionId) return "Open the practice exam";
   return "Open the course";
 }
+
+// A saved row as the lists show it (the reviewer's own and the owner's).
+export interface QuickNoteRow {
+  kind?: "form" | "quick";
+  quickTag?: string | null;
+  context?: Record<string, string | number> | null;
+  trackId: string | null;
+  trackTitle: string | null;
+  simId: string | null;
+  simTitle: string | null;
+  unitTitle?: string | null;
+  objectiveTitle?: string | null;
+  texts: { otherComments?: string | null };
+}
+
+export function isQuickNote(f: Pick<QuickNoteRow, "kind">): boolean {
+  return f.kind === "quick";
+}
+
+export function quickNoteAbout(f: QuickNoteRow): string {
+  return contextLine((f.context ?? {}) as QuickContext, {
+    courseTitle: f.trackTitle,
+    simTitle: f.simTitle,
+    unitTitle: f.unitTitle ?? null,
+    lessonTitle: f.objectiveTitle ?? null,
+  });
+}
+
+// "Quick note · Bug" or "Quick note"
+export function quickNoteBadge(f: Pick<QuickNoteRow, "quickTag">): string {
+  const t = tagLabel(f.quickTag);
+  return t ? `Quick note · ${t}` : "Quick note";
+}
+
+export type KindFilter = "all" | "quick" | "form";
+export function byKind<T extends Pick<QuickNoteRow, "kind">>(list: T[], filter: KindFilter): T[] {
+  if (filter === "all") return list;
+  return list.filter((f) => (filter === "quick") === isQuickNote(f));
+}
