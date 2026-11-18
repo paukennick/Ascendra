@@ -1,0 +1,1008 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "terraform-drift-state-lock",
+  "title": "Configuration drift on a firewall rule, a stuck state lock, and two teams with two copies of state",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "iac@kestrel:~$",
+      "lines": [
+        {
+          "id": "firstLine",
+          "text": "plan: 1 to change (payments security group) with no code change",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "lineDrift",
+          "text": "{drift == \"revertDrift\" ? \"Reverted and detected daily\" : drift == \"consoleFix\" ? \"Manual revert\" : drift == \"acceptDrift\" ? \"Unsafe drift codified\" : \"\"}",
+          "when": "drift != \"none\"",
+          "at": "timeAt(driftAt)",
+          "error": "drift == \"acceptDrift\""
+        },
+        {
+          "id": "lineLock",
+          "text": "{lock == \"waitLock\" ? \"Lock respected\" : lock == \"cancelRun\" ? \"Other run cancelled\" : lock == \"forceUnlock\" ? \"Someone else's lock forced\" : \"\"}",
+          "when": "lock != \"none\"",
+          "at": "timeAt(lockAt)",
+          "error": "lock == \"forceUnlock\""
+        },
+        {
+          "id": "lineState",
+          "text": "{state == \"remote\" ? \"Remote backend with locking\" : state == \"sharedDrive\" ? \"Shared file, no lock\" : state == \"keepLocal\" ? \"Laptop state kept\" : \"\"}",
+          "when": "state != \"none\"",
+          "at": "timeAt(stateAt)",
+          "error": "state == \"keepLocal\""
+        }
+      ],
+      "nodes": [
+        {
+          "id": "nDrift",
+          "label": "payments security group",
+          "spokenLabel": "payments security group",
+          "kind": "network",
+          "status": "{drift == \"revertDrift\" ? \"Reverted and detected daily\" : drift == \"consoleFix\" ? \"Manual revert\" : drift == \"acceptDrift\" ? \"Unsafe drift codified\" : \"Waiting\"}",
+          "tone": "drift == \"revertDrift\" ? \"up\" : drift == \"consoleFix\" ? \"degraded\" : drift == \"acceptDrift\" ? \"down\" : p >= 1 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nLock",
+          "label": "network state",
+          "spokenLabel": "network state",
+          "kind": "state",
+          "status": "{lock == \"waitLock\" ? \"Lock respected\" : lock == \"cancelRun\" ? \"Other run cancelled\" : lock == \"forceUnlock\" ? \"Someone else's lock forced\" : \"Waiting\"}",
+          "tone": "lock == \"waitLock\" ? \"up\" : lock == \"cancelRun\" ? \"degraded\" : lock == \"forceUnlock\" ? \"down\" : p >= 2 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nState",
+          "label": "server state",
+          "spokenLabel": "server state",
+          "kind": "state",
+          "status": "{state == \"remote\" ? \"Remote backend with locking\" : state == \"sharedDrive\" ? \"Shared file, no lock\" : state == \"keepLocal\" ? \"Laptop state kept\" : \"Waiting\"}",
+          "tone": "state == \"remote\" ? \"up\" : state == \"sharedDrive\" ? \"degraded\" : state == \"keepLocal\" ? \"down\" : p >= 3 ? \"degraded\" : \"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "link0",
+          "from": "nDrift",
+          "to": "nLock",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        },
+        {
+          "id": "link1",
+          "from": "nLock",
+          "to": "nState",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Check-in",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Configuration management techniques: drift detection, remediation, and state management",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "CompTIA AutoOps+ AT0-001 V1 Exam Objectives, document version 1.2: Automation Coding Concepts 31%, System Configuration 25%, Continuous Integration 24%, Continuous Delivery 20%",
+      "checkedAt": "2026-11-17",
+      "url": "https://lecbyo.files.cmp.optimizely.com/download/8ef85dd4c6f611f0af744a719477d0a7",
+      "note": "Read 2026-11-17 through a summarizing fetch of CompTIA's PDF. Relevant text: 1.4 'Given a scenario, troubleshoot common issues with the code life cycle' (syntax errors, runtime errors); 2.4 'Given a scenario, troubleshoot common issues with system configuration' (syntax errors specific to configuration files); 3.2 'Explain workflow management concepts in CI' (automated rollbacks). The objective wording here is the course seed's. Reused for REQ-336 from this course's py-import-crash-traceback-autoopsplus (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Terraform tutorial, Run a refresh-only operation (HashiCorp Developer)",
+      "checkedAt": "2026-11-17",
+      "url": "https://developer.hashicorp.com/terraform/tutorials/cloud-get-started/cloud-refresh-only",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: drift is resources no longer matching state; a refresh-only run updates state without changing resources; you then either accept the new value and update the configuration, or reapply the configuration to revert the resource."
+    },
+    {
+      "cite": "Terraform documentation, State: Locking (HashiCorp Developer)",
+      "checkedAt": "2026-11-17",
+      "url": "https://developer.hashicorp.com/terraform/language/state/locking",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: where the backend supports it, Terraform locks state for every operation that could write it; force-unlock is only for your own lock after automatic unlocking failed, since unlocking someone else's risks concurrent writes."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the systems and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You run infrastructure automation at Kestrel Bank, a fictional bank. Terraform manages the network and servers. This morning's plan shows unexpected changes.",
+    "handover": [
+      "A plan shows the payments security group changing back: someone opened SSH to 0.0.0.0/0 in the console.",
+      "The network and server teams each keep their own copy of state."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the map shows each component and its status in words.",
+      "Move on a check-in at a time. A decision comes to you at each check-in; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-06-07T10:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "drift": {
+      "type": "enum",
+      "values": [
+        "none",
+        "revertDrift",
+        "consoleFix",
+        "acceptDrift"
+      ],
+      "init": "none"
+    },
+    "driftAt": {
+      "type": "time",
+      "init": null
+    },
+    "lock": {
+      "type": "enum",
+      "values": [
+        "none",
+        "waitLock",
+        "cancelRun",
+        "forceUnlock"
+      ],
+      "init": "none"
+    },
+    "lockAt": {
+      "type": "time",
+      "init": null
+    },
+    "state": {
+      "type": "enum",
+      "values": [
+        "none",
+        "remote",
+        "sharedDrive",
+        "keepLocal"
+      ],
+      "init": "none"
+    },
+    "stateAt": {
+      "type": "time",
+      "init": null
+    },
+    "planAt": {
+      "type": "time",
+      "init": null
+    },
+    "backendAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((drift == \"acceptDrift\") ? 1 : 0) + ((lock == \"forceUnlock\") ? 1 : 0) + ((state == \"keepLocal\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(drift == \"none\" or (drift == \"acceptDrift\") ? 1 : 0) + (lock == \"none\" or (lock == \"forceUnlock\") ? 1 : 0) + (state == \"none\" or (state == \"keepLocal\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Change review",
+      "clock": "turns",
+      "actions": [
+        "plan",
+        "backend"
+      ]
+    },
+    "close": {
+      "label": "Change record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "plan": {
+      "label": "terraform plan -refresh-only",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(planAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "planAt",
+          "to": "t"
+        },
+        {
+          "output": "The payments security group allows SSH from 0.0.0.0/0 in the real account but not in configuration; nothing else drifted."
+        },
+        {
+          "log": "terraform plan -refresh-only.",
+          "kind": "act"
+        },
+        {
+          "finding": "The payments security group allows SSH from 0.0.0.0/0 in the real account but not in configuration; nothing else drifted."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "backend": {
+      "label": "Read the backend configuration",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(backendAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "backendAt",
+          "to": "t"
+        },
+        {
+          "output": "The network team uses a remote backend with locking; the server team keeps terraform.tfstate on a laptop."
+        },
+        {
+          "log": "Read the backend configuration.",
+          "kind": "act"
+        },
+        {
+          "finding": "The network team uses a remote backend with locking; the server team keeps terraform.tfstate on a laptop."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Drift reverted with daily detection, the lock respected, and the server team's state moved to a locked remote backend"
+                },
+                {
+                  "value": "summary",
+                  "label": "Configuration controlled"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next check-in",
+      "wait": {
+        "skipLabel": "Go to the next check-in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "drift == \"acceptDrift\"",
+              "then": [
+                {
+                  "log": "Check-in 2: scanners find SSH open on the payments servers; brute-force attempts begin within the hour.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "lock == \"forceUnlock\"",
+              "then": [
+                {
+                  "log": "Check-in 3: both applies write state; terraform loses track of three subnets and plans to recreate them.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "state == \"keepLocal\"",
+              "then": [
+                {
+                  "log": "Check-in 4: an engineer applies from a stale copy; terraform creates duplicate servers and the bill doubles.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "10min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The change review closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "10min"
+        }
+      ]
+    },
+    {
+      "id": "t_drift",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 1: the open SSH rule.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "driftPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_lock",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 2: a lock error.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "lockPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_state",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 3: the server team's state.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "statePrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "driftPrompt": {
+      "title": "Accept or revert the drift?",
+      "context": "Someone opened SSH to the world in the console.",
+      "choices": [
+        {
+          "id": "revertDrift",
+          "label": "Apply the configuration to remove the console rule, find out who opened it and why, and schedule a daily refresh-only plan that alerts on drift",
+          "effects": [
+            {
+              "set": "drift",
+              "to": "\"revertDrift\""
+            },
+            {
+              "set": "driftAt",
+              "to": "t"
+            },
+            {
+              "log": "The rule is gone; drift is checked daily.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Drift is real resources no longer matching state; reapplying configuration reverts an unwanted change, and regular checks catch the next one."
+        },
+        {
+          "id": "consoleFix",
+          "label": "Delete the rule in the console",
+          "effects": [
+            {
+              "set": "drift",
+              "to": "\"consoleFix\""
+            },
+            {
+              "set": "driftAt",
+              "to": "t"
+            },
+            {
+              "log": "The rule is removed by hand.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Fixed today, but nothing will notice the next drift."
+        },
+        {
+          "id": "acceptDrift",
+          "label": "Accept it: apply refresh-only and add the rule to the configuration",
+          "effects": [
+            {
+              "set": "drift",
+              "to": "\"acceptDrift\""
+            },
+            {
+              "set": "driftAt",
+              "to": "t"
+            },
+            {
+              "log": "The open rule is now in state and code.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Accepting drift writes SSH-to-the-world into the bank's configuration."
+        }
+      ]
+    },
+    "lockPrompt": {
+      "title": "Error acquiring the state lock",
+      "context": "A colleague's apply fails; a pipeline run holds the lock.",
+      "choices": [
+        {
+          "id": "waitLock",
+          "label": "Check who holds the lock, wait for the pipeline run to finish, then apply; use force-unlock only for your own stuck lock",
+          "effects": [
+            {
+              "set": "lock",
+              "to": "\"waitLock\""
+            },
+            {
+              "set": "lockAt",
+              "to": "t"
+            },
+            {
+              "log": "The pipeline finishes; the apply runs cleanly.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Locking prevents concurrent writes to state; force-unlock is only for your own lock when automatic unlocking failed."
+        },
+        {
+          "id": "cancelRun",
+          "label": "Cancel the pipeline run to free the lock",
+          "effects": [
+            {
+              "set": "lock",
+              "to": "\"cancelRun\""
+            },
+            {
+              "set": "lockAt",
+              "to": "t"
+            },
+            {
+              "log": "The run is cancelled.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The lock frees, but a half-finished apply may leave resources out of step."
+        },
+        {
+          "id": "forceUnlock",
+          "label": "terraform force-unlock the pipeline's lock and apply now",
+          "effects": [
+            {
+              "set": "lock",
+              "to": "\"forceUnlock\""
+            },
+            {
+              "set": "lockAt",
+              "to": "t"
+            },
+            {
+              "log": "The lock is forced.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Two applies now write state at once."
+        }
+      ]
+    },
+    "statePrompt": {
+      "title": "State on a laptop",
+      "context": "The server team's state lives on one laptop.",
+      "choices": [
+        {
+          "id": "remote",
+          "label": "Migrate the server team's state to the remote backend with locking and restricted access, and remove local copies",
+          "effects": [
+            {
+              "set": "state",
+              "to": "\"remote\""
+            },
+            {
+              "set": "stateAt",
+              "to": "t"
+            },
+            {
+              "log": "Both teams use locked remote state.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A shared backend with locking gives one authoritative state and prevents concurrent writes."
+        },
+        {
+          "id": "sharedDrive",
+          "label": "Put the state file on a shared drive",
+          "effects": [
+            {
+              "set": "state",
+              "to": "\"sharedDrive\""
+            },
+            {
+              "set": "stateAt",
+              "to": "t"
+            },
+            {
+              "log": "State is on a shared drive.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Everyone sees it, but two engineers can still write at once."
+        },
+        {
+          "id": "keepLocal",
+          "label": "Keep local state; it has worked so far",
+          "effects": [
+            {
+              "set": "state",
+              "to": "\"keepLocal\""
+            },
+            {
+              "set": "stateAt",
+              "to": "t"
+            },
+            {
+              "log": "Nothing changes.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "One lost or stale laptop means terraform no longer knows what it manages."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the change record for the infrastructure teams.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Drift",
+          "criteria": "The SSH rule reverted by reapplying configuration; daily refresh-only checks.",
+          "modelAnswer": "Someone opened SSH to the world in the console; reapplying the configuration removed it, and a daily refresh-only plan now alerts on drift."
+        },
+        {
+          "label": "State",
+          "criteria": "Locks respected; server state moved to the locked remote backend.",
+          "modelAnswer": "We waited for the pipeline's lock instead of forcing it, and moved the server team's state to the shared backend with locking."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Service restored and the work closed within 60 minutes of the first report."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No fault introduced by the response itself."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (drift == \"consoleFix\") and (lock == \"cancelRun\") and (state == \"sharedDrive\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CompTIA AutoOps+ AT0-001 V1 Exam Objectives, document version 1.2: Automation Coding Concepts 31%, System Configuration 25%, Continuous Integration 24%, Continuous Delivery 20%",
+        "checkedAt": "2026-11-17",
+        "url": "https://lecbyo.files.cmp.optimizely.com/download/8ef85dd4c6f611f0af744a719477d0a7",
+        "note": "Read 2026-11-17 through a summarizing fetch of CompTIA's PDF. Relevant text: 1.4 'Given a scenario, troubleshoot common issues with the code life cycle' (syntax errors, runtime errors); 2.4 'Given a scenario, troubleshoot common issues with system configuration' (syntax errors specific to configuration files); 3.2 'Explain workflow management concepts in CI' (automated rollbacks). The objective wording here is the course seed's. Reused for REQ-336 from this course's py-import-crash-traceback-autoopsplus (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "driftHarm": {
+      "label": "Payments servers exposed",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and drift == \"acceptDrift\"",
+      "narrative": "Accepting the drift made SSH to the world part of the configuration."
+    },
+    "lockHarm": {
+      "label": "State corrupted",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and lock == \"forceUnlock\"",
+      "narrative": "Forcing another run's lock caused concurrent writes and lost subnets from state."
+    },
+    "stateHarm": {
+      "label": "Duplicate servers",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and state == \"keepLocal\"",
+      "narrative": "A stale local state copy created duplicate servers."
+    },
+    "target": {
+      "label": "Configuration you can trust",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (drift == \"revertDrift\") and (lock == \"waitLock\") and (state == \"remote\") and record == \"honest\" and missCount <= newFaults and timeAt(doneAt) <= restoreWindow",
+      "narrative": "Unsafe drift is caught and reverted, and state has one locked home."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "driftHarm",
+    "lockHarm",
+    "stateHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "driftCrit",
+        "label": "Reverted unsafe drift and added drift detection",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "drift == \"revertDrift\"",
+            "score": "met",
+            "why": "Restored and watched."
+          },
+          {
+            "when": "drift == \"consoleFix\"",
+            "score": "partial",
+            "why": "Undetected next time."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Codified exposure."
+          }
+        ]
+      },
+      {
+        "id": "lockCrit",
+        "label": "Respected the lock and force-unlocked only a lock you own",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lock == \"waitLock\"",
+            "score": "met",
+            "why": "State protected."
+          },
+          {
+            "when": "lock == \"cancelRun\"",
+            "score": "partial",
+            "why": "Disruptive."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Concurrent writes."
+          }
+        ]
+      },
+      {
+        "id": "stateCrit",
+        "label": "Moved state to a shared remote backend with locking",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "state == \"remote\"",
+            "score": "met",
+            "why": "One source of truth."
+          },
+          {
+            "when": "state == \"sharedDrive\"",
+            "score": "partial",
+            "why": "No locking."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Fragile."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(planAt) and not isNull(backendAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(planAt) or not isNull(backendAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the drift and the state setup first."
+      },
+      {
+        "at": "Check-in 1",
+        "text": "Reapply the configuration and check drift daily."
+      },
+      {
+        "at": "Check-in 2",
+        "text": "Find the holder and wait; force-unlock only your own stuck lock."
+      },
+      {
+        "at": "Check-in 3",
+        "text": "Move state to a remote backend with locking."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "driftHarm": {
+        "headline": "Revert unsafe drift",
+        "body": "Reapply configuration and detect drift."
+      },
+      "lockHarm": {
+        "headline": "Respect the lock",
+        "body": "Force-unlock only your own stuck lock."
+      },
+      "stateHarm": {
+        "headline": "Share and lock state",
+        "body": "Use a remote backend with locking."
+      },
+      "target": {
+        "headline": "Good: configuration you can trust",
+        "body": "Drift detection, remediation and state management."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Configuration management keeps real resources matching declared configuration. Detect drift with refresh-only plans; revert unwanted drift by reapplying configuration, and accept drift only when it is intended. State needs one authoritative, locked home: never force another run's lock, and never keep state on a laptop."
+  }
+}
