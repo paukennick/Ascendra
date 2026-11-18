@@ -58,11 +58,15 @@ A reviewer is someone the owner asks to look over courses and sims (for example 
 1. Sign in to the app as an owner (an address in `OWNER_EMAILS`) and open Settings, Access.
 2. Under **Reviewers, Mark a reviewer**, enter their email address, tap the course categories they will review (optional; it is shown to them and to you) and add a note only you see (optional, such as "LMHC, reviewing NCMHCE"). Tap **Mark as reviewer**. You get the usual "access changed" email.
 3. If they have no account yet, the mark waits and applies once they sign up and verify that address. Tell them to sign up with exactly that address.
-4. They will see a **Reviewer** badge in Settings and **Give feedback** in Settings, the Home footer, every course page and the results of every sim. Mental health courses and sensitive sims still ask them for the 18+ acknowledgment and their date of birth, like anyone else; that is intended.
+4. They will see a **Reviewer** badge in Settings and **Give feedback** in Settings, the Home footer, every course page and the results of every sim, and (REQ-332) a **Feedback** button on every screen for quick notes (below). Mental health courses and sensitive sims still ask them for the 18+ acknowledgment and their date of birth, like anyone else; that is intended.
 5. Read what they send under Settings, **Reviewer feedback** (newest first; filter by reviewer or course; a submission about a course or sim links to it). Problems with one specific item still arrive the usual way, as "Report a problem".
 6. To stop, tap **Remove reviewer** on their card. If marking created their access, it ends too; if they already had unrestricted access (an AI pilot invite), they keep it. Their feedback stays until they delete their account. Removing their access on the same screen also ends the reviewer mark.
 
 Everything is recorded in the access audit trail (`reviewer_on`, `reviewer_off`), and the reviewer's feedback is in their account export and deleted with their account (docs/legal/data-inventory.md).
+
+### Quick notes (REQ-332)
+
+Reviewers (and owners) also get a small **Feedback** button at the bottom right of every signed-in screen (an icon only on the practice exam and in sims). Needs migration 089, applied before the backend. It opens a quick note: a required note, an optional tag (Inaccurate, Unrealistic, Unclear, Sensitive-topic concern, Bug, Praise) and a line saying where they were (course, unit and lesson, question, sim and phase, practice exam question). Sending keeps them exactly where they were. In a sim the clock pauses while the note is open and runs again when it closes (the pause shows in the run's timeline, never scored); a practice exam's clock can't pause, and the note says so. Quick notes appear under Settings, **Reviewer feedback** marked "Quick note" with their tag; filter by Kind, and **Open the lesson / sim / lab** goes to the exact item (a practice exam question links to the course's practice exam, since sessions are per learner). A reviewer can edit a quick note from Your feedback (it opens the full form; the note is under "Anything else?"). Nothing is emailed; there is no notification for a new note, so check the screen.
 
 ## Postgres settings
 

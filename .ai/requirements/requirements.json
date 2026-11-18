@@ -12184,6 +12184,65 @@
         "changelog"
       ],
       "risk_notes": []
+    },
+    {
+      "id": "REQ-332",
+      "category": "feature",
+      "title": "Reviewer feedback one tap away: a floating Feedback button and quick notes with context",
+      "description": "Nick 2026-11-17 19:48 PT: 'Is the give feedback only at the bottom of page? Doesn't seem helpful for reviewers for it to be there.' A small Feedback button on every signed-in screen for reviewers and owners (REQ-331 status), mounted once in the signed-in layout in its own gutter so it never covers content or controls, clears the safe area and keyboard and sits beside the desktop sidebar (REQ-328); compact on the practice exam and sims. It opens a quick-note sheet (bottom sheet on phones, side panel on wide web) that captures the route and screen, course, unit, lesson (objective) and step, question, sim run and phase and sim time, practice exam session and question number, and lab; shows it as a readable line; takes a required note and an optional tag (Inaccurate, Unrealistic, Unclear, Sensitive-topic concern, Bug, Praise); saves a reviewer_feedback row of kind quick (migration 089: kind, quick_tag, context; note in other_comments) without navigating; links to the full form. A sim's clock is paused while the sheet is open and resumed on close (the engine's learner pause, never scored); the practice exam's server deadline cannot pause, so the sheet says it keeps running. The owner's Reviewer feedback screen shows quick notes with the tag, the context line and a link to the exact lesson, sim or lab. Privacy Policy 2026-11-20 discloses the added detail.",
+      "priority": "high",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/089_reviewer_quick_notes.sql",
+        "backend/lib/reviewers.ts",
+        "backend/lib/reviewers-config.ts",
+        "backend/lib/schema-status.ts",
+        "backend/lib/legal.ts",
+        "backend/app/api/reviewer/feedback/",
+        "mobile/src/components/ReviewerFab.tsx",
+        "mobile/src/lib/quickNote.ts",
+        "mobile/src/lib/reviewerFacts.ts",
+        "mobile/src/lib/reviewers.ts",
+        "mobile/app/(app)/_layout.tsx",
+        "mobile/app/(app)/course/",
+        "mobile/app/(app)/review-session.tsx",
+        "mobile/app/(app)/feedback/",
+        "mobile/app/(app)/settings/reviewer-feedback.tsx",
+        "mobile/src/content/legal.ts",
+        "mobile/src/lib/legal.ts",
+        "docs/legal/data-inventory.md",
+        "docs/operations-runbook.md",
+        "docs/deploy-runbook-integration.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "the button renders only for reviewers and owners and is mounted once at the layout",
+        "it never covers content (own gutter) and clears the safe area keyboard and desktop sidebar",
+        "the quick note records the context for each screen type and shows it as a readable line",
+        "sending saves a kind quick reviewer_feedback row and never navigates or ends a run",
+        "a sim clock is paused while the sheet is open and resumed on close and the exam sheet says its clock keeps running",
+        "only the reviewer who sent it and the owner see a quick note",
+        "the owner list shows the tag the context line and a link to the exact item",
+        "Privacy Policy 2026-11-20 covers the added context",
+        "no new native module and the runtime fingerprint is unchanged"
+      ],
+      "validation_required": [
+        "mobile npm test and tsc",
+        "backend lib tests",
+        "lib/reviewer-quick-notes.dbtest.ts and lib/reviewers.dbtest.ts on a throwaway Postgres",
+        "python3 omni gate",
+        "screenshots at phone and desktop width on a local web export"
+      ],
+      "documentation_required": [
+        "changelog",
+        "operations runbook",
+        "deploy runbook 089 rows",
+        "data inventory"
+      ],
+      "risk_notes": [
+        "migration 089 must be applied before the backend",
+        "Privacy-only bump asks everyone to accept the Privacy Policy once more"
+      ]
     }
   ]
 }
