@@ -339,4 +339,21 @@ describe("what each new depth cloud case teaches (REQ-335)", () => {
     assert.equal(ok.value("missAt"), null);
     assert.equal(ok.value("okAt") !== null, true);
   });
+  test("AZ120 migration-wave-blocked-by-vm-family-quota: another region splits SAP's tiers; a retry changes nothing; a family quota request makes the export window", () => {
+    const d = docOf("migration-wave-blocked-by-vm-family-quota");
+    const h = driver(d);
+    h.act("region");
+    assert.equal(h.value("harmed"), true, "region causes harm");
+    until(h, 151);
+    assert.notEqual(h.value("missAt"), null);
+    const n = driver(d);
+    n.act("retry");
+    until(n, 151);
+    assert.notEqual(n.value("missAt"), null, "retry changes nothing");
+    const ok = driver(d);
+    ok.act("request");
+    until(ok, 151);
+    assert.equal(ok.value("missAt"), null);
+    assert.equal(ok.value("okAt") !== null, true);
+  });
 });

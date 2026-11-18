@@ -19,4 +19,5 @@ export const DEPTH_CLOUD: readonly CloudEntry[] = [
   { course: "AWSSAP", slug: "canary-rollback-dlq-sap", screen: "board", profile: "cloud", kind: "band", steps: "dc-awssap-canary-rollback-dlq-sap", base: "AWSDVA/canary-rollback-dlq" },
   { course: "AWSSAP", slug: "dynamodb-backfill-throttles-checkout-sap", screen: "terminal", profile: "infrastructure", kind: "band", steps: "dc-awssap-dynamodb-backfill-throttles-checkout-sap", base: "AWSDEA/dynamodb-backfill-throttles-checkout" },
   { course: "AZ120", slug: "fence-agent-lost-role-before-maintenance", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "az120-fence" },
+  { course: "AZ120", slug: "migration-wave-blocked-by-vm-family-quota", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "az120-quota" },
 ];
