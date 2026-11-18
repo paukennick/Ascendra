@@ -407,4 +407,21 @@ describe("what each new depth cloud case teaches (REQ-335)", () => {
     assert.equal(ok.value("missAt"), null);
     assert.equal(ok.value("okAt") !== null, true);
   });
+  test("AZ140 tls-inspection-breaks-session-hosts: deleting the default route bypasses the firewall; restarting hosts changes nothing; excluding AVD traffic from inspection brings the hosts back", () => {
+    const d = docOf("tls-inspection-breaks-session-hosts");
+    const h = driver(d);
+    h.act("bypass");
+    assert.equal(h.value("harmed"), true, "bypass causes harm");
+    until(h, 71);
+    assert.notEqual(h.value("missAt"), null);
+    const n = driver(d);
+    n.act("restart");
+    until(n, 71);
+    assert.notEqual(n.value("missAt"), null, "restart changes nothing");
+    const ok = driver(d);
+    ok.act("exempt");
+    until(ok, 71);
+    assert.equal(ok.value("missAt"), null);
+    assert.equal(ok.value("okAt") !== null, true);
+  });
 });

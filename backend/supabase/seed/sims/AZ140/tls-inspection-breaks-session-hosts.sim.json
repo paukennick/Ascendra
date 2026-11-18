@@ -1,0 +1,883 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "tls-inspection-breaks-session-hosts",
+  "title": "Shift change: every session host goes Unavailable after a firewall change",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "vdiadmin@cloudshell:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "06:50 AVD Insights: hp-claims 0 of 40 session hosts Available (Unavailable since 05:40); shift at 08:00",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "08:00: call center down",
+          "when": "not isNull(missAt)",
+          "at": "timeAt(missAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "08:00: shift logged on",
+          "when": "not isNull(okAt)",
+          "at": "timeAt(okAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "hosts",
+          "label": "hp-claims session hosts (40)",
+          "spokenLabel": "the session hosts",
+          "kind": "AVD agent",
+          "status": "{harmed ? \"Available, egress uninspected\" : fixed ? \"Available\" : \"Unavailable\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "fw",
+          "label": "Azure Firewall Premium (hub)",
+          "spokenLabel": "the firewall",
+          "kind": "TLS inspection since 05:35",
+          "status": "{harmed ? \"bypassed\" : fixed ? \"AVD traffic exempt, web still inspected\" : \"inspecting AVD service traffic\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "svc",
+          "label": "AVD broker and gateway",
+          "spokenLabel": "the AVD service",
+          "kind": "WindowsVirtualDesktop",
+          "status": "{fixed and not harmed ? \"reachable\" : \"unreachable from the hosts\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "hosts",
+          "to": "fw",
+          "label": "0.0.0.0/0",
+          "status": "{fixed and not harmed ? \"web traffic\" : \"all traffic\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "l2",
+          "from": "fw",
+          "to": "svc",
+          "label": "TLS",
+          "status": "{fixed and not harmed ? \"direct\" : \"broken by inspection\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Monitoring and troubleshooting network connectivity",
+  "secondaryObjectives": [
+    "Implementing and managing network security for connections to Azure Virtual Desktop, including user-defined routes, network security groups, and Azure Firewall"
+  ],
+  "sources": [
+    {
+      "cite": "Microsoft Learn, Study guide for Exam AZ-140: Configuring and Operating Microsoft Azure Virtual Desktop (page last updated 2026-06-19; skills as of July 20, 2026): plan and implement an Azure Virtual Desktop infrastructure 40-45%, identity and security 15-20%, user environments and apps 20-25%, monitor and maintain 10-15%",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/credentials/certifications/resources/study-guides/az-140",
+      "note": "Read through a summarizing fetch on 2026-11-17. Bullets quoted there under 'Plan and implement storage for Azure Virtual Desktop user data': 'Implement storage for FSLogix components', 'Implement storage accounts for Azure Virtual Desktop', 'Implement file shares for Azure Virtual Desktop'. The az storage account update --default-share-permission flag is from memory of the CLI reference (to verify). (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "Microsoft Learn, 'Use Azure Firewall to protect Azure Virtual Desktop deployments'",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/en-us/azure/firewall/protect-azure-virtual-desktop",
+      "note": "Read through a summarizing fetch on 2026-11-17. Quoted: 'Azure Firewall uses the Azure Virtual Desktop FQDN tag WindowsVirtualDesktop'; rules are needed for each required FQDN and endpoint; 'Don't use TLS inspection with Azure Virtual Desktop'; to avoid disconnections when all traffic goes through the firewall, a route with destination type Service tag, destination WindowsVirtualDesktop and next hop Internet gives direct access to the gateway and broker. The session host status 'Unavailable' and the agent's log wording are from memory of the AVD troubleshooting pages, and the az CLI flags shown are from memory of the CLI reference (to verify)."
+    }
+  ],
+  "brief": {
+    "situation": "You are the Azure Virtual Desktop administrator at Merrow Insurance, a fictional insurer. The claims call center (300 agents) works on the hp-claims host pool, whose egress goes through Azure Firewall Premium in the hub. Overnight the security team enabled TLS inspection on the firewall's application rules for the AVD spoke. Since 05:40 every session host shows Unavailable. The day shift logs on at 08:00.",
+    "handover": [
+      "The security team's change ticket says inspection must stay on for general web traffic from the spoke.",
+      "Session hosts' egress: route 0.0.0.0/0 to the firewall's private IP."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the session hosts, the hub firewall with its new TLS inspection and the AVD service they must reach.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "06:50",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineAt": {
+      "value": 4200,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "The day shift logs on at 08:00, 70 minutes after the alert."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "harmed": {
+      "type": "bool",
+      "init": false
+    },
+    "tried": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "statusAt": {
+      "type": "time",
+      "init": null
+    },
+    "fwlogAt": {
+      "type": "time",
+      "init": null
+    },
+    "agentAt": {
+      "type": "time",
+      "init": null
+    },
+    "routeAt": {
+      "type": "time",
+      "init": null
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "missAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "tls",
+        "agent",
+        "capacity"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "status",
+        "fwlog",
+        "agent",
+        "route",
+        "exempt",
+        "agree",
+        "bypass",
+        "restart",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "status": {
+      "label": "az desktopvirtualization sessionhost list (status, last heartbeat)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(statusAt)",
+          "then": [
+            {
+              "set": "statusAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ az desktopvirtualization sessionhost list -g rg-avd -n hp-claims --query \"[].[name,status,lastHeartBeat]\" -o tsv | head -3\n{harmed ? \"claims-0.merrow.local Available 2026-11-17T06:58:12Z\nclaims-1.merrow.local Available 2026-11-17T06:58:09Z\nclaims-2.merrow.local Available 2026-11-17T06:58:15Z\" : fixed ? \"claims-0.merrow.local Available 2026-11-17T06:58:12Z\nclaims-1.merrow.local Available 2026-11-17T06:58:09Z\nclaims-2.merrow.local Available 2026-11-17T06:58:15Z\" : \"claims-0.merrow.local Unavailable 2026-11-17T05:39:51Z\nclaims-1.merrow.local Unavailable 2026-11-17T05:39:48Z\nclaims-2.merrow.local Unavailable 2026-11-17T05:39:55Z\"}"
+        },
+        {
+          "finding": "All 40 hosts stopped sending heartbeats at 05:40, together: something shared, not the hosts."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "fwlog": {
+      "label": "Azure Firewall logs: AZFWApplicationRule from the AVD spoke since 05:30",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(fwlogAt)",
+          "then": [
+            {
+              "set": "fwlogAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ az monitor log-analytics query -w law-hub --analytics-query \"AZFWApplicationRule | where SourceIp startswith '10.30.' | summarize count() by Fqdn, Action, IsTlsInspected | top 3 by count_\"\n{harmed ? \"(no entries: traffic no longer passes the firewall)\" : fixed ? \"rdbroker.wvd.microsoft.com  Allow  false\n*.wvd.microsoft.com  Allow  false\nwww.bing.com  Allow  true\" : \"rdbroker.wvd.microsoft.com  Allow  true\n*.wvd.microsoft.com  Allow  true\ngcs.prod.monitoring.core.windows.net  Allow  true\"}"
+        },
+        {
+          "finding": "The hosts' connections to the AVD broker and gateway are being TLS-inspected since 05:35."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "agent": {
+      "label": "On claims-0 (via Bastion): RDAgent event log",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(agentAt)",
+          "then": [
+            {
+              "set": "agentAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ Get-WinEvent -LogName 'RemoteDesktopServices' -MaxEvents 2 | Select TimeCreated, Message\n{fixed and not harmed ? \"06:58 Heartbeat sent.\n06:58 Heartbeat sent.\" : \"05:40 Failed to connect to the broker: the remote certificate is invalid (issued by Merrow-Firewall-CA).\n05:40 Heartbeat failed.\"}"
+        },
+        {
+          "finding": "The agent rejects the certificate the firewall presents in place of the service's: inspection breaks the connection."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "route": {
+      "label": "az network route-table route list (spoke-avd-rt)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(routeAt)",
+          "then": [
+            {
+              "set": "routeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ az network route-table route list -g rg-avd-net --route-table-name spoke-avd-rt -o table\n{harmed ? \"(no routes: default route removed)\" : fixed ? \"default  0.0.0.0/0  VirtualAppliance  10.0.1.4\navd-svc  WindowsVirtualDesktop  Internet\" : \"default  0.0.0.0/0  VirtualAppliance  10.0.1.4\"}"
+        },
+        {
+          "finding": "Everything, including the AVD service traffic, goes through the firewall."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "exempt": {
+      "label": "Route the WindowsVirtualDesktop service tag to Internet and exclude the AVD FQDN tag from TLS inspection in the firewall policy",
+      "group": "Fix",
+      "available": "not busy and (not fixed and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "fixed",
+          "to": "true"
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ az network route-table route create -g rg-avd-net --route-table-name spoke-avd-rt -n avd-svc --address-prefix WindowsVirtualDesktop --next-hop-type Internet\nvdiadmin@cloudshell:~$ az network firewall policy rule-collection-group collection rule update ... --name avd-required --fqdn-tags WindowsVirtualDesktop --enable-tls-inspection false"
+        },
+        {
+          "log": "The hosts reach the broker and gateway directly, without inspection, as the AVD guidance requires; all other web traffic from the spoke is still inspected, which is what the security change was for.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "agree": {
+      "label": "Agree the AVD exclusion with the security team, add it to their TLS-inspection checklist, and alert on host heartbeats",
+      "group": "Fix",
+      "available": "not busy and (not planned and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ (CHG-5120 updated with security: AVD service traffic excluded from TLS inspection per vendor guidance; web traffic inspected)\nvdiadmin@cloudshell:~$ az monitor scheduled-query create -n avd-hosts-unavailable --condition 'count > 5' --query \"WVDAgentHealthStatus | where Status != 'Available'\" ..."
+        },
+        {
+          "log": "The exclusion is part of the security design, not a workaround; the next change checks it, and an alert fires when hosts stop reporting.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "bypass": {
+      "label": "Delete the spoke's default route so session hosts go straight to the internet",
+      "group": "Fix",
+      "available": "not busy and (not harmed)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "harmed",
+          "to": "true"
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ az network route-table route delete -g rg-avd-net --route-table-name spoke-avd-rt -n default\n(no output)"
+        },
+        {
+          "log": "Hosts recover, and all of the call center's web traffic now leaves without the firewall: no inspection, no filtering, no logs.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "restart": {
+      "label": "Restart all 40 session hosts",
+      "group": "Fix",
+      "available": "not busy and (not harmed and not tried)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tried",
+          "to": "true"
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ az vm restart --ids $(az vm list -g rg-avd --query [].id -o tsv)\n(40 VMs restarted)"
+        },
+        {
+          "log": "The hosts come back and the agent hits the same inspected connection: still Unavailable.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Check host status and a test sign-in",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ az desktopvirtualization sessionhost list ... --query \"[?status=='Available'] | length(@)\"; test sign-in claims-test\n{harmed ? \"40\ntest sign-in: connected (egress uninspected)\" : fixed ? \"40\ntest sign-in: connected via claims-7 in 9 s\" : \"0\ntest sign-in: 'no resources available'\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "tls",
+                  "label": "TLS inspection on the firewall broke the session hosts' connections to the AVD service"
+                },
+                {
+                  "value": "agent",
+                  "label": "The AVD agent on the hosts was broken by an update"
+                },
+                {
+                  "value": "capacity",
+                  "label": "The host pool lacked capacity"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-335)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "08:00: agents log on to hp-claims normally.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "missAt",
+              "to": "t"
+            },
+            {
+              "log": "08:00: 300 agents cannot log on; calls queue.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why the hosts went Unavailable, what you changed, and why not simply bypass the firewall.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Connects a shared failure to the shared change.",
+          "modelAnswer": "All 40 hosts stopped heartbeating at 05:40, five minutes after TLS inspection was enabled. The firewall logs showed the broker traffic inspected and the agent rejected the firewall's certificate."
+        },
+        {
+          "label": "Change",
+          "criteria": "Narrow exclusion as the guidance says.",
+          "modelAnswer": "A route for the WindowsVirtualDesktop service tag to Internet and the AVD FQDN tag excluded from inspection. Web traffic from the spoke is still inspected."
+        },
+        {
+          "label": "Not bypass",
+          "criteria": "Keeps the security control.",
+          "modelAnswer": "Deleting the default route would have removed inspection and logging for all of the call center's traffic. The exclusion was agreed with security and an alert watches host health."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The day shift logs on at 08:00, 70 minutes after the alert."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: Removing the default route took all spoke traffic out of the firewall."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed and not harmed",
+      "class": "harm",
+      "rationale": "Closing with the AVD traffic still inspected leaves the call center unable to log on.",
+      "source": {
+        "cite": "Microsoft Learn, 'Use Azure Firewall to protect Azure Virtual Desktop deployments'",
+        "checkedAt": "2026-11-17",
+        "url": "https://learn.microsoft.com/en-us/azure/firewall/protect-azure-virtual-desktop",
+        "note": "Read through a summarizing fetch on 2026-11-17. Quoted: 'Azure Firewall uses the Azure Virtual Desktop FQDN tag WindowsVirtualDesktop'; rules are needed for each required FQDN and endpoint; 'Don't use TLS inspection with Azure Virtual Desktop'; to avoid disconnections when all traffic goes through the firewall, a route with destination type Service tag, destination WindowsVirtualDesktop and next hop Internet gives direct access to the gateway and broker. The session host status 'Unavailable' and the agent's log wording are from memory of the AVD troubleshooting pages, and the az CLI flags shown are from memory of the CLI reference (to verify)."
+      }
+    }
+  },
+  "endings": {
+    "uninspected": {
+      "label": "Call center egress bypasses the firewall",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and harmed",
+      "narrative": "Deleting the default route fixed the hosts and removed inspection, filtering and logging for all of the spoke's traffic."
+    },
+    "shiftDown": {
+      "label": "Call center could not log on",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(missAt)",
+      "narrative": "At 08:00 the hosts still could not reach the AVD service through the inspecting firewall."
+    },
+    "excluded": {
+      "label": "AVD traffic excluded, web inspected, agreed",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(statusAt) and not isNull(fwlogAt) and not isNull(verifiedAt) and causeDoc == \"tls\"",
+      "narrative": "The hosts reach the service directly, the rest of the spoke is still inspected, and security agreed the exclusion."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The shift logged on, but the agreement, the alert, the check or the record was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "uninspected",
+    "shiftDown",
+    "excluded",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Read host status and the firewall's inspected traffic",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(statusAt) and not isNull(fwlogAt)",
+            "score": "met",
+            "why": "The key evidence, read before changing anything."
+          },
+          {
+            "when": "not isNull(statusAt) or not isNull(fwlogAt) or not isNull(agentAt) or not isNull(routeAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Hosts available by 08:00 with web traffic still inspected",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and not harmed and isNull(missAt)",
+            "score": "met",
+            "why": "The right change, in time, without harm."
+          },
+          {
+            "when": "fixed or harmed",
+            "score": "partial",
+            "why": "{harmed ? \"Removing the default route took all spoke traffic out of the firewall.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never removed."
+          }
+        ]
+      },
+      {
+        "id": "lasting",
+        "label": "Exclusion agreed with security, alert set, sign-in checked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The lasting step taken and the result checked."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"tls\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record names the wrong cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes that caused harm",
+        "value": "harmed ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "06:50-06:54",
+        "text": "All hosts Unavailable since 05:40; broker traffic TLS-inspected since 05:35; agent rejects the firewall CA; all traffic via the firewall."
+      },
+      {
+        "at": "06:54-07:00",
+        "text": "Service-tag route to Internet; AVD FQDN tag excluded from inspection; agreed with security; heartbeat alert."
+      },
+      {
+        "at": "07:00-07:02",
+        "text": "40 hosts Available; test sign-in connects."
+      }
+    ],
+    "debrief": {
+      "uninspected": {
+        "headline": "Exempt the service, not the network",
+        "body": "Only AVD's own service traffic must avoid TLS inspection. A service-tag route and an exclusion for the FQDN tag keep everything else inspected."
+      },
+      "shiftDown": {
+        "headline": "Inspection broke the agent's connection",
+        "body": "AVD's agent and service connections must not be TLS-inspected. Exclude the WindowsVirtualDesktop traffic and route its service tag directly."
+      },
+      "excluded": {
+        "headline": "Good: troubleshot the path, kept the control",
+        "body": "You saw all hosts fail together, found the inspected broker traffic in the firewall logs, excluded only the AVD service traffic as the vendor guidance says, checked a sign-in, and made the exclusion part of the security change."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the evidence before the change, the lasting step, the check, or the cause in the record."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "All hosts failed at once, right after TLS inspection was turned on, and the firewall logs show their broker connections being inspected while the agent rejects the firewall's certificate. AVD guidance says not to TLS-inspect its traffic: route the WindowsVirtualDesktop service tag directly and exclude the AVD FQDN tag from inspection, leaving everything else inspected. Removing the default route bypasses the firewall entirely; restarting hosts changes nothing. Agree the exclusion with security and alert on host health."
+  }
+}

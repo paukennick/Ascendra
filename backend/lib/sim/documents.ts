@@ -560,6 +560,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("AZ120", "baseline-policy-denies-hana-vm-size"),
   band("AZ120", "stale-udr-to-retired-nva-az120"),
   band("AZ120", "backup-vault-sabotage-az120"),
+  entry("AZ140", "tls-inspection-breaks-session-hosts"),
   // ---- end REQ-335 ----
   // ---- REQ-323 (docs/sims.md 22.32): health breadth and nursing depth of the
   // 2026-11-17 round. Bands first, then new cases. Keep these together. ----
