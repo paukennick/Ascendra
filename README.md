@@ -21,6 +21,7 @@ Ascendra runs on iPhone, Android and the web.
 - [Screenshots](#screenshots)
 - [Safety and trust](#safety-and-trust)
 - [Content, sources and legal](#content-sources-and-legal)
+- [For the owner](#for-the-owner)
 - [For developers](#for-developers)
 - [License](#license)
 
@@ -115,6 +116,12 @@ Captured from a local build of the web app with a demo account and sample practi
 - Course objectives are authored from publicly published exam guides, accreditation standards and licensure requirements, never copied from paid course platforms.
 - Labs and practice content may contain errors and are not professional advice; every lab says so, and lessons, questions and labs carry a "Report a problem" link.
 - Ascendra is not affiliated with, and not endorsed by, AWS, Microsoft, Google Cloud, CompTIA, PMI, NCSBN, AACN, FSBPT or any other credentialing body named in the catalog. Names are used only to identify the exams a course prepares for.
+
+## For the owner
+
+Owners are the addresses in the server's `OWNER_EMAILS` setting. In the app, Settings, Access lets an owner give or remove unrestricted access (every course and feature, and full AI while the AI pilot is on, under a daily safety limit), invite an AI pilot group, and see generation hold rates.
+
+**Reviewers** (REQ-331). From the same screen an owner can mark anyone as a reviewer by email, with the course categories they review and a private note, and remove the mark again. A reviewer gets unrestricted access and an in-app feedback form (a "Reviewer" badge and "Give feedback" in Settings, the Home footer, every course page and every sim's results). The 18+ notices for mental health courses and sensitive sims still apply to them. Settings, Reviewer feedback lists everything reviewers sent, newest first, filterable by reviewer and course. [docs/operations-runbook.md](docs/operations-runbook.md#adding-a-reviewer-req-331) has the steps.
 
 ## For developers
 

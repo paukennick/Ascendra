@@ -51,6 +51,19 @@ hand. The Actions API listed no runs of "Nightly database backup" on
 2026-11-11 at about 03:00 UTC, so confirm the first scheduled run (11:23
 UTC) is green.
 
+## Adding a reviewer (REQ-331)
+
+A reviewer is someone the owner asks to look over courses and sims (for example a counselor or social worker for the mental health courses, a nurse for the nursing courses). They get unrestricted access and the reviewer feedback form. Needs migration 088.
+
+1. Sign in to the app as an owner (an address in `OWNER_EMAILS`) and open Settings, Access.
+2. Under **Reviewers, Mark a reviewer**, enter their email address, tap the course categories they will review (optional; it is shown to them and to you) and add a note only you see (optional, such as "LMHC, reviewing NCMHCE"). Tap **Mark as reviewer**. You get the usual "access changed" email.
+3. If they have no account yet, the mark waits and applies once they sign up and verify that address. Tell them to sign up with exactly that address.
+4. They will see a **Reviewer** badge in Settings and **Give feedback** in Settings, the Home footer, every course page and the results of every sim. Mental health courses and sensitive sims still ask them for the 18+ acknowledgment and their date of birth, like anyone else; that is intended.
+5. Read what they send under Settings, **Reviewer feedback** (newest first; filter by reviewer or course; a submission about a course or sim links to it). Problems with one specific item still arrive the usual way, as "Report a problem".
+6. To stop, tap **Remove reviewer** on their card. If marking created their access, it ends too; if they already had unrestricted access (an AI pilot invite), they keep it. Their feedback stays until they delete their account. Removing their access on the same screen also ends the reviewer mark.
+
+Everything is recorded in the access audit trail (`reviewer_on`, `reviewer_off`), and the reviewer's feedback is in their account export and deleted with their account (docs/legal/data-inventory.md).
+
 ## Postgres settings
 
 ### JIT off for the app role (Audit 3 HIGH-1)

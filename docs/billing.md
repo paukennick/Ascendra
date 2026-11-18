@@ -622,7 +622,19 @@ in Settings and on the plans screen, with no upgrade prompts.
 API (owner only, 403 otherwise): `GET /api/access/grants` (owners, grants,
 the last 50 audit entries), `POST /api/access/grants { email, until?:
 "YYYY-MM-DD", note? }`, `DELETE /api/access/grants/:id`. `GET /api/auth/me`
-carries `access: { level, grantedBy, expiresAt } | null`.
+carries `access: { level, grantedBy, expiresAt, reviewer } | null`.
+
+**Reviewers** (REQ-331, migration 088): a reviewer mark rides on a grant.
+`POST /api/access/reviewers { email, areas?: category slugs, note? }` marks
+an address (its live grant, or a new grant that unmarking ends again),
+`DELETE /api/access/reviewers/:grantId` unmarks, `GET /api/access/reviewers`
+lists them with the categories, and `GET /api/access/reviewer-feedback?
+reviewer=&course=` lists what reviewers sent; all owner only and counted
+against the same 30-an-hour access-change limit. A reviewer's plan is
+unrestricted (this section), so no plan gate applies to them; the 18+ gates
+are not plan gates and still apply. `access.reviewer` is `{ since, areas }`
+or null. The form itself is `/api/reviewer/feedback` (GET own list, POST)
+and `/api/reviewer/feedback/:id` (GET, PUT), reviewers and owners only.
 
 **From the command line** (emergencies; uses `DATABASE_URL`):
 
