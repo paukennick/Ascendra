@@ -1,0 +1,1010 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "backstage-production-catalog-wiped",
+  "title": "Backstage in production: a catalog that vanished on restart, a token in Git and a single pod behind the ingress",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "platform@brindle:~$",
+      "lines": [
+        {
+          "id": "firstLine",
+          "text": "catalog: 0 entities (was 1,240 before the 07:12 restart)",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "lineDb",
+          "text": "{db == \"pg\" ? \"PostgreSQL; the catalog survives restarts\" : db == \"sqliteFile\" ? \"SQLite on a volume\" : db == \"reimport\" ? \"Still in memory; re-registered on start\" : \"\"}",
+          "when": "db != \"none\"",
+          "at": "timeAt(dbAt)",
+          "error": "db == \"reimport\""
+        },
+        {
+          "id": "lineSecret",
+          "text": "{secret == \"rotateEnv\" ? \"Rotated; injected from a Secret\" : secret == \"moveOnly\" ? \"Moved, not rotated\" : secret == \"leave\" ? \"Token still committed\" : \"\"}",
+          "when": "secret != \"none\"",
+          "at": "timeAt(secretAt)",
+          "error": "secret == \"leave\""
+        },
+        {
+          "id": "lineHa",
+          "text": "{ha == \"replicas\" ? \"Replicated with probes and a PDB\" : ha == \"probesOnly\" ? \"One pod with probes\" : ha == \"nodePort\" ? \"Exposed on plain HTTP\" : \"\"}",
+          "when": "ha != \"none\"",
+          "at": "timeAt(haAt)",
+          "error": "ha == \"nodePort\""
+        }
+      ],
+      "nodes": [
+        {
+          "id": "nDb",
+          "label": "Backstage database",
+          "spokenLabel": "Backstage database",
+          "kind": "database",
+          "status": "{db == \"pg\" ? \"PostgreSQL; the catalog survives restarts\" : db == \"sqliteFile\" ? \"SQLite on a volume\" : db == \"reimport\" ? \"Still in memory; re-registered on start\" : \"Waiting\"}",
+          "tone": "db == \"pg\" ? \"up\" : db == \"sqliteFile\" ? \"degraded\" : db == \"reimport\" ? \"down\" : p >= 1 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nSecret",
+          "label": "GitHub integration token",
+          "spokenLabel": "GitHub integration token",
+          "kind": "secret",
+          "status": "{secret == \"rotateEnv\" ? \"Rotated; injected from a Secret\" : secret == \"moveOnly\" ? \"Moved, not rotated\" : secret == \"leave\" ? \"Token still committed\" : \"Waiting\"}",
+          "tone": "secret == \"rotateEnv\" ? \"up\" : secret == \"moveOnly\" ? \"degraded\" : secret == \"leave\" ? \"down\" : p >= 2 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nHa",
+          "label": "backend pods behind the ingress",
+          "spokenLabel": "backend pods behind the ingress",
+          "kind": "Deployment",
+          "status": "{ha == \"replicas\" ? \"Replicated with probes and a PDB\" : ha == \"probesOnly\" ? \"One pod with probes\" : ha == \"nodePort\" ? \"Exposed on plain HTTP\" : \"Waiting\"}",
+          "tone": "ha == \"replicas\" ? \"up\" : ha == \"probesOnly\" ? \"degraded\" : ha == \"nodePort\" ? \"down\" : p >= 3 ? \"degraded\" : \"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "link0",
+          "from": "nDb",
+          "to": "nSecret",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        },
+        {
+          "id": "link1",
+          "from": "nSecret",
+          "to": "nHa",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Check-in",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Plan and deploy Backstage to production: PostgreSQL instead of SQLite, the backend container behind an ingress, Helm chart or manifests, and health endpoints",
+  "secondaryObjectives": [
+    "Configure Backstage: app-config.yaml and environment overlays (app-config.production.yaml), secrets via environment variables, and the configuration schema"
+  ],
+  "sources": [
+    {
+      "cite": "CNCF, Certified Backstage Associate (CBA) certification page: Customizing Backstage 32%, Backstage Development Workflow 24%, Backstage Infrastructure 22%, Backstage Catalog 22%",
+      "checkedAt": "2026-11-17",
+      "url": "https://cncf.io/training/certification/cba",
+      "note": "Read through a summarizing fetch on 2026-11-17 (domain weights only). The objective wording is the course seed's; the cncf/curriculum PDF was not re-read (to verify). Reused for REQ-336 from this course's plugin-token-marked-frontend (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "GrokDevOps wiki, Backstage footguns",
+      "checkedAt": "2026-11-17",
+      "url": "https://grokdatum.github.io/grokdevops-wiki/library/topics/backstage/footguns",
+      "note": "Read 2026-11-17 through a summarizing fetch of the page found by search. The default scaffold uses an in-memory SQLite database, so catalog data is lost on restart (use database.client pg outside development); unpinned plugins break after a core upgrade (check versions, upgrade on a cadence); secrets belong in environment variable substitution from Kubernetes Secrets or a secrets manager, never committed in app-config."
+    },
+    {
+      "cite": "GrokDevOps wiki, Backstage street ops",
+      "checkedAt": "2026-11-17",
+      "url": "https://grokdatum.github.io/grokdevops-wiki/library/topics/backstage/street_ops",
+      "note": "Found by search 2026-11-17 and read only through the search listing (title and address); to verify against the page. Used for: day-two operation of the catalog: ingestion, refresh and troubleshooting."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The company, the repositories, the services and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the platform engineer at Brindle Health, a fictional clinic network. A team stood up Backstage from the scaffold last month and pointed 300 developers at it. This morning every catalog entry disappeared after a node restart, and a security scan found a GitHub token in the repository.",
+    "handover": [
+      "The deployment: one backend pod behind an ingress, database.client better-sqlite3 with connection ':memory:'.",
+      "app-config.production.yaml holds the GitHub integration token in plain text."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the map shows each component and its status in words.",
+      "Move on a check-in at a time. A decision comes to you at each check-in; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-06-07T09:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "db": {
+      "type": "enum",
+      "values": [
+        "none",
+        "pg",
+        "sqliteFile",
+        "reimport"
+      ],
+      "init": "none"
+    },
+    "dbAt": {
+      "type": "time",
+      "init": null
+    },
+    "secret": {
+      "type": "enum",
+      "values": [
+        "none",
+        "rotateEnv",
+        "moveOnly",
+        "leave"
+      ],
+      "init": "none"
+    },
+    "secretAt": {
+      "type": "time",
+      "init": null
+    },
+    "ha": {
+      "type": "enum",
+      "values": [
+        "none",
+        "replicas",
+        "probesOnly",
+        "nodePort"
+      ],
+      "init": "none"
+    },
+    "haAt": {
+      "type": "time",
+      "init": null
+    },
+    "dbcfgAt": {
+      "type": "time",
+      "init": null
+    },
+    "secretsAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((db == \"reimport\") ? 1 : 0) + ((secret == \"leave\") ? 1 : 0) + ((ha == \"nodePort\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(db == \"none\" or (db == \"reimport\") ? 1 : 0) + (secret == \"none\" or (secret == \"leave\") ? 1 : 0) + (ha == \"none\" or (ha == \"nodePort\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The production fix",
+      "clock": "turns",
+      "actions": [
+        "dbcfg",
+        "secrets"
+      ]
+    },
+    "close": {
+      "label": "Change record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "dbcfg": {
+      "label": "kubectl get configmap backstage-config -o yaml | grep -A3 database",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(dbcfgAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "dbcfgAt",
+          "to": "t"
+        },
+        {
+          "output": "database:\n  client: better-sqlite3\n  connection: ':memory:'"
+        },
+        {
+          "log": "You read the database configuration.",
+          "kind": "act"
+        },
+        {
+          "finding": "The catalog lives in an in-memory SQLite database, so every restart starts it empty; it re-ingests slowly and loses manual registrations and the scaffolder's history."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "secrets": {
+      "label": "git grep -n token app-config*.yaml",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(secretsAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "secretsAt",
+          "to": "t"
+        },
+        {
+          "output": "app-config.production.yaml:31:      token: ghp_********************************"
+        },
+        {
+          "log": "You search the config files for secrets.",
+          "kind": "act"
+        },
+        {
+          "finding": "A GitHub token is committed in app-config.production.yaml; it is in the repository's history since the first commit."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the change record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "In-memory SQLite replaced by PostgreSQL, the token rotated and injected from a Secret, and replicas with probes behind TLS ingress"
+                },
+                {
+                  "value": "summary",
+                  "label": "Portal restored"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next check-in",
+      "wait": {
+        "skipLabel": "Go to the next check-in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "db == \"reimport\"",
+              "then": [
+                {
+                  "log": "Check-in 2: the pod restarts again on a deploy; the catalog is empty for 40 minutes and the scaffolder's task history is gone.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "secret == \"leave\"",
+              "then": [
+                {
+                  "log": "Check-in 3: a contractor's laptop with a clone is stolen; the token is used to read private repositories before anyone revokes it.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "ha == \"nodePort\"",
+              "then": [
+                {
+                  "log": "Check-in 4: a network scan finds the portal on plain HTTP; session tokens were visible on the clinic network.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "10min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The portal is back for the afternoon.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "10min"
+        }
+      ]
+    },
+    {
+      "id": "t_db",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 1: developers are asking where the catalog went.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "dbPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_secret",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 2: the security team wants the token handled today.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "secretPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_ha",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 3: the portal went down again during a node drain.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "haPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "dbPrompt": {
+      "title": "The catalog is in memory",
+      "context": "The scaffold's default is in-memory SQLite. The clinic's infrastructure team runs a managed PostgreSQL service.",
+      "choices": [
+        {
+          "id": "pg",
+          "label": "Configure database.client pg in app-config.production.yaml against the managed PostgreSQL, with credentials from environment variables, and let the catalog re-ingest once",
+          "effects": [
+            {
+              "set": "db",
+              "to": "\"pg\""
+            },
+            {
+              "set": "dbAt",
+              "to": "t"
+            },
+            {
+              "log": "The backend now uses PostgreSQL; the catalog re-ingests and stays.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "PostgreSQL is the production database for Backstage; the catalog and the scaffolder's state persist."
+        },
+        {
+          "id": "sqliteFile",
+          "label": "Keep SQLite but write it to a file on a persistent volume",
+          "effects": [
+            {
+              "set": "db",
+              "to": "\"sqliteFile\""
+            },
+            {
+              "set": "dbAt",
+              "to": "t"
+            },
+            {
+              "log": "SQLite now writes to a volume.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "It survives restarts, but ties the backend to one pod and one volume; it will not scale or fail over."
+        },
+        {
+          "id": "reimport",
+          "label": "Keep it in memory and add a startup script that re-registers every location",
+          "effects": [
+            {
+              "set": "db",
+              "to": "\"reimport\""
+            },
+            {
+              "set": "dbAt",
+              "to": "t"
+            },
+            {
+              "log": "A startup script re-registers locations on each start.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Each restart still wipes the catalog; manual registrations and the scaffolder's history are lost every time."
+        }
+      ]
+    },
+    "secretPrompt": {
+      "title": "A token committed in the config",
+      "context": "The GitHub token is in app-config.production.yaml and the repository's history.",
+      "choices": [
+        {
+          "id": "rotateEnv",
+          "label": "Revoke and rotate the token, replace it with an environment variable reference (GITHUB_TOKEN) in the config, and inject it from a Kubernetes Secret",
+          "effects": [
+            {
+              "set": "secret",
+              "to": "\"rotateEnv\""
+            },
+            {
+              "set": "secretAt",
+              "to": "t"
+            },
+            {
+              "log": "The old token is revoked; the new one comes from a Secret at runtime.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A committed secret is compromised: rotate it, and let the config read it from the environment."
+        },
+        {
+          "id": "moveOnly",
+          "label": "Move the token into a ConfigMap and delete it from the YAML in a new commit",
+          "effects": [
+            {
+              "set": "secret",
+              "to": "\"moveOnly\""
+            },
+            {
+              "set": "secretAt",
+              "to": "t"
+            },
+            {
+              "log": "The token moves to a ConfigMap; the old commit still has it.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "It is still in Git history and unrotated, and a ConfigMap is not a place for secrets."
+        },
+        {
+          "id": "leave",
+          "label": "Leave it; the repository is private",
+          "effects": [
+            {
+              "set": "secret",
+              "to": "\"leave\""
+            },
+            {
+              "set": "secretAt",
+              "to": "t"
+            },
+            {
+              "log": "The token stays in the repository.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Everyone with read access to the repository can use the token, and a private repository can be cloned anywhere."
+        }
+      ]
+    },
+    "haPrompt": {
+      "title": "One pod, no probes",
+      "context": "One backend pod with no readiness or liveness probes; a node drain took the portal down for six minutes. Now on PostgreSQL, the backend can run several replicas.",
+      "choices": [
+        {
+          "id": "replicas",
+          "label": "Run two or more replicas with readiness and liveness probes on the backend's health endpoints, a PodDisruptionBudget, and TLS at the ingress",
+          "effects": [
+            {
+              "set": "ha",
+              "to": "\"replicas\""
+            },
+            {
+              "set": "haAt",
+              "to": "t"
+            },
+            {
+              "log": "Two replicas with probes and a PDB serve behind the ingress.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "With state in PostgreSQL, replicas and health probes let the ingress route only to ready pods through drains."
+        },
+        {
+          "id": "probesOnly",
+          "label": "Add probes but keep one replica",
+          "effects": [
+            {
+              "set": "ha",
+              "to": "\"probesOnly\""
+            },
+            {
+              "set": "haAt",
+              "to": "t"
+            },
+            {
+              "log": "Probes are added to the single pod.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Probes help the ingress, but a single pod still goes down on every drain."
+        },
+        {
+          "id": "nodePort",
+          "label": "Bypass the ingress with a NodePort on plain HTTP so drains are someone else's problem",
+          "effects": [
+            {
+              "set": "ha",
+              "to": "\"nodePort\""
+            },
+            {
+              "set": "haAt",
+              "to": "t"
+            },
+            {
+              "log": "The backend is exposed on a NodePort over HTTP.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Sign-in tokens now cross the network unencrypted, and the backend is reachable without the ingress's controls."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the change record: why the catalog vanished, how the token was handled, and how the portal now stays up.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Data and secrets",
+          "criteria": "In-memory SQLite to PostgreSQL; the committed token revoked, rotated and read from the environment.",
+          "modelAnswer": "The scaffold's in-memory SQLite lost the catalog on restart; production now uses PostgreSQL. The committed token was revoked and rotated, and is injected from a Secret."
+        },
+        {
+          "label": "Availability",
+          "criteria": "Replicas, probes on the health endpoints and a PDB behind TLS ingress.",
+          "modelAnswer": "Two replicas with readiness and liveness probes and a PDB now sit behind the ingress with TLS."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Service restored and the work closed within 60 minutes of the first report."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No fault introduced by the response itself."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (db == \"sqliteFile\") and (secret == \"moveOnly\") and (ha == \"probesOnly\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CNCF, Certified Backstage Associate (CBA) certification page: Customizing Backstage 32%, Backstage Development Workflow 24%, Backstage Infrastructure 22%, Backstage Catalog 22%",
+        "checkedAt": "2026-11-17",
+        "url": "https://cncf.io/training/certification/cba",
+        "note": "Read through a summarizing fetch on 2026-11-17 (domain weights only). The objective wording is the course seed's; the cncf/curriculum PDF was not re-read (to verify). Reused for REQ-336 from this course's plugin-token-marked-frontend (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "dbHarm": {
+      "label": "The catalog wiped again",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and db == \"reimport\"",
+      "narrative": "The in-memory catalog was wiped again on the next deploy; the scaffolder's task history was lost."
+    },
+    "secretHarm": {
+      "label": "The committed token misused",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and secret == \"leave\"",
+      "narrative": "The committed token, never rotated, was used from a stolen clone to read private repositories."
+    },
+    "haHarm": {
+      "label": "The portal exposed without TLS",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and ha == \"nodePort\"",
+      "narrative": "The backend served sign-ins over plain HTTP on a NodePort; session tokens crossed the clinic network unencrypted."
+    },
+    "target": {
+      "label": "Production-ready Backstage",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (db == \"pg\") and (secret == \"rotateEnv\") and (ha == \"replicas\") and record == \"honest\" and missCount <= newFaults and timeAt(doneAt) <= restoreWindow",
+      "narrative": "The portal keeps its catalog, its secrets are out of Git, and it stays up through drains."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "dbHarm",
+    "secretHarm",
+    "haHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "dbCrit",
+        "label": "Moved the backend to PostgreSQL",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "db == \"pg\"",
+            "score": "met",
+            "why": "On PostgreSQL."
+          },
+          {
+            "when": "db == \"sqliteFile\"",
+            "score": "partial",
+            "why": "Persists, but single-pod only."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Still loses data on restart."
+          }
+        ]
+      },
+      {
+        "id": "secretCrit",
+        "label": "Rotated the token and moved it to environment substitution",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "secret == \"rotateEnv\"",
+            "score": "met",
+            "why": "Rotated and moved out of Git."
+          },
+          {
+            "when": "secret == \"moveOnly\"",
+            "score": "partial",
+            "why": "Moved but still exposed."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Left the exposed secret."
+          }
+        ]
+      },
+      {
+        "id": "haCrit",
+        "label": "Ran replicas with health probes behind the ingress",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "ha == \"replicas\"",
+            "score": "met",
+            "why": "Replicated with probes."
+          },
+          {
+            "when": "ha == \"probesOnly\"",
+            "score": "partial",
+            "why": "Probes, no redundancy."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Exposed the backend without TLS."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(dbcfgAt) and not isNull(secretsAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(dbcfgAt) or not isNull(secretsAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the database configuration and how secrets reach the config."
+      },
+      {
+        "at": "Check-in 1",
+        "text": "Move the backend to PostgreSQL with credentials from the environment."
+      },
+      {
+        "at": "Check-in 2",
+        "text": "Revoke and rotate the token; read it through environment substitution from a Secret."
+      },
+      {
+        "at": "Check-in 3",
+        "text": "Run replicas with health probes and a PodDisruptionBudget behind TLS ingress."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "dbHarm": {
+        "headline": "Production needs PostgreSQL",
+        "body": "The scaffold's in-memory SQLite is for development; production uses PostgreSQL."
+      },
+      "secretHarm": {
+        "headline": "A committed secret is a leaked secret",
+        "body": "Rotate it, and read secrets through environment substitution from a secret store."
+      },
+      "haHarm": {
+        "headline": "Keep the ingress and TLS",
+        "body": "Scale the backend behind the ingress with health probes; never expose it raw."
+      },
+      "target": {
+        "headline": "Good: production-ready Backstage",
+        "body": "PostgreSQL for state, secrets through environment substitution, and replicas with health probes behind TLS ingress."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The scaffold's in-memory SQLite is a development default: production Backstage uses PostgreSQL so the catalog and scaffolder state survive restarts and the backend can run replicas. Configuration layers app-config.production.yaml over the base, and secrets enter through environment substitution from a secret store; a committed secret must be revoked and rotated, not just moved. Behind an ingress with TLS, replicas with readiness and liveness probes on the health endpoints and a PodDisruptionBudget keep it up through node drains."
+  }
+}
