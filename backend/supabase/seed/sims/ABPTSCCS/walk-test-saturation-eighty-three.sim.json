@@ -1,0 +1,1137 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "walk-test-saturation-eighty-three",
+  "title": "Eighty-three at two minutes",
+  "objective": "Recognize exercise-induced desaturation on a walk test (a fall in SpO2 of more than 4% is clinically significant; desaturation below 80% is the commonest reason to stop)",
+  "secondaryObjectives": [
+    "Titrate supplemental oxygen to target saturations: 94% to 98% for most patients, 88% to 92% for those at risk of hypercapnic respiratory failure, such as COPD"
+  ],
+  "sources": [
+    {
+      "cite": "Specialist certification examination outline: cardiovascular and pulmonary (the certifying board's published outline page)",
+      "checkedAt": "2026-11-08",
+      "url": "https://specialization.apta.org/become-a-specialist/cardiovascular-pulmonary/exam-outline",
+      "note": "Relayed from the cardiovascular and pulmonary specialty course seed (backend/supabase/seed/tracks/pt-abpts.ts, outline pages read 2026-10-08 and 2026-11-04, OUTLINE_CHECKED_AT 2026-11-08), not re-read: Evaluation (30%) is a tested area. Scope only; no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra cardiovascular and pulmonary specialty course catalog (backend/supabase/seed/tracks/pt-abpts.ts, track ABPTSCCS)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Matos Casano HA, et al.. Six-Minute Walk Test. StatPearls (updated 2025-07-07), StatPearls Publishing",
+      "checkedAt": "2026-11-04",
+      "note": "Relayed from the course seed (tag SP-6MWT; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: a fall in SpO2 of more than 4% during a walk test is clinically significant and desaturation below 80% is the commonest reason to stop; the ERS/ATS technical standard puts the smallest meaningful change at 30 m (the course objectives' wording)."
+    },
+    {
+      "cite": "Weekley MS, et al.. Oxygen Therapy. StatPearls (updated 2025-01-22), StatPearls Publishing",
+      "checkedAt": "2026-11-04",
+      "note": "Relayed from the course seed (tag SP-O2; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: supplemental oxygen is titrated to a target saturation; the course seed corrected its targets on 2026-11-09 to the BTS 2017 guideline's 94-98% for most patients and 88-92% for those at risk of hypercapnic respiratory failure, such as COPD."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "09:00 in an outpatient pulmonary rehabilitation gym. You are the physical therapist doing Mr. Lindqvist's intake 6-minute walk test on room air. His resting SpO2 is 93%. His pulmonologist's referral includes an order to titrate oxygen to a saturation of 88-92% during exercise.",
+    "handover": [
+      "He has a history of hypercapnic respiratory failure two winters ago.",
+      "Clinic policy: stop a walk test for a stopping rule, rest seated, titrate oxygen under the referral's order, and tell the pulmonologist the same day when exertional desaturation needs an ambulatory oxygen prescription."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "09:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.02,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Hypoxemia deepens while he keeps walking. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.003,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It recovers once he rests on titrated oxygen. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of hypoxemic collapse. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The pulmonologist told within 5 minutes of the desaturation (clinic policy: the same day)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min for him to recover and the plan to be set."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "screenAt": {
+      "type": "time",
+      "init": null
+    },
+    "walkAt": {
+      "type": "time",
+      "init": null
+    },
+    "borgAt": {
+      "type": "time",
+      "init": null
+    },
+    "distAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "screen",
+        "walk",
+        "borg",
+        "dist"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "md",
+        "note"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "desat",
+        "probe",
+        "normal"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "stopAt": {
+      "type": "time",
+      "init": null
+    },
+    "o2At": {
+      "type": "time",
+      "init": null
+    },
+    "pushAt": {
+      "type": "time",
+      "init": null
+    },
+    "o2highAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round((isNull(walkAt) ? 88 : (isNull(stopAt) ? 118 : 100)) + 20 * max(0, prog - 0.6) + sin(t / 9) * 2)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(max(70, isNull(walkAt) ? 93 : (isNull(stopAt) ? 85 - 30 * max(0, prog - 0.45) : (not isNull(o2highAt) ? 99 : (not isNull(o2At) ? 90 : 88)))))",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (not isNull(stopAt) ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Mr. Lindqvist, 71, pulmonary rehabilitation intake",
+        "presentation": "COPD, former smoker, breathless walking to the mailbox. {isNull(walkAt) ? \"Seated, on room air.\" : \"\"}"
+      },
+      "vitals": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "colour": "ecg",
+          "alarm": {
+            "high": 130
+          },
+          "announce": {
+            "bands": [
+              115,
+              130
+            ]
+          }
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "colour": "spo2",
+          "alarm": {
+            "low": 88
+          },
+          "announce": {
+            "bands": [
+              91,
+              88
+            ]
+          }
+        }
+      ],
+      "activity": "{not inClinic ? \"Gone home with the plan.\" : (isNull(walkAt) ? \"Seated before the walk test.\" : (isNull(stopAt) ? \"Walking the 30 m course, breathing hard.\" : \"Seated, recovering.\"))}",
+      "measures": [
+        {
+          "id": "screenResult",
+          "label": "Screen",
+          "result": "Resting HR 88, SpO2 93%, BP 132/78; no chest pain; no cardiac event this year.",
+          "when": "not isNull(screenAt)"
+        },
+        {
+          "id": "walkResult",
+          "label": "Walk test",
+          "result": "At 2 minutes: SpO2 83%, HR 118, Borg dyspnea 6/10; he keeps going.",
+          "when": "not isNull(walkAt)",
+          "flag": "true"
+        },
+        {
+          "id": "borgResult",
+          "label": "Symptoms",
+          "result": "Breathless; no chest pain; a little light-headed.",
+          "when": "not isNull(borgAt)"
+        },
+        {
+          "id": "distResult",
+          "label": "Distance",
+          "result": "132 m in 2 minutes.",
+          "when": "not isNull(distAt)"
+        }
+      ],
+      "dosage": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "Walk stopped and seated",
+            "when": "not isNull(stopAt)"
+          },
+          {
+            "label": "Oxygen titrated to 88-92%",
+            "when": "not isNull(o2At)"
+          },
+          {
+            "label": "Pulmonologist told",
+            "when": "route == \"md\""
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleStop",
+          "label": "SpO2 falling below the floor during the walk",
+          "text": "Stop the test and rest; it is a stopping rule.",
+          "met": "not isNull(walkAt) and isNull(stopAt) and spo2 < 88"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "screen": {
+      "label": "Pre-test screen: resting vitals, recent cardiac events, symptoms",
+      "group": "Examine",
+      "available": "not testPending and isNull(screenAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"screen\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "walk": {
+      "label": "Start the 6-minute walk test with the oximeter on, counting laps",
+      "group": "Examine",
+      "available": "not testPending and isNull(walkAt) and not isNull(screenAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"walk\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "borg": {
+      "label": "Ask about dyspnea, chest pain, dizziness",
+      "group": "Examine",
+      "available": "not testPending and isNull(borgAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"borg\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "dist": {
+      "label": "Record distance and laps so far",
+      "group": "Examine",
+      "available": "not testPending and isNull(distAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"dist\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "stop": {
+      "label": "Stop the test and seat him (stopping rule)",
+      "group": "Treat",
+      "available": "isNull(stopAt) and inClinic and not isNull(walkAt)",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "stopAt",
+          "to": "t"
+        },
+        {
+          "log": "Test stopped at 2:10; seated; you note the time, distance and reason.",
+          "kind": "act"
+        }
+      ]
+    },
+    "o2": {
+      "label": "Titrate oxygen to 88-92% under the referral's order",
+      "group": "Treat",
+      "available": "isNull(o2At) and inClinic and not isNull(stopAt)",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "o2At",
+          "to": "t"
+        },
+        {
+          "log": "Oxygen by nasal cannula, titrated; SpO2 90%.",
+          "kind": "act"
+        }
+      ]
+    },
+    "push": {
+      "label": "Encourage him to finish all 6 minutes for a complete test",
+      "group": "Treat",
+      "available": "isNull(pushAt) and inClinic and not isNull(walkAt)",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "pushAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.35, 2)"
+        },
+        {
+          "log": "He keeps walking; his SpO2 falls into the 70s.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "o2high": {
+      "label": "Put him on high-flow oxygen to bring his saturation to 100%",
+      "group": "Treat",
+      "available": "isNull(o2highAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "o2highAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.25, 2)"
+        },
+        {
+          "log": "High-flow oxygen; SpO2 99%; he becomes drowsy over the next minutes.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "What did the walk test show?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "desat",
+              "label": "Clinically significant exertional desaturation: a 10-point fall to 83%, a stopping rule; he needs titrated oxygen for exercise"
+            },
+            {
+              "value": "probe",
+              "label": "A probe artifact from walking"
+            },
+            {
+              "value": "normal",
+              "label": "Normal for COPD; keep going"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"desat\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"desat\""
+                },
+                {
+                  "log": "Exertional desaturation.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"probe\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"probe\""
+                },
+                {
+                  "log": "Read as artifact.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"normal\""
+                },
+                {
+                  "log": "Read as normal.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Report",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "md",
+              "label": "Call the pulmonologist today: walk test stopped at 2 min for SpO2 83% (rest 93%), Borg 6; recovered to 90% on titrated oxygen; ask for an ambulatory oxygen prescription for rehab"
+            },
+            {
+              "value": "note",
+              "label": "Write it in the note for his next visit"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"md\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"md\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "The pulmonologist orders ambulatory oxygen for exercise at 88-92% and asks for the repeat walk test on oxygen.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"note\""
+                },
+                {
+                  "log": "Noted for next visit.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document the test (time stopped, distance, lowest SpO2, Borg, oxygen) and teach him the plan",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Documented: stopped at 2:10 for SpO2 83%, 132 m, Borg 6, recovered to 90% on titrated oxygen; he can explain his target range.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Pulmonary rehab gym",
+      "clock": "running",
+      "actions": [
+        "screen",
+        "walk",
+        "borg",
+        "dist",
+        "stop",
+        "o2",
+        "push",
+        "o2high",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the test",
+      "wait": {
+        "skipLabel": "the test result"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each test or question takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"screen\"",
+              "then": [
+                {
+                  "set": "screenAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Resting heart rate 88, SpO2 93%, blood pressure 132/78; no chest pain, no recent cardiac event: cleared to walk.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"walk\"",
+              "then": [
+                {
+                  "set": "walkAt",
+                  "to": "t"
+                },
+                {
+                  "log": "At 2 minutes his SpO2 reads 83% with a good trace, heart rate 118, Borg dyspnea 6 of 10. He wants to keep going.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"borg\"",
+              "then": [
+                {
+                  "set": "borgAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Breathless, a little light-headed, no chest pain.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "distAt",
+                  "to": "t"
+                },
+                {
+                  "log": "132 m in 2 minutes.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the end of the visit",
+      "wait": {
+        "skipLabel": "the end of the visit"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min for him to recover and the plan to be set."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "He leaves with the oxygen plan and a repeat test booked.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What did Mr. Lindqvist's walk test show, and what do you do?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "A fall from 93% to 83% is clinically significant exertional desaturation (more than 4 points) and below the stopping floor; with prior hypercapnic failure his target is 88-92%.",
+          "modelAnswer": "He dropped 10 points, from 93 to 83, which is significant and under the floor, so the test stops. With his history of hypercapnic failure, his target's 88 to 92, not higher."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Stops and seats him, titrates oxygen to 88-92% under the order, records the details and tells the pulmonologist for an ambulatory prescription.",
+          "modelAnswer": "Stop, sit him down, titrate oxygen to 88 to 92, write it all down and call the pulmonologist for ambulatory oxygen."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "spo2Floor": {
+        "value": 88,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "escalateWindow": {
+        "value": 300,
+        "source": {
+          "cite": "Unit practice (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "The pulmonologist told within 5 minutes of the desaturation (clinic policy: the same day)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Exertional desaturation left unmanaged an hour on is harm here.",
+      "source": {
+        "cite": "Weekley MS, et al.. Oxygen Therapy. StatPearls (updated 2025-01-22), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-O2; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: supplemental oxygen is titrated to a target saturation; the course seed corrected its targets on 2026-11-09 to the BTS 2017 guideline's 94-98% for most patients and 88-92% for those at risk of hypercapnic respiratory failure, such as COPD."
+      }
+    }
+  },
+  "endings": {
+    "collapse": {
+      "label": "Hypoxemic collapse",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "His saturation falls into the 70s, he becomes confused and sinks to the floor; EMS is called."
+    },
+    "safe": {
+      "label": "Desaturation caught and managed",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"md\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and isNull(pushAt) and (not isNull(stopAt)) and isNull(o2highAt) and (not isNull(o2At))",
+      "narrative": "{timeAt(leftAt)|clock}: he is recovered on titrated oxygen with an ambulatory oxygen plan."
+    },
+    "safeGaps": {
+      "label": "Managed, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: he has a plan, but he walked on, got too much oxygen, or the report was slow."
+    },
+    "time_up": {
+      "label": "Unresolved at 10:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "10:00 with no plan."
+    }
+  },
+  "endingOrder": [
+    "collapse",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "The pulmonologist told within 5 minutes of the desaturation",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"md\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"md\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "stopC",
+        "label": "Stopped the walk for desaturation",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(pushAt)",
+            "score": "missed",
+            "why": "Pushed on through desaturation."
+          },
+          {
+            "when": "not isNull(stopAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not stopped."
+          }
+        ]
+      },
+      {
+        "id": "o2C",
+        "label": "Titrated oxygen to 88-92%, not to 100%",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(o2highAt)",
+            "score": "missed",
+            "why": "Oxygen to 100% in a patient at risk of hypercapnia."
+          },
+          {
+            "when": "not isNull(o2At)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not titrated."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Recorded symptoms and distance",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(borgAt) and not isNull(distAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(borgAt) or not isNull(distAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Read clinically significant exertional desaturation",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"desat\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"probe\"",
+            "score": "missed",
+            "why": "Good trace and symptoms."
+          },
+          {
+            "when": "dxEnum == \"normal\"",
+            "score": "missed",
+            "why": "A 10-point fall is significant."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented the test and taught him",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: significant desaturation; stopping rule; titrate to 88-92% in COPD; report",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Desaturation to the report",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "09:00 to the test stopped",
+        "value": "isNull(stopAt) ? -1 : timeAt(stopAt)",
+        "format": "duration",
+        "expert": "under 4 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "09:00",
+        "text": "Pre-test screen: cleared."
+      },
+      {
+        "at": "~09:02",
+        "text": "Walk: SpO2 83% at 2 min."
+      },
+      {
+        "at": "~09:03",
+        "text": "Stop, seat; titrate oxygen to 88-92%."
+      },
+      {
+        "at": "~09:04",
+        "text": "Call the pulmonologist; document; teach."
+      }
+    ],
+    "debrief": {
+      "collapse": {
+        "headline": "Hypoxemic collapse",
+        "body": "A fall of more than 4 points is significant and SpO2 below the floor is a stopping rule. Stop, rest, titrate oxygen to his target and tell the pulmonologist."
+      },
+      "safe": {
+        "headline": "Desaturation caught and managed",
+        "body": "You screened, stopped at the stopping rule, titrated oxygen to 88-92% for his hypercapnia risk and told the pulmonologist within minutes. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Managed, with gaps",
+        "body": "Check whether you stopped at the rule, whether oxygen went to his target, and how soon you reported."
+      },
+      "time_up": {
+        "headline": "Unresolved at 10:00",
+        "body": "Exertional desaturation is acted on in the visit."
+      }
+    },
+    "modelReasoning": "During a walk test a fall in SpO2 of more than 4% is clinically significant, and desaturation below the floor is a reason to stop. Mr. Lindqvist fell from 93% to 83% at 2 minutes. Stop and seat him, titrate oxygen under the referral's order to 88-92% (his prior hypercapnic respiratory failure puts him in that group; 94-98% applies to most others), record time, distance, lowest SpO2 and Borg, and tell the pulmonologist the same day for an ambulatory oxygen prescription."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "desatQ": {
+      "during": "testT",
+      "ask": "While he walks: what fall in SpO2 is clinically significant on a walk test?",
+      "choices": [
+        {
+          "id": "four",
+          "label": "More than 4 points"
+        },
+        {
+          "id": "ten",
+          "label": "Only more than 10 points"
+        },
+        {
+          "id": "any",
+          "label": "Any fall at all"
+        }
+      ],
+      "expect": "four",
+      "explain": "A fall in SpO2 of more than 4% on a walk test is clinically significant.",
+      "source": {
+        "cite": "Matos Casano HA, et al.. Six-Minute Walk Test. StatPearls (updated 2025-07-07), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-6MWT; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: a fall in SpO2 of more than 4% during a walk test is clinically significant and desaturation below 80% is the commonest reason to stop; the ERS/ATS technical standard puts the smallest meaningful change at 30 m (the course objectives' wording)."
+      }
+    },
+    "targetQ": {
+      "during": "leaveT",
+      "ask": "While he recovers: what saturation target fits him?",
+      "choices": [
+        {
+          "id": "low",
+          "label": "88-92%, because he is at risk of hypercapnic respiratory failure"
+        },
+        {
+          "id": "high",
+          "label": "100%"
+        },
+        {
+          "id": "std",
+          "label": "94-98% like everyone"
+        }
+      ],
+      "expect": "low",
+      "explain": "94-98% for most patients; 88-92% for those at risk of hypercapnic respiratory failure such as COPD.",
+      "source": {
+        "cite": "Weekley MS, et al.. Oxygen Therapy. StatPearls (updated 2025-01-22), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-O2; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: supplemental oxygen is titrated to a target saturation; the course seed corrected its targets on 2026-11-09 to the BTS 2017 guideline's 94-98% for most patients and 88-92% for those at risk of hypercapnic respiratory failure, such as COPD."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

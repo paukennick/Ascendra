@@ -1,0 +1,1069 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "neck-pain-headache-after-adjustment",
+  "title": "Neck pain and a headache after an adjustment",
+  "objective": "Screen acute neck pain with headache for vertebral artery dissection, which can follow minor trauma or neck manipulation and progress to posterior-circulation stroke",
+  "secondaryObjectives": [
+    "Cervical spine (12%): examination including vascular and ligamentous screening, treatment-based classification and intervention"
+  ],
+  "sources": [
+    {
+      "cite": "Specialist certification examination outline: orthopaedics (the certifying board's published outline page)",
+      "checkedAt": "2026-11-08",
+      "url": "https://specialization.apta.org/become-a-specialist/orthopaedics/specialist-certification-examination-outline-orthopaedics",
+      "note": "Relayed from the orthopaedics specialty course seed (backend/supabase/seed/tracks/pt-abpts.ts, outline pages read 2026-10-08 and 2026-11-04, OUTLINE_CHECKED_AT 2026-11-08), not re-read: Patient management: spine, pelvis and craniomandibular region (28%) is a tested area. Scope only; no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra orthopaedics specialty course catalog (backend/supabase/seed/tracks/pt-abpts.ts, track ABPTSOCS)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Tavakoli H, et al.. Vertebral Artery Dissection. StatPearls (updated 2025-04-06), StatPearls Publishing",
+      "checkedAt": "2026-11-04",
+      "note": "Relayed from the course seed (tag SP-VAD; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: acute neck pain with headache can be vertebral artery dissection, which can follow minor trauma or neck manipulation and progress to posterior-circulation stroke (the course objective's wording)."
+    },
+    {
+      "cite": "Helman A. The Many Faces of Spontaneous Cervical Artery Dissection. ACEP Now, 2022-02-17",
+      "checkedAt": "2026-11-17",
+      "url": "https://acepnow.com/article/the-many-faces-of-spontaneous-cervical-artery-dissection",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'The hallmark of CAD is neck pain and/or headache, which occurs in 74 percent of cases'; '80 percent of CADs are preceded by trauma'; neck manipulation is associated though 'a causal role has never been proven'; posterior circulation signs 'diplopia, dysarthria, dysphagia, dystaxia'; 'a relatively common cause of ischemic stroke in young people', with stroke symptoms in about two-thirds and possibly delayed; noncontrast CT then CT angiogram of the head and neck."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "11:00 in an outpatient orthopedic clinic (direct access). You are the physical therapist. Ms. Ferreira, 38, has right neck pain and an occipital headache that began suddenly during a neck adjustment two days ago. She wants 'it cracked back into place'.",
+    "handover": [
+      "She describes the headache as 'unlike any I've had'. This morning she had a spell of double vision and felt unsteady.",
+      "Clinic policy: neck pain with headache and any neurologic or posterior circulation sign goes to the emergency department the same visit; no manipulation."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "11:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.014,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The dissection risks a posterior circulation stroke while it is unrecognized. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.003,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Risk falls once she is in emergency care. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of posterior circulation stroke. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Emergency department within 5 minutes of positive signs (clinic policy: same visit)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 min for EMS."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "hxAt": {
+      "type": "time",
+      "init": null
+    },
+    "neuroAt": {
+      "type": "time",
+      "init": null
+    },
+    "bpAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "hx",
+        "neuro",
+        "bp"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "ed",
+        "pcp"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "vad",
+        "mech",
+        "tension"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "manipAt": {
+      "type": "time",
+      "init": null
+    },
+    "endrangeAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(84 + sin(t / 9) * 3)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "142",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "88",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "pain": {
+      "expr": "round(clamp(6 + 3 * max(0, prog - 0.5), 0, 10))",
+      "unit": "/10",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (route == \"ed\" ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Ms. Ferreira, 38, office manager",
+        "presentation": "Sudden right-sided neck pain and a headache since a neck adjustment at another clinic two days ago."
+      },
+      "vitals": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "colour": "ecg",
+          "alarm": {
+            "high": 110
+          },
+          "announce": {
+            "bands": [
+              95,
+              110
+            ]
+          }
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "announce": {
+            "bands": [
+              160,
+              180
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "pain",
+          "label": "Pain",
+          "spokenLabel": "Pain, out of 10",
+          "value": "pain",
+          "unit": "/10",
+          "colour": "neutral",
+          "alarm": {
+            "high": 8
+          },
+          "announce": {
+            "bands": [
+              6,
+              8
+            ]
+          }
+        }
+      ],
+      "activity": "{not inClinic ? \"Gone to the emergency department.\" : (not isNull(manipAt) ? \"Lying on the table after a thrust, dizzy and nauseated.\" : \"Sitting, holding her neck stiffly.\")}",
+      "measures": [
+        {
+          "id": "hxResult",
+          "label": "History",
+          "result": "Sudden onset during manipulation; new, unusual occipital headache; diplopia and unsteadiness this morning.",
+          "when": "not isNull(hxAt)"
+        },
+        {
+          "id": "neuroResult",
+          "label": "Neuro screen",
+          "result": "Nystagmus on right gaze; mild right dysmetria; wide-based gait.",
+          "when": "not isNull(neuroAt)",
+          "flag": "true"
+        },
+        {
+          "id": "bpResult",
+          "label": "Blood pressure",
+          "result": "142/88 right, 140/86 left.",
+          "when": "not isNull(bpAt)"
+        }
+      ],
+      "dosage": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "No manipulation or end-range testing",
+            "when": "isNull(manipAt)"
+          },
+          {
+            "label": "Emergency department",
+            "when": "route == \"ed\""
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleNo",
+          "label": "Neck pain and headache with any posterior circulation sign",
+          "text": "No manipulation, traction or end-range testing; emergency department now.",
+          "met": "not isNull(neuroAt) and isNull(callAt)"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "hx": {
+      "label": "History: onset, headache character, dizziness, vision, speech, swallowing",
+      "group": "Examine",
+      "available": "not testPending and isNull(hxAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"hx\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "neuro": {
+      "label": "Cranial nerve and coordination screen: eyes, speech, swallow, finger-nose, gait",
+      "group": "Examine",
+      "available": "not testPending and isNull(neuroAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"neuro\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "bp": {
+      "label": "Blood pressure both arms",
+      "group": "Examine",
+      "available": "not testPending and isNull(bpAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"bp\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "manip": {
+      "label": "Do a gentle cervical manipulation as she asked",
+      "group": "Treat",
+      "available": "isNull(manipAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "manipAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.5, 2)"
+        },
+        {
+          "log": "Thrust to the cervical spine; she becomes dizzy and vomits.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "endrange": {
+      "label": "Test end-range rotation and extension to provoke symptoms",
+      "group": "Treat",
+      "available": "isNull(endrangeAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "endrangeAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.25, 2)"
+        },
+        {
+          "log": "End-range testing; she reports a wave of dizziness.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "What is the concern?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "vad",
+              "label": "Possible vertebral artery dissection: sudden neck pain and an unusual headache after manipulation, with nystagmus, dysmetria and ataxia"
+            },
+            {
+              "value": "mech",
+              "label": "Mechanical neck pain with a facet locked"
+            },
+            {
+              "value": "tension",
+              "label": "Tension headache"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"vad\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"vad\""
+                },
+                {
+                  "log": "Suspected vertebral artery dissection.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"mech\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"mech\""
+                },
+                {
+                  "log": "Read as mechanical.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"tension\""
+                },
+                {
+                  "log": "Read as tension headache.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Refer",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "ed",
+              "label": "Call 911 for transport to the emergency department: suspected vertebral artery dissection, onset with manipulation 2 days ago, diplopia, nystagmus, dysmetria, ataxia"
+            },
+            {
+              "value": "pcp",
+              "label": "Ask her to see her primary care provider this week"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"ed\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"ed\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "EMS takes her to the emergency department; CT and CT angiography of the head and neck are ordered.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"pcp\""
+                },
+                {
+                  "log": "She plans to call her provider.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Send your findings to the emergency department and tell her what to watch for",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Findings, onset and signs are sent with her.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Outpatient clinic",
+      "clock": "running",
+      "actions": [
+        "hx",
+        "neuro",
+        "bp",
+        "manip",
+        "endrange",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the test",
+      "wait": {
+        "skipLabel": "the test result"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each test or question takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"hx\"",
+              "then": [
+                {
+                  "set": "hxAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Sudden onset during a neck adjustment; a new, unusual occipital headache; double vision and unsteadiness this morning.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"neuro\"",
+              "then": [
+                {
+                  "set": "neuroAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Nystagmus on right gaze, mild right finger-nose dysmetria and a wide-based gait: posterior circulation signs.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "bpAt",
+                  "to": "t"
+                },
+                {
+                  "log": "142/88 right, 140/86 left.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "EMS",
+      "wait": {
+        "skipLabel": "EMS"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 min for EMS."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "She leaves by ambulance.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What do you suspect, and what do you do?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "Sudden neck pain with a new, unusual headache after manipulation, with diplopia, nystagmus, dysmetria and ataxia, suggests vertebral artery dissection, which can progress to a posterior circulation stroke.",
+          "modelAnswer": "This sounds like a vertebral artery dissection: sudden neck pain and a headache unlike any before, after a manipulation, plus double vision, nystagmus, clumsiness and an unsteady gait."
+        },
+        {
+          "label": "What I do",
+          "criteria": "No manipulation or provocation; emergency department now for vascular imaging, with the findings sent.",
+          "modelAnswer": "No cracking, no end-range testing. She goes to the emergency department now for vascular imaging, and I send my findings."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "spo2Floor": {
+        "value": 88,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "escalateWindow": {
+        "value": 300,
+        "source": {
+          "cite": "Unit practice (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "Emergency department within 5 minutes of positive signs (clinic policy: same visit)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "A suspected dissection unescalated an hour on is harm here.",
+      "source": {
+        "cite": "Helman A. The Many Faces of Spontaneous Cervical Artery Dissection. ACEP Now, 2022-02-17",
+        "checkedAt": "2026-11-17",
+        "url": "https://acepnow.com/article/the-many-faces-of-spontaneous-cervical-artery-dissection",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'The hallmark of CAD is neck pain and/or headache, which occurs in 74 percent of cases'; '80 percent of CADs are preceded by trauma'; neck manipulation is associated though 'a causal role has never been proven'; posterior circulation signs 'diplopia, dysarthria, dysphagia, dystaxia'; 'a relatively common cause of ischemic stroke in young people', with stroke symptoms in about two-thirds and possibly delayed; noncontrast CT then CT angiogram of the head and neck."
+      }
+    }
+  },
+  "endings": {
+    "stroke": {
+      "label": "Posterior circulation stroke",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "She develops slurred speech and cannot stand; a posterior circulation stroke is confirmed."
+    },
+    "safe": {
+      "label": "Dissection suspected and sent",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"ed\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and (not isNull(neuroAt)) and isNull(manipAt) and isNull(endrangeAt)",
+      "narrative": "{timeAt(leftAt)|clock}: she is in the emergency department for vascular imaging."
+    },
+    "safeGaps": {
+      "label": "Sent, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: she reaches the emergency department, but late or after a thrust or provocation."
+    },
+    "time_up": {
+      "label": "Still in the clinic at 12:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "12:00 and no plan."
+    }
+  },
+  "endingOrder": [
+    "stroke",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "Emergency department within 5 minutes of the neuro screen",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"ed\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"ed\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "neuroC",
+        "label": "Screened for posterior circulation signs",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(neuroAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not screened."
+          }
+        ]
+      },
+      {
+        "id": "noManipC",
+        "label": "No manipulation or end-range provocation",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(manipAt) or not isNull(endrangeAt)",
+            "score": "missed",
+            "why": "Manipulated or provoked."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Avoided."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Took the history and blood pressure",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(hxAt) and not isNull(bpAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(hxAt) or not isNull(bpAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Suspected vertebral artery dissection",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"vad\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"mech\"",
+            "score": "missed",
+            "why": "Neurologic signs rule that out here."
+          },
+          {
+            "when": "dxEnum == \"tension\"",
+            "score": "missed",
+            "why": "Not with posterior circulation signs."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Handed over findings",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: possible vertebral artery dissection; no manipulation; emergency imaging",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Neuro screen to the referral",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "11:00 to the neuro screen",
+        "value": "isNull(neuroAt) ? -1 : timeAt(neuroAt)",
+        "format": "duration",
+        "expert": "under 5 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "11:00",
+        "text": "History: sudden onset with manipulation; unusual headache; diplopia."
+      },
+      {
+        "at": "~11:03",
+        "text": "Neuro screen: nystagmus, dysmetria, ataxia."
+      },
+      {
+        "at": "~11:04",
+        "text": "No manipulation; 911 to the emergency department."
+      },
+      {
+        "at": "~11:05",
+        "text": "Blood pressure; send findings."
+      }
+    ],
+    "debrief": {
+      "stroke": {
+        "headline": "Posterior circulation stroke",
+        "body": "Acute neck pain with an unusual headache after manipulation, plus posterior circulation signs, is a dissection until imaged. No manipulation; emergency department now."
+      },
+      "safe": {
+        "headline": "Dissection suspected and sent",
+        "body": "You screened for posterior circulation signs, avoided manipulation and end-range testing, and sent her within minutes. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Sent, with gaps",
+        "body": "Check whether you manipulated or provoked, and how soon you sent her."
+      },
+      "time_up": {
+        "headline": "Still in the clinic at 12:00",
+        "body": "Suspected dissection goes to the emergency department in the same visit."
+      }
+    },
+    "modelReasoning": "Neck pain and/or headache is the hallmark of cervical artery dissection, often after trauma, and neck manipulation is associated with it. Posterior circulation signs (diplopia, dysarthria, dysphagia, dystaxia, nystagmus) raise the concern, and dissection is a common cause of stroke in younger adults. Do not manipulate or provoke; send her the same visit for emergency CT and CT angiography of the head and neck."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "cadQ": {
+      "during": "testT",
+      "ask": "While you screen: what is the hallmark of cervical artery dissection?",
+      "choices": [
+        {
+          "id": "pain",
+          "label": "Neck pain and/or headache, often after trauma"
+        },
+        {
+          "id": "arm",
+          "label": "Arm numbness only"
+        },
+        {
+          "id": "none",
+          "label": "It has no symptoms"
+        }
+      ],
+      "expect": "pain",
+      "explain": "The hallmark of CAD is neck pain and/or headache, in 74 percent of cases; most are preceded by trauma.",
+      "source": {
+        "cite": "Helman A. The Many Faces of Spontaneous Cervical Artery Dissection. ACEP Now, 2022-02-17",
+        "checkedAt": "2026-11-17",
+        "url": "https://acepnow.com/article/the-many-faces-of-spontaneous-cervical-artery-dissection",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'The hallmark of CAD is neck pain and/or headache, which occurs in 74 percent of cases'; '80 percent of CADs are preceded by trauma'; neck manipulation is associated though 'a causal role has never been proven'; posterior circulation signs 'diplopia, dysarthria, dysphagia, dystaxia'; 'a relatively common cause of ischemic stroke in young people', with stroke symptoms in about two-thirds and possibly delayed; noncontrast CT then CT angiogram of the head and neck."
+      }
+    },
+    "imgQ": {
+      "during": "leaveT",
+      "ask": "While she goes: what imaging confirms it?",
+      "choices": [
+        {
+          "id": "cta",
+          "label": "CT, then CT angiography of the head and neck"
+        },
+        {
+          "id": "xr",
+          "label": "Plain neck X-rays"
+        },
+        {
+          "id": "none",
+          "label": "No imaging is needed"
+        }
+      ],
+      "expect": "cta",
+      "explain": "Rule out bleeding with noncontrast CT, then confirm on CT angiogram of the head and neck.",
+      "source": {
+        "cite": "Helman A. The Many Faces of Spontaneous Cervical Artery Dissection. ACEP Now, 2022-02-17",
+        "checkedAt": "2026-11-17",
+        "url": "https://acepnow.com/article/the-many-faces-of-spontaneous-cervical-artery-dissection",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'The hallmark of CAD is neck pain and/or headache, which occurs in 74 percent of cases'; '80 percent of CADs are preceded by trauma'; neck manipulation is associated though 'a causal role has never been proven'; posterior circulation signs 'diplopia, dysarthria, dysphagia, dystaxia'; 'a relatively common cause of ischemic stroke in young people', with stroke symptoms in about two-thirds and possibly delayed; noncontrast CT then CT angiogram of the head and neck."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

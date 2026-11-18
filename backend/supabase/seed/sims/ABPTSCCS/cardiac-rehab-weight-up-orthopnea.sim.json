@@ -1,0 +1,1083 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cardiac-rehab-weight-up-orthopnea",
+  "title": "Up 2.4 kg and sleeping in a chair",
+  "objective": "Screen for contraindications to exercise in cardiac rehab: unstable angina, acute decompensated heart failure, complex ventricular arrhythmias, severe pulmonary hypertension, intracavitary thrombus, severe or symptomatic aortic stenosis",
+  "secondaryObjectives": [
+    "Teach risk-factor work that runs through every rehab phase: managing medical conditions, nutrition, smoking cessation, stress reduction and psychosocial support"
+  ],
+  "sources": [
+    {
+      "cite": "Specialist certification examination outline: cardiovascular and pulmonary (the certifying board's published outline page)",
+      "checkedAt": "2026-11-08",
+      "url": "https://specialization.apta.org/become-a-specialist/cardiovascular-pulmonary/exam-outline",
+      "note": "Relayed from the cardiovascular and pulmonary specialty course seed (backend/supabase/seed/tracks/pt-abpts.ts, outline pages read 2026-10-08 and 2026-11-04, OUTLINE_CHECKED_AT 2026-11-08), not re-read: Plan of care and interventions (15%) is a tested area. Scope only; no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra cardiovascular and pulmonary specialty course catalog (backend/supabase/seed/tracks/pt-abpts.ts, track ABPTSCCS)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Tessler J, et al.. Cardiac Rehabilitation. StatPearls (updated 2025-03-28), StatPearls Publishing",
+      "checkedAt": "2026-11-04",
+      "note": "Relayed from the course seed (tag SP-CR; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: contraindications to exercise in cardiac rehabilitation include unstable angina, acute decompensated heart failure, complex ventricular arrhythmias, severe pulmonary hypertension, intracavitary thrombus and severe or symptomatic aortic stenosis (the course objective's wording)."
+    },
+    {
+      "cite": "Shams P, et al.. Heart Failure (Congestive Heart Failure). StatPearls (updated 2025-02-26), StatPearls Publishing",
+      "checkedAt": "2026-11-04",
+      "note": "Relayed from the course seed (tag SP-HF; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: heart failure classes by ejection fraction as summarized from the 2022 ACC/AHA guideline (reduced 40% or less); congestion shows as weight gain, orthopnea, edema and crackles."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "08:30 in a hospital outpatient cardiac rehabilitation program. You are the physical therapist. Mr. Alvarez, 63, with heart failure (ejection fraction 30%), arrives for session 9.",
+    "handover": [
+      "He says he has been sleeping in his recliner for three nights because he 'can't breathe lying flat', and his shoes feel tight.",
+      "He weighs himself daily and brought his log.",
+      "Program policy: pre-exercise screening every session; exercise is withheld for any contraindication and the heart failure clinic is called the same morning."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "08:30",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.008,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Congestion progresses untreated. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.002,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It is being treated once the heart failure team has him. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of acute pulmonary edema. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The heart failure clinic called within 5 minutes of the weight (program policy: same morning)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min until he is walked over to the clinic."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "weightAt": {
+      "type": "time",
+      "init": null
+    },
+    "examAt": {
+      "type": "time",
+      "init": null
+    },
+    "medsAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "weight",
+        "exam",
+        "meds"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "hf",
+        "next"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "adhf",
+        "deconditioned",
+        "light"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "exAt": {
+      "type": "time",
+      "init": null
+    },
+    "holdAt": {
+      "type": "time",
+      "init": null
+    },
+    "teachAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round((isNull(exAt) ? 96 : 124) + 10 * max(0, prog - 0.6))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(isNull(exAt) ? 104 : 96)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.62)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round((isNull(exAt) ? 93 : 88) - 6 * max(0, prog - 0.7))",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (route == \"hf\" ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Mr. Alvarez, 63, phase II cardiac rehabilitation, heart failure with reduced ejection fraction",
+        "presentation": "Session 9 of 36. {not isNull(exAt) ? \"On the treadmill.\" : \"Seated.\"}"
+      },
+      "vitals": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "colour": "ecg",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              105,
+              120
+            ]
+          }
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "announce": {
+            "bands": [
+              160,
+              180
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "colour": "spo2",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              93,
+              90
+            ]
+          }
+        }
+      ],
+      "activity": "{not inClinic ? \"Gone to the heart failure clinic.\" : (not isNull(exAt) ? \"Walking on the treadmill, breathless.\" : \"Seated, propped up.\")}",
+      "measures": [
+        {
+          "id": "weightResult",
+          "label": "Weight",
+          "result": "Up 2.4 kg in 3 days.",
+          "when": "not isNull(weightAt)",
+          "flag": "true"
+        },
+        {
+          "id": "examResult",
+          "label": "Exam",
+          "result": "Bibasal crackles, raised neck veins, pitting ankle edema; resting HR 96, SpO2 93%.",
+          "when": "not isNull(examAt)"
+        },
+        {
+          "id": "medsResult",
+          "label": "Adherence",
+          "result": "Ran out of his diuretic 4 days ago; ate out twice.",
+          "when": "not isNull(medsAt)"
+        }
+      ],
+      "dosage": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "No exercise today",
+            "when": "isNull(exAt)"
+          },
+          {
+            "label": "Heart failure team called",
+            "when": "route == \"hf\""
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleAdhf",
+          "label": "Signs of acute decompensated heart failure",
+          "text": "A contraindication to exercise today; call the heart failure team.",
+          "met": "not isNull(weightAt) and isNull(callAt)"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "weight": {
+      "label": "Weigh him and read his home log",
+      "group": "Examine",
+      "available": "not testPending and isNull(weightAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"weight\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "exam": {
+      "label": "Lungs, neck veins, ankles, resting vitals",
+      "group": "Examine",
+      "available": "not testPending and isNull(examAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"exam\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "meds": {
+      "label": "Ask about his diuretic, salt and fluid intake",
+      "group": "Examine",
+      "available": "not testPending and isNull(medsAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"meds\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "ex": {
+      "label": "Do a lighter session today: 10 minutes on the treadmill",
+      "group": "Treat",
+      "available": "isNull(exAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "exAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.5, 2)"
+        },
+        {
+          "log": "Two minutes in he is gasping and coughing.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "hold": {
+      "label": "Hold exercise today and keep him seated upright",
+      "group": "Treat",
+      "available": "isNull(holdAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "holdAt",
+          "to": "t"
+        },
+        {
+          "log": "Exercise held; he sits upright.",
+          "kind": "act"
+        }
+      ]
+    },
+    "teach": {
+      "label": "Reinforce daily weights, the 'call if up' rule, salt and fluid limits and never running out of medicines",
+      "group": "Treat",
+      "available": "isNull(teachAt) and inClinic and not isNull(holdAt)",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "teachAt",
+          "to": "t"
+        },
+        {
+          "log": "He repeats back: call if up about 1 kg in a day or 2 kg in a week, salt and fluid limits, refill early.",
+          "kind": "act"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Can he exercise today?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "adhf",
+              "label": "No: acute decompensated heart failure (weight up 2.4 kg, orthopnea, crackles, edema), a contraindication to exercise"
+            },
+            {
+              "value": "deconditioned",
+              "label": "Yes: he is just deconditioned"
+            },
+            {
+              "value": "light",
+              "label": "Yes, lightly"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"adhf\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"adhf\""
+                },
+                {
+                  "log": "Acute decompensated heart failure.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"deconditioned\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"deconditioned\""
+                },
+                {
+                  "log": "Read as deconditioning.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"light\""
+                },
+                {
+                  "log": "Read as light exercise.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Report",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "hf",
+              "label": "Call the heart failure clinic: EF 30%, up 2.4 kg in 3 days, orthopnea, crackles, edema, out of diuretic 4 days; exercise held"
+            },
+            {
+              "value": "next",
+              "label": "Note it and see how he is at the next session"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"hf\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"hf\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "The heart failure nurse practitioner sees him this morning; diuretic restarted as ordered, labs drawn, rehab paused until reviewed.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"next\""
+                },
+                {
+                  "log": "Noted for next session.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document the screen and why exercise was held",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Screen, findings and the held session documented.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Cardiac rehab gym",
+      "clock": "running",
+      "actions": [
+        "weight",
+        "exam",
+        "meds",
+        "ex",
+        "hold",
+        "teach",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the test",
+      "wait": {
+        "skipLabel": "the test result"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each test or question takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"weight\"",
+              "then": [
+                {
+                  "set": "weightAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Up 2.4 kg in three days by his log and the clinic scale.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"exam\"",
+              "then": [
+                {
+                  "set": "examAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Crackles at both bases, raised neck veins, pitting edema to mid-shin; resting heart rate 96, SpO2 93%.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "medsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Ran out of his diuretic four days ago and ate restaurant meals twice.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the heart failure clinic",
+      "wait": {
+        "skipLabel": "the heart failure clinic"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min until he is walked over to the clinic."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "He is walked to the heart failure clinic.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "Can Mr. Alvarez exercise today?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "No: a 2.4 kg gain in three days, orthopnea, crackles, raised neck veins and edema after running out of his diuretic are acute decompensated heart failure, a contraindication to exercise.",
+          "modelAnswer": "No. He's up 2.4 kilos in three days, can't lie flat, has crackles and edema, and ran out of his diuretic. That's decompensated heart failure."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Holds exercise, sits him upright, calls the heart failure clinic, and reinforces daily weights, salt and fluid limits and medicine refills.",
+          "modelAnswer": "No exercise, sit him up, call the heart failure clinic, and go over weights, salt and fluid, and refills."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "spo2Floor": {
+        "value": 88,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "escalateWindow": {
+        "value": 300,
+        "source": {
+          "cite": "Unit practice (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "The heart failure clinic called within 5 minutes of the weight (program policy: same morning)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Decompensated heart failure unescalated an hour on is harm here.",
+      "source": {
+        "cite": "Shams P, et al.. Heart Failure (Congestive Heart Failure). StatPearls (updated 2025-02-26), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-HF; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: heart failure classes by ejection fraction as summarized from the 2022 ACC/AHA guideline (reduced 40% or less); congestion shows as weight gain, orthopnea, edema and crackles."
+      }
+    }
+  },
+  "endings": {
+    "edema": {
+      "label": "Acute pulmonary edema",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "He becomes acutely breathless with frothy sputum; the rapid response team is called."
+    },
+    "safe": {
+      "label": "Screened and held",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"hf\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and isNull(exAt) and (not isNull(holdAt)) and (not isNull(teachAt))",
+      "narrative": "{timeAt(leftAt)|clock}: he is with the heart failure team; rehab resumes once he is reviewed."
+    },
+    "safeGaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: he gets care, but late or without the self-management teaching."
+    },
+    "time_up": {
+      "label": "Undecided at 09:30",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "09:30 and no plan."
+    }
+  },
+  "endingOrder": [
+    "edema",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "The heart failure clinic called within 5 minutes of the weight",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"hf\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"hf\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "holdC",
+        "label": "Held exercise for acute decompensated heart failure",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(exAt)",
+            "score": "missed",
+            "why": "Exercised."
+          },
+          {
+            "when": "not isNull(holdAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not held."
+          }
+        ]
+      },
+      {
+        "id": "teachC",
+        "label": "Reinforced self-management (weights, salt, medicines)",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(teachAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not reinforced."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Examined him and asked about adherence",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(examAt) and not isNull(medsAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(examAt) or not isNull(medsAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Recognized acute decompensated heart failure",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"adhf\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"deconditioned\"",
+            "score": "missed",
+            "why": "Weight gain and orthopnea are congestion."
+          },
+          {
+            "when": "dxEnum == \"light\"",
+            "score": "missed",
+            "why": "A contraindication is not modified."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: acute decompensated heart failure is a contraindication; hold, call, teach",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Weight to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "08:30 to exercise held",
+        "value": "isNull(holdAt) ? -1 : timeAt(holdAt)",
+        "format": "duration",
+        "expert": "under 3 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "08:30",
+        "text": "Weight up 2.4 kg in 3 days."
+      },
+      {
+        "at": "~08:31",
+        "text": "Hold exercise; sit upright."
+      },
+      {
+        "at": "~08:32",
+        "text": "Call the heart failure clinic."
+      },
+      {
+        "at": "~08:35",
+        "text": "Exam and adherence; reinforce self-management; document."
+      }
+    ],
+    "debrief": {
+      "edema": {
+        "headline": "Acute pulmonary edema",
+        "body": "Screen before each session: weight gain, orthopnea, crackles and edema are acute decompensated heart failure, a contraindication to exercise."
+      },
+      "safe": {
+        "headline": "Screened and held",
+        "body": "You weighed him, found decompensation, held exercise, reinforced self-management and called within minutes. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Held, with gaps",
+        "body": "Check whether you exercised him, how soon you called, and whether you reinforced self-management."
+      },
+      "time_up": {
+        "headline": "Undecided at 09:30",
+        "body": "Decompensation needs the team the same morning."
+      }
+    },
+    "modelReasoning": "Contraindications to exercise in cardiac rehabilitation include unstable angina, acute decompensated heart failure, complex ventricular arrhythmias, severe pulmonary hypertension and intracavitary thrombus. Mr. Alvarez's weight gain, orthopnea, crackles, neck veins and edema after running out of his diuretic are decompensation: hold exercise, call the heart failure team, and reinforce the risk-factor and self-management work that runs through every phase of rehab."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "ciQ": {
+      "during": "testT",
+      "ask": "While you screen: which is a contraindication to exercise in cardiac rehab?",
+      "choices": [
+        {
+          "id": "adhf",
+          "label": "Acute decompensated heart failure"
+        },
+        {
+          "id": "ef",
+          "label": "Any reduced ejection fraction"
+        },
+        {
+          "id": "age",
+          "label": "Age over 60"
+        }
+      ],
+      "expect": "adhf",
+      "explain": "Contraindications include unstable angina, acute decompensated heart failure, complex ventricular arrhythmias, severe pulmonary hypertension and intracavitary thrombus.",
+      "source": {
+        "cite": "Tessler J, et al.. Cardiac Rehabilitation. StatPearls (updated 2025-03-28), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-CR; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: contraindications to exercise in cardiac rehabilitation include unstable angina, acute decompensated heart failure, complex ventricular arrhythmias, severe pulmonary hypertension, intracavitary thrombus and severe or symptomatic aortic stenosis (the course objective's wording)."
+      }
+    },
+    "signQ": {
+      "during": "leaveT",
+      "ask": "While he goes: which signs show congestion?",
+      "choices": [
+        {
+          "id": "cong",
+          "label": "Weight gain, orthopnea, edema and crackles"
+        },
+        {
+          "id": "brady",
+          "label": "A slow pulse alone"
+        },
+        {
+          "id": "fever",
+          "label": "Fever"
+        }
+      ],
+      "expect": "cong",
+      "explain": "Congestion in heart failure shows as weight gain, orthopnea, edema and crackles.",
+      "source": {
+        "cite": "Shams P, et al.. Heart Failure (Congestive Heart Failure). StatPearls (updated 2025-02-26), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-HF; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: heart failure classes by ejection fraction as summarized from the 2022 ACC/AHA guideline (reduced 40% or less); congestion shows as weight gain, orthopnea, edema and crackles."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

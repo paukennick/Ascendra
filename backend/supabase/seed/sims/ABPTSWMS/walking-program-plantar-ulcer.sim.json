@@ -1,0 +1,1027 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "walking-program-plantar-ulcer",
+  "title": "A walking program and a plantar ulcer",
+  "objective": "Apply the APTA diabetic foot ulcer guideline: prescribe exercise that keeps cardiovascular and muscular fitness while minimizing weight bearing, adding an assistive device when it helps balance and unloading",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "Specialist certification examination outline: wound management (the certifying board's published outline page)",
+      "checkedAt": "2026-11-08",
+      "url": "https://specialization.apta.org/become-a-specialist/wound-management/specialist-certification-examination-outline-wound-management",
+      "note": "Relayed from the wound management specialty course seed (backend/supabase/seed/tracks/pt-abpts.ts, outline pages read 2026-10-08 and 2026-11-04, OUTLINE_CHECKED_AT 2026-11-08), not re-read: Clinical inquiry for evidence-based practice and professional roles (10%) is a tested area. Scope only; no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra wound management specialty course catalog (backend/supabase/seed/tracks/pt-abpts.ts, track ABPTSWMS)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Srinivas-Shankar U, et al.. Diabetic Foot Ulceration and Complications. StatPearls (updated 2026-03-22), StatPearls Publishing",
+      "checkedAt": "2026-11-04",
+      "note": "Relayed from the course seed (tag SP-DFU; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: for a person with a diabetic foot ulcer, prescribe exercise that keeps cardiovascular and muscular fitness while minimizing weight bearing, adding an assistive device when it helps balance and unloading (the course objective's wording, drawn from the professional association's diabetic foot ulcer guideline)."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "09:00 in an outpatient clinic. You are the wound management physical therapist. Mr. Banerjee, 61, with type 2 diabetes and peripheral neuropathy, was referred by his primary care provider for 'a walking program, 10,000 steps a day'.",
+    "handover": [
+      "He says his feet 'don't feel much' and he noticed blood on his sock last week.",
+      "Clinic policy: inspect the feet of every patient with diabetes before exercise; an open ulcer gets a non-weight-bearing program, offloading and a same-day message to the provider for wound care and podiatry."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "09:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.01,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Walking on an insensate ulcer deepens it. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.002,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It is protected once offloaded. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of deepening, infected ulcer. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The provider messaged within 5 minutes of finding the ulcer (clinic policy: same day)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 min to finish the plan."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "feetAt": {
+      "type": "time",
+      "init": null
+    },
+    "sensationAt": {
+      "type": "time",
+      "init": null
+    },
+    "shoesAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "feet",
+        "sensation",
+        "shoes"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "md",
+        "none"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "dfu",
+        "callus",
+        "rest"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "walkAt": {
+      "type": "time",
+      "init": null
+    },
+    "seatedAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(isNull(walkAt) ? 82 : 118)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "pain": {
+      "expr": "1",
+      "unit": "/10",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (not isNull(seatedAt) ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Mr. Banerjee, 61, type 2 diabetes with neuropathy",
+        "presentation": "Referred for 'a walking program for diabetes and weight'. {not isNull(walkAt) ? \"On the treadmill.\" : \"\"}"
+      },
+      "vitals": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "colour": "ecg",
+          "alarm": {
+            "high": 130
+          },
+          "announce": {
+            "bands": [
+              115,
+              130
+            ]
+          }
+        },
+        {
+          "id": "pain",
+          "label": "Pain",
+          "spokenLabel": "Pain, out of 10",
+          "value": "pain",
+          "unit": "/10",
+          "colour": "neutral",
+          "alarm": {
+            "high": 8
+          },
+          "announce": {
+            "bands": [
+              6,
+              8
+            ]
+          }
+        }
+      ],
+      "activity": "{not inClinic ? \"Visit over.\" : (not isNull(walkAt) ? \"Walking briskly on the treadmill in worn sneakers.\" : \"Seated, shoes off.\")}",
+      "measures": [
+        {
+          "id": "feetResult",
+          "label": "Feet",
+          "result": "A 1.5 cm open ulcer under the right first metatarsal head with callus around it; no spreading redness.",
+          "when": "not isNull(feetAt)",
+          "flag": "true"
+        },
+        {
+          "id": "sensationResult",
+          "label": "Sensation and pulses",
+          "result": "Loss of protective sensation on both feet; pedal pulses palpable.",
+          "when": "not isNull(sensationAt)"
+        },
+        {
+          "id": "shoesResult",
+          "label": "Shoes",
+          "result": "Worn sneakers with a thin sole.",
+          "when": "not isNull(shoesAt)"
+        }
+      ],
+      "dosage": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "Feet inspected",
+            "when": "not isNull(feetAt)"
+          },
+          {
+            "label": "Non-weight-bearing exercise plan",
+            "when": "not isNull(seatedAt)"
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleUlcer",
+          "label": "An open plantar ulcer",
+          "text": "Minimize weight bearing: seated or cycling exercise; offloading and wound care referral.",
+          "met": "not isNull(feetAt) and isNull(seatedAt)"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "feet": {
+      "label": "Take off his shoes and socks and inspect both feet",
+      "group": "Examine",
+      "available": "not testPending and isNull(feetAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"feet\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "sensation": {
+      "label": "Monofilament sensation and pulses",
+      "group": "Examine",
+      "available": "not testPending and isNull(sensationAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"sensation\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "shoes": {
+      "label": "Inspect his shoes",
+      "group": "Examine",
+      "available": "not testPending and isNull(shoesAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"shoes\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "walk": {
+      "label": "Start the treadmill walking program toward 10,000 steps",
+      "group": "Treat",
+      "available": "isNull(walkAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "walkAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.4, 2)"
+        },
+        {
+          "log": "Twenty minutes on the treadmill; blood seeps through his sock.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "seated": {
+      "label": "Prescribe seated and cycling-with-heel-pedal exercise and upper-body work; crutches or a walker to unload for essential walking",
+      "group": "Treat",
+      "available": "isNull(seatedAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "seatedAt",
+          "to": "t"
+        },
+        {
+          "log": "A non-weight-bearing aerobic and strength plan; a walker for essential walking.",
+          "kind": "act"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "What does his foot change about the plan?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "dfu",
+              "label": "An active neuropathic plantar ulcer: exercise must keep fitness while minimizing weight bearing, with offloading and wound care"
+            },
+            {
+              "value": "callus",
+              "label": "Just a callus; walk as planned"
+            },
+            {
+              "value": "rest",
+              "label": "No exercise at all until it heals"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"dfu\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"dfu\""
+                },
+                {
+                  "log": "Active diabetic foot ulcer; minimize weight bearing.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"callus\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"callus\""
+                },
+                {
+                  "log": "Read as callus.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"rest\""
+                },
+                {
+                  "log": "Read as rest.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Report",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "md",
+              "label": "Message his provider today: right first metatarsal head plantar ulcer, 1.5 cm, loss of protective sensation; changed to non-weight-bearing exercise; ask for wound care, offloading and podiatry"
+            },
+            {
+              "value": "none",
+              "label": "Nothing to report"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"md\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"md\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "His provider refers him to the wound clinic and podiatry for offloading this week.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"none\""
+                },
+                {
+                  "log": "Not reported.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Teach daily foot checks and footwear, and document",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "He will check his feet daily with a mirror and not walk barefoot; documented.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Outpatient clinic",
+      "clock": "running",
+      "actions": [
+        "feet",
+        "sensation",
+        "shoes",
+        "walk",
+        "seated",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the test",
+      "wait": {
+        "skipLabel": "the test result"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each test or question takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"feet\"",
+              "then": [
+                {
+                  "set": "feetAt",
+                  "to": "t"
+                },
+                {
+                  "log": "A 1.5 cm open ulcer under the right first metatarsal head, ringed by callus; no spreading redness or drainage.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"sensation\"",
+              "then": [
+                {
+                  "set": "sensationAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Loss of protective sensation on both feet; pedal pulses palpable.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "shoesAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Worn sneakers with a thin, compressed sole.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the end of the visit",
+      "wait": {
+        "skipLabel": "the end of the visit"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 min to finish the plan."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "He leaves with a non-weight-bearing plan and a wound clinic referral.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What does his foot change about the plan?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "An open neuropathic plantar ulcer under the first metatarsal head with loss of protective sensation means a walking program will deepen it.",
+          "modelAnswer": "He has an open plantar ulcer he can't feel. A walking program would grind it deeper."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Prescribes seated, cycling and upper-body exercise to keep fitness while minimizing weight bearing, a walker for essential walking, and messages the provider for wound care, offloading and podiatry.",
+          "modelAnswer": "Seated and cycling work and upper body to keep him fit, a walker for necessary walking, and a message to his provider for wound care and offloading."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "spo2Floor": {
+        "value": 88,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "escalateWindow": {
+        "value": 300,
+        "source": {
+          "cite": "Unit practice (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "The provider messaged within 5 minutes of finding the ulcer (clinic policy: same day)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "An unprotected ulcer an hour on is harm here.",
+      "source": {
+        "cite": "Srinivas-Shankar U, et al.. Diabetic Foot Ulceration and Complications. StatPearls (updated 2026-03-22), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-DFU; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: for a person with a diabetic foot ulcer, prescribe exercise that keeps cardiovascular and muscular fitness while minimizing weight bearing, adding an assistive device when it helps balance and unloading (the course objective's wording, drawn from the professional association's diabetic foot ulcer guideline)."
+      }
+    }
+  },
+  "endings": {
+    "deep": {
+      "label": "Deepening, infected ulcer",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "After two weeks of walking, the ulcer deepens to bone and becomes infected."
+    },
+    "safe": {
+      "label": "Fitness kept, foot protected",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"md\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and (not isNull(feetAt)) and isNull(walkAt) and (not isNull(seatedAt))",
+      "narrative": "{timeAt(leftAt)|clock}: he has a non-weight-bearing program and offloading on the way."
+    },
+    "safeGaps": {
+      "label": "Planned, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: he has a plan, but it came late or after a walking session."
+    },
+    "time_up": {
+      "label": "Undecided at 10:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "10:00."
+    }
+  },
+  "endingOrder": [
+    "deep",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "The provider messaged within 5 minutes of finding the ulcer",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"md\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"md\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "feetC",
+        "label": "Inspected the feet before exercise",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(feetAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not inspected."
+          }
+        ]
+      },
+      {
+        "id": "nwbC",
+        "label": "Prescribed exercise that minimizes weight bearing, no walking program",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(walkAt)",
+            "score": "missed",
+            "why": "Walking program."
+          },
+          {
+            "when": "not isNull(seatedAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No plan."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Checked sensation, pulses and shoes",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(sensationAt) and not isNull(shoesAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(sensationAt) or not isNull(shoesAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Changed the plan for an active ulcer",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"dfu\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"callus\"",
+            "score": "missed",
+            "why": "It is an open ulcer."
+          },
+          {
+            "when": "dxEnum == \"rest\"",
+            "score": "missed",
+            "why": "Keep fitness with non-weight-bearing exercise."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Taught foot care and documented",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: inspect feet; keep fitness while minimizing weight bearing; offload and refer",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Ulcer found to the message",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "09:00 to the foot inspection",
+        "value": "isNull(feetAt) ? -1 : timeAt(feetAt)",
+        "format": "duration",
+        "expert": "under 3 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "09:00",
+        "text": "Shoes and socks off: plantar ulcer."
+      },
+      {
+        "at": "~09:01",
+        "text": "Non-weight-bearing plan."
+      },
+      {
+        "at": "~09:02",
+        "text": "Message his provider."
+      },
+      {
+        "at": "~09:04",
+        "text": "Sensation, pulses, shoes; teach foot care."
+      }
+    ],
+    "debrief": {
+      "deep": {
+        "headline": "Deepening, infected ulcer",
+        "body": "Inspect the feet before prescribing exercise in diabetes. With an ulcer, keep fitness with exercise that minimizes weight bearing, and get offloading and wound care."
+      },
+      "safe": {
+        "headline": "Fitness kept, foot protected",
+        "body": "You inspected his feet, prescribed exercise that keeps fitness while minimizing weight bearing, and messaged the provider within minutes. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Planned, with gaps",
+        "body": "Check whether you walked him and how soon you messaged."
+      },
+      "time_up": {
+        "headline": "Undecided at 10:00",
+        "body": "Decide in the visit."
+      }
+    },
+    "modelReasoning": "For a person with a diabetic foot ulcer, exercise should keep cardiovascular and muscular fitness while minimizing weight bearing, adding an assistive device when it helps balance and unloading. Inspect the feet before any program; Mr. Banerjee's insensate plantar ulcer needs non-weight-bearing exercise, offloading and wound care, not 10,000 steps."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "exQ": {
+      "during": "testT",
+      "ask": "While you examine: what exercise suits someone with a diabetic foot ulcer?",
+      "choices": [
+        {
+          "id": "nwb",
+          "label": "Exercise that keeps fitness while minimizing weight bearing"
+        },
+        {
+          "id": "walk",
+          "label": "A daily walking target"
+        },
+        {
+          "id": "none",
+          "label": "No exercise at all"
+        }
+      ],
+      "expect": "nwb",
+      "explain": "Prescribe exercise that keeps cardiovascular and muscular fitness while minimizing weight bearing.",
+      "source": {
+        "cite": "Srinivas-Shankar U, et al.. Diabetic Foot Ulceration and Complications. StatPearls (updated 2026-03-22), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-DFU; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: for a person with a diabetic foot ulcer, prescribe exercise that keeps cardiovascular and muscular fitness while minimizing weight bearing, adding an assistive device when it helps balance and unloading (the course objective's wording, drawn from the professional association's diabetic foot ulcer guideline)."
+      }
+    },
+    "devQ": {
+      "during": "leaveT",
+      "ask": "While he leaves: when does an assistive device help?",
+      "choices": [
+        {
+          "id": "dev",
+          "label": "When it helps balance and unloading"
+        },
+        {
+          "id": "never",
+          "label": "Never"
+        },
+        {
+          "id": "always",
+          "label": "For everyone with diabetes"
+        }
+      ],
+      "expect": "dev",
+      "explain": "Add an assistive device when it helps balance and unloading.",
+      "source": {
+        "cite": "Srinivas-Shankar U, et al.. Diabetic Foot Ulceration and Complications. StatPearls (updated 2026-03-22), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-DFU; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: for a person with a diabetic foot ulcer, prescribe exercise that keeps cardiovascular and muscular fitness while minimizing weight bearing, adding an assistive device when it helps balance and unloading (the course objective's wording, drawn from the professional association's diabetic foot ulcer guideline)."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

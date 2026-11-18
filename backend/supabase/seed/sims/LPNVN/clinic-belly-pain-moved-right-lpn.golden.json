@@ -1,0 +1,425 @@
+{
+  "slug": "clinic-belly-pain-moved-right-lpn",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: history, vital signs and abdomen; nothing by mouth; possible appendicitis; provider interrupted at once; documented",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "classicQ",
+          "choice": "migrate",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "belly",
+          "seq": 5,
+          "tick": 25
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 6,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "npo",
+          "seq": 7,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "appy"
+          },
+          "seq": 8,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "report"
+          },
+          "seq": 9,
+          "tick": 37
+        },
+        {
+          "type": "teach",
+          "prompt": "perfQ",
+          "choice": "board",
+          "seq": 10,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 11,
+          "tick": 37
+        }
+      ],
+      "expect": {
+        "ending": "referred",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "reportC": "met",
+          "noMed": "met",
+          "vitalsC": "met",
+          "npoC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toVitals": 125
+        },
+        "stateHash": "b1c062b0c568bc51"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateReport",
+      "title": "Does the full assessment but waits 6 minutes after the abdominal finding to interrupt the provider",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "classicQ",
+          "choice": "migrate",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "belly",
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "npo",
+          "seq": 6,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "appy"
+          },
+          "seq": 7,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "report"
+          },
+          "seq": 8,
+          "tick": 110
+        },
+        {
+          "type": "teach",
+          "prompt": "perfQ",
+          "choice": "board",
+          "seq": 9,
+          "tick": 110
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 10,
+          "tick": 110
+        }
+      ],
+      "expect": {
+        "ending": "referredGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "reportC": "partial",
+          "noMed": "met",
+          "vitalsC": "met",
+          "npoC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 370,
+          "toVitals": 120
+        },
+        "stateHash": "652be34421c23e63"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "acetaminophen",
+      "title": "Reports at once after the abdominal check, but gives acetaminophen before she is seen and never takes vital signs",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "belly",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "classicQ",
+          "choice": "migrate",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "report"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "perfQ",
+          "choice": "board",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "apap",
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "npo",
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "appy"
+          },
+          "seq": 8,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 9,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "referredGaps",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 64,
+        "criteria": {
+          "reportC": "met",
+          "noMed": "missed",
+          "vitalsC": "missed",
+          "npoC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toVitals": -1
+        },
+        "stateHash": "cc16de7d241d145c"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "sentHome",
+      "title": "Failure: takes a history, calls it a stomach bug and sends her home",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "classicQ",
+          "choice": "migrate",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "gastro"
+          },
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "home"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "perfQ",
+          "choice": "board",
+          "seq": 5,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "perforated",
+        "class": "harm",
+        "rating": "bad",
+        "score": 14,
+        "criteria": {
+          "reportC": "missed",
+          "noMed": "met",
+          "vitalsC": "missed",
+          "npoC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": -1,
+          "toVitals": -1
+        },
+        "stateHash": "ad7353dbc01c8b1c"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "periodCramps",
+      "title": "Failure: checks her abdomen, calls it period cramps and leaves her waiting unreported",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "belly",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "classicQ",
+          "choice": "migrate",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "cramps"
+          },
+          "seq": 4,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "perforated",
+        "class": "harm",
+        "rating": "bad",
+        "score": 14,
+        "criteria": {
+          "reportC": "missed",
+          "noMed": "met",
+          "vitalsC": "missed",
+          "npoC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": -1,
+          "toVitals": -1
+        },
+        "stateHash": "19ae1a91066cfc50"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

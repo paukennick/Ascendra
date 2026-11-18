@@ -1,0 +1,1039 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "lacrosse-ball-to-chest-collapse",
+  "title": "Down after a shot to the chest",
+  "objective": "Treat a collapse from commotio cordis as a ventricular fibrillation arrest: reported survival has risen in recent years with better recognition and early treatment",
+  "secondaryObjectives": [
+    "Emergency management and athlete safety: spine-injury management, sudden cardiac arrest, heat illness and the emergency action plan"
+  ],
+  "sources": [
+    {
+      "cite": "Specialist certification examination outline: sports (the certifying board's published outline page)",
+      "checkedAt": "2026-11-08",
+      "url": "https://specialization.apta.org/become-a-specialist/sports/specialist-certification-examination-outline-sports",
+      "note": "Relayed from the sports specialty course seed (backend/supabase/seed/tracks/pt-abpts.ts, outline pages read 2026-10-08 and 2026-11-04, OUTLINE_CHECKED_AT 2026-11-08), not re-read: Patient and client clinical intervention (35%) is a tested area. Scope only; no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra sports specialty course catalog (backend/supabase/seed/tracks/pt-abpts.ts, track ABPTSSCS)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Tainter CR, et al.. Commotio Cordis. StatPearls (updated 2023-02-05), StatPearls Publishing",
+      "checkedAt": "2026-11-04",
+      "note": "Relayed from the course seed (tag SP-CC; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: a collapse after a blow to the chest is a ventricular fibrillation arrest; reported survival has risen in recent years with better recognition and early treatment (the course objective's wording)."
+    },
+    {
+      "cite": "USA Lacrosse Center for Sports Science and Safety. Commotio Cordis guideline (updated June 2023)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.usalacrosse.com/sites/default/files/documents/Safety/Commotio-Guideline-june2023.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: a blow over the heart at a precise moment of the cycle sends the heart 'into ventricular fibrillation'; 'The key to survival is the recognition of that collapse being a sudden cardiac arrest'; call 911, check consciousness, breathing and pulse, start CPR; 'As soon as the AED arrives, the pads should be applied and the device turned on'; citing the AHA, defibrillation is the definitive treatment and each minute of delay cuts survival by about 10 percent."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "18:40 at a high school lacrosse practice. You are the sports physical therapist covering the field. Eli, 16, takes a shot to the left chest, takes two steps and collapses.",
+    "handover": [
+      "The AED is in the bag at the bench, 30 m away. An assistant coach is beside you.",
+      "The team's emergency action plan: recognize arrest, call 911 and send someone for the AED, start CPR, apply the AED as soon as it arrives."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "18:40",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.08,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Every minute of VF without defibrillation lowers survival. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.004,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Perfusion is restored once he is shocked and EMS takes over. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of no return of circulation. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "911 called within 2 minutes of recognizing arrest (the emergency action plan: at once)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 480,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 8 min for EMS to arrive and take over."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.2,
+      "min": 0,
+      "max": 2
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "spineAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "look",
+        "spine"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "ems",
+        "parents"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "vf",
+        "wind",
+        "faint"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "cprAt": {
+      "type": "time",
+      "init": null
+    },
+    "shockAt": {
+      "type": "time",
+      "init": null
+    },
+    "aedAt": {
+      "type": "time",
+      "init": null
+    },
+    "waitAt": {
+      "type": "time",
+      "init": null
+    },
+    "padsAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "isNull(shockAt) ? 0 : round(110 + sin(t / 9) * 4)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (not isNull(shockAt) ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Eli, 16, lacrosse defender",
+        "presentation": "Struck in the chest by a shot at 18:40. {isNull(cprAt) ? \"\" : \"CPR in progress.\"}"
+      },
+      "vitals": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "colour": "ecg",
+          "alarm": {
+            "high": 200
+          },
+          "announce": {
+            "bands": [
+              185,
+              200
+            ]
+          }
+        }
+      ],
+      "activity": "{not inClinic ? \"Handed to EMS.\" : (not isNull(shockAt) ? \"Breathing, moving after the shock; in recovery position.\" : (not isNull(cprAt) ? \"CPR in progress.\" : \"On the turf, not moving.\"))}",
+      "measures": [
+        {
+          "id": "lookResult",
+          "label": "Response",
+          "result": "Unresponsive; only occasional gasps; no pulse felt.",
+          "when": "not isNull(lookAt)",
+          "flag": "true"
+        },
+        {
+          "id": "spineResult",
+          "label": "Mechanism",
+          "result": "Chest blow; he fell forward onto his knees; no head or neck blow.",
+          "when": "not isNull(spineAt)"
+        }
+      ],
+      "dosage": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "CPR started",
+            "when": "not isNull(cprAt)"
+          },
+          {
+            "label": "AED shock delivered",
+            "when": "not isNull(shockAt)"
+          },
+          {
+            "label": "911 called",
+            "when": "route == \"ems\""
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleArrest",
+          "label": "Collapse after a chest blow",
+          "text": "Treat it as cardiac arrest: 911, CPR, AED now.",
+          "met": "not isNull(lookAt) and isNull(cprAt)"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "look": {
+      "label": "Check responsiveness and breathing (no more than 10 seconds)",
+      "group": "Examine",
+      "available": "not testPending and isNull(lookAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"look\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "spine": {
+      "label": "Ask the coach whether he hit his head or neck",
+      "group": "Examine",
+      "available": "not testPending and isNull(spineAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"spine\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "cpr": {
+      "label": "Start chest compressions now",
+      "group": "Treat",
+      "available": "isNull(cprAt) and inClinic and not isNull(lookAt)",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "cprAt",
+          "to": "t"
+        },
+        {
+          "log": "Hard, fast compressions on the turf; the coach counts.",
+          "kind": "act"
+        }
+      ]
+    },
+    "shock": {
+      "label": "Apply the AED pads, follow the prompts and shock",
+      "group": "Treat",
+      "available": "isNull(shockAt) and inClinic and not isNull(aedAt)",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "shockAt",
+          "to": "t"
+        },
+        {
+          "log": "AED: 'Shock advised.' Shock delivered; CPR resumed; within two minutes he moves and gasps, then breathes.",
+          "kind": "act"
+        }
+      ]
+    },
+    "aed": {
+      "label": "Send the assistant coach running for the AED",
+      "group": "Treat",
+      "available": "isNull(aedAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "aedAt",
+          "to": "t"
+        },
+        {
+          "log": "The coach sprints for the AED.",
+          "kind": "act"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Roll him onto his side and wait to see if he comes round",
+      "group": "Treat",
+      "available": "isNull(waitAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "waitAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.3, 2)"
+        },
+        {
+          "log": "On his side; you wait.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "pads": {
+      "label": "Take his helmet and shoulder pads off before doing anything",
+      "group": "Treat",
+      "available": "isNull(padsAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "padsAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.2, 2)"
+        },
+        {
+          "log": "Two minutes pass removing equipment.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Why did he collapse?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "vf",
+              "label": "Commotio cordis: the chest blow triggered ventricular fibrillation; this is cardiac arrest"
+            },
+            {
+              "value": "wind",
+              "label": "Winded; he'll come round"
+            },
+            {
+              "value": "faint",
+              "label": "A faint"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"vf\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"vf\""
+                },
+                {
+                  "log": "Commotio cordis arrest.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"wind\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"wind\""
+                },
+                {
+                  "log": "Read as winded.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"faint\""
+                },
+                {
+                  "log": "Read as a faint.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Call",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "ems",
+              "label": "Call 911 now on speaker: 16-year-old, chest blow, collapsed, not breathing normally, CPR started, AED coming"
+            },
+            {
+              "value": "parents",
+              "label": "Call his parents to come"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"ems\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"ems\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "911 is on speaker and an ambulance is dispatched; the dispatcher coaches the count.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"parents\""
+                },
+                {
+                  "log": "His mother is on the way.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Hand over to EMS (times, shocks) and log the event under the action plan",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "EMS has the collapse time, CPR start, shock time; the event is logged and his parents are called.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Practice field",
+      "clock": "running",
+      "actions": [
+        "look",
+        "spine",
+        "cpr",
+        "shock",
+        "aed",
+        "wait",
+        "pads",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the test",
+      "wait": {
+        "skipLabel": "the test result"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each test or question takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"look\"",
+              "then": [
+                {
+                  "set": "lookAt",
+                  "to": "t"
+                },
+                {
+                  "log": "No response to shouting or a shoulder tap; only an occasional gasp: not normal breathing. Cardiac arrest.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "spineAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Ball to the chest; he dropped to his knees and forward; no head or neck impact.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "EMS arrival",
+      "wait": {
+        "skipLabel": "EMS arrival"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 8 min for EMS to arrive and take over."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "EMS takes over and transports him to the hospital.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "Why did Eli collapse, and what do you do?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "A ball to the chest at a vulnerable moment of the heart cycle triggered ventricular fibrillation: commotio cordis. Unresponsive with agonal gasps is cardiac arrest.",
+          "modelAnswer": "The shot hit his chest at the wrong moment and threw his heart into VF. He's unresponsive and just gasping, so he's in arrest."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Calls 911, sends for the AED, starts compressions at once, shocks as soon as the AED arrives, and hands over to EMS.",
+          "modelAnswer": "Call 911, send someone for the AED, start compressions now, shock as soon as it's here, then hand over to EMS."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "spo2Floor": {
+        "value": 88,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "escalateWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Unit practice (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "911 called within 2 minutes of recognizing arrest (the emergency action plan: at once)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "An arrest without defibrillation is harm here.",
+      "source": {
+        "cite": "USA Lacrosse Center for Sports Science and Safety. Commotio Cordis guideline (updated June 2023)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.usalacrosse.com/sites/default/files/documents/Safety/Commotio-Guideline-june2023.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: a blow over the heart at a precise moment of the cycle sends the heart 'into ventricular fibrillation'; 'The key to survival is the recognition of that collapse being a sudden cardiac arrest'; call 911, check consciousness, breathing and pulse, start CPR; 'As soon as the AED arrives, the pads should be applied and the device turned on'; citing the AHA, defibrillation is the definitive treatment and each minute of delay cuts survival by about 10 percent."
+      }
+    }
+  },
+  "endings": {
+    "death": {
+      "label": "No return of circulation",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "By the time a shock is delivered he has been in VF for many minutes; EMS cannot restore a rhythm."
+    },
+    "safe": {
+      "label": "Shocked within minutes",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"ems\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and isNull(waitAt) and (not isNull(cprAt) and timeAt(cprAt) <= 150) and isNull(padsAt) and (not isNull(aedAt) and not isNull(shockAt))",
+      "narrative": "{timeAt(leftAt)|clock}: he has a pulse and is breathing as EMS takes over."
+    },
+    "safeGaps": {
+      "label": "Survived, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: he goes to hospital, but 911, compressions or the shock was delayed."
+    },
+    "time_up": {
+      "label": "No EMS at 19:40",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "No care arrived."
+    }
+  },
+  "endingOrder": [
+    "death",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "911 called within 2 minutes of recognizing arrest",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"ems\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"ems\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "cprC",
+        "label": "Compressions started within about 2 minutes of the collapse",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(waitAt)",
+            "score": "missed",
+            "why": "Waited."
+          },
+          {
+            "when": "not isNull(cprAt) and timeAt(cprAt) <= 150",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not within 2 minutes."
+          }
+        ]
+      },
+      {
+        "id": "aedC",
+        "label": "AED fetched and a shock delivered",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(padsAt)",
+            "score": "missed",
+            "why": "Delayed for equipment removal."
+          },
+          {
+            "when": "not isNull(aedAt) and not isNull(shockAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No shock."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Asked about the mechanism",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(spineAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Recognized commotio cordis as cardiac arrest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"vf\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"wind\"",
+            "score": "missed",
+            "why": "Gasping and unresponsive is arrest."
+          },
+          {
+            "when": "dxEnum == \"faint\"",
+            "score": "missed",
+            "why": "Not with agonal gasps."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Handed over and logged",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: commotio cordis is VF arrest; 911, CPR, AED now",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Arrest recognized to 911",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "18:40 to compressions",
+        "value": "isNull(cprAt) ? -1 : timeAt(cprAt)",
+        "format": "duration",
+        "expert": "under 1 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "18:40",
+        "text": "Unresponsive, gasping: arrest."
+      },
+      {
+        "at": "18:40",
+        "text": "911 on speaker; the coach runs for the AED."
+      },
+      {
+        "at": "~18:41",
+        "text": "Compressions."
+      },
+      {
+        "at": "~18:42",
+        "text": "AED on: shock; resume CPR."
+      }
+    ],
+    "debrief": {
+      "death": {
+        "headline": "No return of circulation",
+        "body": "A collapse after a chest blow is a VF arrest. Call 911, start compressions and get the AED on immediately; every minute of delay lowers survival."
+      },
+      "safe": {
+        "headline": "Shocked within minutes",
+        "body": "You recognized arrest in seconds, called 911, started compressions and shocked as soon as the AED arrived. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Survived, with gaps",
+        "body": "Check the time from collapse to 911, compressions and the shock."
+      },
+      "time_up": {
+        "headline": "No EMS at 19:40",
+        "body": "Arrest needs 911, CPR and an AED now."
+      }
+    },
+    "modelReasoning": "Commotio cordis is ventricular fibrillation triggered by a blow over the heart at a vulnerable moment of the cardiac cycle. The key to survival is recognizing the collapse as cardiac arrest: agonal gasps are not breathing. Call 911, send for the AED, start compressions immediately and apply the AED as soon as it arrives; defibrillation is the definitive treatment, and survival falls with every minute of delay. Reported survival has risen with better recognition and early treatment."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "aedQ": {
+      "during": "leaveT",
+      "ask": "While EMS comes: what is the definitive treatment for his arrest?",
+      "choices": [
+        {
+          "id": "shock",
+          "label": "Defibrillation as early as possible"
+        },
+        {
+          "id": "o2",
+          "label": "Oxygen"
+        },
+        {
+          "id": "ice",
+          "label": "Ice on the chest"
+        }
+      ],
+      "expect": "shock",
+      "explain": "Defibrillation is the definitive treatment; each minute of delay cuts survival by about 10 percent.",
+      "source": {
+        "cite": "USA Lacrosse Center for Sports Science and Safety. Commotio Cordis guideline (updated June 2023)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.usalacrosse.com/sites/default/files/documents/Safety/Commotio-Guideline-june2023.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: a blow over the heart at a precise moment of the cycle sends the heart 'into ventricular fibrillation'; 'The key to survival is the recognition of that collapse being a sudden cardiac arrest'; call 911, check consciousness, breathing and pulse, start CPR; 'As soon as the AED arrives, the pads should be applied and the device turned on'; citing the AHA, defibrillation is the definitive treatment and each minute of delay cuts survival by about 10 percent."
+      }
+    },
+    "gaspQ": {
+      "during": "testT",
+      "ask": "While you check: what do occasional gasps mean?",
+      "choices": [
+        {
+          "id": "arrest",
+          "label": "Not normal breathing: treat as cardiac arrest"
+        },
+        {
+          "id": "ok",
+          "label": "He is breathing; wait"
+        },
+        {
+          "id": "seizure",
+          "label": "A seizure"
+        }
+      ],
+      "expect": "arrest",
+      "explain": "The key to survival is recognizing the collapse as sudden cardiac arrest and acting.",
+      "source": {
+        "cite": "USA Lacrosse Center for Sports Science and Safety. Commotio Cordis guideline (updated June 2023)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.usalacrosse.com/sites/default/files/documents/Safety/Commotio-Guideline-june2023.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: a blow over the heart at a precise moment of the cycle sends the heart 'into ventricular fibrillation'; 'The key to survival is the recognition of that collapse being a sudden cardiac arrest'; call 911, check consciousness, breathing and pulse, start CPR; 'As soon as the AED arrives, the pads should be applied and the device turned on'; citing the AHA, defibrillation is the definitive treatment and each minute of delay cuts survival by about 10 percent."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

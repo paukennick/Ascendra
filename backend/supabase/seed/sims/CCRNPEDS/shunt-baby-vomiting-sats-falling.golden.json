@@ -1,0 +1,455 @@
+{
+  "slug": "shunt-baby-vomiting-sats-falling",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: murmur, oxygen and bolus, calls, checks probe, hydration and perfusion, tells the parents",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "murmur",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "murQ",
+          "choice": "obs",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "o2",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 6,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "shunt"
+          },
+          "seq": 7,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "call"
+          },
+          "seq": 8,
+          "tick": 13
+        },
+        {
+          "type": "teach",
+          "prompt": "o2Q",
+          "choice": "flow",
+          "seq": 9,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "probe",
+          "seq": 10,
+          "tick": 13
+        },
+        {
+          "type": "chapter",
+          "chapter": "escalated",
+          "choice": "continue",
+          "seq": 11,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "hydration",
+          "seq": 12,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "perf",
+          "seq": 13,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 14,
+          "tick": 49
+        }
+      ],
+      "expect": {
+        "ending": "safe",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "reportC": "met",
+          "supportC": "met",
+          "noDelayC": "met",
+          "lookC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": 65
+        },
+        "stateHash": "2e6567d43746801a"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Hears it and starts oxygen and fluid, but checks everything before calling 6 minutes later",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "murmur",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "murQ",
+          "choice": "obs",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "o2",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "probe",
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "hydration",
+          "seq": 7,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "perf",
+          "seq": 8,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "shunt"
+          },
+          "seq": 9,
+          "tick": 85
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "call"
+          },
+          "seq": 10,
+          "tick": 85
+        },
+        {
+          "type": "teach",
+          "prompt": "o2Q",
+          "choice": "flow",
+          "seq": 11,
+          "tick": 85
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 85
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "reportC": "partial",
+          "supportC": "met",
+          "noDelayC": "met",
+          "lookC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 365,
+          "toKey": 60
+        },
+        "stateHash": "579e00c04a3d3327"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "probeFirst",
+      "title": "Swaps the probe first, then calls; gives oxygen but no fluid",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "murmur",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "murQ",
+          "choice": "obs",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "probeSwap",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "o2",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "shunt"
+          },
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "call"
+          },
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "o2Q",
+          "choice": "flow",
+          "seq": 8,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 9,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "reportC": "met",
+          "supportC": "missed",
+          "noDelayC": "missed",
+          "lookC": "missed",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": -1
+        },
+        "stateHash": "833e49d17aaafcc7"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "chronic",
+      "title": "Failure: calls it his usual cyanosis, holds fluids and plans a recheck",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "probe",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "murQ",
+          "choice": "obs",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "chronic"
+          },
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "restrict",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "wait"
+          },
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 6,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "arrest",
+        "class": "harm",
+        "rating": "bad",
+        "score": 21,
+        "criteria": {
+          "reportC": "missed",
+          "supportC": "missed",
+          "noDelayC": "met",
+          "lookC": "partial",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": -1,
+          "toKey": -1
+        },
+        "stateHash": "6fc68fe0e1732e6b"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "probe",
+      "title": "Failure: blames the probe and waits for a better reading",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "probe"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "probeSwap",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "arrest",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "reportC": "missed",
+          "supportC": "missed",
+          "noDelayC": "missed",
+          "lookC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": -1,
+          "toKey": -1
+        },
+        "stateHash": "1938e94b170bf5b3"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

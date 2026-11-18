@@ -1,0 +1,1094 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "tilt-table-pounding-headache-t4",
+  "title": "A pounding headache in the standing frame",
+  "objective": "Manage autonomic dysreflexia as an emergency: find and remove the trigger, often by irrigating or changing a blocked Foley catheter, and check for bowel impaction, tight clothing or skin injury",
+  "secondaryObjectives": [
+    "Recognizing medical instability and emergencies: autonomic dysreflexia, raised intracranial pressure, new neurologic signs"
+  ],
+  "sources": [
+    {
+      "cite": "Specialist certification examination outline: neurology (the certifying board's published outline page)",
+      "checkedAt": "2026-11-08",
+      "url": "https://specialization.apta.org/become-a-specialist/neurology/specialist-certification-examination-outline-neurology",
+      "note": "Relayed from the neurology specialty course seed (backend/supabase/seed/tracks/pt-abpts.ts, outline pages read 2026-10-08 and 2026-11-04, OUTLINE_CHECKED_AT 2026-11-08), not re-read: Patient management: intervention and outcomes (30%) is a tested area. Scope only; no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra neurology specialty course catalog (backend/supabase/seed/tracks/pt-abpts.ts, track ABPTSNCS)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Bilgin Badur N, et al.. Autonomic Dysreflexia. StatPearls (updated 2025-06-02), StatPearls Publishing",
+      "checkedAt": "2026-11-04",
+      "note": "Relayed from the course seed (tag SP-AD; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: autonomic dysreflexia is an emergency: find and remove the trigger, often by irrigating or changing a blocked Foley catheter, and check for bowel impaction, tight clothing or skin injury (the course objective's wording)."
+    },
+    {
+      "cite": "Krassioukov A, Cragg J (named in the competing-interests note). Autonomic dysreflexia. CMAJ 2012;184(1):66",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.cmaj.ca/lookup/volpage/184/66",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: above T6 and cervical injuries; triggers 'distension of the bladder (most common)', 'a kink in a urinary catheter', pressure sores, even a tight shoelace; 'a sudden increase in blood pressure', 'headache, flushing and sweating (above the level of injury)', reflex bradycardia; 'sit the patient upright', 'loosen or remove any restrictive clothing', monitor blood pressure 'at five-minute intervals', 'perform a survey of the possible causes ... starting with bladder distension'. A Canadian practice summary; no US guideline was opened."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "10:15 in an inpatient rehabilitation gym. You are the neurologic physical therapist. Mr. Okonkwo, 29, has a complete T4 spinal cord injury; he has been in a standing frame for 10 minutes. His usual sitting blood pressure is about 100/64.",
+    "handover": [
+      "He says, 'My head's pounding, and I'm sweating up top.' His face is flushed.",
+      "He has an indwelling urinary catheter; his leg bag is strapped to his calf under his compression stockings and abdominal binder.",
+      "Rehab unit protocol for autonomic dysreflexia: sit upright with legs down, loosen anything tight, check the catheter tubing for kinks and the bag, recheck blood pressure every 2-5 minutes, and call the nurse and physician at once; drugs are given by the nurse on the physician's order."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "10:15",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.03,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Blood pressure climbs while the trigger stays. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.004,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It falls once he sits up and the trigger is removed. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of hypertensive emergency. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The nurse and physician called within 5 minutes of the blood pressure (protocol: at once)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min of checks every few minutes until his pressure is back near baseline."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "bpCheckAt": {
+      "type": "time",
+      "init": null
+    },
+    "skinAt": {
+      "type": "time",
+      "init": null
+    },
+    "bowelAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "bpCheck",
+        "skin",
+        "bowel"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "rrt",
+        "later"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "ad",
+        "ortho",
+        "migraine"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "sitAt": {
+      "type": "time",
+      "init": null
+    },
+    "cathAt": {
+      "type": "time",
+      "init": null
+    },
+    "flatAt": {
+      "type": "time",
+      "init": null
+    },
+    "restAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(58 - 8 * max(0, prog - 0.6) + sin(t / 9) * 2)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(isNull(cathAt) ? 168 + 60 * max(0, prog - 0.4) : max(108, 168 - (t - timeAt(cathAt)) / 6))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.6)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (not isNull(sitAt) and not isNull(cathAt) ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Mr. Okonkwo, 29, T4 complete spinal cord injury, 6 weeks",
+        "presentation": "Inpatient rehabilitation; standing-frame session. {not isNull(sitAt) ? \"Sitting upright, legs down.\" : \"\"}"
+      },
+      "vitals": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "colour": "ecg",
+          "alarm": {
+            "high": 110
+          },
+          "announce": {
+            "bands": [
+              95,
+              110
+            ]
+          }
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "announce": {
+            "bands": [
+              160,
+              180
+            ]
+          },
+          "colour": "art"
+        }
+      ],
+      "activity": "{not inClinic ? \"Back on the unit with the nurse.\" : (not isNull(flatAt) ? \"Lying flat on the mat.\" : (not isNull(sitAt) ? \"Sitting upright in his chair.\" : \"In the standing frame.\"))}",
+      "measures": [
+        {
+          "id": "bpCheckResult",
+          "label": "Blood pressure",
+          "result": "BP 172/104 (baseline 100/64); HR 56.",
+          "when": "not isNull(bpCheckAt)",
+          "flag": "true"
+        },
+        {
+          "id": "skinResult",
+          "label": "Skin",
+          "result": "Binder and stocking tight; no pressure injury.",
+          "when": "not isNull(skinAt)"
+        },
+        {
+          "id": "bowelResult",
+          "label": "Bowel",
+          "result": "Bowel program done this morning.",
+          "when": "not isNull(bowelAt)"
+        }
+      ],
+      "dosage": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "Session stopped, sitting upright",
+            "when": "not isNull(sitAt)"
+          },
+          {
+            "label": "Catheter checked and drained",
+            "when": "not isNull(cathAt)"
+          },
+          {
+            "label": "Nurse and physician called",
+            "when": "route == \"rrt\""
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleAd",
+          "label": "Pounding headache with high blood pressure above T6",
+          "text": "Sit up, legs down, loosen, find the trigger; call the nurse and physician.",
+          "met": "not isNull(bpCheckAt) and isNull(sitAt)"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "bpCheck": {
+      "label": "Take his blood pressure and heart rate now",
+      "group": "Examine",
+      "available": "not testPending and isNull(bpCheckAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"bpCheck\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "skin": {
+      "label": "Check skin, clothing and pressure points below the injury",
+      "group": "Examine",
+      "available": "not testPending and isNull(skinAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"skin\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "bowel": {
+      "label": "Ask about his last bowel movement",
+      "group": "Examine",
+      "available": "not testPending and isNull(bowelAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"bowel\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "sit": {
+      "label": "Stop the session: out of the frame, sitting upright, legs down; loosen the binder and stockings",
+      "group": "Treat",
+      "available": "isNull(sitAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "sitAt",
+          "to": "t"
+        },
+        {
+          "log": "Out of the frame into his chair upright, legs down; binder and stockings loosened.",
+          "kind": "act"
+        }
+      ]
+    },
+    "cath": {
+      "label": "Trace the catheter tubing: find the kink under the stocking strap, straighten it and empty the bag",
+      "group": "Treat",
+      "available": "isNull(cathAt) and inClinic and not isNull(sitAt)",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "cathAt",
+          "to": "t"
+        },
+        {
+          "log": "The tubing is kinked under the calf strap; straightened, 650 mL drains into the bag. His headache eases.",
+          "kind": "act"
+        }
+      ]
+    },
+    "flat": {
+      "label": "Lay him flat on the mat with his legs raised in case he faints",
+      "group": "Treat",
+      "available": "isNull(flatAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "flatAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.4, 2)"
+        },
+        {
+          "log": "Laid flat, legs raised; his headache worsens.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "rest": {
+      "label": "Let him rest in the frame a few minutes and recheck later",
+      "group": "Treat",
+      "available": "isNull(restAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "restAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.2, 2)"
+        },
+        {
+          "log": "He stays in the frame.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "What is happening?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "ad",
+              "label": "Autonomic dysreflexia: a T4 injury with a sudden rise in blood pressure, pounding headache, flushing and sweating above the injury and a slow pulse; find the trigger"
+            },
+            {
+              "value": "ortho",
+              "label": "Orthostatic intolerance in the frame"
+            },
+            {
+              "value": "migraine",
+              "label": "A migraine"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"ad\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"ad\""
+                },
+                {
+                  "log": "Autonomic dysreflexia.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"ortho\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"ortho\""
+                },
+                {
+                  "log": "Read as orthostatic.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"migraine\""
+                },
+                {
+                  "log": "Read as migraine.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Call",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "rrt",
+              "label": "Call the nurse and physician now: autonomic dysreflexia, 172/104, HR 56, T4; sitting up, loosened; checking the catheter"
+            },
+            {
+              "value": "later",
+              "label": "Mention it to the nurse at the end of the session"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"rrt\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"rrt\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "The nurse and physician come; they confirm the kink was the trigger, recheck his pressure every few minutes and have the ordered drug ready if it stays high.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"later\""
+                },
+                {
+                  "log": "Left for the end of the session.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document the episode and change how his leg bag is secured for standing",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Episode documented; the leg bag strap is moved and tubing checked before every standing session.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Rehab gym",
+      "clock": "running",
+      "actions": [
+        "bpCheck",
+        "skin",
+        "bowel",
+        "sit",
+        "cath",
+        "flat",
+        "rest",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the test",
+      "wait": {
+        "skipLabel": "the test result"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each test or question takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"bpCheck\"",
+              "then": [
+                {
+                  "set": "bpCheckAt",
+                  "to": "t"
+                },
+                {
+                  "log": "172/104, about 70 above his baseline; heart rate 56. Autonomic dysreflexia.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"skin\"",
+              "then": [
+                {
+                  "set": "skinAt",
+                  "to": "t"
+                },
+                {
+                  "log": "The abdominal binder and stockings are tight; no pressure injury seen.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "bowelAt",
+                  "to": "t"
+                },
+                {
+                  "log": "His bowel program was done this morning, with a result.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "his pressure settling",
+      "wait": {
+        "skipLabel": "his pressure settling"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min of checks every few minutes until his pressure is back near baseline."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "His pressure is back near baseline; he returns to the unit with the nurse.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What is happening to Mr. Okonkwo, and what do you do?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "With a T4 injury, a sudden rise in blood pressure to 172/104, a pounding headache, flushing and sweating above the injury and a slow pulse are autonomic dysreflexia, most often from the bladder.",
+          "modelAnswer": "It's autonomic dysreflexia. He's T4, his pressure's 70 over baseline, he has a pounding headache, flushing and sweating above the level, and a slow pulse. The bladder's the usual cause."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Stops, sits him upright with legs down, loosens the binder and stockings, checks the catheter tubing and bag (finding the kink), rechecks blood pressure every few minutes and calls the nurse and physician.",
+          "modelAnswer": "Out of the frame, sit him up with his legs down, loosen everything, trace the catheter and fix the kink, recheck his pressure every few minutes, and call the nurse and doctor."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "spo2Floor": {
+        "value": 88,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "escalateWindow": {
+        "value": 300,
+        "source": {
+          "cite": "Unit practice (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "The nurse and physician called within 5 minutes of the blood pressure (protocol: at once)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Autonomic dysreflexia unresolved an hour on is harm here.",
+      "source": {
+        "cite": "Krassioukov A, Cragg J (named in the competing-interests note). Autonomic dysreflexia. CMAJ 2012;184(1):66",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.cmaj.ca/lookup/volpage/184/66",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: above T6 and cervical injuries; triggers 'distension of the bladder (most common)', 'a kink in a urinary catheter', pressure sores, even a tight shoelace; 'a sudden increase in blood pressure', 'headache, flushing and sweating (above the level of injury)', reflex bradycardia; 'sit the patient upright', 'loosen or remove any restrictive clothing', monitor blood pressure 'at five-minute intervals', 'perform a survey of the possible causes ... starting with bladder distension'. A Canadian practice summary; no US guideline was opened."
+      }
+    }
+  },
+  "endings": {
+    "bleed": {
+      "label": "Hypertensive emergency",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "His pressure reaches 230/130 and he has a seizure; the rapid response team treats a hypertensive emergency."
+    },
+    "safe": {
+      "label": "Trigger found and removed",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"rrt\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and isNull(flatAt) and isNull(restAt) and (not isNull(sitAt) and timeAt(sitAt) <= 300) and (not isNull(cathAt))",
+      "narrative": "{timeAt(leftAt)|clock}: his pressure is back near baseline after the kinked catheter was freed."
+    },
+    "safeGaps": {
+      "label": "Resolved, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: his pressure settles, but he was laid flat, the call was slow, or the trigger took long to find."
+    },
+    "time_up": {
+      "label": "Unresolved at 11:15",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "11:15 and his pressure is still high."
+    }
+  },
+  "endingOrder": [
+    "bleed",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "The nurse and physician called within 5 minutes of the blood pressure",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"rrt\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"rrt\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "sitC",
+        "label": "Sat him upright with legs down and loosened clothing, never flat",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(flatAt) or not isNull(restAt)",
+            "score": "missed",
+            "why": "Laid flat or left in the frame."
+          },
+          {
+            "when": "not isNull(sitAt) and timeAt(sitAt) <= 300",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not within 5 minutes."
+          }
+        ]
+      },
+      {
+        "id": "trigC",
+        "label": "Found and removed the trigger (the kinked catheter)",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(cathAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Trigger not found."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Checked skin, clothing and bowel",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(skinAt) and not isNull(bowelAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(skinAt) or not isNull(bowelAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Recognized autonomic dysreflexia",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"ad\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"ortho\"",
+            "score": "missed",
+            "why": "His pressure is high, not low."
+          },
+          {
+            "when": "dxEnum == \"migraine\"",
+            "score": "missed",
+            "why": "Not with this pressure and a T4 injury."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented and fixed the setup",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: autonomic dysreflexia; sit up, loosen, bladder first; call",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Blood pressure to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "10:15 to sitting upright",
+        "value": "isNull(sitAt) ? -1 : timeAt(sitAt)",
+        "format": "duration",
+        "expert": "under 2 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "10:15",
+        "text": "BP 172/104, HR 56."
+      },
+      {
+        "at": "~10:16",
+        "text": "Out of the frame, sit up, legs down; loosen binder and stockings."
+      },
+      {
+        "at": "~10:17",
+        "text": "Call the nurse and physician; trace the catheter: kink freed, 650 mL drains."
+      },
+      {
+        "at": "~10:20",
+        "text": "Skin and bowel; document; fix the setup."
+      }
+    ],
+    "debrief": {
+      "bleed": {
+        "headline": "Hypertensive emergency",
+        "body": "A T6-or-above injury with a sudden rise in pressure and a pounding headache is autonomic dysreflexia: sit up, legs down, loosen, find the trigger (the bladder first), and call."
+      },
+      "safe": {
+        "headline": "Trigger found and removed",
+        "body": "You took his pressure, sat him up, loosened his clothing, found the kinked catheter and called within minutes. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Resolved, with gaps",
+        "body": "Check whether he was sat up or laid flat, how soon you called, and whether you went to the bladder first."
+      },
+      "time_up": {
+        "headline": "Unresolved at 11:15",
+        "body": "Autonomic dysreflexia is an emergency."
+      }
+    },
+    "modelReasoning": "In injuries at or above T6, a noxious stimulus below the injury (most often bladder distension or a kinked catheter) triggers autonomic dysreflexia: a sudden rise in blood pressure, headache, flushing and sweating above the injury, and reflex bradycardia. Sit him upright with legs down, loosen restrictive clothing, monitor blood pressure every few minutes, survey the causes starting with the bladder (here a kinked catheter under the stocking strap), and call the nurse and physician; drugs follow if the pressure stays high."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "posQ": {
+      "during": "leaveT",
+      "ask": "While his pressure settles: how should he be positioned?",
+      "choices": [
+        {
+          "id": "up",
+          "label": "Sitting upright with legs down"
+        },
+        {
+          "id": "flat",
+          "label": "Flat with legs raised"
+        },
+        {
+          "id": "side",
+          "label": "On his side"
+        }
+      ],
+      "expect": "up",
+      "explain": "Sit the patient upright and loosen or remove restrictive clothing.",
+      "source": {
+        "cite": "Krassioukov A, Cragg J (named in the competing-interests note). Autonomic dysreflexia. CMAJ 2012;184(1):66",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.cmaj.ca/lookup/volpage/184/66",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: above T6 and cervical injuries; triggers 'distension of the bladder (most common)', 'a kink in a urinary catheter', pressure sores, even a tight shoelace; 'a sudden increase in blood pressure', 'headache, flushing and sweating (above the level of injury)', reflex bradycardia; 'sit the patient upright', 'loosen or remove any restrictive clothing', monitor blood pressure 'at five-minute intervals', 'perform a survey of the possible causes ... starting with bladder distension'. A Canadian practice summary; no US guideline was opened."
+      }
+    },
+    "trigQ": {
+      "during": "testT",
+      "ask": "While you check: what is the most common trigger of autonomic dysreflexia?",
+      "choices": [
+        {
+          "id": "bladder",
+          "label": "Bladder distension, often a kinked or blocked catheter"
+        },
+        {
+          "id": "noise",
+          "label": "Loud noise"
+        },
+        {
+          "id": "food",
+          "label": "A large meal"
+        }
+      ],
+      "expect": "bladder",
+      "explain": "Distension of the bladder is the most common trigger, including a kink in a urinary catheter.",
+      "source": {
+        "cite": "Krassioukov A, Cragg J (named in the competing-interests note). Autonomic dysreflexia. CMAJ 2012;184(1):66",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.cmaj.ca/lookup/volpage/184/66",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: above T6 and cervical injuries; triggers 'distension of the bladder (most common)', 'a kink in a urinary catheter', pressure sores, even a tight shoelace; 'a sudden increase in blood pressure', 'headache, flushing and sweating (above the level of injury)', reflex bradycardia; 'sit the patient upright', 'loosen or remove any restrictive clothing', monitor blood pressure 'at five-minute intervals', 'perform a survey of the possible causes ... starting with bladder distension'. A Canadian practice summary; no US guideline was opened."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

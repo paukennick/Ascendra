@@ -1,0 +1,1089 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "green-vomit-day-three",
+  "title": "Green in the emesis basin",
+  "objective": "Treat bilious vomiting in a newborn as possible malrotation with volvulus and escalate for urgent surgery",
+  "secondaryObjectives": [
+    "Recognize and manage necrotizing enterocolitis, gastroesophageal reflux and hepatic failure (portal hypertension, biliary atresia, cholestasis), including peritoneal drains"
+  ],
+  "sources": [
+    {
+      "cite": "AACN Certification Corporation. CCRN Exam Handbook - Direct Care (July 2026), Neonatal test plan",
+      "checkedAt": "2026-10-31",
+      "url": "https://www.aacn.org/certification/get-certified/ccrn-neonatal",
+      "note": "Relayed from the CCRN Neonatal course seed (backend/supabase/seed/tracks/ccrn-peds-neo.ts), which read the handbook 2026-10-31, not re-read: the objective titles are the course's own. Scope only."
+    },
+    {
+      "cite": "Ascendra CCRN Neonatal course catalog (backend/supabase/seed/tracks/ccrn-peds-neo.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Kimura K, Loening-Baucke V. Bilious Vomiting in the Newborn: Rapid Diagnosis of Intestinal Obstruction. Am Fam Physician 2000;61(9):2791-2798",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.aafp.org/pubs/afp/issues/2000/0501/p2791.html",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'When a neonate develops bilious vomiting, one should suspect a surgical condition'; a nasogastric or orogastric catheter 'should be placed for gastric decompression'; 'Urgent consultation with a pediatric surgeon is indicated'; 'Unless it is treated in a timely manner, bowel strangulation results in an ischemic loss of extensive bowel'; Table 1: 'STAT surgery for symptomatic patients'. An older review (2000); the core emergency teaching is unchanged in the course catalog's framing."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "03:10 in a level III NICU. You are the nurse for Baby Okafor, a term boy, 3 days old, admitted for observation of transient tachypnea that has resolved. He has fed well until now.",
+    "handover": [
+      "At 03:00 he vomited his whole feed; the aide says it 'looked green'. He is fussier than before and has not stooled since yesterday.",
+      "The neonatal nurse practitioner covers the unit and the pediatric surgeon is on call from home. Unit policy: the nurse may make an infant NPO and place an orogastric tube to gravity or low suction for vomiting while awaiting orders, and calls the provider at once for bilious emesis."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "03:10",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.016,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Ischemia advances while the twisted bowel is unrecognized. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.004,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It slows once the infant is decompressed, NPO and on the way to surgery. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of bowel ischemia. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The nurse practitioner called within 5 minutes of seeing bilious emesis (unit policy: at once)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 1200,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 20 min for the surgeon to be called in and the study arranged."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "emesisAt": {
+      "type": "time",
+      "init": null
+    },
+    "abdomenAt": {
+      "type": "time",
+      "init": null
+    },
+    "perfusionAt": {
+      "type": "time",
+      "init": null
+    },
+    "historyAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "emesis",
+        "abdomen",
+        "perfusion",
+        "history"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "call",
+        "rounds"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "volvulus",
+        "reflux",
+        "formula"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "npoAt": {
+      "type": "time",
+      "init": null
+    },
+    "ogtAt": {
+      "type": "time",
+      "init": null
+    },
+    "refeedAt": {
+      "type": "time",
+      "init": null
+    },
+    "refluxAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(146 + 40 * max(0, prog - 0.4) + sin(t / 9) * 3)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "round(48 + 18 * max(0, prog - 0.5))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(98 - 6 * max(0, prog - 0.7))",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (route == \"call\" ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "low": 100,
+            "high": 180
+          },
+          "announce": {
+            "bands": [
+              160,
+              180
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "high": 70
+          },
+          "announce": {
+            "bands": [
+              60,
+              70
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              94,
+              90
+            ]
+          },
+          "colour": "spo2"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "NPO: {not isNull(npoAt)|yesno}. Orogastric tube to suction: {not isNull(ogtAt)|yesno}.",
+      "banner": [
+        {
+          "when": "route == \"call\" and inClinic",
+          "text": "The nurse practitioner is at the bedside; the surgeon is coming in."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "emesis": {
+      "label": "Look at the emesis and the linen yourself",
+      "group": "Assess",
+      "available": "not testPending and isNull(emesisAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"emesis\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "abdomen": {
+      "label": "Examine the abdomen: girth, tenderness, bowel sounds, color",
+      "group": "Assess",
+      "available": "not testPending and isNull(abdomenAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"abdomen\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "perfusion": {
+      "label": "Perfusion and hydration: capillary refill, fontanel, last void",
+      "group": "Assess",
+      "available": "not testPending and isNull(perfusionAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"perfusion\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "history": {
+      "label": "Check the feeding and stool history in the record",
+      "group": "Assess",
+      "available": "not testPending and isNull(historyAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"history\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "npo": {
+      "label": "Make him NPO and hold the 06:00 feed",
+      "group": "Treat",
+      "available": "isNull(npoAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "npoAt",
+          "to": "t"
+        },
+        {
+          "log": "NPO; feeds held and flagged.",
+          "kind": "act"
+        }
+      ]
+    },
+    "ogt": {
+      "label": "Place an orogastric tube to low intermittent suction (unit policy)",
+      "group": "Treat",
+      "available": "isNull(ogtAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "ogtAt",
+          "to": "t"
+        },
+        {
+          "log": "Orogastric tube placed; 15 mL of green aspirate returns.",
+          "kind": "act"
+        }
+      ]
+    },
+    "refeed": {
+      "label": "Try a smaller feed of the same formula at 04:00",
+      "group": "Treat",
+      "available": "isNull(refeedAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "refeedAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.25, 2)"
+        },
+        {
+          "log": "He takes 20 mL, then vomits green again and draws his legs up.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "reflux": {
+      "label": "Position him upright on his left side for reflux and recheck at the next feed",
+      "group": "Treat",
+      "available": "isNull(refluxAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "refluxAt",
+          "to": "t"
+        },
+        {
+          "log": "Positioned upright for reflux; the next check is set for 06:00.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "What does green emesis in a 3-day-old mean?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "volvulus",
+              "label": "Bilious vomiting in a newborn: possible malrotation with midgut volvulus, a surgical emergency until proven otherwise"
+            },
+            {
+              "value": "reflux",
+              "label": "Reflux after a large feed"
+            },
+            {
+              "value": "formula",
+              "label": "Formula intolerance; change the formula"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"volvulus\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"volvulus\""
+                },
+                {
+                  "log": "Possible malrotation with volvulus.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"reflux\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"reflux\""
+                },
+                {
+                  "log": "Read as reflux.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"formula\""
+                },
+                {
+                  "log": "Read as intolerance.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Escalate",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "call",
+              "label": "Call the nurse practitioner now with SBAR: bilious emesis at 3 days, tender upper abdomen, NPO and decompressed; request the surgeon and an urgent upper GI study"
+            },
+            {
+              "value": "rounds",
+              "label": "Note it for the 07:00 rounds; he looks comfortable now"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"call\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"call\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "The nurse practitioner comes at once, calls the pediatric surgeon in, and orders an urgent upper GI contrast study, IV fluids and labs.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"rounds\""
+                },
+                {
+                  "log": "Noted for rounds.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Tell his parents what is happening and document the emesis, aspirate and calls",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "His parents are called and told he needs an urgent test; the emesis, aspirate, NPO time and calls are documented.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "NICU, bed 6",
+      "clock": "running",
+      "actions": [
+        "emesis",
+        "abdomen",
+        "perfusion",
+        "history",
+        "npo",
+        "ogt",
+        "refeed",
+        "reflux",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"emesis\"",
+              "then": [
+                {
+                  "set": "emesisAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Dark green, bile-stained emesis on the linen and in the basin. Not milk curds.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"abdomen\"",
+              "then": [
+                {
+                  "set": "abdomenAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Abdomen soft but tender on the upper left, girth 1 cm up from the evening; no discoloration yet.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"perfusion\"",
+              "then": [
+                {
+                  "set": "perfusionAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Capillary refill 3 seconds, fontanel flat, last void 4 hours ago.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "historyAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Meconium passed day 1; transitional stools day 2; feeds 60 mL every 3 hours, all taken until 03:00.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the trip to radiology",
+      "wait": {
+        "skipLabel": "the trip to radiology"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 20 min for the surgeon to be called in and the study arranged."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "He leaves for the contrast study with the nurse practitioner; the surgeon is on the way in.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What does Baby Okafor's green emesis mean, and what do you do?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "Bilious (green) vomiting in a newborn means obstruction below the ampulla; malrotation with midgut volvulus must be ruled out at once because the twisted bowel loses its blood supply.",
+          "modelAnswer": "Green vomit in a newborn isn't reflux. It means a blockage, and malrotation with volvulus is the one that kills bowel within hours, so it's an emergency until a study rules it out."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Stops feeds, places an orogastric tube to suction, assesses abdomen and perfusion, and calls the provider at once asking for the surgeon and an urgent contrast study.",
+          "modelAnswer": "Make him NPO, put down an OG tube to suction, check his belly and perfusion, and call the nurse practitioner right now for the surgeon and an urgent upper GI."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Bilious emesis in a newborn unescalated an hour on is harm here.",
+      "source": {
+        "cite": "Kimura K, Loening-Baucke V. Bilious Vomiting in the Newborn: Rapid Diagnosis of Intestinal Obstruction. Am Fam Physician 2000;61(9):2791-2798",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.aafp.org/pubs/afp/issues/2000/0501/p2791.html",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'When a neonate develops bilious vomiting, one should suspect a surgical condition'; a nasogastric or orogastric catheter 'should be placed for gastric decompression'; 'Urgent consultation with a pediatric surgeon is indicated'; 'Unless it is treated in a timely manner, bowel strangulation results in an ischemic loss of extensive bowel'; Table 1: 'STAT surgery for symptomatic patients'. An older review (2000); the core emergency teaching is unchanged in the course catalog's framing."
+      }
+    }
+  },
+  "endings": {
+    "necrosis": {
+      "label": "Bowel ischemia",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "His belly distends and darkens, his pressure falls and he passes blood. At surgery much of the small bowel is necrotic."
+    },
+    "safe": {
+      "label": "Decompressed and escalated",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"call\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and (not isNull(npoAt) and not isNull(ogtAt)) and isNull(refeedAt)",
+      "narrative": "{timeAt(leftAt)|clock}: he leaves for an urgent contrast study, NPO and decompressed, with the surgeon on the way."
+    },
+    "safeGaps": {
+      "label": "Escalated, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: he goes for his study, but the call was slow, he was fed again or the stomach was not decompressed."
+    },
+    "time_up": {
+      "label": "Still waiting at 04:10",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "04:10 and no surgeon knows."
+    }
+  },
+  "endingOrder": [
+    "necrosis",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "The nurse practitioner called within 5 minutes of seeing bile, asking for the surgeon and an urgent contrast study",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"call\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"call\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "decompC",
+        "label": "Made him NPO and decompressed the stomach",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(npoAt) and not isNull(ogtAt)",
+            "score": "met",
+            "why": "NPO and decompressed."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not both."
+          }
+        ]
+      },
+      {
+        "id": "noFeedC",
+        "label": "Did not feed again or treat it as reflux",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(refeedAt)",
+            "score": "missed",
+            "why": "Fed again."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "No further feed."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Examined the abdomen and perfusion",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(abdomenAt) and not isNull(perfusionAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(abdomenAt) or not isNull(perfusionAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Read bilious emesis as a surgical emergency until proven otherwise",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"volvulus\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"reflux\"",
+            "score": "missed",
+            "why": "Reflux is not green."
+          },
+          {
+            "when": "dxEnum == \"formula\"",
+            "score": "missed",
+            "why": "Bile means obstruction until proven otherwise."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Told the parents and documented",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: bilious emesis means possible volvulus; NPO, decompress, surgeon now",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Bile seen to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "03:10 to NPO",
+        "value": "isNull(npoAt) ? -1 : timeAt(npoAt)",
+        "format": "duration",
+        "expert": "under 2 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "03:10",
+        "text": "Look at the emesis yourself: green, bile-stained."
+      },
+      {
+        "at": "~03:11",
+        "text": "NPO; orogastric tube to suction."
+      },
+      {
+        "at": "~03:12",
+        "text": "Call the nurse practitioner: surgeon and urgent upper GI."
+      },
+      {
+        "at": "~03:14",
+        "text": "Abdomen and perfusion; tell the parents; document."
+      }
+    ],
+    "debrief": {
+      "necrosis": {
+        "headline": "Bowel ischemia",
+        "body": "Green emesis in a newborn is malrotation with volvulus until proven otherwise. NPO, decompress and call for the surgeon at once."
+      },
+      "safe": {
+        "headline": "Decompressed and escalated",
+        "body": "You saw the bile yourself, stopped feeds, decompressed the stomach and called within minutes for the surgeon. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Escalated, with gaps",
+        "body": "Check how soon you called after seeing bile, whether he was fed again, and whether he was NPO and decompressed."
+      },
+      "time_up": {
+        "headline": "Still waiting at 04:10",
+        "body": "Bilious vomiting in a newborn goes to the provider and surgeon at once."
+      }
+    },
+    "modelReasoning": "Bilious vomiting in a newborn is a surgical emergency until proven otherwise: malrotation with midgut volvulus can strangle the bowel within hours. Stop feeds, decompress the stomach with an orogastric tube, assess the abdomen and perfusion, and call the provider at once for the pediatric surgeon and an urgent upper GI contrast study. Never refeed or treat it as reflux."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "bileQ": {
+      "during": "testT",
+      "ask": "While you look: what does green emesis in a newborn mean until proven otherwise?",
+      "choices": [
+        {
+          "id": "volv",
+          "label": "Malrotation with volvulus: a surgical emergency"
+        },
+        {
+          "id": "reflux",
+          "label": "Reflux"
+        },
+        {
+          "id": "overfeed",
+          "label": "Overfeeding"
+        }
+      ],
+      "expect": "volv",
+      "explain": "When a neonate develops bilious vomiting, suspect a surgical condition; malrotation with volvulus needs urgent surgery.",
+      "source": {
+        "cite": "Kimura K, Loening-Baucke V. Bilious Vomiting in the Newborn: Rapid Diagnosis of Intestinal Obstruction. Am Fam Physician 2000;61(9):2791-2798",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.aafp.org/pubs/afp/issues/2000/0501/p2791.html",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'When a neonate develops bilious vomiting, one should suspect a surgical condition'; a nasogastric or orogastric catheter 'should be placed for gastric decompression'; 'Urgent consultation with a pediatric surgeon is indicated'; 'Unless it is treated in a timely manner, bowel strangulation results in an ischemic loss of extensive bowel'; Table 1: 'STAT surgery for symptomatic patients'. An older review (2000); the core emergency teaching is unchanged in the course catalog's framing."
+      }
+    },
+    "decompQ": {
+      "during": "leaveT",
+      "ask": "While he goes to radiology: why decompress the stomach?",
+      "choices": [
+        {
+          "id": "decomp",
+          "label": "To empty the obstructed stomach and protect his airway before transport and surgery"
+        },
+        {
+          "id": "feed",
+          "label": "To feed him through the tube"
+        },
+        {
+          "id": "sample",
+          "label": "Only to get a sample"
+        }
+      ],
+      "expect": "decomp",
+      "explain": "A nasogastric or orogastric catheter should be placed for gastric decompression before other steps.",
+      "source": {
+        "cite": "Kimura K, Loening-Baucke V. Bilious Vomiting in the Newborn: Rapid Diagnosis of Intestinal Obstruction. Am Fam Physician 2000;61(9):2791-2798",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.aafp.org/pubs/afp/issues/2000/0501/p2791.html",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'When a neonate develops bilious vomiting, one should suspect a surgical condition'; a nasogastric or orogastric catheter 'should be placed for gastric decompression'; 'Urgent consultation with a pediatric surgeon is indicated'; 'Unless it is treated in a timely manner, bowel strangulation results in an ischemic loss of extensive bowel'; Table 1: 'STAT surgery for symptomatic patients'. An older review (2000); the core emergency teaching is unchanged in the course catalog's framing."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

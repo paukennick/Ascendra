@@ -1,0 +1,393 @@
+{
+  "slug": "neck-pain-headache-after-adjustment",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: history, neuro screen, emergency department, blood pressure, hands over",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "hx",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "cadQ",
+          "choice": "pain",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "vad"
+          },
+          "seq": 6,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "ed"
+          },
+          "seq": 7,
+          "tick": 25
+        },
+        {
+          "type": "teach",
+          "prompt": "imgQ",
+          "choice": "cta",
+          "seq": 8,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "bp",
+          "seq": 9,
+          "tick": 25
+        },
+        {
+          "type": "chapter",
+          "chapter": "escalated",
+          "choice": "continue",
+          "seq": 10,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 11,
+          "tick": 37
+        }
+      ],
+      "expect": {
+        "ending": "safe",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "reportC": "met",
+          "neuroC": "met",
+          "noManipC": "met",
+          "lookC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": 125
+        },
+        "stateHash": "6daa9112b32387b9"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Screens well but sends her 8 minutes later",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "hx",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "cadQ",
+          "choice": "pain",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "bp",
+          "seq": 5,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "vad"
+          },
+          "seq": 6,
+          "tick": 130
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "ed"
+          },
+          "seq": 7,
+          "tick": 130
+        },
+        {
+          "type": "teach",
+          "prompt": "imgQ",
+          "choice": "cta",
+          "seq": 8,
+          "tick": 130
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 9,
+          "tick": 130
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "reportC": "partial",
+          "neuroC": "met",
+          "noManipC": "met",
+          "lookC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 530,
+          "toKey": 120
+        },
+        "stateHash": "a7a38bfec1157383"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "provoked",
+      "title": "Tests end-range first, then screens and sends her",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "endrange",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "cadQ",
+          "choice": "pain",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "vad"
+          },
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "ed"
+          },
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "imgQ",
+          "choice": "cta",
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 8,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 64,
+        "criteria": {
+          "reportC": "met",
+          "neuroC": "met",
+          "noManipC": "missed",
+          "lookC": "missed",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": 60
+        },
+        "stateHash": "62f91d11d3769330"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "manip",
+      "title": "Failure: calls it a locked facet, manipulates and sends her to her provider",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "mech"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "manip",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "pcp"
+          },
+          "seq": 3,
+          "tick": 0
+        }
+      ],
+      "expect": {
+        "ending": "stroke",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "reportC": "missed",
+          "neuroC": "missed",
+          "noManipC": "missed",
+          "lookC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": -1,
+          "toKey": -1
+        },
+        "stateHash": "03e22695da927fcd"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "tension",
+      "title": "Failure: calls it a tension headache and tests end-range",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "tension"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "endrange",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "stroke",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "reportC": "missed",
+          "neuroC": "missed",
+          "noManipC": "missed",
+          "lookC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": -1,
+          "toKey": -1
+        },
+        "stateHash": "1a9cc268bb1d932c"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

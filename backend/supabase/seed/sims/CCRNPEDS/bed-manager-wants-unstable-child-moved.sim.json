@@ -1,0 +1,1226 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "bed-manager-wants-unstable-child-moved",
+  "title": "The bed manager needs your bed",
+  "screen": {
+    "type": "session",
+    "level": 2,
+    "session": {
+      "client": {
+        "name": "Kim Brooks, the hospital bed manager",
+        "presentation": "{pressure >= 8 ? \"Arms crossed, voice raised\" : pressure >= 6 ? \"Holding a tablet of bed requests, talking fast\" : pressure >= 3 ? \"Standing at the desk, checking the board\" : \"Sitting down, calmer\"}; {relation >= 6 ? \"she is listening to you\" : relation >= 3 ? \"she wants this over with\" : \"she has stopped looking at you\"}."
+      },
+      "gauges": [
+        {
+          "id": "pressure",
+          "label": "Pressure",
+          "spokenLabel": "Pressure on you",
+          "value": "pressure",
+          "max": 10,
+          "bands": [
+            3,
+            6,
+            8
+          ],
+          "words": [
+            "calm",
+            "pressing",
+            "insistent",
+            "angry"
+          ]
+        },
+        {
+          "id": "relation",
+          "label": "Working relationship",
+          "spokenLabel": "Working relationship",
+          "value": "relation",
+          "max": 10,
+          "bands": [
+            3,
+            6
+          ],
+          "words": [
+            "strained",
+            "steady",
+            "strong"
+          ]
+        },
+        {
+          "id": "known",
+          "label": "What you know",
+          "spokenLabel": "What you know",
+          "value": "known",
+          "max": 10,
+          "bands": [
+            3,
+            7
+          ],
+          "words": [
+            "little",
+            "some of it",
+            "the full picture"
+          ]
+        }
+      ],
+      "notes": [
+        {
+          "id": "ask",
+          "label": "The request",
+          "text": "Move Lily to the general ward now so the trauma patient can have her bed; send the handoff by text.",
+          "when": "true"
+        },
+        {
+          "id": "policy",
+          "label": "Policy",
+          "text": "PICU transfer needs the attending's order and a verbal nurse-to-nurse handoff. The ward cannot run high-flow at Lily's setting. Capacity conflicts: the house supervisor can open the surge bed or step-down.",
+          "when": "not isNull(policyAt)"
+        },
+        {
+          "id": "scope",
+          "label": "What you found out",
+          "text": "{not isNull(scopeAt) ? \"The PICU attending has not written a transfer order and Lily's work of breathing rose this evening.\" : \"\"} {not isNull(whyAt) ? \"The ward's limit for high-flow is well below Lily's setting.\" : \"\"} {not isNull(acctAt) ? \"The step-down unit has one bed, and the PICU surge bed can open with an extra nurse.\" : \"\"}",
+          "when": "not isNull(scopeAt) or not isNull(whyAt) or not isNull(acctAt)"
+        },
+        {
+          "id": "logs",
+          "label": "Second request",
+          "text": "Send the ward a text summary instead of a verbal handoff so the move is faster.",
+          "when": "not isNull(logsAskAt)",
+          "alert": "not isNull(logsAskAt) and logs == \"unset\""
+        }
+      ],
+      "record": {
+        "label": "Your note so far",
+        "items": [
+          {
+            "label": "Declined to move Lily without an order; proposed the surge bed or step-down for another patient via the house supervisor",
+            "when": "not isNull(routeAt)"
+          },
+          {
+            "label": "Kept a verbal nurse-to-nurse handoff for any transfer",
+            "when": "logs == \"kept\""
+          },
+          {
+            "label": "Asked the house supervisor and the PICU attending to decide",
+            "when": "not isNull(escalateAt)"
+          }
+        ]
+      },
+      "readLabel": "Read the conversation"
+    }
+  },
+  "objective": "Systems thinking: use knowledge of the care system to secure resources, navigate transitions and transfers, and manage care within and across healthcare and non-healthcare systems",
+  "secondaryObjectives": [
+    "Advocacy and moral agency: act on behalf of critically ill children, their families and colleagues, and help identify and resolve ethical and clinical concerns, within and outside the clinical setting"
+  ],
+  "sources": [
+    {
+      "cite": "AACN Certification Corporation. CCRN Exam Handbook - Direct Care (July 2026), Pediatric test plan",
+      "checkedAt": "2026-10-31",
+      "url": "https://www.aacn.org/certification/get-certified/ccrn-pediatric",
+      "note": "Relayed from the CCRN Pediatric course seed (backend/supabase/seed/tracks/ccrn-peds-neo.ts), which read the handbook 2026-10-31, not re-read: the objective titles are the course's own. Scope only."
+    },
+    {
+      "cite": "Ascendra CCRN Pediatric course catalog (backend/supabase/seed/tracks/ccrn-peds-neo.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Nurses Service Organization: Breaking Down the ANA Code of Ethics for Nurses: A Simplified Summary (2025 edition; no article date shown)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.nso.com/Learning/Artifacts/Articles/Breaking-Down-the-ANA-Code-of-Ethics-for-Nurses-A-Simplified-Summary",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: the 2025 edition (released January 2025, ten provisions): 'A nurse's primary commitment is to the recipient(s) of nursing care'; 'The nurse establishes a trusting relationship and advocates for the rights, health, and safety of recipient(s)', including protecting privacy and confidentiality; 'Nurses have authority over nursing practice and are responsible and accountable for their practice'; respect, transparency and civility with coworkers, and 'bullying behaviors should never be tolerated'. A secondary summary; the code itself was not opened. Learner text names 'your professional code', not the association."
+    },
+    {
+      "cite": "Medical Solutions Clinical Corner: Sentinel Event Alert #58 on Proper Hand-off Communication (2017-11-29)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.medicalsolutions.com/blog/client/clinical-corner/sentinel-event-alert-58/",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: the Joint Commission alert recommends: 'Standardize the critical content communicated between caregivers using verbal and written hand-offs'; 'Conduct face-to-face hand-off communication in locations that are free from interruptions or distractions'; the hand-off process 'provides the opportunity for discussion between the giver and receiver'; inadequate hand-offs 'can ultimately contribute and lead to sentinel events'. A secondary summary; the alert itself was not opened."
+    }
+  ],
+  "brief": {
+    "situation": "21:00 in the PICU, which is full. You are the bedside nurse for Lily, 4, on day 2 of bronchiolitis-related respiratory failure, now on high-flow nasal cannula at a high setting with a rising work of breathing this evening. The bed manager, Kim, needs a PICU bed for a trauma admission and wants Lily moved to the general pediatric ward now, by text handoff. Work out what is being asked, use what you know about the system, advocate for Lily, and keep the working relationship.",
+    "handover": [
+      "Your professional code makes the patient your primary commitment and asks you to advocate for the patient's safety and to work for safe systems.",
+      "Hospital policy: transfers out of the PICU need the PICU attending's order and a face-to-face (or phone) nurse-to-nurse handoff; capacity conflicts go to the house supervisor, who can open the PICU surge bed or arrange the step-down unit."
+    ],
+    "howItWorks": [
+      "Choose what to ask or say. Each exchange takes a few minutes of the conversation; Kim answers at once, and the next choice waits for the exchange to finish.",
+      "The screen shows Kim, how hard she is pushing, your working relationship, what you know so far, and your note.",
+      "When the conversation ends you write your note and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "21:00",
+    "tick": "1min",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "logsDelay": {
+      "value": 480,
+      "source": {
+        "cite": "Author's scenario figure (REQ-334)",
+        "checkedAt": "2026-11-17",
+        "note": "Kim's second request comes eight minutes in."
+      },
+      "unit": "s"
+    },
+    "insistDelay": {
+      "value": 720,
+      "source": {
+        "cite": "Author's scenario figure (REQ-334)",
+        "checkedAt": "2026-11-17",
+        "note": "Kim insists twelve minutes in if nothing else has been offered."
+      },
+      "unit": "s"
+    },
+    "talkEnd": {
+      "value": 1800,
+      "source": {
+        "cite": "Author's scenario figure (REQ-334)",
+        "checkedAt": "2026-11-17",
+        "note": "Kim leaves after thirty minutes."
+      },
+      "unit": "s"
+    }
+  },
+  "state": {
+    "talking": {
+      "type": "bool",
+      "init": false
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "shared": {
+      "type": "bool",
+      "init": false
+    },
+    "threatened": {
+      "type": "bool",
+      "init": false
+    },
+    "posted": {
+      "type": "bool",
+      "init": false
+    },
+    "scopeAt": {
+      "type": "time",
+      "init": null
+    },
+    "whyAt": {
+      "type": "time",
+      "init": null
+    },
+    "acctAt": {
+      "type": "time",
+      "init": null
+    },
+    "policyAt": {
+      "type": "time",
+      "init": null
+    },
+    "ackAt": {
+      "type": "time",
+      "init": null
+    },
+    "declineAt": {
+      "type": "time",
+      "init": null
+    },
+    "routeAt": {
+      "type": "time",
+      "init": null
+    },
+    "logsAskAt": {
+      "type": "time",
+      "init": null
+    },
+    "escalateAt": {
+      "type": "time",
+      "init": null
+    },
+    "insistAt": {
+      "type": "time",
+      "init": null
+    },
+    "endAt": {
+      "type": "time",
+      "init": null
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "pressure": {
+      "type": "number",
+      "init": 5,
+      "min": 0,
+      "max": 10
+    },
+    "relation": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "known": {
+      "type": "number",
+      "init": 1,
+      "min": 0,
+      "max": 10
+    },
+    "logs": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "kept",
+        "off"
+      ],
+      "init": "unset"
+    },
+    "noteDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "factual",
+        "none"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "breaches": {
+      "expr": "(shared ? 1 : 0) + (logs == \"off\" ? 1 : 0)"
+    },
+    "routeInTime": {
+      "expr": "not isNull(routeAt) and timeAt(routeAt) <= actWindow"
+    },
+    "properChannel": {
+      "expr": "not threatened and not posted"
+    },
+    "escalatedIfNeeded": {
+      "expr": "not isNull(escalateAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "conversation": {
+      "label": "Conversation",
+      "clock": "turns",
+      "actions": [
+        "askScope",
+        "askWhy",
+        "askAcct",
+        "checkPolicy",
+        "ack",
+        "route",
+        "refuse",
+        "share",
+        "keepLogs",
+        "logsOff",
+        "escalate",
+        "threaten",
+        "post",
+        "wait",
+        "endTalk"
+      ]
+    },
+    "after": {
+      "label": "After the conversation",
+      "clock": "stopped",
+      "actions": [
+        "note"
+      ]
+    }
+  },
+  "initialPhase": "conversation",
+  "actions": {
+    "askScope": {
+      "label": "Ask whether the PICU attending has ordered Lily's transfer",
+      "group": "Ask",
+      "available": "not talking and (isNull(scopeAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "scopeAt",
+          "to": "t"
+        },
+        {
+          "add": "known",
+          "by": "3"
+        },
+        {
+          "finding": "\"Not yet. I figured you'd tell them.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askWhy": {
+      "label": "Ask whether the ward can manage her current high-flow setting",
+      "group": "Ask",
+      "available": "not talking and (isNull(whyAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "whyAt",
+          "to": "t"
+        },
+        {
+          "add": "known",
+          "by": "2"
+        },
+        {
+          "add": "pressure",
+          "by": "-0.5"
+        },
+        {
+          "finding": "\"I'm not sure what their limit is.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askAcct": {
+      "label": "Ask what other options exist tonight: step-down, surge bed, another patient",
+      "group": "Ask",
+      "available": "not talking and (isNull(acctAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "acctAt",
+          "to": "t"
+        },
+        {
+          "add": "known",
+          "by": "2"
+        },
+        {
+          "finding": "\"Step-down has one bed. The surge bed needs an extra nurse. I hadn't looked at who else could move.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "checkPolicy": {
+      "label": "Check the PICU transfer and capacity policy",
+      "group": "Ask",
+      "available": "not talking and (isNull(policyAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "policyAt",
+          "to": "t"
+        },
+        {
+          "add": "known",
+          "by": "2"
+        },
+        {
+          "finding": "Sam waits while you read."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "ack": {
+      "label": "Acknowledge her problem: 'You've got a trauma coming and no bed, that's a hard spot'",
+      "group": "Respond",
+      "available": "not talking and (isNull(ackAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "ackAt",
+          "to": "t"
+        },
+        {
+          "add": "pressure",
+          "by": "-2"
+        },
+        {
+          "add": "relation",
+          "by": "1"
+        },
+        {
+          "finding": "\"It is. The ambulance is twenty minutes out.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "route": {
+      "label": "Decline to move Lily without an order or at her current needs; propose that the house supervisor open the surge bed or move a more stable PICU patient to step-down, and offer to help identify who",
+      "group": "Respond",
+      "available": "not talking and (isNull(routeAt) and not shared)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "declineAt",
+          "to": "t"
+        },
+        {
+          "set": "routeAt",
+          "to": "t"
+        },
+        {
+          "add": "pressure",
+          "by": "-2"
+        },
+        {
+          "add": "relation",
+          "by": "isNull(ackAt) ? 0 : 1"
+        },
+        {
+          "finding": "\"If the supervisor can open the surge bed, that works. Who's the most stable here?\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "4min"
+        }
+      ]
+    },
+    "refuse": {
+      "label": "Refuse flatly: 'She's not going anywhere. Not my problem.'",
+      "group": "Respond",
+      "available": "not talking and (isNull(declineAt) and not shared)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "declineAt",
+          "to": "t"
+        },
+        {
+          "add": "pressure",
+          "by": "3"
+        },
+        {
+          "add": "relation",
+          "by": "-3"
+        },
+        {
+          "finding": "\"Then the trauma kid waits in the ED. Thanks.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "share": {
+      "label": "Move Lily to the ward now",
+      "group": "Respond",
+      "available": "not talking and (not shared and isNull(routeAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "shared",
+          "to": "true"
+        },
+        {
+          "add": "pressure",
+          "by": "-4"
+        },
+        {
+          "add": "relation",
+          "by": "1"
+        },
+        {
+          "log": "Lily is moved to the ward on a high-flow setting the ward cannot run.",
+          "kind": "bad"
+        },
+        {
+          "finding": "\"Thank you. That saves me.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "keepLogs": {
+      "label": "Keep a verbal nurse-to-nurse handoff for any transfer",
+      "group": "Respond",
+      "available": "not talking and (not isNull(logsAskAt) and logs == \"unset\")",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "logs",
+          "to": "\"kept\""
+        },
+        {
+          "add": "pressure",
+          "by": "1"
+        },
+        {
+          "finding": "\"Okay. Call them.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "logsOff": {
+      "label": "Send a text summary instead of a verbal handoff",
+      "group": "Respond",
+      "available": "not talking and (not isNull(logsAskAt) and logs == \"unset\")",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "logs",
+          "to": "\"off\""
+        },
+        {
+          "add": "pressure",
+          "by": "-1"
+        },
+        {
+          "log": "The ward gets a two-line text about the transfer.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "escalate": {
+      "label": "Call the house supervisor and the PICU attending to decide on capacity now",
+      "group": "Escalate",
+      "available": "not talking and (isNull(escalateAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "escalateAt",
+          "to": "t"
+        },
+        {
+          "add": "pressure",
+          "by": "-1"
+        },
+        {
+          "finding": "The house supervisor: \"I'll open the surge bed with the float nurse. The attending agrees Lily stays.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "4min"
+        }
+      ]
+    },
+    "threaten": {
+      "label": "Tell Kim you'll file an incident report on her unless she backs off",
+      "group": "Escalate",
+      "available": "not talking and (not threatened)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "threatened",
+          "to": "true"
+        },
+        {
+          "add": "relation",
+          "by": "-4"
+        },
+        {
+          "add": "pressure",
+          "by": "2"
+        },
+        {
+          "finding": "\"Fine. File it.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "post": {
+      "label": "Complain about Kim in the unit group chat",
+      "group": "Escalate",
+      "available": "not talking and (not posted)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "posted",
+          "to": "true"
+        },
+        {
+          "add": "relation",
+          "by": "-5"
+        },
+        {
+          "log": "The post names Kim in front of the whole PICU.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Let Kim talk (2 min)",
+      "group": "Wait",
+      "available": "not talking and (true)",
+      "why": "Done.",
+      "effects": [
+        {
+          "log": "You listen.",
+          "kind": "act"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "endTalk": {
+      "label": "End the conversation and write your note",
+      "group": "Close",
+      "available": "not talking",
+      "why": "Let Kim finish.",
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "set": "endAt",
+          "to": "t"
+        },
+        {
+          "log": "The conversation ends.",
+          "kind": "act"
+        },
+        {
+          "phase": "after"
+        }
+      ]
+    },
+    "note": {
+      "label": "Write your note",
+      "group": "Document",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "note",
+              "label": "What you write",
+              "options": [
+                {
+                  "value": "factual",
+                  "label": "A factual note: Lily's status, the request, the options raised and who decided"
+                },
+                {
+                  "value": "none",
+                  "label": "Nothing: it worked out"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "noteDoc",
+          "to": "note"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Note: {note}.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "talk": {
+      "label": "Conversation",
+      "wait": {
+        "skipLabel": "Let the conversation continue"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figure (REQ-334)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each exchange takes and when each event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "talking",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "logsAsk",
+      "when": "isNull(logsAskAt) and t >= logsDelay and phase == \"conversation\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "logsAskAt",
+          "to": "t"
+        },
+        {
+          "add": "pressure",
+          "by": "1"
+        },
+        {
+          "log": "Kim: \"And just text the ward a summary, a verbal handoff takes too long.\"",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "insist",
+      "when": "isNull(insistAt) and t >= insistDelay and isNull(routeAt) and not shared and phase == \"conversation\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "insistAt",
+          "to": "t"
+        },
+        {
+          "add": "pressure",
+          "by": "2"
+        },
+        {
+          "log": "Kim: \"The ED is full. Just move her. The ward will cope.\"",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "leaves",
+      "when": "isNull(leftAt) and t >= talkEnd and phase == \"conversation\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "set": "endAt",
+          "to": "t"
+        },
+        {
+          "log": "Kim is called to the ED and leaves. The conversation is over.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "after"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"after\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "reflection": {
+      "question": "For your note: what the safety and systems problem was, how you used the system to solve it, and how you worked with the bed manager.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "The problem",
+          "criteria": "Names that moving an unstable child without an order to a ward that cannot run her support, by text handoff, is unsafe, and that the capacity problem is real and belongs to people who can solve it.",
+          "modelAnswer": "Lily's getting worse on high-flow the ward can't run, and there's no transfer order. A text handoff is unsafe. But Kim's capacity problem is real."
+        },
+        {
+          "label": "Use the system",
+          "criteria": "Asks about the order, the ward's limits and other options before answering; proposes system routes (surge bed, step-down for a more stable patient) through the house supervisor; keeps a verbal handoff.",
+          "modelAnswer": "I asked about the order, the ward's limit and other beds, then proposed the surge bed or moving a more stable patient to step-down, and kept any handoff verbal."
+        },
+        {
+          "label": "The relationship and the channel",
+          "criteria": "Acknowledges the bed manager's pressure; takes the decision to the house supervisor and attending, not threats or posts; writes a factual note.",
+          "modelAnswer": "I acknowledged her problem, got the house supervisor and attending to decide, and documented it."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "professional-ethics",
+    "thresholds": {
+      "actWindow": {
+        "value": 1200,
+        "source": {
+          "cite": "Professional-ethics outcome profile (docs/sims.md 9.2, 22.26), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "Declined and offered a system route within 20 minutes, before the trauma arrives (author's figure)."
+        }
+      },
+      "canonBreaches": {
+        "value": 0,
+        "source": {
+          "cite": "Professional-ethics outcome profile (docs/sims.md 9.2, 22.26)",
+          "checkedAt": "2026-11-17",
+          "note": "No unsafe transfer and no text-only handoff."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and isNull(declineAt) and not shared and logs != \"off\"",
+      "class": "recovered",
+      "rationale": "Lily stayed, but the capacity problem was never answered or escalated.",
+      "source": {
+        "cite": "Medical Solutions Clinical Corner: Sentinel Event Alert #58 on Proper Hand-off Communication (2017-11-29)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.medicalsolutions.com/blog/client/clinical-corner/sentinel-event-alert-58/",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: the Joint Commission alert recommends: 'Standardize the critical content communicated between caregivers using verbal and written hand-offs'; 'Conduct face-to-face hand-off communication in locations that are free from interruptions or distractions'; the hand-off process 'provides the opportunity for discussion between the giver and receiver'; inadequate hand-offs 'can ultimately contribute and lead to sentinel events'. A secondary summary; the alert itself was not opened."
+      }
+    }
+  },
+  "endings": {
+    "breached": {
+      "label": "Unsafe transfer",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and breaches > canonBreaches",
+      "narrative": "Lily was moved to a ward that cannot support her, or handed off by text."
+    },
+    "upheld": {
+      "label": "Child safe, system solved",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and breaches <= canonBreaches and routeInTime and logs == \"kept\" and properChannel and escalatedIfNeeded and noteDoc == \"factual\" and relation >= 5",
+      "narrative": "You asked first, kept Lily where she is safe, found a system route for the bed, kept handoffs verbal, and worked with Kim."
+    },
+    "costly": {
+      "label": "Safe, at a cost",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Lily stayed safe, but the answer came late, flatly, through threats or a post, or the relationship suffered."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no note."
+    }
+  },
+  "endingOrder": [
+    "breached",
+    "upheld",
+    "costly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "noShare",
+        "label": "Did not move an unstable child without an order",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not shared",
+            "score": "met",
+            "why": "Lily stayed where she is safe."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Lily was moved to a ward that cannot support her."
+          }
+        ]
+      },
+      {
+        "id": "logs",
+        "label": "Kept a verbal nurse-to-nurse handoff",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "logs == \"kept\"",
+            "score": "met",
+            "why": "Declined, with the reason."
+          },
+          {
+            "when": "logs == \"unset\"",
+            "score": "partial",
+            "why": "Never answered the second request."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A text-only handoff was used."
+          }
+        ]
+      },
+      {
+        "id": "route",
+        "label": "Declined and offered a system route within 20 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "routeInTime",
+            "score": "met",
+            "why": "Offered at {timeAt(routeAt) / 60|0dp} min."
+          },
+          {
+            "when": "not isNull(routeAt) or not isNull(declineAt)",
+            "score": "partial",
+            "why": "{isNull(routeAt) ? \"Refused with no way forward.\" : \"Offered late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No answer, or a yes."
+          }
+        ]
+      },
+      {
+        "id": "channel",
+        "label": "Took the capacity decision to the house supervisor and the attending, not by threats or a public post",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "properChannel and escalatedIfNeeded",
+            "score": "met",
+            "why": "{isNull(escalateAt) ? \"No escalation was needed.\" : \"The house supervisor and the attending decided.\"}"
+          },
+          {
+            "when": "properChannel",
+            "score": "partial",
+            "why": "The capacity problem was never taken to the people who can solve it."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{posted ? \"A public post naming her.\" : \"A threat instead of a channel.\"}"
+          }
+        ]
+      },
+      {
+        "id": "diligence",
+        "label": "Asked about the order, the ward's limits and other options before answering",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(scopeAt) and not isNull(whyAt) and (isNull(declineAt) or timeAt(whyAt) <= timeAt(declineAt))",
+            "score": "met",
+            "why": "Due diligence first."
+          },
+          {
+            "when": "not isNull(scopeAt) or not isNull(whyAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Answered without knowing what it touched."
+          }
+        ]
+      },
+      {
+        "id": "relation",
+        "label": "Kept a working relationship with the bed manager",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "relation >= 5",
+            "score": "met",
+            "why": "Still working together."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The relationship is strained."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "Wrote a factual note",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "noteDoc == \"factual\"",
+            "score": "met",
+            "why": "On record."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nothing written."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written safety and systems problem, the system route, and channel",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minRoute",
+        "label": "Minutes until the proper route was offered",
+        "value": "isNull(routeAt) ? -1 : timeAt(routeAt) / 60",
+        "format": "number",
+        "expert": "10 or less"
+      },
+      {
+        "id": "breaches",
+        "label": "Unsafe transfer steps agreed to",
+        "value": "breaches",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "relation",
+        "label": "Working relationship with Kim at the end (of 10)",
+        "value": "round(relation)",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-6 min",
+        "text": "Ask about the order, the ward's high-flow limit and other options; acknowledge Kim's problem."
+      },
+      {
+        "at": "6-10 min",
+        "text": "Decline; propose the surge bed or step-down for a more stable patient via the house supervisor."
+      },
+      {
+        "at": "8-14 min",
+        "text": "Keep handoffs verbal."
+      },
+      {
+        "at": "After",
+        "text": "Call the house supervisor and attending; write a factual note."
+      }
+    ],
+    "debrief": {
+      "upheld": {
+        "headline": "Child safe, system solved",
+        "body": "You used the system: asked first, kept Lily safe, found the surge bed route through the house supervisor, kept handoffs verbal, and worked with Kim. That is the expert path."
+      },
+      "costly": {
+        "headline": "Safe, at a cost",
+        "body": "The criteria show the cost: a late or flat answer, a threat or a post, or a relationship worse than it needed to be."
+      },
+      "breached": {
+        "headline": "Unsafe transfer",
+        "body": "Moving an unstable child without an order to a unit that cannot support her, or handing off by text, puts her at risk."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No note was written before the run's limit."
+      }
+    },
+    "modelReasoning": "Systems thinking means using what you know of the care system to secure resources and navigate transfers safely. Lily is worsening on support the ward cannot run and has no transfer order, so she stays; the capacity problem is still real. Acknowledge Kim's pressure, propose the system routes (open the surge bed, move a more stable patient to step-down) through the house supervisor and the attending, keep any handoff face-to-face or by phone with time for questions, and document."
+  },
+  "safetyNote": "Teaching case for exam practice; fictional people. Not legal or clinical advice."
+}

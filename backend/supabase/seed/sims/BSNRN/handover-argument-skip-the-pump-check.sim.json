@@ -1,0 +1,1226 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "handover-argument-skip-the-pump-check",
+  "title": "An argument at handover",
+  "screen": {
+    "type": "session",
+    "level": 2,
+    "session": {
+      "client": {
+        "name": "Rob Ellis, the night nurse handing over to you",
+        "presentation": "{pressure >= 8 ? \"Arms crossed, voice raised\" : pressure >= 6 ? \"Pacing, talking fast\" : pressure >= 3 ? \"Standing at the station, keys in hand\" : \"Sitting down, calmer\"}; {relation >= 6 ? \"he is listening to you\" : relation >= 3 ? \"he wants this over with\" : \"he has stopped looking at you\"}."
+      },
+      "gauges": [
+        {
+          "id": "pressure",
+          "label": "Pressure",
+          "spokenLabel": "Pressure on you",
+          "value": "pressure",
+          "max": 10,
+          "bands": [
+            3,
+            6,
+            8
+          ],
+          "words": [
+            "calm",
+            "pressing",
+            "insistent",
+            "angry"
+          ]
+        },
+        {
+          "id": "relation",
+          "label": "Working relationship",
+          "spokenLabel": "Working relationship",
+          "value": "relation",
+          "max": 10,
+          "bands": [
+            3,
+            6
+          ],
+          "words": [
+            "strained",
+            "steady",
+            "strong"
+          ]
+        },
+        {
+          "id": "known",
+          "label": "What you know",
+          "spokenLabel": "What you know",
+          "value": "known",
+          "max": 10,
+          "bands": [
+            3,
+            7
+          ],
+          "words": [
+            "little",
+            "some of it",
+            "the full picture"
+          ]
+        }
+      ],
+      "notes": [
+        {
+          "id": "ask",
+          "label": "The request",
+          "text": "Skip the bedside handover and the two-nurse PCA check; take a quick verbal report at the station.",
+          "when": "true"
+        },
+        {
+          "id": "policy",
+          "label": "Policy",
+          "text": "Bedside handover for every patient; independent double-check of PCA settings at handover (high-alert medication policy). The charge nurse resolves staffing and conflict issues.",
+          "when": "not isNull(policyAt)"
+        },
+        {
+          "id": "scope",
+          "label": "What you found out",
+          "text": "{not isNull(scopeAt) ? \"Rob had three admissions and a rapid response overnight and has not had a break.\" : \"\"} {not isNull(whyAt) ? \"He feels day shift criticizes nights; last week a day nurse wrote him up in front of others.\" : \"\"} {not isNull(acctAt) ? \"Mr. Lee's PCA was reprogrammed at 04:00 after a new order.\" : \"\"}",
+          "when": "not isNull(scopeAt) or not isNull(whyAt) or not isNull(acctAt)"
+        },
+        {
+          "id": "logs",
+          "label": "Second request",
+          "text": "Co-sign the 07:00 PCA check as done 'since you'll be in there anyway'.",
+          "when": "not isNull(logsAskAt)",
+          "alert": "not isNull(logsAskAt) and logs == \"unset\""
+        }
+      ],
+      "record": {
+        "label": "Your note so far",
+        "items": [
+          {
+            "label": "Kept the bedside PCA check, offered to do it now in five minutes together",
+            "when": "not isNull(routeAt)"
+          },
+          {
+            "label": "Declined to co-sign a check not done",
+            "when": "logs == \"kept\""
+          },
+          {
+            "label": "Asked the charge nurse to help with the night-shift workload issue",
+            "when": "not isNull(escalateAt)"
+          }
+        ]
+      },
+      "readLabel": "Read the conversation"
+    }
+  },
+  "objective": "Use constructive communication to manage conflict, drawing on approaches leaders use to resolve team tension",
+  "secondaryObjectives": [
+    "Conflict engagement and resolution within teams"
+  ],
+  "sources": [
+    {
+      "cite": "AACN. The Essentials: Core Competencies for Professional Nursing Education (2026 edition, announced April 2026)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.aacnnursing.org/essentials",
+      "note": "Relayed from the BSN-RN course's earlier cases (read 2026-11-11, primary web page), not re-read: the course's domains follow the Essentials; domain placement is the course catalog's."
+    },
+    {
+      "cite": "Ascendra BSN-RN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Nurses Service Organization: Breaking Down the ANA Code of Ethics for Nurses: A Simplified Summary (2025 edition; no article date shown)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.nso.com/Learning/Artifacts/Articles/Breaking-Down-the-ANA-Code-of-Ethics-for-Nurses-A-Simplified-Summary",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: the 2025 edition (released January 2025, ten provisions): 'A nurse's primary commitment is to the recipient(s) of nursing care'; 'The nurse establishes a trusting relationship and advocates for the rights, health, and safety of recipient(s)', including protecting privacy and confidentiality; 'Nurses have authority over nursing practice and are responsible and accountable for their practice'; respect, transparency and civility with coworkers, and 'bullying behaviors should never be tolerated'. A secondary summary; the code itself was not opened. Learner text names 'your professional code', not the association."
+    },
+    {
+      "cite": "Medical Solutions Clinical Corner: Sentinel Event Alert #58 on Proper Hand-off Communication (2017-11-29)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.medicalsolutions.com/blog/client/clinical-corner/sentinel-event-alert-58/",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: the Joint Commission alert recommends: 'Standardize the critical content communicated between caregivers using verbal and written hand-offs'; 'Conduct face-to-face hand-off communication in locations that are free from interruptions or distractions'; the hand-off process 'provides the opportunity for discussion between the giver and receiver'; inadequate hand-offs 'can ultimately contribute and lead to sentinel events'. A secondary summary; the alert itself was not opened."
+    }
+  ],
+  "brief": {
+    "situation": "07:05 on a surgical unit. You are the day RN taking report from Rob, the night nurse, after a hard night. When you ask to do the bedside handover and double-check Mr. Lee's patient-controlled analgesia (PCA) pump together, Rob snaps that you 'always make day shift into an inspection' and wants to give a quick verbal report at the station and go home. Work out what is going on, keep the safety step, and deal with the conflict constructively.",
+    "handover": [
+      "Your professional code asks for respect and civility with colleagues and makes you accountable for your own practice; bullying is never tolerated.",
+      "Unit policy: high-alert infusions such as PCA pumps are checked by both nurses at the bedside at handover; conflicts that affect patient care go to the charge nurse."
+    ],
+    "howItWorks": [
+      "Choose what to ask or say. Each exchange takes a few minutes of the conversation; Rob answers at once, and the next choice waits for the exchange to finish.",
+      "The screen shows Rob, how hard he is pushing, your working relationship, what you know so far, and your note.",
+      "When the conversation ends you write your note and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "07:05",
+    "tick": "1min",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "logsDelay": {
+      "value": 480,
+      "source": {
+        "cite": "Author's scenario figure (REQ-334)",
+        "checkedAt": "2026-11-17",
+        "note": "Rob's second request comes eight minutes in."
+      },
+      "unit": "s"
+    },
+    "insistDelay": {
+      "value": 720,
+      "source": {
+        "cite": "Author's scenario figure (REQ-334)",
+        "checkedAt": "2026-11-17",
+        "note": "Rob insists twelve minutes in if nothing else has been offered."
+      },
+      "unit": "s"
+    },
+    "talkEnd": {
+      "value": 1800,
+      "source": {
+        "cite": "Author's scenario figure (REQ-334)",
+        "checkedAt": "2026-11-17",
+        "note": "Rob leaves after thirty minutes."
+      },
+      "unit": "s"
+    }
+  },
+  "state": {
+    "talking": {
+      "type": "bool",
+      "init": false
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "shared": {
+      "type": "bool",
+      "init": false
+    },
+    "threatened": {
+      "type": "bool",
+      "init": false
+    },
+    "posted": {
+      "type": "bool",
+      "init": false
+    },
+    "scopeAt": {
+      "type": "time",
+      "init": null
+    },
+    "whyAt": {
+      "type": "time",
+      "init": null
+    },
+    "acctAt": {
+      "type": "time",
+      "init": null
+    },
+    "policyAt": {
+      "type": "time",
+      "init": null
+    },
+    "ackAt": {
+      "type": "time",
+      "init": null
+    },
+    "declineAt": {
+      "type": "time",
+      "init": null
+    },
+    "routeAt": {
+      "type": "time",
+      "init": null
+    },
+    "logsAskAt": {
+      "type": "time",
+      "init": null
+    },
+    "escalateAt": {
+      "type": "time",
+      "init": null
+    },
+    "insistAt": {
+      "type": "time",
+      "init": null
+    },
+    "endAt": {
+      "type": "time",
+      "init": null
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "pressure": {
+      "type": "number",
+      "init": 5,
+      "min": 0,
+      "max": 10
+    },
+    "relation": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "known": {
+      "type": "number",
+      "init": 1,
+      "min": 0,
+      "max": 10
+    },
+    "logs": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "kept",
+        "off"
+      ],
+      "init": "unset"
+    },
+    "noteDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "factual",
+        "none"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "breaches": {
+      "expr": "(shared ? 1 : 0) + (logs == \"off\" ? 1 : 0)"
+    },
+    "routeInTime": {
+      "expr": "not isNull(routeAt) and timeAt(routeAt) <= actWindow"
+    },
+    "properChannel": {
+      "expr": "not threatened and not posted"
+    },
+    "escalatedIfNeeded": {
+      "expr": "isNull(insistAt) or not isNull(escalateAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "conversation": {
+      "label": "Conversation",
+      "clock": "turns",
+      "actions": [
+        "askScope",
+        "askWhy",
+        "askAcct",
+        "checkPolicy",
+        "ack",
+        "route",
+        "refuse",
+        "share",
+        "keepLogs",
+        "logsOff",
+        "escalate",
+        "threaten",
+        "post",
+        "wait",
+        "endTalk"
+      ]
+    },
+    "after": {
+      "label": "After the conversation",
+      "clock": "stopped",
+      "actions": [
+        "note"
+      ]
+    }
+  },
+  "initialPhase": "conversation",
+  "actions": {
+    "askScope": {
+      "label": "Ask how his night went",
+      "group": "Ask",
+      "available": "not talking and (isNull(scopeAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "scopeAt",
+          "to": "t"
+        },
+        {
+          "add": "known",
+          "by": "3"
+        },
+        {
+          "finding": "\"Three admissions and a rapid response. I haven't sat down since midnight.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askWhy": {
+      "label": "Ask what's behind the 'inspection' comment",
+      "group": "Ask",
+      "available": "not talking and (isNull(whyAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "whyAt",
+          "to": "t"
+        },
+        {
+          "add": "known",
+          "by": "2"
+        },
+        {
+          "add": "pressure",
+          "by": "-0.5"
+        },
+        {
+          "finding": "\"Last week someone wrote me up in front of everyone. I'm tired of being treated like I'm sloppy.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askAcct": {
+      "label": "Ask whether anything changed on the PCA overnight",
+      "group": "Ask",
+      "available": "not talking and (isNull(acctAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "acctAt",
+          "to": "t"
+        },
+        {
+          "add": "known",
+          "by": "2"
+        },
+        {
+          "finding": "\"Yeah, it was reprogrammed at four after the new order. It's fine.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "checkPolicy": {
+      "label": "Check the handover and high-alert medication policy",
+      "group": "Ask",
+      "available": "not talking and (isNull(policyAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "policyAt",
+          "to": "t"
+        },
+        {
+          "add": "known",
+          "by": "2"
+        },
+        {
+          "finding": "Sam waits while you read."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "ack": {
+      "label": "Acknowledge him: 'That sounds like a brutal night, and being written up in public isn't fair'",
+      "group": "Respond",
+      "available": "not talking and (isNull(ackAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "ackAt",
+          "to": "t"
+        },
+        {
+          "add": "pressure",
+          "by": "-2"
+        },
+        {
+          "add": "relation",
+          "by": "1"
+        },
+        {
+          "finding": "\"Thanks. It was.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "route": {
+      "label": "Keep the safety step and make it easy: 'Let's do Mr. Lee's pump together right now, five minutes, then you're out the door; I'll take the rest at the station'",
+      "group": "Respond",
+      "available": "not talking and (isNull(routeAt) and not shared)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "declineAt",
+          "to": "t"
+        },
+        {
+          "set": "routeAt",
+          "to": "t"
+        },
+        {
+          "add": "pressure",
+          "by": "-2"
+        },
+        {
+          "add": "relation",
+          "by": "isNull(ackAt) ? 0 : 1"
+        },
+        {
+          "finding": "\"Okay. Five minutes. Let's go.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "4min"
+        }
+      ]
+    },
+    "refuse": {
+      "label": "Refuse flatly: 'No, we're doing full bedside handover on everyone.'",
+      "group": "Respond",
+      "available": "not talking and (isNull(declineAt) and not shared)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "declineAt",
+          "to": "t"
+        },
+        {
+          "add": "pressure",
+          "by": "3"
+        },
+        {
+          "add": "relation",
+          "by": "-3"
+        },
+        {
+          "finding": "\"Unbelievable.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "share": {
+      "label": "Let it go: take report at the station and skip the pump check",
+      "group": "Respond",
+      "available": "not talking and (not shared and isNull(routeAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "shared",
+          "to": "true"
+        },
+        {
+          "add": "pressure",
+          "by": "-4"
+        },
+        {
+          "add": "relation",
+          "by": "1"
+        },
+        {
+          "log": "You take report at the station; the PCA is not checked.",
+          "kind": "bad"
+        },
+        {
+          "finding": "\"Thank you. See you tonight.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "keepLogs": {
+      "label": "Decline to co-sign a check you have not done",
+      "group": "Respond",
+      "available": "not talking and (not isNull(logsAskAt) and logs == \"unset\")",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "logs",
+          "to": "\"kept\""
+        },
+        {
+          "add": "pressure",
+          "by": "1"
+        },
+        {
+          "finding": "\"Fine. We'll do it properly.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "logsOff": {
+      "label": "Co-sign the check without doing it",
+      "group": "Respond",
+      "available": "not talking and (not isNull(logsAskAt) and logs == \"unset\")",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "logs",
+          "to": "\"off\""
+        },
+        {
+          "add": "pressure",
+          "by": "-1"
+        },
+        {
+          "log": "You co-sign a PCA check that did not happen.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "escalate": {
+      "label": "Ask the charge nurse to help: the workload overnight and how day and night shifts give feedback",
+      "group": "Escalate",
+      "available": "not talking and (isNull(escalateAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "escalateAt",
+          "to": "t"
+        },
+        {
+          "add": "pressure",
+          "by": "-1"
+        },
+        {
+          "finding": "The charge nurse: \"Thanks for flagging it. I'll talk with Rob and the night lead about the workload, and set up a huddle on how we give feedback.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "4min"
+        }
+      ]
+    },
+    "threaten": {
+      "label": "Tell Rob you'll write him up if he walks off",
+      "group": "Escalate",
+      "available": "not talking and (not threatened)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "threatened",
+          "to": "true"
+        },
+        {
+          "add": "relation",
+          "by": "-4"
+        },
+        {
+          "add": "pressure",
+          "by": "2"
+        },
+        {
+          "finding": "\"There it is. Day shift.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "post": {
+      "label": "Complain about Rob in the unit group chat",
+      "group": "Escalate",
+      "available": "not talking and (not posted)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "posted",
+          "to": "true"
+        },
+        {
+          "add": "relation",
+          "by": "-5"
+        },
+        {
+          "log": "The post names Rob in front of the whole unit.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Let Rob talk (2 min)",
+      "group": "Wait",
+      "available": "not talking and (true)",
+      "why": "Done.",
+      "effects": [
+        {
+          "log": "You listen.",
+          "kind": "act"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "endTalk": {
+      "label": "End the conversation and write your note",
+      "group": "Close",
+      "available": "not talking",
+      "why": "Let Rob finish.",
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "set": "endAt",
+          "to": "t"
+        },
+        {
+          "log": "The conversation ends.",
+          "kind": "act"
+        },
+        {
+          "phase": "after"
+        }
+      ]
+    },
+    "note": {
+      "label": "Write your note",
+      "group": "Document",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "note",
+              "label": "What you write",
+              "options": [
+                {
+                  "value": "factual",
+                  "label": "A factual note: the PCA check time and findings, and the handover concern raised with the charge nurse"
+                },
+                {
+                  "value": "none",
+                  "label": "Nothing: it worked out"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "noteDoc",
+          "to": "note"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Note: {note}.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "talk": {
+      "label": "Conversation",
+      "wait": {
+        "skipLabel": "Let the conversation continue"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figure (REQ-334)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each exchange takes and when each event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "talking",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "logsAsk",
+      "when": "isNull(logsAskAt) and t >= logsDelay and phase == \"conversation\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "logsAskAt",
+          "to": "t"
+        },
+        {
+          "add": "pressure",
+          "by": "1"
+        },
+        {
+          "log": "Rob: \"And just co-sign the 07:00 PCA check in the record, you'll see the pump anyway.\"",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "insist",
+      "when": "isNull(insistAt) and t >= insistDelay and isNull(routeAt) and not shared and phase == \"conversation\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "insistAt",
+          "to": "t"
+        },
+        {
+          "add": "pressure",
+          "by": "2"
+        },
+        {
+          "log": "Rob: \"I'm leaving. The pump's fine. Sign it and stop making a thing of it.\"",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "leaves",
+      "when": "isNull(leftAt) and t >= talkEnd and phase == \"conversation\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "set": "endAt",
+          "to": "t"
+        },
+        {
+          "log": "Rob's ride arrives and he leaves. The conversation is over.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "after"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"after\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "reflection": {
+      "question": "For your note: what the conflict and the safety issue were, what you did and why, and how you kept the working relationship.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "The problem",
+          "criteria": "Separates the conflict (fatigue and a feeling of being judged) from the safety step that cannot be dropped (a two-nurse check of a reprogrammed PCA) and from a false record.",
+          "modelAnswer": "Rob's exhausted and feels judged, but the reprogrammed PCA still needs a two-nurse check, and I can't sign for a check that didn't happen."
+        },
+        {
+          "label": "Ask, then act",
+          "criteria": "Asks about his night and the comment before answering; offers a fast, respectful way to do the check; declines to co-sign falsely.",
+          "modelAnswer": "I asked about his night and what was behind the comment, then offered to do the pump together in five minutes and declined to co-sign."
+        },
+        {
+          "label": "The relationship and the channel",
+          "criteria": "Acknowledges his experience; takes the workload and feedback issue to the charge nurse, not threats or a public post; writes a factual note.",
+          "modelAnswer": "I acknowledged it was a rough night and that public write-ups hurt, took the bigger issue to the charge nurse, and documented the check."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "professional-ethics",
+    "thresholds": {
+      "actWindow": {
+        "value": 1200,
+        "source": {
+          "cite": "Professional-ethics outcome profile (docs/sims.md 9.2, 22.26), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The safety step kept and a quick way to do it offered within 20 minutes, before Rob leaves (author's figure)."
+        }
+      },
+      "canonBreaches": {
+        "value": 0,
+        "source": {
+          "cite": "Professional-ethics outcome profile (docs/sims.md 9.2, 22.26)",
+          "checkedAt": "2026-11-17",
+          "note": "No skipped PCA check and no false co-signature."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and isNull(declineAt) and not shared and logs != \"off\"",
+      "class": "recovered",
+      "rationale": "Nothing unsafe was done, but the PCA check was never offered or done before Rob left.",
+      "source": {
+        "cite": "Medical Solutions Clinical Corner: Sentinel Event Alert #58 on Proper Hand-off Communication (2017-11-29)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.medicalsolutions.com/blog/client/clinical-corner/sentinel-event-alert-58/",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: the Joint Commission alert recommends: 'Standardize the critical content communicated between caregivers using verbal and written hand-offs'; 'Conduct face-to-face hand-off communication in locations that are free from interruptions or distractions'; the hand-off process 'provides the opportunity for discussion between the giver and receiver'; inadequate hand-offs 'can ultimately contribute and lead to sentinel events'. A secondary summary; the alert itself was not opened."
+      }
+    }
+  },
+  "endings": {
+    "breached": {
+      "label": "Safety step lost",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and breaches > canonBreaches",
+      "narrative": "The reprogrammed PCA was never double-checked, or the record shows a check that never happened."
+    },
+    "upheld": {
+      "label": "Conflict handled, check kept",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and breaches <= canonBreaches and routeInTime and logs == \"kept\" and properChannel and escalatedIfNeeded and noteDoc == \"factual\" and relation >= 5",
+      "narrative": "You heard Rob out, kept the two-nurse check by making it quick, refused a false record, and took the bigger issue to the charge nurse."
+    },
+    "costly": {
+      "label": "Kept, at a cost",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The check happened, but late, with a flat refusal, a threat or a post, or a damaged relationship."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no note."
+    }
+  },
+  "endingOrder": [
+    "breached",
+    "upheld",
+    "costly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "noShare",
+        "label": "Kept the two-nurse PCA check",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not shared",
+            "score": "met",
+            "why": "The check was kept."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The PCA went unchecked."
+          }
+        ]
+      },
+      {
+        "id": "logs",
+        "label": "Did not co-sign a check that was not done",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "logs == \"kept\"",
+            "score": "met",
+            "why": "Declined, with the reason."
+          },
+          {
+            "when": "logs == \"unset\"",
+            "score": "partial",
+            "why": "Never answered the second request."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A false co-signature is in the record."
+          }
+        ]
+      },
+      {
+        "id": "route",
+        "label": "Kept the safety step and offered a quick way to do it within 20 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "routeInTime",
+            "score": "met",
+            "why": "Offered at {timeAt(routeAt) / 60|0dp} min."
+          },
+          {
+            "when": "not isNull(routeAt) or not isNull(declineAt)",
+            "score": "partial",
+            "why": "{isNull(routeAt) ? \"Refused with no way forward.\" : \"Offered late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No answer, or a yes."
+          }
+        ]
+      },
+      {
+        "id": "channel",
+        "label": "Escalated, if needed, through the documented route, not threats or a public post",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "properChannel and escalatedIfNeeded",
+            "score": "met",
+            "why": "{isNull(escalateAt) ? \"No escalation was needed.\" : \"The charge nurse has the workload and feedback issue.\"}"
+          },
+          {
+            "when": "properChannel",
+            "score": "partial",
+            "why": "Rob kept pushing and the issue never reached the charge nurse."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{posted ? \"A public post naming him.\" : \"A threat instead of a channel.\"}"
+          }
+        ]
+      },
+      {
+        "id": "diligence",
+        "label": "Asked what was behind the conflict and what changed on the pump before answering",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(scopeAt) and not isNull(whyAt) and (isNull(declineAt) or timeAt(whyAt) <= timeAt(declineAt))",
+            "score": "met",
+            "why": "Due diligence first."
+          },
+          {
+            "when": "not isNull(scopeAt) or not isNull(whyAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Answered without knowing what it touched."
+          }
+        ]
+      },
+      {
+        "id": "relation",
+        "label": "Kept a working relationship with Rob",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "relation >= 5",
+            "score": "met",
+            "why": "Still working together."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The relationship is strained."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "Wrote a factual note",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "noteDoc == \"factual\"",
+            "score": "met",
+            "why": "On record."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nothing written."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written conflict and safety issue, ask then act, and channel",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minRoute",
+        "label": "Minutes until the proper route was offered",
+        "value": "isNull(routeAt) ? -1 : timeAt(routeAt) / 60",
+        "format": "number",
+        "expert": "10 or less"
+      },
+      {
+        "id": "breaches",
+        "label": "Safety breaches agreed to",
+        "value": "breaches",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "relation",
+        "label": "Working relationship with Rob at the end (of 10)",
+        "value": "round(relation)",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-6 min",
+        "text": "Ask about his night and the 'inspection' comment; acknowledge him."
+      },
+      {
+        "at": "6-10 min",
+        "text": "Offer to do the PCA together now, five minutes, then report at the station."
+      },
+      {
+        "at": "8-14 min",
+        "text": "Decline to co-sign a check not done."
+      },
+      {
+        "at": "After",
+        "text": "Document the check; raise workload and feedback with the charge nurse if he still pushes."
+      }
+    ],
+    "debrief": {
+      "upheld": {
+        "headline": "Conflict handled, check kept",
+        "body": "You listened first, acknowledged him, kept the safety step by making it quick, refused a false record and kept the relationship. That is the expert path."
+      },
+      "costly": {
+        "headline": "Kept, at a cost",
+        "body": "The criteria show the cost: a late or flat answer, a threat or a public post, or a relationship worse than it needed to be."
+      },
+      "breached": {
+        "headline": "Safety step lost",
+        "body": "A skipped two-nurse check on a reprogrammed PCA or a false co-signature is a patient safety breach, whatever the conflict."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No note was written before the run's limit."
+      }
+    },
+    "modelReasoning": "Constructive conflict management separates the person and the problem: Rob is exhausted and feels judged, and the safety step still has to happen. Ask about his night and the comment, acknowledge his experience, then keep the bedside double-check of the reprogrammed PCA by making it quick and shared. Decline to co-sign a check not done. Take the workload and feedback issue to the charge nurse (the documented channel), not threats or a public post, and document the check. Face-to-face handover with time for questions is the standard because poor hand-offs lead to sentinel events."
+  },
+  "safetyNote": "Teaching case for exam practice; fictional people. Not legal or clinical advice."
+}

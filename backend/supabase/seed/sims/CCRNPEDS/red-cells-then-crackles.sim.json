@@ -1,0 +1,1136 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "red-cells-then-crackles",
+  "title": "Red cells, then crackles",
+  "objective": "Administer blood and blood products, recognize transfusion reactions (TRALI, TACO), and support plasmapheresis, exchange transfusion or leukocyte depletion",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "AACN Certification Corporation. CCRN Exam Handbook - Direct Care (July 2026), Pediatric test plan",
+      "checkedAt": "2026-10-31",
+      "url": "https://www.aacn.org/certification/get-certified/ccrn-pediatric",
+      "note": "Relayed from the CCRN Pediatric course seed (backend/supabase/seed/tracks/ccrn-peds-neo.ts), which read the handbook 2026-10-31, not re-read: the objective titles are the course's own. Scope only."
+    },
+    {
+      "cite": "Ascendra CCRN Pediatric course catalog (backend/supabase/seed/tracks/ccrn-peds-neo.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Massachusetts Hemovigilance Program: Transfusion-Associated Circulatory Overload (TACO) event summary, January 2017 - December 2022 (NHSN data extracted 2023-06-21)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.mass.gov/doc/transfusion-associated-circulatory-overload-taco-january-december-2022-pdf/download",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: the NHSN definition: 'New onset or exacerbation of 3 or more of the following within 12 hours of cessation of transfusion': 'acute or worsening respiratory distress', 'acute or worsening pulmonary edema', cardiovascular changes such as 'tachycardia, hypertension, widened pulse pressure', 'Evidence of fluid overload', elevated BNP; prevention: 'slower infusion rates and \"split units\"', 'minimization of crystalloid intravenous fluids', 'use of diuretic medications if not contraindicated'."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "21:00 in the PICU. You are the nurse for Maya, 6 years old, 20 kg, whose complete atrioventricular canal defect was repaired in infancy and who still has moderate valve regurgitation, on day 3 of an admission for pneumonia, and a hemoglobin of 6.8 g/dL. A unit of red cells started at 20:00 by pump; maintenance IV fluid is running alongside it.",
+    "handover": [
+      "Her vital signs at 20:15 were normal and she had no reaction in the first 15 minutes.",
+      "At 20:55 she said she 'can't breathe right' and wants to sit up.",
+      "Unit transfusion policy: for any suspected reaction, stop the transfusion at once, keep the line open with saline through new tubing, check vital signs and the patient and product identity, call the intensivist and notify the blood bank, and return the bag and tubing; oxygen and upright positioning may be started by the nurse."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "21:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.02,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Volume keeps loading her lungs while the transfusion and fluids run. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.004,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It slows once the transfusion and fluids stop and the intensivist treats. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of pulmonary edema, respiratory failure. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The intensivist and the blood bank told within 5 minutes of the crackles (policy: at once)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 1200,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 20 min for the intensivist's treatment to take effect and the film to be done."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "lungsAt": {
+      "type": "time",
+      "init": null
+    },
+    "vitalsAt": {
+      "type": "time",
+      "init": null
+    },
+    "ioAt": {
+      "type": "time",
+      "init": null
+    },
+    "identAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "lungs",
+        "vitals",
+        "io",
+        "ident"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "call",
+        "finish"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "taco",
+        "allergic",
+        "pneumonia"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "stopAt": {
+      "type": "time",
+      "init": null
+    },
+    "o2At": {
+      "type": "time",
+      "init": null
+    },
+    "fasterAt": {
+      "type": "time",
+      "init": null
+    },
+    "bolusAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(118 + 30 * max(0, prog - 0.4) + sin(t / 9) * 3)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(122 + 20 * max(0, prog - 0.4) - 60 * max(0, prog - 0.9))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.55)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "round(30 + 16 * max(0, prog - 0.4))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round((isNull(o2At) ? 92 : 95) - 16 * max(0, prog - 0.45))",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (not isNull(stopAt) and route == \"call\" ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 140
+          },
+          "announce": {
+            "bands": [
+              120,
+              140
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "announce": {
+            "bands": [
+              90,
+              80
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "high": 36
+          },
+          "announce": {
+            "bands": [
+              26,
+              36
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              95,
+              92
+            ]
+          },
+          "colour": "spo2"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Red cells: {isNull(stopAt) ? \"running\" : \"stopped\"}. Maintenance fluid: {isNull(stopAt) ? \"running\" : \"stopped\"}. Upright with oxygen: {not isNull(o2At)|yesno}.",
+      "banner": [
+        {
+          "when": "route == \"call\" and inClinic",
+          "text": "The intensivist is at the bedside; the blood bank has been notified."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "lungs": {
+      "label": "Listen to her lungs and look at her work of breathing",
+      "group": "Assess",
+      "available": "not testPending and isNull(lungsAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"lungs\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "vitals": {
+      "label": "Compare her vital signs with the 20:15 set",
+      "group": "Assess",
+      "available": "not testPending and isNull(vitalsAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"vitals\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "io": {
+      "label": "Total her intake and output since 18:00",
+      "group": "Assess",
+      "available": "not testPending and isNull(ioAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"io\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "ident": {
+      "label": "Recheck the patient and unit identity at the bedside",
+      "group": "Assess",
+      "available": "not testPending and isNull(identAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"ident\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "stop": {
+      "label": "Stop the red cells and the maintenance fluid; keep the line open with saline through new tubing (policy)",
+      "group": "Treat",
+      "available": "isNull(stopAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "stopAt",
+          "to": "t"
+        },
+        {
+          "log": "Transfusion and maintenance fluid stopped; line kept open with saline through new tubing; the bag is kept for the blood bank.",
+          "kind": "act"
+        }
+      ]
+    },
+    "o2": {
+      "label": "Sit her upright and give oxygen",
+      "group": "Treat",
+      "available": "isNull(o2At) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "o2At",
+          "to": "t"
+        },
+        {
+          "log": "Upright with oxygen by mask.",
+          "kind": "act"
+        }
+      ]
+    },
+    "faster": {
+      "label": "Speed up the red cells so the unit finishes before the 4-hour limit",
+      "group": "Treat",
+      "available": "isNull(fasterAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "fasterAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.25, 2)"
+        },
+        {
+          "log": "Pump rate increased.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "bolus": {
+      "label": "Give a saline bolus for the fast heart rate",
+      "group": "Treat",
+      "available": "isNull(bolusAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "bolusAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.25, 2)"
+        },
+        {
+          "log": "Saline bolus running.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Which reaction is this?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "taco",
+              "label": "Transfusion-associated circulatory overload: respiratory distress, crackles, hypertension and tachycardia, a positive fluid balance and a heart history, without fever"
+            },
+            {
+              "value": "allergic",
+              "label": "A mild allergic reaction"
+            },
+            {
+              "value": "pneumonia",
+              "label": "Her pneumonia getting worse; carry on"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"taco\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"taco\""
+                },
+                {
+                  "log": "TACO.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"allergic\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"allergic\""
+                },
+                {
+                  "log": "Read as allergic.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"pneumonia\""
+                },
+                {
+                  "log": "Read as pneumonia.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Escalate",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "call",
+              "label": "Call the intensivist now and notify the blood bank: suspected TACO, crackles, BP and HR up, sat down, +520 mL balance; transfusion and fluids stopped, upright on oxygen"
+            },
+            {
+              "value": "finish",
+              "label": "Let the unit finish and recheck at the end"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"call\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"call\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "The intensivist examines her, orders a diuretic as ordered, a chest film and BNP, and a slower split-unit plan; the blood bank logs the reaction and takes the bag.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"finish\""
+                },
+                {
+                  "log": "The transfusion continues.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document the reaction, vital signs, volumes and notifications; tell her parents",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "The reaction, vital sign trend, volumes, actions and notifications are documented and reported; her parents are told.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "PICU, bed 8",
+      "clock": "running",
+      "actions": [
+        "lungs",
+        "vitals",
+        "io",
+        "ident",
+        "stop",
+        "o2",
+        "faster",
+        "bolus",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"lungs\"",
+              "then": [
+                {
+                  "set": "lungsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "New fine crackles at both bases, more on the right; she is using accessory muscles and prefers to sit up.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"vitals\"",
+              "then": [
+                {
+                  "set": "vitalsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Heart rate up 25, blood pressure up 22 systolic, respiratory rate up 12, saturation down 5 points; temperature unchanged at 37.1.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"io\"",
+              "then": [
+                {
+                  "set": "ioAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Intake 640 mL including the red cells and maintenance fluid; output 120 mL. Neck veins full when upright; mild facial puffiness.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "identAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Name, record number and unit number match; ABO compatible.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the intensivist's treatment",
+      "wait": {
+        "skipLabel": "the intensivist's treatment"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 20 min for the intensivist's treatment to take effect and the film to be done."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "Her breathing has eased with treatment; the film shows pulmonary edema clearing.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What is happening to Maya during the transfusion, and what do you do?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "New respiratory distress within hours of a transfusion with crackles, hypertension, tachycardia, a positive fluid balance and a cardiac history, without fever or hives, is transfusion-associated circulatory overload.",
+          "modelAnswer": "She's in respiratory distress with crackles, her pressure and heart rate are up, she's 520 in, and she has a heart history. No fever or hives. That's circulatory overload from the transfusion."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Stops the transfusion and fluids at once, keeps the line open, sits her up with oxygen, gives no more volume, calls the intensivist and notifies the blood bank, and documents.",
+          "modelAnswer": "Stop the blood and the fluids, keep the line open, sit her up with oxygen, no more volume, call the intensivist and the blood bank, and document it."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "A suspected transfusion reaction unstopped an hour on is harm here.",
+      "source": {
+        "cite": "Massachusetts Hemovigilance Program: Transfusion-Associated Circulatory Overload (TACO) event summary, January 2017 - December 2022 (NHSN data extracted 2023-06-21)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.mass.gov/doc/transfusion-associated-circulatory-overload-taco-january-december-2022-pdf/download",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: the NHSN definition: 'New onset or exacerbation of 3 or more of the following within 12 hours of cessation of transfusion': 'acute or worsening respiratory distress', 'acute or worsening pulmonary edema', cardiovascular changes such as 'tachycardia, hypertension, widened pulse pressure', 'Evidence of fluid overload', elevated BNP; prevention: 'slower infusion rates and \"split units\"', 'minimization of crystalloid intravenous fluids', 'use of diuretic medications if not contraindicated'."
+      }
+    }
+  },
+  "endings": {
+    "edema": {
+      "label": "Pulmonary edema, respiratory failure",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "She coughs pink froth, her saturation falls into the 70s and she needs urgent ventilatory support."
+    },
+    "safe": {
+      "label": "Overload recognized and treated",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"call\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and (not isNull(stopAt) and timeAt(stopAt) <= 300) and isNull(fasterAt) and isNull(bolusAt) and (not isNull(o2At))",
+      "narrative": "{timeAt(leftAt)|clock}: her breathing has eased, the transfusion is on hold for a slower plan, and the reaction is reported."
+    },
+    "safeGaps": {
+      "label": "Treated, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: she is treated, but the transfusion ran on, more volume went in, or the call was slow."
+    },
+    "time_up": {
+      "label": "Unreported at 22:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "22:00 and the reaction has not been reported."
+    }
+  },
+  "endingOrder": [
+    "edema",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "The intensivist and the blood bank told within 5 minutes of the crackles",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"call\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"call\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "stopC",
+        "label": "Stopped the transfusion and the fluids, line kept open",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(stopAt) and timeAt(stopAt) <= 300",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not stopped within 5 minutes."
+          }
+        ]
+      },
+      {
+        "id": "noVolC",
+        "label": "Gave no more volume (no faster rate, no bolus)",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(fasterAt) or not isNull(bolusAt)",
+            "score": "missed",
+            "why": "More volume given."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "No more volume."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "o2C",
+        "label": "Upright with oxygen",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(o2At)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Compared vital signs, totaled intake and output, rechecked identity",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(vitalsAt) and not isNull(ioAt) and not isNull(identAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(vitalsAt) or not isNull(ioAt) or not isNull(identAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Read the reaction as circulatory overload",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"taco\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"allergic\"",
+            "score": "missed",
+            "why": "No hives; crackles and hypertension point to overload."
+          },
+          {
+            "when": "dxEnum == \"pneumonia\"",
+            "score": "missed",
+            "why": "The timing with the transfusion and the balance point to overload."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented and reported the reaction",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: TACO; stop, upright, oxygen, no more volume; call and report",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Crackles to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "21:00 to the transfusion stopped",
+        "value": "isNull(stopAt) ? -1 : timeAt(stopAt)",
+        "format": "duration",
+        "expert": "under 2 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "21:00",
+        "text": "Crackles at both bases, accessory muscles."
+      },
+      {
+        "at": "~21:01",
+        "text": "Stop the red cells and fluid; saline line; upright with oxygen."
+      },
+      {
+        "at": "~21:02",
+        "text": "Call the intensivist; notify the blood bank."
+      },
+      {
+        "at": "~21:04",
+        "text": "Vital sign trend, intake and output, identity; document; tell her parents."
+      }
+    ],
+    "debrief": {
+      "edema": {
+        "headline": "Pulmonary edema, respiratory failure",
+        "body": "New respiratory distress with crackles, hypertension and a positive balance during a transfusion is circulatory overload. Stop the transfusion and fluids, sit her up with oxygen and call."
+      },
+      "safe": {
+        "headline": "Overload recognized and treated",
+        "body": "You stopped the transfusion and fluids at once, sat her up with oxygen, gave no more volume and called the intensivist and blood bank within minutes. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Treated, with gaps",
+        "body": "Check how soon you stopped the transfusion, whether more volume went in, and how soon you called."
+      },
+      "time_up": {
+        "headline": "Unreported at 22:00",
+        "body": "A suspected transfusion reaction is stopped and reported at once."
+      }
+    },
+    "modelReasoning": "TACO is new or worse respiratory distress, pulmonary edema, cardiovascular changes such as tachycardia, hypertension and a widened pulse pressure, and evidence of fluid overload within 12 hours of a transfusion. Maya has all of these and risk from her size and cardiac history. Stop the transfusion and the IV fluids at once, keep the line open, sit her up with oxygen, give no more volume, call the intensivist (who may order a diuretic) and notify the blood bank. Prevention next time: slower rates, split units and less crystalloid."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "prevQ": {
+      "during": "leaveT",
+      "ask": "While she settles: how is the next transfusion made safer?",
+      "choices": [
+        {
+          "id": "slow",
+          "label": "Slower rates, split units, less crystalloid alongside"
+        },
+        {
+          "id": "fast",
+          "label": "Run it faster to finish sooner"
+        },
+        {
+          "id": "none",
+          "label": "Nothing changes"
+        }
+      ],
+      "expect": "slow",
+      "explain": "Slower infusion rates and split units, minimizing crystalloid, and diuretics if not contraindicated.",
+      "source": {
+        "cite": "Massachusetts Hemovigilance Program: Transfusion-Associated Circulatory Overload (TACO) event summary, January 2017 - December 2022 (NHSN data extracted 2023-06-21)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.mass.gov/doc/transfusion-associated-circulatory-overload-taco-january-december-2022-pdf/download",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: the NHSN definition: 'New onset or exacerbation of 3 or more of the following within 12 hours of cessation of transfusion': 'acute or worsening respiratory distress', 'acute or worsening pulmonary edema', cardiovascular changes such as 'tachycardia, hypertension, widened pulse pressure', 'Evidence of fluid overload', elevated BNP; prevention: 'slower infusion rates and \"split units\"', 'minimization of crystalloid intravenous fluids', 'use of diuretic medications if not contraindicated'."
+      }
+    },
+    "tacoQ": {
+      "during": "testT",
+      "ask": "While you check: which findings define TACO?",
+      "choices": [
+        {
+          "id": "taco",
+          "label": "Respiratory distress, pulmonary edema, tachycardia or hypertension, and fluid overload within 12 hours"
+        },
+        {
+          "id": "hives",
+          "label": "Hives and itching"
+        },
+        {
+          "id": "fever",
+          "label": "Fever and back pain"
+        }
+      ],
+      "expect": "taco",
+      "explain": "New onset or exacerbation of 3 or more within 12 hours of transfusion: respiratory distress, pulmonary edema, cardiovascular changes, fluid overload, elevated BNP.",
+      "source": {
+        "cite": "Massachusetts Hemovigilance Program: Transfusion-Associated Circulatory Overload (TACO) event summary, January 2017 - December 2022 (NHSN data extracted 2023-06-21)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.mass.gov/doc/transfusion-associated-circulatory-overload-taco-january-december-2022-pdf/download",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: the NHSN definition: 'New onset or exacerbation of 3 or more of the following within 12 hours of cessation of transfusion': 'acute or worsening respiratory distress', 'acute or worsening pulmonary edema', cardiovascular changes such as 'tachycardia, hypertension, widened pulse pressure', 'Evidence of fluid overload', elevated BNP; prevention: 'slower infusion rates and \"split units\"', 'minimization of crystalloid intravenous fluids', 'use of diuretic medications if not contraindicated'."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

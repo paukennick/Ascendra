@@ -1,0 +1,1109 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "dizzy-on-standing-new-tamsulosin",
+  "title": "Dizzy every time he stands",
+  "objective": "Measure orthostatic hypotension correctly: blood pressure after at least 5 minutes supine, then on standing; a fall of 20 mm Hg systolic or 10 mm Hg diastolic within 3 minutes is diagnostic",
+  "secondaryObjectives": [
+    "Support structured, person-centered medication review and deprescribing of fall-risk-increasing drugs as a key falls intervention, and check fall history before such drugs are prescribed",
+    "Treat polypharmacy (regular use of 5 or more medicines) as a risk factor in older adults, linked to falls, frailty, disability and death"
+  ],
+  "sources": [
+    {
+      "cite": "Specialist certification examination outline: geriatrics (the certifying board's published outline page)",
+      "checkedAt": "2026-11-08",
+      "url": "https://specialization.apta.org/become-a-specialist/geriatrics/specialist-certification-examination-outline-geriatrics",
+      "note": "Relayed from the geriatrics specialty course seed (backend/supabase/seed/tracks/pt-abpts.ts, outline pages read 2026-10-08 and 2026-11-04, OUTLINE_CHECKED_AT 2026-11-08), not re-read: Examination (25%) is a tested area. Scope only; no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra geriatrics specialty course catalog (backend/supabase/seed/tracks/pt-abpts.ts, track ABPTSGCS)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Ringer M, et al.. Orthostatic Hypotension. StatPearls (updated 2025-01-17), StatPearls Publishing",
+      "checkedAt": "2026-11-04",
+      "note": "Relayed from the course seed (tag SP-OH; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: measure blood pressure after at least 5 minutes supine, then on standing; a fall of 20 mm Hg systolic or 10 mm Hg diastolic within 3 minutes is diagnostic (the course objective's wording)."
+    },
+    {
+      "cite": "Varghese D, et al.. Polypharmacy. StatPearls (updated 2024-02-12), StatPearls Publishing",
+      "checkedAt": "2026-11-04",
+      "note": "Relayed from the course seed (tag SP-POLY; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: polypharmacy (regular use of 5 or more medicines) is a risk factor in older adults, linked to falls, frailty, disability and death; structured, person-centered medication review and deprescribing of fall-risk-increasing drugs is a key falls intervention (the course objectives' wording)."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "10:00 at Mr. Kowal's home. You are the home health physical therapist starting a falls program. He is 82, takes 9 medicines, and says he 'goes woozy' when he gets up, worse at night. His provider started tamsulosin for his prostate 7 weeks ago.",
+    "handover": [
+      "His referral asks for 'gait and balance training, progress to walking outdoors'.",
+      "Agency policy: measure orthostatic blood pressure on the first visit for anyone with dizziness or falls; report a positive result to the provider the same day with the medication list."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "10:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.01,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Fall risk stays high while the cause goes unaddressed. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.002,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It falls once the provider reviews his medicines and he rises slowly. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of fall with injury. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The provider called within 5 minutes of a positive measurement (agency policy: same day)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min to finish the visit."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "supineAt": {
+      "type": "time",
+      "init": null
+    },
+    "standAt": {
+      "type": "time",
+      "init": null
+    },
+    "medsAt": {
+      "type": "time",
+      "init": null
+    },
+    "fallsAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "supine",
+        "stand",
+        "meds",
+        "falls"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "md",
+        "note"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "oh",
+        "weak",
+        "vertigo"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "walkAt": {
+      "type": "time",
+      "init": null
+    },
+    "teachAt": {
+      "type": "time",
+      "init": null
+    },
+    "sitstandAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(isNull(standAt) ? 72 : 84)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(isNull(standAt) ? 142 : 114)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(isNull(standAt) ? 78 : 66)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (route == \"md\" ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Mr. Kowal, 82, home health physical therapy after two falls",
+        "presentation": "Lives alone; two falls in 6 weeks, both on getting up at night. {not isNull(walkAt) ? \"Walking the hallway.\" : \"\"}"
+      },
+      "vitals": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "colour": "ecg",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              105,
+              120
+            ]
+          }
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "announce": {
+            "bands": [
+              160,
+              180
+            ]
+          },
+          "colour": "art"
+        }
+      ],
+      "activity": "{not inClinic ? \"Visit over.\" : (not isNull(walkAt) ? \"Walking without a rest, unsteady.\" : (not isNull(supineAt) ? \"Lying on the bed for the measurement.\" : \"Sitting in his armchair.\"))}",
+      "measures": [
+        {
+          "id": "supineResult",
+          "label": "Supine BP",
+          "result": "After 5 minutes supine: 142/78, HR 72.",
+          "when": "not isNull(supineAt)"
+        },
+        {
+          "id": "standResult",
+          "label": "Standing BP",
+          "result": "At 1 minute 118/70; at 3 minutes 114/66, HR 84; dizzy.",
+          "when": "not isNull(standAt)",
+          "flag": "true"
+        },
+        {
+          "id": "medsResult",
+          "label": "Medicines",
+          "result": "Nine medicines: tamsulosin (new), lisinopril, hydrochlorothiazide, a nighttime sleep aid, others.",
+          "when": "not isNull(medsAt)"
+        },
+        {
+          "id": "fallsResult",
+          "label": "Falls",
+          "result": "Both at night going to the bathroom; up within minutes; bruised hip.",
+          "when": "not isNull(fallsAt)"
+        }
+      ],
+      "dosage": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "Orthostatic measurement done",
+            "when": "not isNull(standAt)"
+          },
+          {
+            "label": "Slow rising and safety taught",
+            "when": "not isNull(teachAt)"
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleOh",
+          "label": "A systolic fall of 20 or more within 3 minutes",
+          "text": "Orthostatic hypotension: no gait training now; medication review.",
+          "met": "not isNull(standAt) and isNull(callAt)"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "supine": {
+      "label": "Have him lie down for at least 5 minutes, then take his blood pressure",
+      "group": "Examine",
+      "available": "not testPending and isNull(supineAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"supine\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "stand": {
+      "label": "Stand him with support and measure at 1 and 3 minutes",
+      "group": "Examine",
+      "available": "not testPending and isNull(standAt) and not isNull(supineAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"stand\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "meds": {
+      "label": "Go through his medicine bottles with him",
+      "group": "Examine",
+      "available": "not testPending and isNull(medsAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"meds\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "falls": {
+      "label": "Ask about each fall: time, what he was doing, injuries, how long on the floor",
+      "group": "Examine",
+      "available": "not testPending and isNull(fallsAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"falls\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "walk": {
+      "label": "Start the referred gait training: brisk hallway walking",
+      "group": "Treat",
+      "available": "isNull(walkAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "walkAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.4, 2)"
+        },
+        {
+          "log": "He stands quickly and sets off; after 10 steps he grabs the wall, grey and dizzy.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "teach": {
+      "label": "Teach slow staged rising (sit, pause, stand, pause), a night light and the urinal at night",
+      "group": "Treat",
+      "available": "isNull(teachAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "teachAt",
+          "to": "t"
+        },
+        {
+          "log": "He practices sit-pause-stand-pause; a night light and bedside urinal are set up.",
+          "kind": "act"
+        }
+      ]
+    },
+    "sitstand": {
+      "label": "Seated strengthening and supported sit-to-stand practice today instead",
+      "group": "Treat",
+      "available": "isNull(sitstandAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "sitstandAt",
+          "to": "t"
+        },
+        {
+          "log": "Seated strengthening and supported sit-to-stand practice.",
+          "kind": "act"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Why does he get dizzy and fall?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "oh",
+              "label": "Orthostatic hypotension (a 28 mm Hg systolic fall within 3 minutes), likely worsened by the new tamsulosin, two blood pressure drugs and a sleep aid"
+            },
+            {
+              "value": "weak",
+              "label": "Leg weakness and deconditioning"
+            },
+            {
+              "value": "vertigo",
+              "label": "BPPV"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"oh\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"oh\""
+                },
+                {
+                  "log": "Orthostatic hypotension, likely drug-related.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"weak\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"weak\""
+                },
+                {
+                  "log": "Read as weakness.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"vertigo\""
+                },
+                {
+                  "log": "Read as BPPV.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Report",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "md",
+              "label": "Call his provider today: orthostatic hypotension 142/78 to 114/66 at 3 minutes with dizziness, two night falls; new tamsulosin, two antihypertensives and a sleep aid; ask for a medication review"
+            },
+            {
+              "value": "note",
+              "label": "Put it in the visit note"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"md\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"md\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "His provider moves the tamsulosin to bedtime review, stops the sleep aid and asks pharmacy for a full review.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"note\""
+                },
+                {
+                  "log": "Noted.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document the measurement and adjust the plan of care",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Measurements, medicines, plan changes documented.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Home visit",
+      "clock": "running",
+      "actions": [
+        "supine",
+        "stand",
+        "meds",
+        "falls",
+        "walk",
+        "teach",
+        "sitstand",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the test",
+      "wait": {
+        "skipLabel": "the test result"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each test or question takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"supine\"",
+              "then": [
+                {
+                  "set": "supineAt",
+                  "to": "t"
+                },
+                {
+                  "log": "After 5 minutes supine: 142/78, heart rate 72.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"stand\"",
+              "then": [
+                {
+                  "set": "standAt",
+                  "to": "t"
+                },
+                {
+                  "log": "At 1 minute 118/70, at 3 minutes 114/66 with heart rate 84 and dizziness: a 28 mm Hg systolic fall. Orthostatic hypotension.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"meds\"",
+              "then": [
+                {
+                  "set": "medsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Nine medicines, including the new tamsulosin, two blood pressure drugs and an over-the-counter nighttime sleep aid.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "fallsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Both falls at night on the way to the bathroom, both just after standing; up within minutes; a bruised hip.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the end of the visit",
+      "wait": {
+        "skipLabel": "the end of the visit"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min to finish the visit."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "The visit ends with a plan.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "Why does Mr. Kowal get dizzy and fall, and what do you change?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "After 5 minutes supine his pressure fell 28 mm Hg systolic by 3 minutes standing with dizziness: orthostatic hypotension, likely made worse by the new tamsulosin, two antihypertensives and a sleep aid among nine medicines.",
+          "modelAnswer": "He drops 28 systolic by 3 minutes standing and gets dizzy. That's orthostatic hypotension, and his new tamsulosin, two blood pressure pills and a sleep aid are likely culprits."
+        },
+        {
+          "label": "What I do",
+          "criteria": "No brisk walking today; seated and supported work, teach staged rising, night light and urinal, and call the provider for a medication review.",
+          "modelAnswer": "No brisk walking today. Seated work, teach him to rise in stages, set up a night light and urinal, and call his provider about his meds."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "spo2Floor": {
+        "value": 88,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "escalateWindow": {
+        "value": 300,
+        "source": {
+          "cite": "Unit practice (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "The provider called within 5 minutes of a positive measurement (agency policy: same day)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Unaddressed orthostatic hypotension an hour on is harm here.",
+      "source": {
+        "cite": "Varghese D, et al.. Polypharmacy. StatPearls (updated 2024-02-12), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-POLY; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: polypharmacy (regular use of 5 or more medicines) is a risk factor in older adults, linked to falls, frailty, disability and death; structured, person-centered medication review and deprescribing of fall-risk-increasing drugs is a key falls intervention (the course objectives' wording)."
+      }
+    }
+  },
+  "endings": {
+    "fall": {
+      "label": "Fall with injury",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "He stands quickly, blacks out and falls, striking his head on the door frame."
+    },
+    "safe": {
+      "label": "Measured, adapted, reported",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"md\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and (not isNull(supineAt) and not isNull(standAt)) and isNull(walkAt) and (not isNull(teachAt))",
+      "narrative": "{timeAt(leftAt)|clock}: he rises slowly with a night light and urinal, and his medicines are under review."
+    },
+    "safeGaps": {
+      "label": "Handled, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: he has a plan, but the call was slow or he was walked briskly first."
+    },
+    "time_up": {
+      "label": "Unresolved at 11:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "11:00 and no plan."
+    }
+  },
+  "endingOrder": [
+    "fall",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "The provider called within 5 minutes of the standing measurement",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"md\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"md\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "ohC",
+        "label": "Measured orthostatic blood pressure correctly (5 minutes supine, then standing to 3 minutes)",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(supineAt) and not isNull(standAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not measured correctly."
+          }
+        ]
+      },
+      {
+        "id": "safeC",
+        "label": "Adapted the session and taught staged rising, no brisk walking today",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(walkAt)",
+            "score": "missed",
+            "why": "Brisk walking."
+          },
+          {
+            "when": "not isNull(teachAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not taught."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Reviewed medicines and fall history",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(medsAt) and not isNull(fallsAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(medsAt) or not isNull(fallsAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Diagnosed orthostatic hypotension and its likely drug causes",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"oh\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"weak\"",
+            "score": "missed",
+            "why": "The pressure fall explains the dizziness on standing."
+          },
+          {
+            "when": "dxEnum == \"vertigo\"",
+            "score": "missed",
+            "why": "Positional vertigo is not a pressure fall."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented and adjusted the plan",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: orthostatic hypotension measured correctly; drug causes; adapt and report",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Positive measurement to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "10:00 to the supine reading",
+        "value": "isNull(supineAt) ? -1 : timeAt(supineAt)",
+        "format": "duration",
+        "expert": "under 7 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "10:00",
+        "text": "Five minutes supine: 142/78."
+      },
+      {
+        "at": "~10:06",
+        "text": "Standing at 1 and 3 minutes: 114/66, dizzy."
+      },
+      {
+        "at": "~10:07",
+        "text": "Call his provider for a medication review."
+      },
+      {
+        "at": "~10:10",
+        "text": "Medicines, falls history; teach staged rising; seated work."
+      }
+    ],
+    "debrief": {
+      "fall": {
+        "headline": "Fall with injury",
+        "body": "Dizziness on standing in an older adult who falls: measure orthostatic pressure correctly, adapt the session, teach staged rising, and get the medicines reviewed."
+      },
+      "safe": {
+        "headline": "Measured, adapted, reported",
+        "body": "You measured correctly, found orthostatic hypotension, adapted the session and called for a medication review within minutes. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Handled, with gaps",
+        "body": "Check whether you measured correctly, walked him, and how soon you called."
+      },
+      "time_up": {
+        "headline": "Unresolved at 11:00",
+        "body": "Act on orthostatic hypotension in the visit."
+      }
+    },
+    "modelReasoning": "Measure orthostatic hypotension correctly: blood pressure after at least 5 minutes supine, then on standing; a fall of 20 mm Hg systolic or 10 mm Hg diastolic within 3 minutes is diagnostic. Mr. Kowal's 28 mm Hg fall with dizziness explains his night falls. Polypharmacy is a falls risk factor, and deprescribing fall-risk-increasing drugs (here a new alpha-blocker, two antihypertensives and a sleep aid) is a key falls intervention; meanwhile adapt the session and teach staged rising."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "ohQ": {
+      "during": "testT",
+      "ask": "While you measure: what fall in pressure defines orthostatic hypotension?",
+      "choices": [
+        {
+          "id": "oh",
+          "label": "20 mm Hg systolic or 10 diastolic within 3 minutes of standing"
+        },
+        {
+          "id": "any",
+          "label": "Any fall at all"
+        },
+        {
+          "id": "forty",
+          "label": "Only 40 mm Hg systolic"
+        }
+      ],
+      "expect": "oh",
+      "explain": "A fall of 20 mm Hg systolic or 10 mm Hg diastolic within 3 minutes of standing, after at least 5 minutes supine.",
+      "source": {
+        "cite": "Ringer M, et al.. Orthostatic Hypotension. StatPearls (updated 2025-01-17), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-OH; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: measure blood pressure after at least 5 minutes supine, then on standing; a fall of 20 mm Hg systolic or 10 mm Hg diastolic within 3 minutes is diagnostic (the course objective's wording)."
+      }
+    },
+    "polyQ": {
+      "during": "leaveT",
+      "ask": "While you finish: why does his medicine list matter for falls?",
+      "choices": [
+        {
+          "id": "poly",
+          "label": "Five or more medicines and fall-risk drugs raise fall risk; review and deprescribe"
+        },
+        {
+          "id": "none",
+          "label": "Medicines don't affect falls"
+        },
+        {
+          "id": "more",
+          "label": "He needs more medicines"
+        }
+      ],
+      "expect": "poly",
+      "explain": "Polypharmacy is linked to falls; medication review and deprescribing fall-risk drugs is a key falls intervention.",
+      "source": {
+        "cite": "Varghese D, et al.. Polypharmacy. StatPearls (updated 2024-02-12), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-POLY; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: polypharmacy (regular use of 5 or more medicines) is a risk factor in older adults, linked to falls, frailty, disability and death; structured, person-centered medication review and deprescribing of fall-risk-increasing drugs is a key falls intervention (the course objectives' wording)."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

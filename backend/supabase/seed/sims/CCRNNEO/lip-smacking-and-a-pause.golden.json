@@ -1,0 +1,455 @@
+{
+  "slug": "lip-smacking-and-a-pause",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: watches, protects the airway, glucose and labs, calls, checks temperature and record, tells the parents",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "observe",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "subtleQ",
+          "choice": "subtle",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "airway",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "poc",
+          "seq": 6,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 7,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "sz"
+          },
+          "seq": 8,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "call"
+          },
+          "seq": 9,
+          "tick": 25
+        },
+        {
+          "type": "teach",
+          "prompt": "causeQ",
+          "choice": "cause",
+          "seq": 10,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "temp",
+          "seq": 11,
+          "tick": 25
+        },
+        {
+          "type": "chapter",
+          "chapter": "escalated",
+          "choice": "continue",
+          "seq": 12,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "record",
+          "seq": 13,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 14,
+          "tick": 49
+        }
+      ],
+      "expect": {
+        "ending": "safe",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "reportC": "met",
+          "glucC": "met",
+          "airwayC": "met",
+          "lookC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 60,
+          "toKey": 125
+        },
+        "stateHash": "5bc27c9554900604"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Recognizes it and checks glucose, but calls 7 minutes after the seizure",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "observe",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "subtleQ",
+          "choice": "subtle",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "airway",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "poc",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 6,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "temp",
+          "seq": 7,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "record",
+          "seq": 8,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "sz"
+          },
+          "seq": 9,
+          "tick": 130
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "call"
+          },
+          "seq": 10,
+          "tick": 130
+        },
+        {
+          "type": "teach",
+          "prompt": "causeQ",
+          "choice": "cause",
+          "seq": 11,
+          "tick": 130
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 130
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "reportC": "partial",
+          "glucC": "met",
+          "airwayC": "met",
+          "lookC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 590,
+          "toKey": 120
+        },
+        "stateHash": "d874b06cf4054bbc"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "fed",
+      "title": "Calls promptly but bottle-feeds him during the spells and sends no labs",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "observe",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "subtleQ",
+          "choice": "subtle",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "poc",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "feedNow",
+          "seq": 5,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "sz"
+          },
+          "seq": 6,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "call"
+          },
+          "seq": 7,
+          "tick": 24
+        },
+        {
+          "type": "teach",
+          "prompt": "causeQ",
+          "choice": "cause",
+          "seq": 8,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 9,
+          "tick": 24
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "reportC": "met",
+          "glucC": "missed",
+          "airwayC": "missed",
+          "lookC": "missed",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 60,
+          "toKey": 120
+        },
+        "stateHash": "402bc261a464b21c"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "jitter",
+      "title": "Failure: calls it jitteriness, swaddles him and waits for the next feed",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "observe",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "subtleQ",
+          "choice": "subtle",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "jitter"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "jittery",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "feed"
+          },
+          "seq": 6,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "status",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "reportC": "missed",
+          "glucC": "missed",
+          "airwayC": "missed",
+          "lookC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": -1
+        },
+        "stateHash": "8a4c7c57e17807b2"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "reflux",
+      "title": "Failure: calls it reflux and feeds him",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "reflux"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "feedNow",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "status",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "reportC": "missed",
+          "glucC": "missed",
+          "airwayC": "missed",
+          "lookC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": -1,
+          "toKey": -1
+        },
+        "stateHash": "7b1f5c63485b2d22"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

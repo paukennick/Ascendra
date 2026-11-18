@@ -1,0 +1,1133 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "wheeze-gone-quiet-and-sleepy",
+  "title": "The wheeze has gone quiet",
+  "objective": "Manage pediatric status asthmaticus with frequent or continuous bronchodilator, early systemic corticosteroid and IV magnesium, and recognize fatigue and rising PaCO2 as signs of impending failure",
+  "secondaryObjectives": [
+    "Recognize and manage acute respiratory failure, acute respiratory infection and ARDS"
+  ],
+  "sources": [
+    {
+      "cite": "AACN Certification Corporation. CCRN Exam Handbook - Direct Care (July 2026), Pediatric test plan",
+      "checkedAt": "2026-10-31",
+      "url": "https://www.aacn.org/certification/get-certified/ccrn-pediatric",
+      "note": "Relayed from the CCRN Pediatric course seed (backend/supabase/seed/tracks/ccrn-peds-neo.ts), which read the handbook 2026-10-31, not re-read: the objective titles are the course's own. Scope only."
+    },
+    {
+      "cite": "Ascendra CCRN Pediatric course catalog (backend/supabase/seed/tracks/ccrn-peds-neo.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Children's Mercy Kansas City. Asthma Reference Guide 14: Asthma Management in the PICU (no date shown; copyright 2026)",
+      "checkedAt": "2026-11-17",
+      "url": "https://childrensmercy.org/health-care-providers/evidence-based-practice/cpgs-cpms-and-eras-pathways/asthma-exacerbation-clinical-practice-guideline/asthma-reference-guide/14-asthma-management-in-the-picu",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'All asthma patients admitted to the PICU should receive IV corticosteroids'; IV magnesium 'can cause hypotension' and 'Central nervous system depression'; absent wheeze when 'airway obstruction is so severe that no air can be auscultated'; altered mental status 'may manifest as drowsiness or sleepiness in young children'; 'Monitoring CO2 levels is a useful indicator of impending failure'; mechanical ventilation for 'profound hypercarbia/acidosis' or 'Decreased mental status', with 'a high risk for cardiac arrest during intubation'."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "02:00 in the PICU. You are the nurse for Leo, 7 years old, admitted at midnight with status asthmaticus. He is on continuous nebulized albuterol through a mask; the ordered IV corticosteroid was given at 00:30 and IV magnesium at 01:00.",
+    "handover": [
+      "At midnight he was wheezing loudly, sitting forward and talking in short phrases.",
+      "His mother says he 'finally calmed down and is resting' and asks for the lights off.",
+      "Unit policy: the nurse checks a venous or capillary blood gas on the standing order for worsening distress, keeps the continuous nebulizer running, and calls the intensivist at once for decreased air movement, a falling level of consciousness or a rising CO2; sedatives are not given to an asthmatic who is not intubated."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "02:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.018,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "He tires and his CO2 climbs while failure goes unrecognized. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.004,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It slows once the intensivist escalates support. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of respiratory arrest. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The intensivist called within 5 minutes of decreased air movement (unit policy: at once)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 1200,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 20 min for noninvasive support to be set up and his CO2 rechecked."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.5,
+      "min": 0,
+      "max": 2
+    },
+    "listenAt": {
+      "type": "time",
+      "init": null
+    },
+    "alertAt": {
+      "type": "time",
+      "init": null
+    },
+    "gasAt": {
+      "type": "time",
+      "init": null
+    },
+    "pulsusAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "listen",
+        "alert",
+        "gas",
+        "pulsus"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "call",
+        "morning"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "fail",
+        "better",
+        "anxious"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "upAt": {
+      "type": "time",
+      "init": null
+    },
+    "airwayAt": {
+      "type": "time",
+      "init": null
+    },
+    "sedateAt": {
+      "type": "time",
+      "init": null
+    },
+    "neboffAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(150 + 20 * max(0, prog - 0.5) - 70 * max(0, prog - 0.9) + sin(t / 9) * 3)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(104 - 10 * max(0, prog - 0.7))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.6)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "round(30 - 12 * max(0, prog - 0.5))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(92 - 12 * max(0, prog - 0.55))",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (route == \"call\" ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 160
+          },
+          "announce": {
+            "bands": [
+              140,
+              160
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "announce": {
+            "bands": [
+              90,
+              80
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "high": 40
+          },
+          "announce": {
+            "bands": [
+              30,
+              40
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              95,
+              92
+            ]
+          },
+          "colour": "spo2"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Continuous albuterol: {isNull(neboffAt) ? \"running\" : \"stopped\"}. Upright: {not isNull(upAt)|yesno}.",
+      "banner": [
+        {
+          "when": "route == \"call\" and inClinic",
+          "text": "The intensivist is at the bedside; the respiratory therapist is setting up noninvasive ventilation."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "listen": {
+      "label": "Listen to his chest and watch his work of breathing",
+      "group": "Assess",
+      "available": "not testPending and isNull(listenAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"listen\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "alert": {
+      "label": "Check his level of consciousness",
+      "group": "Assess",
+      "available": "not testPending and isNull(alertAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"alert\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "gas": {
+      "label": "Blood gas on the standing order",
+      "group": "Assess",
+      "available": "not testPending and isNull(gasAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"gas\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "pulsus": {
+      "label": "Check pulsus paradoxus on the arterial line trace",
+      "group": "Assess",
+      "available": "not testPending and isNull(pulsusAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"pulsus\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "up": {
+      "label": "Sit him upright and keep the continuous nebulizer running with oxygen",
+      "group": "Treat",
+      "available": "isNull(upAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "upAt",
+          "to": "t"
+        },
+        {
+          "log": "Upright; nebulizer running on oxygen.",
+          "kind": "act"
+        }
+      ]
+    },
+    "airway": {
+      "label": "Bring the airway cart and bag-mask to the bedside",
+      "group": "Treat",
+      "available": "isNull(airwayAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "airwayAt",
+          "to": "t"
+        },
+        {
+          "log": "Airway cart and bag-mask at the bedside.",
+          "kind": "act"
+        }
+      ]
+    },
+    "sedate": {
+      "label": "Give the as-needed sedative so he can rest",
+      "group": "Treat",
+      "available": "isNull(sedateAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "sedateAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.25, 2)"
+        },
+        {
+          "log": "The as-needed sedative is given.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "neboff": {
+      "label": "Stop the nebulizer since the wheeze is gone, and turn the lights off",
+      "group": "Treat",
+      "available": "isNull(neboffAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "neboffAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.2, 2)"
+        },
+        {
+          "log": "Nebulizer stopped; lights off.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Why is the wheeze quieter?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "fail",
+              "label": "Impending respiratory failure: a quiet chest with poor air entry, drowsiness, a falling pulsus and a rising CO2 mean he is tiring"
+            },
+            {
+              "value": "better",
+              "label": "He is improving; let him rest"
+            },
+            {
+              "value": "anxious",
+              "label": "He was anxious and is now calm"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"fail\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"fail\""
+                },
+                {
+                  "log": "Impending respiratory failure.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"better\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"better\""
+                },
+                {
+                  "log": "Read as improvement.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"anxious\""
+                },
+                {
+                  "log": "Read as calm.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Escalate",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "call",
+              "label": "Call the intensivist now: quiet chest with poor air entry, drowsy, pH 7.21 with PCO2 62, pulsus falling, on continuous albuterol after steroid and magnesium"
+            },
+            {
+              "value": "morning",
+              "label": "Let him sleep and reassess at 06:00"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"call\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"call\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "The intensivist comes at once: noninvasive ventilation is started with escalation of bronchodilator therapy as ordered, and the team prepares for a possible intubation.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"morning\""
+                },
+                {
+                  "log": "Reassessment set for 06:00.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Explain to his mother why he must not be left to sleep, and document",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "His mother understands that his quiet chest is a warning sign; findings and calls are documented.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "PICU, bed 2",
+      "clock": "running",
+      "actions": [
+        "listen",
+        "alert",
+        "gas",
+        "pulsus",
+        "up",
+        "airway",
+        "sedate",
+        "neboff",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"listen\"",
+              "then": [
+                {
+                  "set": "listenAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Air entry barely audible on both sides; almost no wheeze now. Shallow breaths, still using his neck muscles.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"alert\"",
+              "then": [
+                {
+                  "set": "alertAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Drowsy; opens his eyes to his name, then drifts off; answers in one word.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"gas\"",
+              "then": [
+                {
+                  "set": "gasAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Venous pH 7.21, PCO2 62 (at midnight 7.38 and 36).",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "pulsusAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Pulsus paradoxus smaller than at midnight although he is not better: consistent with tiring.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "noninvasive support and a repeat gas",
+      "wait": {
+        "skipLabel": "noninvasive support and a repeat gas"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 20 min for noninvasive support to be set up and his CO2 rechecked."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "He is on noninvasive ventilation; the repeat gas shows his CO2 falling.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "Why is Leo quieter, and what do you do?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "In status asthmaticus a quiet chest with poor air entry, drowsiness, a smaller pulsus without improvement and a rising PCO2 mean fatigue and impending respiratory failure, not recovery.",
+          "modelAnswer": "He's not better, he's tiring. The chest is quiet because almost no air is moving, he's drowsy, the pulsus is shrinking without him improving, and his CO2 is 62 and rising."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Keeps him upright on the continuous nebulizer, checks consciousness and a gas, prepares airway equipment, calls the intensivist at once; no sedation.",
+          "modelAnswer": "Sit him up, keep the albuterol going, check the gas, get the airway cart in, and call the intensivist now. No sedative."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Impending respiratory failure unescalated an hour on is harm here.",
+      "source": {
+        "cite": "Children's Mercy Kansas City. Asthma Reference Guide 14: Asthma Management in the PICU (no date shown; copyright 2026)",
+        "checkedAt": "2026-11-17",
+        "url": "https://childrensmercy.org/health-care-providers/evidence-based-practice/cpgs-cpms-and-eras-pathways/asthma-exacerbation-clinical-practice-guideline/asthma-reference-guide/14-asthma-management-in-the-picu",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'All asthma patients admitted to the PICU should receive IV corticosteroids'; IV magnesium 'can cause hypotension' and 'Central nervous system depression'; absent wheeze when 'airway obstruction is so severe that no air can be auscultated'; altered mental status 'may manifest as drowsiness or sleepiness in young children'; 'Monitoring CO2 levels is a useful indicator of impending failure'; mechanical ventilation for 'profound hypercarbia/acidosis' or 'Decreased mental status', with 'a high risk for cardiac arrest during intubation'."
+      }
+    }
+  },
+  "endings": {
+    "arrest": {
+      "label": "Respiratory arrest",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "His breathing slows to gasps, his saturation falls into the 60s and his heart rate drops; he is bagged and intubated emergently, with a high risk of arrest."
+    },
+    "safe": {
+      "label": "Failure caught early",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"call\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and (not isNull(alertAt) and not isNull(gasAt)) and isNull(sedateAt) and isNull(neboffAt) and (not isNull(upAt) and not isNull(airwayAt))",
+      "narrative": "{timeAt(leftAt)|clock}: he is on noninvasive support with his CO2 falling and the airway team ready."
+    },
+    "safeGaps": {
+      "label": "Escalated, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: he has noninvasive support, but the call was slow, he was sedated, or the nebulizer was stopped."
+    },
+    "time_up": {
+      "label": "Unescalated at 03:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "03:00 and he is still sleeping with a rising CO2."
+    }
+  },
+  "endingOrder": [
+    "arrest",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "The intensivist called within 5 minutes of the quiet chest",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"call\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"call\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "gasC",
+        "label": "Checked his consciousness and a blood gas",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(alertAt) and not isNull(gasAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not both."
+          }
+        ]
+      },
+      {
+        "id": "noSedC",
+        "label": "No sedative and the bronchodilator kept running",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(sedateAt) or not isNull(neboffAt)",
+            "score": "missed",
+            "why": "Sedated, or the nebulizer stopped."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Not sedated; nebulizer kept on."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "prepC",
+        "label": "Upright on the nebulizer, airway equipment at the bedside",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(upAt) and not isNull(airwayAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not both."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Checked pulsus paradoxus",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(pulsusAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Read the quiet chest and drowsiness as impending respiratory failure",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"fail\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"better\"",
+            "score": "missed",
+            "why": "Poor air entry with drowsiness is not improvement."
+          },
+          {
+            "when": "dxEnum == \"anxious\"",
+            "score": "missed",
+            "why": "Drowsiness here is CO2 narcosis."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Told his mother and documented",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: quiet chest and drowsiness mean failure; check the gas; no sedation; call",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Quiet chest to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "02:00 to upright on the nebulizer",
+        "value": "isNull(upAt) ? -1 : timeAt(upAt)",
+        "format": "duration",
+        "expert": "under 2 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "02:00",
+        "text": "Quiet chest, poor air entry, accessory muscles."
+      },
+      {
+        "at": "~02:01",
+        "text": "Drowsy; upright on the nebulizer."
+      },
+      {
+        "at": "~02:02",
+        "text": "Gas: pH 7.21, PCO2 62; call the intensivist; airway cart."
+      },
+      {
+        "at": "~02:04",
+        "text": "Pulsus; tell his mother; document."
+      }
+    ],
+    "debrief": {
+      "arrest": {
+        "headline": "Respiratory arrest",
+        "body": "A quiet chest with drowsiness in status asthmaticus is impending failure, not improvement. Check the gas, keep the bronchodilator going, never sedate, and call."
+      },
+      "safe": {
+        "headline": "Failure caught early",
+        "body": "You read the quiet chest and drowsiness as tiring, confirmed a rising CO2, kept the nebulizer going, avoided sedation, prepared the airway and called within minutes. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Escalated, with gaps",
+        "body": "Check how soon you called, whether he was sedated or the nebulizer stopped, and whether the gas was checked."
+      },
+      "time_up": {
+        "headline": "Unescalated at 03:00",
+        "body": "A rising CO2 in a tiring asthmatic needs the intensivist now."
+      }
+    },
+    "modelReasoning": "In pediatric status asthmaticus, the danger signs are a quiet chest from airway obstruction so severe that little air moves, drowsiness (altered mental status in young children), a falling pulsus paradoxus without clinical improvement (fatigue) and a rising CO2. Leo has all of them despite continuous albuterol, an early IV corticosteroid and IV magnesium. Keep him upright on the bronchodilator, check a gas, prepare airway equipment and call the intensivist at once for escalation; never sedate a tiring asthmatic who is not intubated, and remember intubation itself carries a high arrest risk."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "co2Q": {
+      "during": "leaveT",
+      "ask": "While support is set up: what predicts impending failure?",
+      "choices": [
+        {
+          "id": "co2",
+          "label": "A rising CO2, drowsiness and fatigue"
+        },
+        {
+          "id": "wheeze",
+          "label": "Loud wheezing"
+        },
+        {
+          "id": "cough",
+          "label": "A cough"
+        }
+      ],
+      "expect": "co2",
+      "explain": "Monitoring CO2 is a useful indicator of impending failure; drowsiness and a resolving pulsus without improvement suggest fatigue.",
+      "source": {
+        "cite": "Children's Mercy Kansas City. Asthma Reference Guide 14: Asthma Management in the PICU (no date shown; copyright 2026)",
+        "checkedAt": "2026-11-17",
+        "url": "https://childrensmercy.org/health-care-providers/evidence-based-practice/cpgs-cpms-and-eras-pathways/asthma-exacerbation-clinical-practice-guideline/asthma-reference-guide/14-asthma-management-in-the-picu",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'All asthma patients admitted to the PICU should receive IV corticosteroids'; IV magnesium 'can cause hypotension' and 'Central nervous system depression'; absent wheeze when 'airway obstruction is so severe that no air can be auscultated'; altered mental status 'may manifest as drowsiness or sleepiness in young children'; 'Monitoring CO2 levels is a useful indicator of impending failure'; mechanical ventilation for 'profound hypercarbia/acidosis' or 'Decreased mental status', with 'a high risk for cardiac arrest during intubation'."
+      }
+    },
+    "quietQ": {
+      "during": "testT",
+      "ask": "While you check: what does a quiet chest mean in severe asthma?",
+      "choices": [
+        {
+          "id": "obstr",
+          "label": "So little air is moving that no wheeze can be heard: a danger sign"
+        },
+        {
+          "id": "better",
+          "label": "The asthma is resolving"
+        },
+        {
+          "id": "none",
+          "label": "Nothing in particular"
+        }
+      ],
+      "expect": "obstr",
+      "explain": "Wheezing may be absent when airway obstruction is so severe that no air can be auscultated.",
+      "source": {
+        "cite": "Children's Mercy Kansas City. Asthma Reference Guide 14: Asthma Management in the PICU (no date shown; copyright 2026)",
+        "checkedAt": "2026-11-17",
+        "url": "https://childrensmercy.org/health-care-providers/evidence-based-practice/cpgs-cpms-and-eras-pathways/asthma-exacerbation-clinical-practice-guideline/asthma-reference-guide/14-asthma-management-in-the-picu",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'All asthma patients admitted to the PICU should receive IV corticosteroids'; IV magnesium 'can cause hypotension' and 'Central nervous system depression'; absent wheeze when 'airway obstruction is so severe that no air can be auscultated'; altered mental status 'may manifest as drowsiness or sleepiness in young children'; 'Monitoring CO2 levels is a useful indicator of impending failure'; mechanical ventilation for 'profound hypercarbia/acidosis' or 'Decreased mental status', with 'a high risk for cardiac arrest during intubation'."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

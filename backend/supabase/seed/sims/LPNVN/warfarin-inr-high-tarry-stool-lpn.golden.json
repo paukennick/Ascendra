@@ -1,0 +1,449 @@
+{
+  "slug": "warfarin-inr-high-tarry-stool-lpn",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: INR read; warfarin held; bleeding and vital signs; RN and provider now; steady vitamin K reinforced; documented",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "inr",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "inrQ",
+          "choice": "slow",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "hold",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "bleed",
+          "seq": 6,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 7,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "high"
+          },
+          "seq": 8,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "report"
+          },
+          "seq": 9,
+          "tick": 37
+        },
+        {
+          "type": "teach",
+          "prompt": "vitkQ",
+          "choice": "steady",
+          "seq": 10,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "teach",
+          "seq": 11,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 37
+        }
+      ],
+      "expect": {
+        "ending": "safe",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "reportC": "met",
+          "holdC": "met",
+          "teachC": "met",
+          "bleedC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 120,
+          "toHold": 65
+        },
+        "stateHash": "ebf6838bbf0807ab"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateReport",
+      "title": "Asks about diet, checks bleeding and vital signs, then reads the INR and reports 6 minutes later",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "diet",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "inrQ",
+          "choice": "slow",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "bleed",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "inr",
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 6,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "hold",
+          "seq": 7,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "high"
+          },
+          "seq": 8,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "report"
+          },
+          "seq": 9,
+          "tick": 120
+        },
+        {
+          "type": "teach",
+          "prompt": "vitkQ",
+          "choice": "steady",
+          "seq": 10,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "teach",
+          "seq": 11,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "reportC": "partial",
+          "holdC": "met",
+          "teachC": "met",
+          "bleedC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 360,
+          "toHold": 240
+        },
+        "stateHash": "eab07ad4ab4d7bd7"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "bigSalad",
+      "title": "Holds and reports at once, but tells the daughter to bring a big salad and never checks for bleeding",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "inr",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "inrQ",
+          "choice": "slow",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "hold",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "report"
+          },
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "vitkQ",
+          "choice": "steady",
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "high"
+          },
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "greens",
+          "seq": 8,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 9,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 64,
+        "criteria": {
+          "reportC": "met",
+          "holdC": "met",
+          "teachC": "missed",
+          "bleedC": "missed",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toHold": 60
+        },
+        "stateHash": "45d641fda17bb575"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "readBackwards",
+      "title": "Failure: reads a high INR as a clotting risk, gives the warfarin and leaves a note for the morning",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "inr",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "inrQ",
+          "choice": "slow",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "low"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "dose",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "tomorrow"
+          },
+          "seq": 6,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "gibleed",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "reportC": "missed",
+          "holdC": "missed",
+          "teachC": "missed",
+          "bleedC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toHold": -1
+        },
+        "stateHash": "900301359577934c"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "willSettle",
+      "title": "Failure: hears about her diet, decides it will settle and does nothing",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "diet",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "inrQ",
+          "choice": "slow",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "fine"
+          },
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "gibleed",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "reportC": "missed",
+          "holdC": "missed",
+          "teachC": "missed",
+          "bleedC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": -1,
+          "toHold": -1
+        },
+        "stateHash": "e1ef501acf982688"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

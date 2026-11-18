@@ -1,0 +1,1090 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "lip-smacking-and-a-pause",
+  "title": "Lip smacking and a pause",
+  "objective": "Recognize subtle neonatal seizures (lip smacking, eye deviation, apnea), support EEG confirmation, look for treatable causes such as hypoglycemia, hypocalcemia and infection, and expect phenobarbital as the first-line antiseizure drug",
+  "secondaryObjectives": [
+    "Recognize and manage neonatal seizures"
+  ],
+  "sources": [
+    {
+      "cite": "AACN Certification Corporation. CCRN Exam Handbook - Direct Care (July 2026), Neonatal test plan",
+      "checkedAt": "2026-10-31",
+      "url": "https://www.aacn.org/certification/get-certified/ccrn-neonatal",
+      "note": "Relayed from the CCRN Neonatal course seed (backend/supabase/seed/tracks/ccrn-peds-neo.ts), which read the handbook 2026-10-31, not re-read: the objective titles are the course's own. Scope only."
+    },
+    {
+      "cite": "Ascendra CCRN Neonatal course catalog (backend/supabase/seed/tracks/ccrn-peds-neo.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "MSD Manual Professional Version: Neonatal Seizure Disorders (full review April 2025, updated July 2026)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.msdmanuals.com/professional/pediatrics/neurologic-disorders-in-children/neonatal-seizure-disorders",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: seizures may 'manifest as chewing or bicycling automatisms', eye deviations, tone changes and autonomic changes, and some cause apnea; some are 'clinically silent'; 'Electroencephalography is essential for diagnosis'; causes include hypoxia-ischemia, hypoglycemia, hypocalcemia, infection and hemorrhage; 'Laboratory tests to evaluate for underlying treatable disorders should be done immediately' (glucose, electrolytes, calcium); 'Treatment is directed at the underlying cause first, then at seizure cessation'."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "09:30 in the NICU. You are the nurse for Baby Novak, a boy born at 37 weeks to a mother with diabetes, now 30 hours old. He has had three borderline glucose values and is on breast milk and formula feeds every 3 hours.",
+    "handover": [
+      "His father says he 'did a funny chewing thing and stared to the side' for about half a minute, then 'held his breath' and went a little dusky.",
+      "Last glucose 4 hours ago was 47 mg/dL before a feed. He fed poorly at 09:00.",
+      "The neonatal nurse practitioner is on the unit. Unit protocol for a suspected seizure: protect the airway and support breathing, check a point-of-care glucose at once, send a serum glucose, calcium and electrolytes, and call the provider at once; IV dextrose and antiseizure drugs are given on the provider's order."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "09:30",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.018,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Seizures recur and lengthen while the cause is untreated. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.004,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "They settle once the cause is found and the provider's plan is in place. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of recurrent seizures with apnea. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The nurse practitioner called within 5 minutes of a suspected seizure (unit protocol: at once)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 1200,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 20 min for IV access, dextrose and the EEG to be arranged."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "observeAt": {
+      "type": "time",
+      "init": null
+    },
+    "pocAt": {
+      "type": "time",
+      "init": null
+    },
+    "tempAt": {
+      "type": "time",
+      "init": null
+    },
+    "recordAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "observe",
+        "poc",
+        "temp",
+        "record"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "call",
+        "feed"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "sz",
+        "jitter",
+        "reflux"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "airwayAt": {
+      "type": "time",
+      "init": null
+    },
+    "labsAt": {
+      "type": "time",
+      "init": null
+    },
+    "feedNowAt": {
+      "type": "time",
+      "init": null
+    },
+    "jitteryAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(150 + 20 * max(0, prog - 0.5) + sin(t / 9) * 3)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "round(44 - 20 * max(0, prog - 0.8))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(96 - 12 * max(0, prog - 0.7))",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (route == \"call\" and not isNull(pocAt) ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "low": 100,
+            "high": 180
+          },
+          "announce": {
+            "bands": [
+              160,
+              180
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "high": 70
+          },
+          "announce": {
+            "bands": [
+              60,
+              70
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              94,
+              90
+            ]
+          },
+          "colour": "spo2"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Labs sent: {not isNull(labsAt)|yesno}. Positioned with airway clear: {not isNull(airwayAt)|yesno}.",
+      "banner": [
+        {
+          "when": "route == \"call\" and inClinic",
+          "text": "The nurse practitioner is placing an IV; EEG is coming."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "observe": {
+      "label": "Watch him closely for 2 minutes",
+      "group": "Assess",
+      "available": "not testPending and isNull(observeAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"observe\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "poc": {
+      "label": "Point-of-care glucose now",
+      "group": "Assess",
+      "available": "not testPending and isNull(pocAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"poc\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "temp": {
+      "label": "Temperature and a look for infection signs",
+      "group": "Assess",
+      "available": "not testPending and isNull(tempAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"temp\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "record": {
+      "label": "Review the feeding and glucose record",
+      "group": "Assess",
+      "available": "not testPending and isNull(recordAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"record\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "airway": {
+      "label": "Position him on his side, clear the airway and give blow-by oxygen during the spell",
+      "group": "Treat",
+      "available": "isNull(airwayAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "airwayAt",
+          "to": "t"
+        },
+        {
+          "log": "On his side, airway clear, blow-by oxygen; he pinks up.",
+          "kind": "act"
+        }
+      ]
+    },
+    "labs": {
+      "label": "Send serum glucose, calcium and electrolytes (protocol)",
+      "group": "Treat",
+      "available": "isNull(labsAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "labsAt",
+          "to": "t"
+        },
+        {
+          "log": "Serum glucose, ionized calcium and electrolytes sent.",
+          "kind": "act"
+        }
+      ]
+    },
+    "feedNow": {
+      "label": "Give a bottle feed now to raise the glucose",
+      "group": "Treat",
+      "available": "isNull(feedNowAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "feedNowAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.2, 2)"
+        },
+        {
+          "log": "A bottle is offered; he chokes and coughs during the next spell.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "jittery": {
+      "label": "Swaddle him; it is just jitteriness from the diabetic mother",
+      "group": "Treat",
+      "available": "isNull(jitteryAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "jitteryAt",
+          "to": "t"
+        },
+        {
+          "log": "Swaddled and settled; no one is told.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "What were those episodes?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "sz",
+              "label": "Subtle neonatal seizures (eye deviation, lip smacking, cycling, apnea), likely from hypoglycemia; look for hypocalcemia and infection too; EEG to confirm"
+            },
+            {
+              "value": "jitter",
+              "label": "Jitteriness"
+            },
+            {
+              "value": "reflux",
+              "label": "Reflux with a breath-hold"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"sz\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"sz\""
+                },
+                {
+                  "log": "Subtle seizures; hypoglycemia likely.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"jitter\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"jitter\""
+                },
+                {
+                  "log": "Read as jitteriness.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"reflux\""
+                },
+                {
+                  "log": "Read as reflux.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Escalate",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "call",
+              "label": "Call the nurse practitioner now: subtle seizure with apnea, glucose 28, infant of a diabetic mother; labs sent"
+            },
+            {
+              "value": "feed",
+              "label": "Recheck after the next feed and mention it on rounds"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"call\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"call\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "The nurse practitioner orders IV dextrose, a repeat glucose in 30 minutes, video EEG and a calcium result on call, and starts a sepsis review.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"feed\""
+                },
+                {
+                  "log": "Left for after the feed.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Tell his parents and document the spells, glucose and calls",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "His parents are told what is happening; the spells (timed and described), glucose and calls are documented.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "NICU, bed 9",
+      "clock": "running",
+      "actions": [
+        "observe",
+        "poc",
+        "temp",
+        "record",
+        "airway",
+        "labs",
+        "feedNow",
+        "jittery",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"observe\"",
+              "then": [
+                {
+                  "set": "observeAt",
+                  "to": "t"
+                },
+                {
+                  "log": "At 09:33 his eyes deviate to the left, he smacks his lips, his right arm 'cycles', and his breathing pauses for 15 seconds; saturation dips to 85% and recovers.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"poc\"",
+              "then": [
+                {
+                  "set": "pocAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Glucose 28 mg/dL.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"temp\"",
+              "then": [
+                {
+                  "set": "tempAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Axillary 36.6; no rash; fontanel soft and flat; no new risk in the chart for infection.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "recordAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Three pre-feed glucose values in the 40s since birth; mother has insulin-treated diabetes.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "IV dextrose and the EEG",
+      "wait": {
+        "skipLabel": "IV dextrose and the EEG"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 20 min for IV access, dextrose and the EEG to be arranged."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "IV dextrose is running and EEG leads are on.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What were Baby Novak's episodes, and what do you do?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "Eye deviation, lip smacking, cycling and apnea are subtle neonatal seizures; in an infant of a diabetic mother with a glucose of 28, hypoglycemia is the likely treatable cause, with hypocalcemia and infection to rule out; EEG confirms.",
+          "modelAnswer": "Those are subtle seizures: the eye deviation, lip smacking, cycling and the apnea. He's an infant of a diabetic mother with a sugar of 28, so hypoglycemia is the likely cause, but calcium and infection need checking, and EEG confirms."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Protects the airway, checks glucose at once, sends glucose, calcium and electrolytes, calls the provider for IV dextrose and EEG; does not feed by mouth during spells.",
+          "modelAnswer": "Side-lying, clear the airway, oxygen during the spell, check his sugar now and send the labs, and call for IV dextrose and EEG. Nothing by mouth while he's seizing."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Suspected neonatal seizures unescalated an hour on are harm here.",
+      "source": {
+        "cite": "MSD Manual Professional Version: Neonatal Seizure Disorders (full review April 2025, updated July 2026)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.msdmanuals.com/professional/pediatrics/neurologic-disorders-in-children/neonatal-seizure-disorders",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: seizures may 'manifest as chewing or bicycling automatisms', eye deviations, tone changes and autonomic changes, and some cause apnea; some are 'clinically silent'; 'Electroencephalography is essential for diagnosis'; causes include hypoxia-ischemia, hypoglycemia, hypocalcemia, infection and hemorrhage; 'Laboratory tests to evaluate for underlying treatable disorders should be done immediately' (glucose, electrolytes, calcium); 'Treatment is directed at the underlying cause first, then at seizure cessation'."
+      }
+    }
+  },
+  "endings": {
+    "status": {
+      "label": "Recurrent seizures with apnea",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "The spells come back to back; one apnea lasts 40 seconds with a heart rate of 70 and he needs bag-mask ventilation."
+    },
+    "safe": {
+      "label": "Seizures recognized, cause treated",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"call\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and (not isNull(pocAt) and not isNull(labsAt)) and isNull(feedNowAt) and (not isNull(airwayAt))",
+      "narrative": "{timeAt(leftAt)|clock}: he is on IV dextrose with EEG leads on and no more spells."
+    },
+    "safeGaps": {
+      "label": "Treated, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: he is on IV dextrose, but the call was slow, he was fed during spells, or labs waited."
+    },
+    "time_up": {
+      "label": "Unescalated at 10:30",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "10:30 and the spells continue untreated."
+    }
+  },
+  "endingOrder": [
+    "status",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "The nurse practitioner called within 5 minutes of the seizure",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"call\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"call\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "glucC",
+        "label": "Checked glucose at once and sent glucose, calcium and electrolytes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(pocAt) and not isNull(labsAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not both."
+          }
+        ]
+      },
+      {
+        "id": "airwayC",
+        "label": "Protected the airway, never fed during spells",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(feedNowAt)",
+            "score": "missed",
+            "why": "Fed by mouth during spells."
+          },
+          {
+            "when": "not isNull(airwayAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Airway not supported."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Checked temperature and infection signs and reviewed the record",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(tempAt) and not isNull(recordAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(tempAt) or not isNull(recordAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Read the episodes as subtle seizures with a treatable cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"sz\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"jitter\"",
+            "score": "missed",
+            "why": "Eye deviation and apnea are not jitteriness."
+          },
+          {
+            "when": "dxEnum == \"reflux\"",
+            "score": "missed",
+            "why": "Not with eye deviation and cycling."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Told the parents and documented",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: subtle seizures; treatable causes first (glucose, calcium, infection); airway; EEG; call",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Seizure to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "09:30 to glucose checked",
+        "value": "isNull(pocAt) ? -1 : timeAt(pocAt)",
+        "format": "duration",
+        "expert": "under 5 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "09:30",
+        "text": "Watch closely: eye deviation, lip smacking, cycling, apnea."
+      },
+      {
+        "at": "~09:33",
+        "text": "Side-lying, airway, blow-by oxygen."
+      },
+      {
+        "at": "~09:34",
+        "text": "Glucose 28; send glucose, calcium, electrolytes; call."
+      },
+      {
+        "at": "~09:36",
+        "text": "Temperature and record; tell the parents; document."
+      }
+    ],
+    "debrief": {
+      "status": {
+        "headline": "Recurrent seizures with apnea",
+        "body": "Eye deviation, chewing, cycling and apnea in a newborn are subtle seizures. Check glucose at once, send calcium and electrolytes, protect the airway and call."
+      },
+      "safe": {
+        "headline": "Seizures recognized, cause treated",
+        "body": "You watched closely, recognized subtle seizures, checked glucose at once, sent calcium and electrolytes, protected the airway and called within minutes. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Treated, with gaps",
+        "body": "Check how soon you called, whether he was fed during spells, and whether glucose and calcium were checked."
+      },
+      "time_up": {
+        "headline": "Unescalated at 10:30",
+        "body": "Suspected neonatal seizures go to the provider at once."
+      }
+    },
+    "modelReasoning": "Neonatal seizures are often subtle: chewing or lip smacking, eye deviation, cycling movements and apnea, and some are seen only on EEG. Treatable causes come first: hypoglycemia (likely here, an infant of a diabetic mother with a glucose of 28), hypocalcemia and infection, along with HIE and hemorrhage. Protect the airway, check glucose at once, send glucose, calcium and electrolytes, and call the provider for IV dextrose and EEG; antiseizure treatment is expected if seizures persist once the cause is corrected."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "causeQ": {
+      "during": "leaveT",
+      "ask": "While the EEG goes on: what comes first in treating neonatal seizures?",
+      "choices": [
+        {
+          "id": "cause",
+          "label": "Find and treat the cause: glucose, calcium, infection"
+        },
+        {
+          "id": "drug",
+          "label": "An antiseizure drug before any labs"
+        },
+        {
+          "id": "wait",
+          "label": "Wait and see"
+        }
+      ],
+      "expect": "cause",
+      "explain": "Treatment is directed at the underlying cause first, then at seizure cessation.",
+      "source": {
+        "cite": "MSD Manual Professional Version: Neonatal Seizure Disorders (full review April 2025, updated July 2026)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.msdmanuals.com/professional/pediatrics/neurologic-disorders-in-children/neonatal-seizure-disorders",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: seizures may 'manifest as chewing or bicycling automatisms', eye deviations, tone changes and autonomic changes, and some cause apnea; some are 'clinically silent'; 'Electroencephalography is essential for diagnosis'; causes include hypoxia-ischemia, hypoglycemia, hypocalcemia, infection and hemorrhage; 'Laboratory tests to evaluate for underlying treatable disorders should be done immediately' (glucose, electrolytes, calcium); 'Treatment is directed at the underlying cause first, then at seizure cessation'."
+      }
+    },
+    "subtleQ": {
+      "during": "testT",
+      "ask": "While you watch: how do many neonatal seizures look?",
+      "choices": [
+        {
+          "id": "subtle",
+          "label": "Subtle: chewing, cycling, eye deviation, apnea"
+        },
+        {
+          "id": "gtc",
+          "label": "Generalized tonic-clonic"
+        },
+        {
+          "id": "cry",
+          "label": "Inconsolable crying"
+        }
+      ],
+      "expect": "subtle",
+      "explain": "Seizures may manifest as chewing or bicycling automatisms, eye deviations and apnea; some are clinically silent.",
+      "source": {
+        "cite": "MSD Manual Professional Version: Neonatal Seizure Disorders (full review April 2025, updated July 2026)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.msdmanuals.com/professional/pediatrics/neurologic-disorders-in-children/neonatal-seizure-disorders",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: seizures may 'manifest as chewing or bicycling automatisms', eye deviations, tone changes and autonomic changes, and some cause apnea; some are 'clinically silent'; 'Electroencephalography is essential for diagnosis'; causes include hypoxia-ischemia, hypoglycemia, hypocalcemia, infection and hemorrhage; 'Laboratory tests to evaluate for underlying treatable disorders should be done immediately' (glucose, electrolytes, calcium); 'Treatment is directed at the underlying cause first, then at seizure cessation'."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

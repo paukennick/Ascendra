@@ -1,0 +1,1112 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "twenty-percent-smaller-by-a-different-tape",
+  "title": "Twenty percent smaller, by a different tape",
+  "objective": "Track lymphedema outcomes by monitoring volume changes during follow-up, using the same measurement method at every time point",
+  "secondaryObjectives": [
+    "Investigate self-reported swelling, heaviness or numbness in anyone at risk of upper-quadrant lymphedema, and use the Norman Questionnaire or Morbidity Screening Tool if a questionnaire helps"
+  ],
+  "sources": [
+    {
+      "cite": "Specialist certification examination outline: oncology (the certifying board's published outline page)",
+      "checkedAt": "2026-11-08",
+      "url": "https://specialization.apta.org/become-a-specialist/oncology/specialist-certification-examination-outline-oncology",
+      "note": "Relayed from the oncology specialty course seed (backend/supabase/seed/tracks/pt-abpts.ts, outline pages read 2026-10-08 and 2026-11-04, OUTLINE_CHECKED_AT 2026-11-08), not re-read: Outcomes (5%) is a tested area. Scope only; no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra oncology specialty course catalog (backend/supabase/seed/tracks/pt-abpts.ts, track ABPTSONC)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "APTA Oncology Section. Diagnosis of Upper Quadrant Lymphedema Secondary to Cancer, Phys Ther 2017 (doi:10.1093/ptj/pzx050); and Interventions for Breast Cancer-Related Lymphedema, Phys Ther 2020 (doi:10.1093/ptj/pzaa087)",
+      "checkedAt": "2026-11-04",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC5803775/",
+      "note": "Relayed from the course seed (backend/supabase/seed/tracks/pt-abpts.ts, tag LYMDX-CPG; BCRL-CPG; full text read 2026-11-04), not re-read: track lymphedema outcomes by monitoring volume changes during follow-up, using the same measurement method at every time point (the oncology course objective's wording). The 2017 guideline is older than 5 years; the seed found no later edition."
+    },
+    {
+      "cite": "National Cancer Institute. Lymphedema and Cancer Treatment (updated 2024-03-06)",
+      "checkedAt": "2026-11-17",
+      "url": "https://cancer.gov/about-cancer/treatment/side-effects/lymphedema",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: cellulitis signs include 'pain, tenderness, redness, and swelling in the affected area', 'skin that feels warm to the touch in the swollen area' and fever; 'If you have a fever or other signs of cellulitis, call your doctor right away'; size is judged by comparing the swollen limb with the other one, and perometry and water displacement estimate limb volume."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "14:00 in an outpatient oncology rehabilitation clinic. You are the physical therapist. Ms. Haddad, 54, has lymphedema of the left arm after breast cancer treatment. At intake and every visit since, her arm volume was measured with the perometer. Today the perometer is broken, so an aide measured both arms with a tape at the wrist and elbow only and wrote '20% less swelling, discharge?' on the chart. She mentions her arm has felt 'hot and heavy' since yesterday.",
+    "handover": [
+      "Her volume record: perometer, both arms, at intake, 6 weeks and 3 months.",
+      "Clinic policy: signs of infection in a lymphedematous limb are phoned to the patient's physician right away."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "14:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.008,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Untreated infection in a lymphedematous arm spreads. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.002,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Her doctor is treating it. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of spreading infection. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Her physician called within 5 minutes of the skin check (clinic policy: right away)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min to finish the visit."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "skinAt": {
+      "type": "time",
+      "init": null
+    },
+    "methodAt": {
+      "type": "time",
+      "init": null
+    },
+    "remeasAt": {
+      "type": "time",
+      "init": null
+    },
+    "sympAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "skin",
+        "method",
+        "remeas",
+        "symp"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "md",
+        "next"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "both",
+        "better",
+        "flare"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "usualAt": {
+      "type": "time",
+      "init": null
+    },
+    "dischargeAt": {
+      "type": "time",
+      "init": null
+    },
+    "holdAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(98 + 10 * max(0, prog - 0.6))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "temp": {
+      "expr": "round((38.4 + 0.4 * max(0, prog - 0.6)) * 10) / 10",
+      "unit": "°C",
+      "precision": 1
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (route == \"md\" and isNull(usualAt) ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Ms. Haddad, 54, breast cancer-related lymphedema of the left arm",
+        "presentation": "Six-month follow-up; the aide has already measured her. {not isNull(usualAt) ? \"Usual session under way on the arm.\" : \"\"}"
+      },
+      "vitals": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "colour": "ecg",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              105,
+              120
+            ]
+          }
+        },
+        {
+          "id": "temp",
+          "label": "Temp",
+          "spokenLabel": "Temperature",
+          "value": "temp",
+          "unit": "°C",
+          "colour": "neutral",
+          "alarm": {
+            "high": 38.0
+          },
+          "announce": {
+            "bands": [
+              37.8,
+              38.0
+            ]
+          }
+        }
+      ],
+      "activity": "{not inClinic ? \"Visit over.\" : (not isNull(usualAt) ? \"On the plinth, her arm being treated.\" : \"Seated, sleeve rolled up.\")}",
+      "measures": [
+        {
+          "id": "skinResult",
+          "label": "Skin",
+          "result": "Left forearm red, warm and tender; 38.4°C.",
+          "when": "not isNull(skinAt)",
+          "flag": "true"
+        },
+        {
+          "id": "methodResult",
+          "label": "Method",
+          "result": "Tape at two points today; perometer volume before.",
+          "when": "not isNull(methodAt)"
+        },
+        {
+          "id": "remeasResult",
+          "label": "Remeasure",
+          "result": "No earlier tape figures exist; no valid comparison today.",
+          "when": "not isNull(remeasAt)"
+        },
+        {
+          "id": "sympResult",
+          "label": "Symptoms",
+          "result": "Heavier since yesterday; was stable before.",
+          "when": "not isNull(sympAt)"
+        }
+      ],
+      "dosage": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "Her doctor called",
+            "when": "route == \"md\""
+          },
+          {
+            "label": "Remeasured by the usual method",
+            "when": "not isNull(remeasAt)"
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleCell",
+          "label": "Red, warm, tender arm with fever",
+          "text": "Possible cellulitis: call her doctor right away; no routine session.",
+          "met": "not isNull(skinAt) and isNull(callAt)"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "skin": {
+      "label": "Look at and feel both arms; take her temperature",
+      "group": "Examine",
+      "available": "not testPending and isNull(skinAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"skin\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "method": {
+      "label": "Compare how today's figure was measured with the record",
+      "group": "Examine",
+      "available": "not testPending and isNull(methodAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"method\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "remeas": {
+      "label": "Remeasure both arms the clinic's backup way and check whether earlier visits have matching figures",
+      "group": "Examine",
+      "available": "not testPending and isNull(remeasAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"remeas\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "symp": {
+      "label": "Ask about heaviness, tightness and her daily use of the arm",
+      "group": "Examine",
+      "available": "not testPending and isNull(sympAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"symp\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "usual": {
+      "label": "Carry on with today's usual session on the arm",
+      "group": "Treat",
+      "available": "isNull(usualAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "usualAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.6, 2)"
+        },
+        {
+          "log": "You work on the arm; by the end the redness has spread and she is shivering.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "discharge": {
+      "label": "Discharge her on the aide's '20% less swelling'",
+      "group": "Treat",
+      "available": "isNull(dischargeAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "dischargeAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.3, 2)"
+        },
+        {
+          "log": "Discharged on a 20% figure from a different method.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "hold": {
+      "label": "Hold today's treatment and plan the next volume measurement on the perometer, the same method as before",
+      "group": "Treat",
+      "available": "isNull(holdAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "holdAt",
+          "to": "t"
+        },
+        {
+          "log": "Treatment held; next measurement booked on the repaired perometer to keep the method the same.",
+          "kind": "act"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "What do today's figure and her arm show?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "both",
+              "label": "The 20% is not a real change (a different method), and the red, warm arm with fever is possible cellulitis"
+            },
+            {
+              "value": "better",
+              "label": "Her lymphedema has improved 20%"
+            },
+            {
+              "value": "flare",
+              "label": "A normal flare of lymphedema"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"both\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"both\""
+                },
+                {
+                  "log": "Mismatched method; possible cellulitis.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"better\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"better\""
+                },
+                {
+                  "log": "Read as improved.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"flare\""
+                },
+                {
+                  "log": "Read as a flare.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Report",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "md",
+              "label": "Call her oncologist's office now: left arm red, warm and tender, 38.4°C, in a lymphedematous arm; ask for same-day evaluation"
+            },
+            {
+              "value": "next",
+              "label": "Recheck at the next visit"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"md\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"md\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "The oncologist's office sees her within the hour and starts treatment for cellulitis.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"next\""
+                },
+                {
+                  "log": "Left for next visit.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document the skin findings, the call and why today's figure isn't comparable",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Skin findings, the call and the measurement note documented; the aide's figure is marked not comparable.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Oncology rehab",
+      "clock": "running",
+      "actions": [
+        "skin",
+        "method",
+        "remeas",
+        "symp",
+        "usual",
+        "discharge",
+        "hold",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the test",
+      "wait": {
+        "skipLabel": "the test result"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each test or question takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"skin\"",
+              "then": [
+                {
+                  "set": "skinAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Left forearm red, warm and tender with a temperature of 38.4°C: signs of cellulitis in a lymphedematous arm.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"method\"",
+              "then": [
+                {
+                  "set": "methodAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Today's figure came from a tape at two points; every earlier figure was perometer volume. The two cannot be compared.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"remeas\"",
+              "then": [
+                {
+                  "set": "remeasAt",
+                  "to": "t"
+                },
+                {
+                  "log": "No earlier figures exist by the tape method, so today's number has nothing valid to compare with; volume tracking resumes on the perometer.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "sympAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Heavier and tighter since yesterday; stable before that.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the end of the visit",
+      "wait": {
+        "skipLabel": "the end of the visit"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min to finish the visit."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "She leaves for her oncologist's office.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What do today's figure and Ms. Haddad's arm tell you?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "The 20% comes from a tape at two points while every earlier figure was perometer volume, so it shows nothing about change. The red, warm, tender arm with 38.4°C is possible cellulitis.",
+          "modelAnswer": "The 20% is meaningless because it's a different method. Her arm is red, hot and tender with a fever, so it could be cellulitis."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Call her doctor right away, hold treatment, keep the record on one method (next measurement on the perometer), don't discharge, and document why today's figure is not comparable.",
+          "modelAnswer": "Call her doctor now, hold treatment, measure next time on the perometer like before, don't discharge, and write it up."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "spo2Floor": {
+        "value": 88,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "escalateWindow": {
+        "value": 300,
+        "source": {
+          "cite": "Unit practice (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "Her physician called within 5 minutes of the skin check (clinic policy: right away)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Unreported infection signs are harm here.",
+      "source": {
+        "cite": "National Cancer Institute. Lymphedema and Cancer Treatment (updated 2024-03-06)",
+        "checkedAt": "2026-11-17",
+        "url": "https://cancer.gov/about-cancer/treatment/side-effects/lymphedema",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: cellulitis signs include 'pain, tenderness, redness, and swelling in the affected area', 'skin that feels warm to the touch in the swollen area' and fever; 'If you have a fever or other signs of cellulitis, call your doctor right away'; size is judged by comparing the swollen limb with the other one, and perometry and water displacement estimate limb volume."
+      }
+    }
+  },
+  "endings": {
+    "spread": {
+      "label": "Spreading infection",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "The redness climbs toward her shoulder and she is shivering with fever; she is sent to the emergency department."
+    },
+    "safe": {
+      "label": "Infection caught, record kept honest",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"md\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and (not isNull(methodAt)) and isNull(usualAt) and isNull(dischargeAt) and (not isNull(holdAt))",
+      "narrative": "{timeAt(leftAt)|clock}: her cellulitis is being treated and her volume record stays on one method."
+    },
+    "safeGaps": {
+      "label": "Handled, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: she is safe, but the call was slow or the method check was skipped."
+    },
+    "time_up": {
+      "label": "Unresolved at 15:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "15:00 and nothing is settled."
+    }
+  },
+  "endingOrder": [
+    "spread",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "Her physician called within 5 minutes of the skin check",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"md\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"md\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "methodC",
+        "label": "Checked that the method matched before reading the change",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(methodAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not checked."
+          }
+        ]
+      },
+      {
+        "id": "holdC",
+        "label": "Held treatment and kept the same method for the next measurement, without discharging on the mismatched figure",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(usualAt) or not isNull(dischargeAt)",
+            "score": "missed",
+            "why": "Treated the infected arm or discharged on the mismatched figure."
+          },
+          {
+            "when": "not isNull(holdAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Remeasured and asked about symptoms",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(remeasAt) and not isNull(sympAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(remeasAt) or not isNull(sympAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Read the outcome and the arm correctly",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"both\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"better\"",
+            "score": "missed",
+            "why": "Change can only be read when the same method is used at every time point."
+          },
+          {
+            "when": "dxEnum == \"flare\"",
+            "score": "missed",
+            "why": "Redness, warmth and fever are signs of cellulitis."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: same method or no comparison; cellulitis signs go to the doctor",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Skin check to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "14:00 to the skin check",
+        "value": "isNull(skinAt) ? -1 : timeAt(skinAt)",
+        "format": "duration",
+        "expert": "under 3 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "14:00",
+        "text": "Arm and temperature: red, warm, 38.4°C."
+      },
+      {
+        "at": "~14:01",
+        "text": "Call her oncologist's office."
+      },
+      {
+        "at": "~14:02",
+        "text": "Method check: tape versus perometer, not comparable."
+      },
+      {
+        "at": "~14:05",
+        "text": "Hold treatment; plan perometer next time; document."
+      }
+    ],
+    "debrief": {
+      "spread": {
+        "headline": "Spreading infection",
+        "body": "A red, warm, tender lymphedematous arm with fever is possible cellulitis: call the doctor right away. And never read change across different measurement methods."
+      },
+      "safe": {
+        "headline": "Infection caught, record kept honest",
+        "body": "You found the infection signs, called within minutes, held treatment, and refused to read change across two methods. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Handled, with gaps",
+        "body": "Check how soon you called and whether you checked the measurement method."
+      },
+      "time_up": {
+        "headline": "Unresolved at 15:00",
+        "body": "Act on infection signs in the visit."
+      }
+    },
+    "modelReasoning": "Track lymphedema volume with the same measurement method at every time point; a change across methods is not a change. Today's tape figure cannot be compared with perometer volumes. Separately, redness, warmth, tenderness and fever in the swollen arm are signs of cellulitis: call the doctor right away and hold the session."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "cellQ": {
+      "during": "leaveT",
+      "ask": "While she gets ready: which signs mean calling the doctor right away?",
+      "choices": [
+        {
+          "id": "cell",
+          "label": "Redness, warmth, tenderness and fever in the swollen arm"
+        },
+        {
+          "id": "heavy",
+          "label": "Mild heaviness at the end of the day"
+        },
+        {
+          "id": "none",
+          "label": "Only an open wound"
+        }
+      ],
+      "expect": "cell",
+      "explain": "Pain, tenderness, redness, warmth and fever are signs of cellulitis; call the doctor right away.",
+      "source": {
+        "cite": "National Cancer Institute. Lymphedema and Cancer Treatment (updated 2024-03-06)",
+        "checkedAt": "2026-11-17",
+        "url": "https://cancer.gov/about-cancer/treatment/side-effects/lymphedema",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: cellulitis signs include 'pain, tenderness, redness, and swelling in the affected area', 'skin that feels warm to the touch in the swollen area' and fever; 'If you have a fever or other signs of cellulitis, call your doctor right away'; size is judged by comparing the swollen limb with the other one, and perometry and water displacement estimate limb volume."
+      }
+    },
+    "methodQ": {
+      "during": "testT",
+      "ask": "While you check: what makes a volume change readable over follow-up?",
+      "choices": [
+        {
+          "id": "same",
+          "label": "The same measurement method at every time point"
+        },
+        {
+          "id": "any",
+          "label": "Any method, as long as it's recent"
+        },
+        {
+          "id": "ask",
+          "label": "The patient's sense of swelling alone"
+        }
+      ],
+      "expect": "same",
+      "explain": "Monitor volume changes using the same measurement method at every time point.",
+      "source": {
+        "cite": "APTA Oncology Section. Diagnosis of Upper Quadrant Lymphedema Secondary to Cancer, Phys Ther 2017 (doi:10.1093/ptj/pzx050); and Interventions for Breast Cancer-Related Lymphedema, Phys Ther 2020 (doi:10.1093/ptj/pzaa087)",
+        "checkedAt": "2026-11-04",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC5803775/",
+        "note": "Relayed from the course seed (backend/supabase/seed/tracks/pt-abpts.ts, tag LYMDX-CPG; BCRL-CPG; full text read 2026-11-04), not re-read: track lymphedema outcomes by monitoring volume changes during follow-up, using the same measurement method at every time point (the oncology course objective's wording). The 2017 guideline is older than 5 years; the seed found no later edition."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

@@ -1,0 +1,455 @@
+{
+  "slug": "sickle-cell-belly-big-and-pale",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: spleen and perfusion, bolus and crossmatch, hemoglobin, calls, checks the chest, tells his mother",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "spleen",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "seqQ",
+          "choice": "seq",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "perf",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 6,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "xmatch",
+          "seq": 7,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "seq"
+          },
+          "seq": 8,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "call"
+          },
+          "seq": 9,
+          "tick": 25
+        },
+        {
+          "type": "teach",
+          "prompt": "teachQ",
+          "choice": "palp",
+          "seq": 10,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "hgb",
+          "seq": 11,
+          "tick": 25
+        },
+        {
+          "type": "chapter",
+          "chapter": "escalated",
+          "choice": "continue",
+          "seq": 12,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "chest",
+          "seq": 13,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 14,
+          "tick": 49
+        }
+      ],
+      "expect": {
+        "ending": "safe",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "reportC": "met",
+          "volC": "met",
+          "noOpC": "met",
+          "lookC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 60,
+          "toKey": 125
+        },
+        "stateHash": "ebf6c134f7270937"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Finds it and starts volume, but calls 6 minutes after the spleen",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "spleen",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "seqQ",
+          "choice": "seq",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "xmatch",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "perf",
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "hgb",
+          "seq": 7,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "chest",
+          "seq": 8,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "seq"
+          },
+          "seq": 9,
+          "tick": 85
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "call"
+          },
+          "seq": 10,
+          "tick": 85
+        },
+        {
+          "type": "teach",
+          "prompt": "teachQ",
+          "choice": "palp",
+          "seq": 11,
+          "tick": 85
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 85
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "reportC": "partial",
+          "volC": "met",
+          "noOpC": "met",
+          "lookC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 365,
+          "toKey": 60
+        },
+        "stateHash": "ae9ac30406971d4f"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "sedated",
+      "title": "Calls promptly but gives the opioid and sends no crossmatch",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "spleen",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "seqQ",
+          "choice": "seq",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "opioid",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "seq"
+          },
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "call"
+          },
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "teachQ",
+          "choice": "palp",
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 8,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "reportC": "met",
+          "volC": "missed",
+          "noOpC": "missed",
+          "lookC": "missed",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": -1
+        },
+        "stateHash": "048c087882645851"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "painCrisis",
+      "title": "Failure: reads it as a pain crisis, gives the opioid and a warm pack, morning count",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "perf",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "seqQ",
+          "choice": "seq",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "pain"
+          },
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "opioid",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "heat",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "recheck"
+          },
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 7,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "shock",
+        "class": "harm",
+        "rating": "bad",
+        "score": 7,
+        "criteria": {
+          "reportC": "missed",
+          "volC": "missed",
+          "noOpC": "missed",
+          "lookC": "partial",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": -1,
+          "toKey": -1
+        },
+        "stateHash": "f811eb51e2ba6a2d"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "fever",
+      "title": "Failure: calls it the fever and lets him sleep",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "fever"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "heat",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "shock",
+        "class": "harm",
+        "rating": "bad",
+        "score": 14,
+        "criteria": {
+          "reportC": "missed",
+          "volC": "missed",
+          "noOpC": "met",
+          "lookC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": -1,
+          "toKey": -1
+        },
+        "stateHash": "6913bfa9ec056636"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

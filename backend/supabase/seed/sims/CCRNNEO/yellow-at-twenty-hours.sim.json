@@ -1,0 +1,1074 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "yellow-at-twenty-hours",
+  "title": "Yellow at twenty hours",
+  "objective": "Start phototherapy by plotting the hour-specific bilirubin against thresholds set by gestational age and the infant's neurotoxicity risks, and recognize acute bilirubin encephalopathy before it becomes kernicterus",
+  "secondaryObjectives": [
+    "Tell physiologic from pathologic jaundice, treating jaundice in the first 24 hours as pathologic, and know the risk factors for severe hyperbilirubinemia",
+    "Recognize and manage hyperbilirubinemia, hydrops fetalis and the infant of a diabetic mother"
+  ],
+  "sources": [
+    {
+      "cite": "AACN Certification Corporation. CCRN Exam Handbook - Direct Care (July 2026), Neonatal test plan",
+      "checkedAt": "2026-10-31",
+      "url": "https://www.aacn.org/certification/get-certified/ccrn-neonatal",
+      "note": "Relayed from the CCRN Neonatal course seed (backend/supabase/seed/tracks/ccrn-peds-neo.ts), which read the handbook 2026-10-31, not re-read: the objective titles are the course's own. Scope only."
+    },
+    {
+      "cite": "Ascendra CCRN Neonatal course catalog (backend/supabase/seed/tracks/ccrn-peds-neo.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Par EJ, Hughes CA, DeRico P. Neonatal Hyperbilirubinemia: Evaluation and Treatment. Am Fam Physician 2023;107(5):525-534",
+      "checkedAt": "2026-11-17",
+      "url": "https://aafp.org/pubs/afp/issues/2023/0500/neonatal-hyperbilirubinemia.html",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'Jaundice in the first 24 hours of life is often a sign of hemolysis'; the 2022 AAP guideline gives 'hour-specific thresholds for initiation of phototherapy based on gestational age'; neurotoxicity risk factors 'increase the ability of bilirubin to cross the blood-brain barrier'; acute bilirubin encephalopathy: early 'Sleepiness or decreased alertness, poor sucking and feeding, hyperreflexia, hypotonia', intermediate 'Stupor, irritability, hypertonia, back and neck arching, high-pitched crying'; within 2 mg/dL of the exchange threshold 'should immediately receive additional evaluation'; 'Emergent exchange transfusion is recommended' above the exchange threshold or with signs of encephalopathy."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "14:00 in the NICU. You are the nurse for Baby Lin, a girl born at 36 weeks, now 20 hours old, admitted at 6 hours for poor feeding. Her mother is type O positive; the baby's blood type and direct antiglobulin test (DAT) came back this morning.",
+    "handover": [
+      "The night nurse thought she 'looked a bit yellow' at 08:00. A total serum bilirubin was drawn at 13:30 and has just resulted.",
+      "She is sleepier than at the last feed and took only 10 mL by bottle.",
+      "Unit standing order: start phototherapy when the hour-specific bilirubin is at or above the threshold for the infant's gestational age and risk factors, and call the nurse practitioner; the threshold charts are on the unit's computer."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "14:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.014,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Bilirubin keeps rising toward neurotoxic levels without phototherapy. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.003,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It slows under intensive phototherapy with the provider's plan in place. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of acute bilirubin encephalopathy. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The nurse practitioner called within 5 minutes of plotting (the standing order: call when starting phototherapy)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 1500,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 25 min for the nurse practitioner and neonatologist to set the plan."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "tsbAt": {
+      "type": "time",
+      "init": null
+    },
+    "plotAt": {
+      "type": "time",
+      "init": null
+    },
+    "labsAt": {
+      "type": "time",
+      "init": null
+    },
+    "neuroAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "tsb",
+        "plot",
+        "labs",
+        "neuro"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "call",
+        "morning"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "patho",
+        "physio",
+        "breast"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "photoAt": {
+      "type": "time",
+      "init": null
+    },
+    "skinAt": {
+      "type": "time",
+      "init": null
+    },
+    "waterAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(140 + 12 * max(0, prog - 0.6) + sin(t / 9) * 3)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "round(46 + sin(t / 13) * 3)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "97",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (not isNull(photoAt) and route == \"call\" ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "low": 100,
+            "high": 180
+          },
+          "announce": {
+            "bands": [
+              160,
+              180
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "high": 70
+          },
+          "announce": {
+            "bands": [
+              60,
+              70
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              94,
+              90
+            ]
+          },
+          "colour": "spo2"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Phototherapy: {not isNull(photoAt)|yesno}.",
+      "banner": [
+        {
+          "when": "route == \"call\" and inClinic",
+          "text": "The nurse practitioner is reviewing her; the neonatologist is aware."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "tsb": {
+      "label": "Read the total serum bilirubin with her age in hours",
+      "group": "Assess",
+      "available": "not testPending and isNull(tsbAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"tsb\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "plot": {
+      "label": "Plot it on the hour-specific chart for 36 weeks with her risk factors",
+      "group": "Assess",
+      "available": "not testPending and isNull(plotAt) and not isNull(tsbAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"plot\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "labs": {
+      "label": "Read this morning's blood type and DAT",
+      "group": "Assess",
+      "available": "not testPending and isNull(labsAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"labs\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "neuro": {
+      "label": "Neuro and feeding check: tone, suck, cry, alertness",
+      "group": "Assess",
+      "available": "not testPending and isNull(neuroAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"neuro\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "photo": {
+      "label": "Start intensive phototherapy now under the standing order, eyes shielded",
+      "group": "Treat",
+      "available": "isNull(photoAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "photoAt",
+          "to": "t"
+        },
+        {
+          "log": "Intensive phototherapy started, eyes shielded, skin exposed.",
+          "kind": "act"
+        }
+      ]
+    },
+    "skin": {
+      "label": "Hold phototherapy for two hours of skin-to-skin with her mother first",
+      "group": "Treat",
+      "available": "isNull(skinAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "skinAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.2, 2)"
+        },
+        {
+          "log": "Phototherapy deferred for skin-to-skin.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "water": {
+      "label": "Give extra water feeds to flush the bilirubin out",
+      "group": "Treat",
+      "available": "isNull(waterAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "waterAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.1, 2)"
+        },
+        {
+          "log": "Water offered; she takes a little and her milk intake falls.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "What is this jaundice?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "patho",
+              "label": "Pathologic: visible in the first 24 hours with hemolysis, above her phototherapy threshold and near the escalation line"
+            },
+            {
+              "value": "physio",
+              "label": "Physiologic jaundice; recheck tomorrow"
+            },
+            {
+              "value": "breast",
+              "label": "Breast milk jaundice"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"patho\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"patho\""
+                },
+                {
+                  "log": "Pathologic jaundice with hemolysis.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"physio\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"physio\""
+                },
+                {
+                  "log": "Read as physiologic.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"breast\""
+                },
+                {
+                  "log": "Read as breast milk jaundice.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Escalate",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "call",
+              "label": "Call the nurse practitioner now: 13.2 at 19.5 hours, 36 weeks, DAT positive, above threshold and within 2 of escalation, sleepy with a weak suck; phototherapy started"
+            },
+            {
+              "value": "morning",
+              "label": "Recheck the bilirubin with the morning labs"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"call\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"call\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "The nurse practitioner orders a repeat bilirubin in 2 hours, labs, IV access and type and crossmatch in case exchange is needed, and talks to the neonatologist.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"morning\""
+                },
+                {
+                  "log": "A recheck is ordered for 06:00.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Explain phototherapy to her parents and document the value, plot and calls",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Her parents understand why the lights and eye shields are needed; the value, plot and call are documented.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "NICU, bed 11",
+      "clock": "running",
+      "actions": [
+        "tsb",
+        "plot",
+        "labs",
+        "neuro",
+        "photo",
+        "skin",
+        "water",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"tsb\"",
+              "then": [
+                {
+                  "set": "tsbAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Total serum bilirubin 13.2 mg/dL at 19.5 hours of age.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"plot\"",
+              "then": [
+                {
+                  "set": "plotAt",
+                  "to": "t"
+                },
+                {
+                  "log": "At 36 weeks with neurotoxicity risk factors (a positive DAT and gestation under 38 weeks), the value is above her phototherapy threshold and within 2 mg/dL of the escalation-of-care line.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"labs\"",
+              "then": [
+                {
+                  "set": "labsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Baby type A positive, DAT positive: isoimmune hemolysis.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "neuroAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Sleepy, a weak suck, slightly floppy; cry normal; no arching.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the neonatologist's review",
+      "wait": {
+        "skipLabel": "the neonatologist's review"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 25 min for the nurse practitioner and neonatologist to set the plan."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "The neonatologist has reviewed her; the plan is in place.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What does Baby Lin's bilirubin mean, and what do you do?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "Jaundice in the first 24 hours is pathologic; with isoimmune hemolysis and 36 weeks' gestation her threshold is lower; plotted by hour she is above phototherapy and near escalation; sleepiness and a weak suck can be early encephalopathy.",
+          "modelAnswer": "Yellow at 20 hours isn't normal. She's hemolyzing and she's 36 weeks, so her line is lower, and plotted by hour she's over it and close to escalation. Sleepy with a weak suck could be early encephalopathy."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Starts phototherapy now, calls the provider at once for repeat level and exchange readiness, checks neuro status repeatedly, does not defer lights or give water.",
+          "modelAnswer": "Lights on now, call the nurse practitioner, get the repeat level and exchange prep going, and keep checking her tone and suck. Don't hold the lights or give water."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "A bilirubin above the phototherapy threshold untreated an hour on is harm here.",
+      "source": {
+        "cite": "Par EJ, Hughes CA, DeRico P. Neonatal Hyperbilirubinemia: Evaluation and Treatment. Am Fam Physician 2023;107(5):525-534",
+        "checkedAt": "2026-11-17",
+        "url": "https://aafp.org/pubs/afp/issues/2023/0500/neonatal-hyperbilirubinemia.html",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'Jaundice in the first 24 hours of life is often a sign of hemolysis'; the 2022 AAP guideline gives 'hour-specific thresholds for initiation of phototherapy based on gestational age'; neurotoxicity risk factors 'increase the ability of bilirubin to cross the blood-brain barrier'; acute bilirubin encephalopathy: early 'Sleepiness or decreased alertness, poor sucking and feeding, hyperreflexia, hypotonia', intermediate 'Stupor, irritability, hypertonia, back and neck arching, high-pitched crying'; within 2 mg/dL of the exchange threshold 'should immediately receive additional evaluation'; 'Emergent exchange transfusion is recommended' above the exchange threshold or with signs of encephalopathy."
+      }
+    }
+  },
+  "endings": {
+    "abe": {
+      "label": "Acute bilirubin encephalopathy",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "By evening she is stuporous, arches her back and neck, and has a high-pitched cry. An emergency exchange transfusion is started."
+    },
+    "safe": {
+      "label": "Plotted, treated, escalated",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"call\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and isNull(skinAt) and (not isNull(photoAt) and timeAt(photoAt) <= 900) and (not isNull(tsbAt) and not isNull(plotAt))",
+      "narrative": "{timeAt(leftAt)|clock}: she is under intensive phototherapy with a repeat level due and the neonatologist aware."
+    },
+    "safeGaps": {
+      "label": "Escalated, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: the plan is in place, but the call was slow, phototherapy waited, or the value was not plotted."
+    },
+    "time_up": {
+      "label": "Untreated at 15:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "15:00 and she is still not under lights."
+    }
+  },
+  "endingOrder": [
+    "abe",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "The nurse practitioner called within 5 minutes of plotting near the escalation line",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"call\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"call\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "photoC",
+        "label": "Started phototherapy without delay",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(skinAt)",
+            "score": "missed",
+            "why": "Deferred for skin-to-skin."
+          },
+          {
+            "when": "not isNull(photoAt) and timeAt(photoAt) <= 900",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not started within 15 minutes."
+          }
+        ]
+      },
+      {
+        "id": "plotC",
+        "label": "Plotted the hour-specific value against her gestational-age and risk threshold",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(tsbAt) and not isNull(plotAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not plotted."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Checked her DAT and her neuro and feeding status",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(labsAt) and not isNull(neuroAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(labsAt) or not isNull(neuroAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Read jaundice in the first 24 hours as pathologic",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"patho\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"physio\"",
+            "score": "missed",
+            "why": "Jaundice in the first 24 hours is not physiologic."
+          },
+          {
+            "when": "dxEnum == \"breast\"",
+            "score": "missed",
+            "why": "Wrong timing and cause."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Told the parents and documented",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: early jaundice is pathologic; plot by hour, gestation and risk; phototherapy now; watch for encephalopathy",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Plot to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "14:00 to phototherapy",
+        "value": "isNull(photoAt) ? -1 : timeAt(photoAt)",
+        "format": "duration",
+        "expert": "under 5 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "14:00",
+        "text": "Read 13.2 at 19.5 hours; plot at 36 weeks with risk factors."
+      },
+      {
+        "at": "~14:02",
+        "text": "Above threshold, near escalation: phototherapy now."
+      },
+      {
+        "at": "~14:03",
+        "text": "Call the nurse practitioner."
+      },
+      {
+        "at": "~14:05",
+        "text": "DAT positive; neuro check; tell the parents; document."
+      }
+    ],
+    "debrief": {
+      "abe": {
+        "headline": "Acute bilirubin encephalopathy",
+        "body": "Jaundice in the first 24 hours is pathologic. Plot the hour-specific value against her gestational age and risks and start phototherapy without delay."
+      },
+      "safe": {
+        "headline": "Plotted, treated, escalated",
+        "body": "You read early jaundice as pathologic, plotted by hour, gestation and risk, started phototherapy and called within minutes. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Escalated, with gaps",
+        "body": "Check whether you plotted by hour and risk, how long phototherapy waited, and how soon you called."
+      },
+      "time_up": {
+        "headline": "Untreated at 15:00",
+        "body": "A value above threshold means phototherapy now."
+      }
+    },
+    "modelReasoning": "Jaundice in the first 24 hours of life is pathologic, often from hemolysis, as here (DAT positive). Bilirubin is read by the infant's age in hours against thresholds set by gestational age and neurotoxicity risk factors; at 36 weeks with hemolysis, 13.2 at 19.5 hours is above her phototherapy threshold and within 2 mg/dL of escalation. Start intensive phototherapy now and call the provider at once; a value near the escalation line needs a repeat level and preparation for exchange. Sleepiness and a poor suck are early signs of acute bilirubin encephalopathy; stupor, arching and a high-pitched cry are later ones."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "abeQ": {
+      "during": "leaveT",
+      "ask": "While the plan is set: which are early signs of acute bilirubin encephalopathy?",
+      "choices": [
+        {
+          "id": "early",
+          "label": "Sleepiness, poor suck and feeding, hypotonia"
+        },
+        {
+          "id": "late",
+          "label": "Only seizures"
+        },
+        {
+          "id": "none",
+          "label": "There are no early signs"
+        }
+      ],
+      "expect": "early",
+      "explain": "Early: sleepiness or decreased alertness, poor sucking and feeding, hypotonia; later: stupor, hypertonia, arching and a high-pitched cry.",
+      "source": {
+        "cite": "Par EJ, Hughes CA, DeRico P. Neonatal Hyperbilirubinemia: Evaluation and Treatment. Am Fam Physician 2023;107(5):525-534",
+        "checkedAt": "2026-11-17",
+        "url": "https://aafp.org/pubs/afp/issues/2023/0500/neonatal-hyperbilirubinemia.html",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'Jaundice in the first 24 hours of life is often a sign of hemolysis'; the 2022 AAP guideline gives 'hour-specific thresholds for initiation of phototherapy based on gestational age'; neurotoxicity risk factors 'increase the ability of bilirubin to cross the blood-brain barrier'; acute bilirubin encephalopathy: early 'Sleepiness or decreased alertness, poor sucking and feeding, hyperreflexia, hypotonia', intermediate 'Stupor, irritability, hypertonia, back and neck arching, high-pitched crying'; within 2 mg/dL of the exchange threshold 'should immediately receive additional evaluation'; 'Emergent exchange transfusion is recommended' above the exchange threshold or with signs of encephalopathy."
+      }
+    },
+    "plotQ": {
+      "during": "testT",
+      "ask": "While you check: what sets her phototherapy threshold?",
+      "choices": [
+        {
+          "id": "hour",
+          "label": "Her age in hours, gestational age and neurotoxicity risk factors"
+        },
+        {
+          "id": "fixed",
+          "label": "One fixed value for all newborns"
+        },
+        {
+          "id": "color",
+          "label": "How yellow she looks"
+        }
+      ],
+      "expect": "hour",
+      "explain": "The 2022 AAP guideline gives hour-specific phototherapy thresholds by gestational age, lower with neurotoxicity risk factors.",
+      "source": {
+        "cite": "Par EJ, Hughes CA, DeRico P. Neonatal Hyperbilirubinemia: Evaluation and Treatment. Am Fam Physician 2023;107(5):525-534",
+        "checkedAt": "2026-11-17",
+        "url": "https://aafp.org/pubs/afp/issues/2023/0500/neonatal-hyperbilirubinemia.html",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'Jaundice in the first 24 hours of life is often a sign of hemolysis'; the 2022 AAP guideline gives 'hour-specific thresholds for initiation of phototherapy based on gestational age'; neurotoxicity risk factors 'increase the ability of bilirubin to cross the blood-brain barrier'; acute bilirubin encephalopathy: early 'Sleepiness or decreased alertness, poor sucking and feeding, hyperreflexia, hypotonia', intermediate 'Stupor, irritability, hypertonia, back and neck arching, high-pitched crying'; within 2 mg/dL of the exchange threshold 'should immediately receive additional evaluation'; 'Emergent exchange transfusion is recommended' above the exchange threshold or with signs of encephalopathy."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

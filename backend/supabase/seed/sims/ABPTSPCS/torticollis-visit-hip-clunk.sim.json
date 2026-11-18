@@ -1,0 +1,1002 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "torticollis-visit-hip-clunk",
+  "title": "A torticollis visit and a hip clunk",
+  "objective": "Screen infant hips with the Ortolani and Barlow tests and watch for limited abduction, uneven gluteal folds and leg-length difference; breech position is the biggest risk factor for hip dysplasia",
+  "secondaryObjectives": [
+    "Know infant hip dysplasia management may include an abduction splint such as the Pavlik harness, set by the orthopedic surgeon, and that screening aims to diagnose before 6 months"
+  ],
+  "sources": [
+    {
+      "cite": "Specialist certification examination outline: pediatrics (the certifying board's published outline page)",
+      "checkedAt": "2026-11-08",
+      "url": "https://specialization.apta.org/become-a-specialist/pediatrics/specialist-certification-examination-outline-pediatrics",
+      "note": "Relayed from the pediatrics specialty course seed (backend/supabase/seed/tracks/pt-abpts.ts, outline pages read 2026-10-08 and 2026-11-04, OUTLINE_CHECKED_AT 2026-11-08), not re-read: Examination (20%) is a tested area. Scope only; no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra pediatrics specialty course catalog (backend/supabase/seed/tracks/pt-abpts.ts, track ABPTSPCS)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Nandhagopal T, et al.. Developmental Dysplasia of the Hip. StatPearls (updated 2024-05-04), StatPearls Publishing",
+      "checkedAt": "2026-11-04",
+      "note": "Relayed from the course seed (tag SP-DDH; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: screen infant hips with the Ortolani and Barlow tests and watch for limited abduction, uneven gluteal folds and leg-length difference; breech position is the biggest risk factor; management may include an abduction splint such as the Pavlik harness set by the orthopedic surgeon, and screening aims to diagnose before 6 months (the course objectives' wording)."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "09:00 in an outpatient pediatric clinic. You are the physical therapist. Ana, 7 weeks old, was referred for right torticollis. She was born breech by cesarean. Her newborn hip check was recorded as 'normal'.",
+    "handover": [
+      "Her mother swaddles her 'tight like a burrito, legs straight' to help her sleep.",
+      "Clinic policy: infants seen for torticollis get a hip screen; a positive screen goes to pediatric orthopedics for ultrasound the same week, and the pediatrician is told."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "09:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.012,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "An unstable hip left unrecognized loses the window for simple treatment. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.002,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Referral is under way. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of late diagnosis. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Pediatric orthopedics referral within 5 minutes of a positive test (clinic policy: same week)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 min to make the referral and finish."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "neckAt": {
+      "type": "time",
+      "init": null
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "ortolaniAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "neck",
+        "look",
+        "ortolani"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "ortho",
+        "recheck"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "ddh",
+        "normal",
+        "tort"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "swaddleAt": {
+      "type": "time",
+      "init": null
+    },
+    "hipteachAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(138 + sin(t / 9) * 4)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (route == \"ortho\" ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Baby Ana, 7 weeks, with her mother",
+        "presentation": "Referred for right congenital muscular torticollis; born breech by cesarean. {not isNull(swaddleAt) ? \"Swaddled tightly with legs straight.\" : \"\"}"
+      },
+      "vitals": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "colour": "ecg",
+          "alarm": {
+            "high": 190
+          },
+          "announce": {
+            "bands": [
+              170,
+              190
+            ]
+          }
+        }
+      ],
+      "activity": "{not inClinic ? \"Visit over.\" : \"On the mat, head turned to the left.\"}",
+      "measures": [
+        {
+          "id": "neckResult",
+          "label": "Neck",
+          "result": "Right SCM tight; rotation to the right limited by 20 degrees.",
+          "when": "not isNull(neckAt)"
+        },
+        {
+          "id": "lookResult",
+          "label": "Observation",
+          "result": "Asymmetric thigh folds; left knee lower (Galeazzi); left abduction limited.",
+          "when": "not isNull(lookAt)"
+        },
+        {
+          "id": "ortolaniResult",
+          "label": "Barlow and Ortolani",
+          "result": "Left hip: a clunk on Ortolani (reduces).",
+          "when": "not isNull(ortolaniAt)",
+          "flag": "true"
+        }
+      ],
+      "dosage": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "Hip screen done",
+            "when": "not isNull(ortolaniAt)"
+          },
+          {
+            "label": "Orthopedic referral",
+            "when": "route == \"ortho\""
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleHip",
+          "label": "Torticollis and breech birth",
+          "text": "Screen the hips; refer a positive screen to orthopedics now.",
+          "met": "isNull(ortolaniAt)"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "neck": {
+      "label": "Neck range of motion and the sternocleidomastoid",
+      "group": "Examine",
+      "available": "not testPending and isNull(neckAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"neck\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "look": {
+      "label": "Look at gluteal and thigh folds, leg lengths, abduction",
+      "group": "Examine",
+      "available": "not testPending and isNull(lookAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"look\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "ortolani": {
+      "label": "Gentle Barlow and Ortolani tests, one hip at a time",
+      "group": "Examine",
+      "available": "not testPending and isNull(ortolaniAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"ortolani\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "swaddle": {
+      "label": "Reassure her mother; tight swaddling with legs straight is fine",
+      "group": "Treat",
+      "available": "isNull(swaddleAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "swaddleAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.3, 2)"
+        },
+        {
+          "log": "Her mother keeps swaddling legs straight.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "hipteach": {
+      "label": "Teach hip-healthy swaddling: legs free to bend up and out",
+      "group": "Treat",
+      "available": "isNull(hipteachAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "hipteachAt",
+          "to": "t"
+        },
+        {
+          "log": "Her mother practices hip-healthy swaddling with room for the legs to bend and fall open.",
+          "kind": "act"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "What did the hip screen show?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "ddh",
+              "label": "Probable developmental dysplasia of the left hip: positive Ortolani, limited abduction, uneven folds, leg-length difference, breech birth"
+            },
+            {
+              "value": "normal",
+              "label": "A normal hip click"
+            },
+            {
+              "value": "tort",
+              "label": "Just part of her torticollis"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"ddh\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"ddh\""
+                },
+                {
+                  "log": "Probable left DDH.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"normal\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"normal\""
+                },
+                {
+                  "log": "Read as normal.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"tort\""
+                },
+                {
+                  "log": "Read as torticollis.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Refer",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "ortho",
+              "label": "Refer to pediatric orthopedics for hip ultrasound this week and tell the pediatrician: positive left Ortolani, limited abduction, Galeazzi, breech"
+            },
+            {
+              "value": "recheck",
+              "label": "Recheck the hips at her next visit in a month"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"ortho\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"ortho\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "Pediatric orthopedics books an ultrasound and visit this week; a Pavlik harness is likely if confirmed.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"recheck\""
+                },
+                {
+                  "log": "Recheck planned.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Explain to her mother and document",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Her mother understands; findings documented.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Pediatric clinic",
+      "clock": "running",
+      "actions": [
+        "neck",
+        "look",
+        "ortolani",
+        "swaddle",
+        "hipteach",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the test",
+      "wait": {
+        "skipLabel": "the test result"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each test or question takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"neck\"",
+              "then": [
+                {
+                  "set": "neckAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Tight right sternocleidomastoid; rotation to the right limited by about 20 degrees.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"look\"",
+              "then": [
+                {
+                  "set": "lookAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Uneven thigh folds, the left knee sits lower in hook-lying, and left hip abduction is limited.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "ortolaniAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Left hip: a palpable clunk as it reduces on Ortolani. Positive.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the end of the visit",
+      "wait": {
+        "skipLabel": "the end of the visit"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 min to make the referral and finish."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "She leaves with an orthopedic appointment this week.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What did you find, and what happens next?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "A breech-born infant with torticollis has a positive left Ortolani, limited abduction, uneven folds and a leg-length difference: probable developmental dysplasia of the hip.",
+          "modelAnswer": "Her left hip clunks back in on Ortolani, abduction is limited, the folds are uneven and the knee sits low. She was breech. That's probably hip dysplasia."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Refers to pediatric orthopedics for ultrasound this week (a Pavlik harness works best before 6 months), tells the pediatrician, teaches hip-healthy swaddling and treats the torticollis.",
+          "modelAnswer": "Refer her to pediatric orthopedics this week, tell the pediatrician, teach hip-healthy swaddling, and keep treating the neck."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "spo2Floor": {
+        "value": 88,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "escalateWindow": {
+        "value": 300,
+        "source": {
+          "cite": "Unit practice (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "Pediatric orthopedics referral within 5 minutes of a positive test (clinic policy: same week)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "A positive hip screen unreferred an hour on is harm here.",
+      "source": {
+        "cite": "Nandhagopal T, et al.. Developmental Dysplasia of the Hip. StatPearls (updated 2024-05-04), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-DDH; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: screen infant hips with the Ortolani and Barlow tests and watch for limited abduction, uneven gluteal folds and leg-length difference; breech position is the biggest risk factor; management may include an abduction splint such as the Pavlik harness set by the orthopedic surgeon, and screening aims to diagnose before 6 months (the course objectives' wording)."
+      }
+    }
+  },
+  "endings": {
+    "late": {
+      "label": "Late diagnosis",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "The hip dysplasia is found at 14 months when she walks with a limp; she needs surgery instead of a harness."
+    },
+    "safe": {
+      "label": "Dysplasia caught early",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"ortho\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and (not isNull(lookAt) and not isNull(ortolaniAt)) and isNull(swaddleAt) and (not isNull(hipteachAt))",
+      "narrative": "{timeAt(leftAt)|clock}: she has an orthopedic visit this week, well before 6 months."
+    },
+    "safeGaps": {
+      "label": "Referred, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: she is referred, but late or with straight-leg swaddling endorsed."
+    },
+    "time_up": {
+      "label": "Undecided at 10:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "10:00 and no referral."
+    }
+  },
+  "endingOrder": [
+    "late",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "Pediatric orthopedics referral within 5 minutes of the positive test",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"ortho\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"ortho\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "screenC",
+        "label": "Screened the hips (observation and Barlow/Ortolani)",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(lookAt) and not isNull(ortolaniAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not screened."
+          }
+        ]
+      },
+      {
+        "id": "swaddleC",
+        "label": "Taught hip-healthy swaddling, not legs straight",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(swaddleAt)",
+            "score": "missed",
+            "why": "Endorsed straight-leg swaddling."
+          },
+          {
+            "when": "not isNull(hipteachAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not taught."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Examined the neck",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(neckAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Recognized probable hip dysplasia",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"ddh\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"normal\"",
+            "score": "missed",
+            "why": "A clunk with limited abduction and asymmetry is not a benign click."
+          },
+          {
+            "when": "dxEnum == \"tort\"",
+            "score": "missed",
+            "why": "Hip dysplasia is a separate diagnosis."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Explained and documented",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: breech plus torticollis means screen the hips; positive Ortolani means orthopedics before 6 months",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Positive test to referral",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "09:00 to the hip screen",
+        "value": "isNull(ortolaniAt) ? -1 : timeAt(ortolaniAt)",
+        "format": "duration",
+        "expert": "under 5 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "09:00",
+        "text": "Neck: tight right SCM."
+      },
+      {
+        "at": "~09:01",
+        "text": "Folds, Galeazzi, abduction: asymmetric."
+      },
+      {
+        "at": "~09:02",
+        "text": "Ortolani positive on the left."
+      },
+      {
+        "at": "~09:03",
+        "text": "Refer to orthopedics; teach hip-healthy swaddling; tell the pediatrician."
+      }
+    ],
+    "debrief": {
+      "late": {
+        "headline": "Late diagnosis",
+        "body": "Breech birth is the biggest risk factor. Screen every torticollis infant's hips; a positive Ortolani needs orthopedics before 6 months, when a harness works."
+      },
+      "safe": {
+        "headline": "Dysplasia caught early",
+        "body": "You screened her hips, found a positive Ortolani, taught hip-healthy swaddling and referred within minutes. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Referred, with gaps",
+        "body": "Check whether you screened fully, what you said about swaddling and how soon you referred."
+      },
+      "time_up": {
+        "headline": "Undecided at 10:00",
+        "body": "Refer a positive screen the same visit."
+      }
+    },
+    "modelReasoning": "Breech position is the biggest risk factor for hip dysplasia, and torticollis often travels with it. Screen with Barlow and Ortolani and look for limited abduction, uneven gluteal folds and a leg-length difference. A positive screen goes to pediatric orthopedics; management may include an abduction splint such as the Pavlik harness, and screening aims to diagnose before 6 months."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "harnQ": {
+      "during": "leaveT",
+      "ask": "While she leaves: what treatment may orthopedics use, and by when should DDH be found?",
+      "choices": [
+        {
+          "id": "pav",
+          "label": "An abduction splint such as a Pavlik harness; diagnose before 6 months"
+        },
+        {
+          "id": "cast",
+          "label": "A cast at age 2"
+        },
+        {
+          "id": "none",
+          "label": "Nothing; it resolves"
+        }
+      ],
+      "expect": "pav",
+      "explain": "Management may include an abduction splint such as the Pavlik harness, set by the orthopedic surgeon; screening aims to diagnose before 6 months.",
+      "source": {
+        "cite": "Nandhagopal T, et al.. Developmental Dysplasia of the Hip. StatPearls (updated 2024-05-04), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-DDH; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: screen infant hips with the Ortolani and Barlow tests and watch for limited abduction, uneven gluteal folds and leg-length difference; breech position is the biggest risk factor; management may include an abduction splint such as the Pavlik harness set by the orthopedic surgeon, and screening aims to diagnose before 6 months (the course objectives' wording)."
+      }
+    },
+    "riskQ": {
+      "during": "testT",
+      "ask": "While you examine: what is the biggest risk factor for hip dysplasia?",
+      "choices": [
+        {
+          "id": "breech",
+          "label": "Breech position"
+        },
+        {
+          "id": "boy",
+          "label": "Being a boy"
+        },
+        {
+          "id": "prem",
+          "label": "Prematurity alone"
+        }
+      ],
+      "expect": "breech",
+      "explain": "Breech position is the biggest risk factor for hip dysplasia.",
+      "source": {
+        "cite": "Nandhagopal T, et al.. Developmental Dysplasia of the Hip. StatPearls (updated 2024-05-04), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-DDH; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: screen infant hips with the Ortolani and Barlow tests and watch for limited abduction, uneven gluteal folds and leg-length difference; breech position is the biggest risk factor; management may include an abduction splint such as the Pavlik harness set by the orthopedic surgeon, and screening aims to diagnose before 6 months (the course objectives' wording)."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

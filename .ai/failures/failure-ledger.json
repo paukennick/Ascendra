@@ -19303,6 +19303,34 @@
       "prevention_rules": [],
       "prevention_notes": "Sim test sets are named by slug; mh-depth.test.ts lists its own documents and checks they match the registry block.",
       "recurrence_of": "FAIL-2002"
+    },
+    {
+      "id": "FAIL-2490",
+      "date": "2026-11-17",
+      "title": "Six new health sims carried objective titles cut short, and one carried another course's secondary objective",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "lib/sim/health-depth-1117.test.ts: 7 failures, 'objective in the <course> catalog' for CCRNNEO/lip-smacking-and-a-pause, ABPTSCCS/cardiac-rehab-weight-up-orthopnea, ABPTSNCS/tilt-table-pounding-headache-t4, ABPTSOCS/rolled-ankle-cant-take-four-steps, ABPTSPWCS/second-trimester-dizzy-on-her-back, ABPTSSCS/runner-groin-pain-hop-test, and a PWCS secondary objective that belongs to the neurology course",
+      "how_detected": "the round's pin test (objective lookup against courseObjectives)",
+      "root_cause": "The builder copied objective titles from a coverage listing displayed with a column cut (cut -c1-240), finished the cut-off endings by guessing, and took a neurology objective for the pelvic health course's MS secondary. The sim linter does not check that the objective is in the course catalog, so the golden runs and lint passed.",
+      "requirement": "REQ-334",
+      "affected": [
+        "backend/supabase/seed/sims/CCRNNEO",
+        "backend/supabase/seed/sims/ABPTSCCS",
+        "backend/supabase/seed/sims/ABPTSNCS",
+        "backend/supabase/seed/sims/ABPTSOCS",
+        "backend/supabase/seed/sims/ABPTSPWCS",
+        "backend/supabase/seed/sims/ABPTSSCS"
+      ],
+      "fix_summary": "Each objective now uses the catalog's exact title, copied from an untruncated listing; the PWCS case's secondary list is empty and its MS source is cited as the neurology course's wording.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/health-depth-1117.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Copy objective titles from the catalog itself, never from a truncated display; run the per-round pin test (objective in catalog) before committing a case, not only lint.",
+      "recurrence_of": ""
     }
   ]
 }

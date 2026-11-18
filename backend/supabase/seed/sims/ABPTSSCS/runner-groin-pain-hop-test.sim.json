@@ -1,0 +1,1054 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "runner-groin-pain-hop-test",
+  "title": "Groin pain in a distance runner",
+  "objective": "Recognize stress fractures as overload injuries, 0.7% to 20% of sports medicine clinic injuries; flag high-risk sites (femoral neck, anterior tibia, tarsal navicular, talus, sesamoids, 5th metatarsal) where non-union risk is high",
+  "secondaryObjectives": [
+    "Explain the female athlete triad as low energy availability (intake that falls short of what training burns, with or without an eating disorder) combined with menstrual disorder and reduced bone mineral density"
+  ],
+  "sources": [
+    {
+      "cite": "Specialist certification examination outline: sports (the certifying board's published outline page)",
+      "checkedAt": "2026-11-08",
+      "url": "https://specialization.apta.org/become-a-specialist/sports/specialist-certification-examination-outline-sports",
+      "note": "Relayed from the sports specialty course seed (backend/supabase/seed/tracks/pt-abpts.ts, outline pages read 2026-10-08 and 2026-11-04, OUTLINE_CHECKED_AT 2026-11-08), not re-read: Patient and client assessment (30%) is a tested area. Scope only; no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra sports specialty course catalog (backend/supabase/seed/tracks/pt-abpts.ts, track ABPTSSCS)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "May T, et al.. Stress Fractures. StatPearls (updated 2023-07-10), StatPearls Publishing",
+      "checkedAt": "2026-11-04",
+      "note": "Relayed from the course seed (tag SP-SF; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: stress fractures are overload injuries, 0.7% to 20% of sports medicine clinic injuries; high-risk sites include the femoral neck, anterior tibia, tarsal navicular, talus, sesamoids and fifth metatarsal, where non-union risk is high (the course objective's wording, its percentage corrected 2026-11-09 to Fredericson et al. 2006)."
+    },
+    {
+      "cite": "Raj MA, et al.. Female Athlete Triad. StatPearls (updated 2023-08-08), StatPearls Publishing",
+      "checkedAt": "2026-11-04",
+      "note": "Relayed from the course seed (tag SP-FAT; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: the triad is low energy availability (intake short of what training burns, with or without an eating disorder) with menstrual disorder and reduced bone mineral density (the course objective's wording)."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "14:00 in a university sports medicine clinic. You are the sports physical therapist. Sofia, 19, a cross-country runner, was referred by the team's athletic trainer for 'hip flexor strain, rehab please'. She has increased her mileage by half this season for the conference championship in 10 days.",
+    "handover": [
+      "She has not had a period for five months and says she has 'cut back on carbs' to race lighter.",
+      "Clinic policy: a suspected high-risk stress fracture is made non-weight bearing and referred to the team physician for same-day imaging."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "14:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.012,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Walking and running on the fracture progress it. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.002,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It is protected once she is non-weight bearing. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of displaced femoral neck fracture. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The team physician called within 5 minutes of a positive exam (clinic policy: same-day imaging)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min to arrange the MRI and transport."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "hxAt": {
+      "type": "time",
+      "init": null
+    },
+    "fulcrumAt": {
+      "type": "time",
+      "init": null
+    },
+    "gaitAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "hx",
+        "fulcrum",
+        "gait"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "doc",
+        "at"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "fns",
+        "strain",
+        "fai"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "nwbAt": {
+      "type": "time",
+      "init": null
+    },
+    "hopAt": {
+      "type": "time",
+      "init": null
+    },
+    "strainAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(64 + sin(t / 9) * 3)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "pain": {
+      "expr": "round(clamp(4 + 6 * max(0, prog - 0.4), 0, 10))",
+      "unit": "/10",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (not isNull(nwbAt) ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Sofia, 19, collegiate distance runner",
+        "presentation": "Right groin pain for 3 weeks, worse with running, now aching at night. {not isNull(nwbAt) ? \"On crutches, no weight on the right leg.\" : \"\"}"
+      },
+      "vitals": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "colour": "ecg",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              105,
+              120
+            ]
+          }
+        },
+        {
+          "id": "pain",
+          "label": "Pain",
+          "spokenLabel": "Pain, out of 10",
+          "value": "pain",
+          "unit": "/10",
+          "colour": "neutral",
+          "alarm": {
+            "high": 8
+          },
+          "announce": {
+            "bands": [
+              6,
+              8
+            ]
+          }
+        }
+      ],
+      "activity": "{not inClinic ? \"Gone for imaging.\" : (not isNull(nwbAt) ? \"Seated, crutches beside her.\" : \"Walking with a slight limp.\")}",
+      "measures": [
+        {
+          "id": "hxResult",
+          "label": "History",
+          "result": "Insidious groin pain 3 weeks, mileage up 50%, night ache, amenorrhea 5 months, restricted intake.",
+          "when": "not isNull(hxAt)"
+        },
+        {
+          "id": "fulcrumResult",
+          "label": "Hip exam",
+          "result": "Pain at end-range hip internal rotation; positive fulcrum test.",
+          "when": "not isNull(fulcrumAt)",
+          "flag": "true"
+        },
+        {
+          "id": "gaitResult",
+          "label": "Gait",
+          "result": "Mild antalgic gait.",
+          "when": "not isNull(gaitAt)"
+        }
+      ],
+      "dosage": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "Non-weight bearing on crutches",
+            "when": "not isNull(nwbAt)"
+          },
+          {
+            "label": "Loading tests done",
+            "when": "not isNull(hopAt)"
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleNwb",
+          "label": "Suspected femoral neck stress fracture",
+          "text": "No hop or loading tests; non-weight bearing; same-day imaging.",
+          "met": "not isNull(fulcrumAt) and isNull(nwbAt)"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "hx": {
+      "label": "History: onset, training change, night pain, menstrual history, diet",
+      "group": "Examine",
+      "available": "not testPending and isNull(hxAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"hx\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "fulcrum": {
+      "label": "Gentle exam: hip range, end-range pain, palpation, fulcrum test",
+      "group": "Examine",
+      "available": "not testPending and isNull(fulcrumAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"fulcrum\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "gait": {
+      "label": "Observe walking",
+      "group": "Examine",
+      "available": "not testPending and isNull(gaitAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"gait\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "nwb": {
+      "label": "Crutches, non-weight bearing on the right from now",
+      "group": "Treat",
+      "available": "isNull(nwbAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "nwbAt",
+          "to": "t"
+        },
+        {
+          "log": "Fitted with crutches, non-weight bearing on the right.",
+          "kind": "act"
+        }
+      ]
+    },
+    "hop": {
+      "label": "Single-leg hop test to confirm",
+      "group": "Treat",
+      "available": "isNull(hopAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "hopAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.5, 2)"
+        },
+        {
+          "log": "She hops on the right and cries out, grabbing her groin.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "strain": {
+      "label": "Start a hip flexor strain program and clear her to race at reduced mileage",
+      "group": "Treat",
+      "available": "isNull(strainAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "strainAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.4, 2)"
+        },
+        {
+          "log": "Strain program given; she runs 8 km that evening.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "What is this?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "fns",
+              "label": "A suspected femoral neck stress fracture (a high-risk site), with features of the female athlete triad: low energy availability, amenorrhea, likely low bone density"
+            },
+            {
+              "value": "strain",
+              "label": "A hip flexor strain, as referred"
+            },
+            {
+              "value": "fai",
+              "label": "Hip impingement"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"fns\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"fns\""
+                },
+                {
+                  "log": "Suspected femoral neck stress fracture with the triad.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"strain\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"strain\""
+                },
+                {
+                  "log": "Read as strain.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"fai\""
+                },
+                {
+                  "log": "Read as impingement.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Refer",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "doc",
+              "label": "Call the team physician now: suspected femoral neck stress fracture (positive fulcrum, night pain, 50% mileage jump), amenorrhea 5 months and restricted intake; non-weight bearing; same-day MRI"
+            },
+            {
+              "value": "at",
+              "label": "Send a note back to the athletic trainer to manage"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"doc\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"doc\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "The team physician orders a same-day MRI, keeps her non-weight bearing and refers her to the sports dietitian and for bone density testing.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"at\""
+                },
+                {
+                  "log": "A note goes to the athletic trainer.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Explain to her (and, with her consent, the athletic trainer) why she cannot race, and the energy availability link",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "She understands she cannot race, why bone needs fuel, and that the dietitian and physician will help her.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Sports medicine clinic",
+      "clock": "running",
+      "actions": [
+        "hx",
+        "fulcrum",
+        "gait",
+        "nwb",
+        "hop",
+        "strain",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the test",
+      "wait": {
+        "skipLabel": "the test result"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each test or question takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"hx\"",
+              "then": [
+                {
+                  "set": "hxAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Insidious right groin pain over 3 weeks after a 50% mileage increase; now aching at night; no period for 5 months; restricting carbohydrates.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"fulcrum\"",
+              "then": [
+                {
+                  "set": "fulcrumAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Deep groin pain at end-range internal rotation and a positive fulcrum test: a femoral neck stress fracture is suspected.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "gaitAt",
+                  "to": "t"
+                },
+                {
+                  "log": "A mild antalgic gait on the right.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the MRI",
+      "wait": {
+        "skipLabel": "the MRI"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min to arrange the MRI and transport."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "She leaves for the MRI on crutches.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What does Sofia have, and what do you do?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "Overload: a 50% mileage jump, night pain, end-range pain and a positive fulcrum test suggest a femoral neck stress fracture, a high-risk site; amenorrhea and restricted intake point to the female athlete triad and low bone density.",
+          "modelAnswer": "It's not a strain. A big mileage jump, night pain and a positive fulcrum test mean a femoral neck stress fracture, which is high-risk. The missed periods and dieting are the triad, which means weak bone."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Non-weight bearing on crutches, no hop or loading tests, same-day physician referral for MRI, and referral for nutrition and bone density.",
+          "modelAnswer": "Crutches, no weight, no hop test, call the team doc for a same-day MRI, and get her to the dietitian and bone density testing."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "spo2Floor": {
+        "value": 88,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "escalateWindow": {
+        "value": 300,
+        "source": {
+          "cite": "Unit practice (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "The team physician called within 5 minutes of a positive exam (clinic policy: same-day imaging)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "A suspected femoral neck stress fracture left weight bearing an hour on is harm here.",
+      "source": {
+        "cite": "Raj MA, et al.. Female Athlete Triad. StatPearls (updated 2023-08-08), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-FAT; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: the triad is low energy availability (intake short of what training burns, with or without an eating disorder) with menstrual disorder and reduced bone mineral density (the course objective's wording)."
+      }
+    }
+  },
+  "endings": {
+    "displaced": {
+      "label": "Displaced femoral neck fracture",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "On a training run she feels a crack and falls; the stress fracture has completed and displaced, needing emergency surgery with a risk of avascular necrosis."
+    },
+    "safe": {
+      "label": "Protected and referred",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"doc\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and isNull(hopAt) and isNull(strainAt) and (not isNull(nwbAt)) and (not isNull(hxAt))",
+      "narrative": "{timeAt(leftAt)|clock}: she is on crutches heading for an MRI, with the triad being addressed."
+    },
+    "safeGaps": {
+      "label": "Referred, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: she reaches imaging, but the call was slow, she was hop-tested, or the triad history was missed."
+    },
+    "time_up": {
+      "label": "Undecided at 15:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "15:00 and no plan."
+    }
+  },
+  "endingOrder": [
+    "displaced",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "The team physician called for same-day imaging within 5 minutes of the exam",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"doc\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"doc\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "nwbC",
+        "label": "Non-weight bearing, no hop test or running",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(hopAt) or not isNull(strainAt)",
+            "score": "missed",
+            "why": "Loaded or cleared to run."
+          },
+          {
+            "when": "not isNull(nwbAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not non-weight bearing."
+          }
+        ]
+      },
+      {
+        "id": "triadC",
+        "label": "Took the menstrual and dietary history",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(hxAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not taken."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Observed her gait",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(gaitAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Suspected a high-risk femoral neck stress fracture, with the triad behind it",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"fns\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"strain\"",
+            "score": "missed",
+            "why": "Night pain and a positive fulcrum test point to bone."
+          },
+          {
+            "when": "dxEnum == \"fai\"",
+            "score": "missed",
+            "why": "The training change, night pain and triad point to a stress fracture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Explained the plan and the triad",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: femoral neck stress fracture is high risk; non-weight bearing and imaging; the triad underneath",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Positive exam to the referral",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "14:00 to non-weight bearing",
+        "value": "isNull(nwbAt) ? -1 : timeAt(nwbAt)",
+        "format": "duration",
+        "expert": "under 8 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "14:00",
+        "text": "History: training jump, night pain, amenorrhea, restriction."
+      },
+      {
+        "at": "~14:04",
+        "text": "Gentle exam: positive fulcrum."
+      },
+      {
+        "at": "~14:05",
+        "text": "Crutches, non-weight bearing; call the team physician."
+      },
+      {
+        "at": "~14:07",
+        "text": "Gait; explain the plan and the triad."
+      }
+    ],
+    "debrief": {
+      "displaced": {
+        "headline": "Displaced femoral neck fracture",
+        "body": "Groin pain with night ache, a training jump and amenorrhea in a runner is a femoral neck stress fracture until proven otherwise: non-weight bearing and same-day imaging; never hop-test it."
+      },
+      "safe": {
+        "headline": "Protected and referred",
+        "body": "You took the triad history, examined gently, kept her off the leg, avoided loading tests and called within minutes. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Referred, with gaps",
+        "body": "Check whether she was loaded, whether the menstrual and diet history was taken, and how soon you called."
+      },
+      "time_up": {
+        "headline": "Undecided at 15:00",
+        "body": "A high-risk stress fracture needs a same-day decision."
+      }
+    },
+    "modelReasoning": "Stress fractures are overload injuries; the femoral neck is a high-risk site because a fracture can complete and displace. Sofia's training jump, night pain, pain at end-range rotation and positive fulcrum test make it likely. Make her non-weight bearing, avoid hop and loading tests, and refer her for same-day imaging. Her amenorrhea and restricted intake are the female athlete triad (low energy availability, menstrual disorder, reduced bone density), which raises fracture risk and needs nutrition and bone health care."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "siteQ": {
+      "during": "testT",
+      "ask": "While you examine: which stress fracture sites are high risk?",
+      "choices": [
+        {
+          "id": "hi",
+          "label": "Femoral neck, anterior tibia, navicular, talus, sesamoids, 5th metatarsal"
+        },
+        {
+          "id": "lo",
+          "label": "Fibula and calcaneus only"
+        },
+        {
+          "id": "none",
+          "label": "None; all heal with rest"
+        }
+      ],
+      "expect": "hi",
+      "explain": "High-risk sites include the femoral neck, anterior tibia, tarsal navicular, talus, sesamoids and fifth metatarsal.",
+      "source": {
+        "cite": "May T, et al.. Stress Fractures. StatPearls (updated 2023-07-10), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-SF; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: stress fractures are overload injuries, 0.7% to 20% of sports medicine clinic injuries; high-risk sites include the femoral neck, anterior tibia, tarsal navicular, talus, sesamoids and fifth metatarsal, where non-union risk is high (the course objective's wording, its percentage corrected 2026-11-09 to Fredericson et al. 2006)."
+      }
+    },
+    "triadQ": {
+      "during": "leaveT",
+      "ask": "While she goes for imaging: what makes up the female athlete triad?",
+      "choices": [
+        {
+          "id": "triad",
+          "label": "Low energy availability, menstrual disorder, reduced bone density"
+        },
+        {
+          "id": "iron",
+          "label": "Anemia, fatigue, injury"
+        },
+        {
+          "id": "over",
+          "label": "Overtraining only"
+        }
+      ],
+      "expect": "triad",
+      "explain": "Low energy availability combined with menstrual disorder and reduced bone mineral density.",
+      "source": {
+        "cite": "Raj MA, et al.. Female Athlete Triad. StatPearls (updated 2023-08-08), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-FAT; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: the triad is low energy availability (intake short of what training burns, with or without an eating disorder) with menstrual disorder and reduced bone mineral density (the course objective's wording)."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

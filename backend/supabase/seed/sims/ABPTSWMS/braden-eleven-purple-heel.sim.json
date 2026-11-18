@@ -1,0 +1,1010 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "braden-eleven-purple-heel",
+  "title": "Braden eleven and a purple heel",
+  "objective": "Pressure injuries: etiology, staging and risk assessment",
+  "secondaryObjectives": [
+    "Assess risk with the Braden scale's six areas (sensory perception, moisture, activity, mobility, nutrition, friction and shear), plus nutrition, hydration, cognition and mobility"
+  ],
+  "sources": [
+    {
+      "cite": "Specialist certification examination outline: wound management (the certifying board's published outline page)",
+      "checkedAt": "2026-11-08",
+      "url": "https://specialization.apta.org/become-a-specialist/wound-management/specialist-certification-examination-outline-wound-management",
+      "note": "Relayed from the wound management specialty course seed (backend/supabase/seed/tracks/pt-abpts.ts, outline pages read 2026-10-08 and 2026-11-04, OUTLINE_CHECKED_AT 2026-11-08), not re-read: Wound management clinical sciences (12%) is a tested area. Scope only; no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra wound management specialty course catalog (backend/supabase/seed/tracks/pt-abpts.ts, track ABPTSWMS)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Zaidi SRH, Sharma S. Pressure Injury. StatPearls (updated 2026-07-05), StatPearls Publishing",
+      "checkedAt": "2026-11-04",
+      "note": "Relayed from the course seed (tag SP-PI; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: assess risk with the Braden scale's six areas (sensory perception, moisture, activity, mobility, nutrition, friction and shear), plus nutrition, hydration, cognition and mobility; pressure injuries are classified by etiology and stage (the course objectives' wording)."
+    },
+    {
+      "cite": "Provider Magazine (AHCA/NCAL), July 2017: Definitions Included in Updated NPUAP Staging System",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.providermagazine.com/Issues/2017/July/Pages/Definitions-Included-in-Updated-NPUAP-Staging-System.aspx",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: Stage 1: 'Intact skin with a localized area of non-blanchable erythema'; Deep Tissue Pressure Injury: 'Persistent non-blanchable deep red, maroon, or purple discoloration', 'Intact or non-intact skin with localized area of persistent non-blanchable deep red, maroon, purple discoloration or epidermal separation'; 'The wound may evolve rapidly to reveal the actual extent of tissue injury.'"
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "10:00 on a stroke unit. You are the physical therapist on the wound team, consulted for Mrs. Hughes, 79, on day 2 after a left hemisphere stroke. She is incontinent of urine, eats less than half her meals and slides down the bed.",
+    "handover": [
+      "The nurse says her right heel 'looks bruised'.",
+      "Hospital policy: Braden 12 or less is high risk; the wound team recommends the support surface, offloading and nutrition consult, and tells the nurse and provider the same shift; suspected deep tissue injury is offloaded at once."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "10:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.014,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Pressure keeps damaging the deep tissue of the heel. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.003,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It slows once the heel is floated. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of full-thickness heel injury. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The nurse and provider told within 5 minutes of the heel finding (hospital policy: same shift)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min for the surface and plan."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "bradenAt": {
+      "type": "time",
+      "init": null
+    },
+    "heelAt": {
+      "type": "time",
+      "init": null
+    },
+    "nutrAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "braden",
+        "heel",
+        "nutr"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "rn",
+        "note"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "dti",
+        "bruise",
+        "stage1"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "floatAt": {
+      "type": "time",
+      "init": null
+    },
+    "massageAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "pain": {
+      "expr": "round(clamp(2 + 4 * max(0, prog - 0.5), 0, 10))",
+      "unit": "/10",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (not isNull(floatAt) ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Mrs. Hughes, 79, day 2 after a stroke, hospital wound consult",
+        "presentation": "Right hemiparesis, incontinent, eating little; on a standard mattress. {not isNull(floatAt) ? \"Heels floated off the bed.\" : \"\"}"
+      },
+      "vitals": [
+        {
+          "id": "pain",
+          "label": "Pain",
+          "spokenLabel": "Pain, out of 10",
+          "value": "pain",
+          "unit": "/10",
+          "colour": "neutral",
+          "alarm": {
+            "high": 8
+          },
+          "announce": {
+            "bands": [
+              6,
+              8
+            ]
+          }
+        }
+      ],
+      "activity": "{not inClinic ? \"Consult complete.\" : (not isNull(floatAt) ? \"Lying with heels floated on a pillow, on a pressure-redistributing surface.\" : \"Lying on her back, heels on the mattress.\")}",
+      "measures": [
+        {
+          "id": "bradenResult",
+          "label": "Braden",
+          "result": "Sensory 2, moisture 2, activity 1, mobility 2, nutrition 2, friction and shear 2: total 11 (high risk).",
+          "when": "not isNull(bradenAt)"
+        },
+        {
+          "id": "heelResult",
+          "label": "Skin",
+          "result": "Right heel: intact, purple-maroon, boggy; sacrum blanching redness.",
+          "when": "not isNull(heelAt)",
+          "flag": "true"
+        },
+        {
+          "id": "nutrResult",
+          "label": "Nutrition",
+          "result": "Eating under half her meals; dry mouth.",
+          "when": "not isNull(nutrAt)"
+        }
+      ],
+      "dosage": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "Heels offloaded",
+            "when": "not isNull(floatAt)"
+          },
+          {
+            "label": "Braden score done",
+            "when": "not isNull(bradenAt)"
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleDti",
+          "label": "Purple intact skin on the heel",
+          "text": "Suspected deep tissue injury: offload now; no massage.",
+          "met": "not isNull(heelAt) and isNull(floatAt)"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "braden": {
+      "label": "Score the Braden scale with the nurse",
+      "group": "Examine",
+      "available": "not testPending and isNull(bradenAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"braden\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "heel": {
+      "label": "Inspect both heels and the sacrum",
+      "group": "Examine",
+      "available": "not testPending and isNull(heelAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"heel\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "nutr": {
+      "label": "Check intake, weight and hydration",
+      "group": "Examine",
+      "available": "not testPending and isNull(nutrAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"nutr\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "float": {
+      "label": "Float both heels off the bed and recommend a pressure-redistributing surface",
+      "group": "Treat",
+      "available": "isNull(floatAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "floatAt",
+          "to": "t"
+        },
+        {
+          "log": "Heels floated with a pillow under the calves; a pressure-redistributing mattress requested.",
+          "kind": "act"
+        }
+      ]
+    },
+    "massage": {
+      "label": "Massage the purple area to bring the circulation back",
+      "group": "Treat",
+      "available": "isNull(massageAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "massageAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.3, 2)"
+        },
+        {
+          "log": "The heel is massaged.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "What did you find?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "dti",
+              "label": "High risk (Braden 11) with a suspected deep tissue pressure injury of the right heel: intact, purple, non-blanching"
+            },
+            {
+              "value": "bruise",
+              "label": "A bruise from the stroke fall"
+            },
+            {
+              "value": "stage1",
+              "label": "Stage 1 only"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"dti\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"dti\""
+                },
+                {
+                  "log": "High risk; suspected heel deep tissue injury.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"bruise\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"bruise\""
+                },
+                {
+                  "log": "Read as bruise.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"stage1\""
+                },
+                {
+                  "log": "Read as stage 1.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Report",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "rn",
+              "label": "Tell the nurse and provider: Braden 11, suspected deep tissue injury right heel, heels floated; recommend a support surface, a turning plan by her risks and a dietitian consult"
+            },
+            {
+              "value": "note",
+              "label": "Write it in the consult note for tomorrow"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"rn\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"rn\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "The surface is ordered, the dietitian consulted, and the nurse starts a repositioning plan.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"note\""
+                },
+                {
+                  "log": "Noted.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document the Braden score, heel findings with measurements and the plan",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Braden subscores, heel measurements and color, and the plan documented.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Stroke unit",
+      "clock": "running",
+      "actions": [
+        "braden",
+        "heel",
+        "nutr",
+        "float",
+        "massage",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the test",
+      "wait": {
+        "skipLabel": "the test result"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each test or question takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"braden\"",
+              "then": [
+                {
+                  "set": "bradenAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Sensory perception 2, moisture 2, activity 1, mobility 2, nutrition 2, friction and shear 2: total 11, high risk.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"heel\"",
+              "then": [
+                {
+                  "set": "heelAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Right heel: intact skin, purple-maroon and boggy, non-blanching: a suspected deep tissue pressure injury. Sacrum: blanching redness.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "nutrAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Eating less than half her meals; dry mouth; no dietitian consult yet.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the end of the consult",
+      "wait": {
+        "skipLabel": "the end of the consult"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min for the surface and plan."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "The surface is coming; the plan is in place.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What is her risk, and what does the heel show?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "Braden 11 (sensory, moisture, activity, mobility, nutrition, friction and shear) is high risk; the intact, purple, boggy, non-blanching heel is a suspected deep tissue pressure injury.",
+          "modelAnswer": "She's Braden 11, high risk across the board, and that heel is a deep tissue injury: intact, purple, boggy and not blanching."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Floats the heels, recommends a support surface, repositioning by her risks and a dietitian, no massage, tells the nurse and provider, documents.",
+          "modelAnswer": "Float her heels, get a support surface, a repositioning plan and a dietitian, no massage, tell the nurse and provider, and document."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "spo2Floor": {
+        "value": 88,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "escalateWindow": {
+        "value": 300,
+        "source": {
+          "cite": "Unit practice (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "The nurse and provider told within 5 minutes of the heel finding (hospital policy: same shift)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "A suspected deep tissue injury still loaded an hour on is harm here.",
+      "source": {
+        "cite": "Provider Magazine (AHCA/NCAL), July 2017: Definitions Included in Updated NPUAP Staging System",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.providermagazine.com/Issues/2017/July/Pages/Definitions-Included-in-Updated-NPUAP-Staging-System.aspx",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: Stage 1: 'Intact skin with a localized area of non-blanchable erythema'; Deep Tissue Pressure Injury: 'Persistent non-blanchable deep red, maroon, or purple discoloration', 'Intact or non-intact skin with localized area of persistent non-blanchable deep red, maroon, purple discoloration or epidermal separation'; 'The wound may evolve rapidly to reveal the actual extent of tissue injury.'"
+      }
+    }
+  },
+  "endings": {
+    "fullThickness": {
+      "label": "Full-thickness heel injury",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "Over the next days the heel opens into a full-thickness wound with necrotic tissue."
+    },
+    "safe": {
+      "label": "Risk scored, heel protected",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"rn\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and (not isNull(bradenAt)) and isNull(massageAt) and (not isNull(floatAt))",
+      "narrative": "{timeAt(leftAt)|clock}: her heels are floated, a support surface is coming, and her plan addresses her risks."
+    },
+    "safeGaps": {
+      "label": "Protected, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: she is protected, but late or after massage."
+    },
+    "time_up": {
+      "label": "Unprotected at 11:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "11:00 and her heel is still loaded."
+    }
+  },
+  "endingOrder": [
+    "fullThickness",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "The nurse and provider told within 5 minutes of the heel finding",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"rn\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"rn\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "bradenC",
+        "label": "Scored all six Braden areas",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(bradenAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not scored."
+          }
+        ]
+      },
+      {
+        "id": "floatC",
+        "label": "Offloaded the heel and did not massage it",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(massageAt)",
+            "score": "missed",
+            "why": "Massaged."
+          },
+          {
+            "when": "not isNull(floatAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not offloaded."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Checked nutrition and hydration",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(nutrAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Read her risk and the heel correctly",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"dti\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"bruise\"",
+            "score": "missed",
+            "why": "Non-blanching purple over a pressure point is a deep tissue injury."
+          },
+          {
+            "when": "dxEnum == \"stage1\"",
+            "score": "missed",
+            "why": "Purple-maroon and boggy is deep tissue injury."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: Braden 11 is high risk; purple intact heel is a deep tissue injury; offload",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Heel finding to the report",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "10:00 to heels floated",
+        "value": "isNull(floatAt) ? -1 : timeAt(floatAt)",
+        "format": "duration",
+        "expert": "under 5 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "10:00",
+        "text": "Braden with the nurse: 11."
+      },
+      {
+        "at": "~10:01",
+        "text": "Heels: right heel purple, intact, boggy."
+      },
+      {
+        "at": "~10:02",
+        "text": "Float heels; tell the nurse and provider."
+      },
+      {
+        "at": "~10:04",
+        "text": "Nutrition; document."
+      }
+    ],
+    "debrief": {
+      "fullThickness": {
+        "headline": "Full-thickness heel injury",
+        "body": "Score all six Braden areas and look at the heels: purple, intact, non-blanching skin over the heel is a deep tissue injury that needs offloading at once, never massage."
+      },
+      "safe": {
+        "headline": "Risk scored, heel protected",
+        "body": "You scored the Braden scale, found and offloaded the deep tissue injury, avoided massage and told the team within minutes. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Protected, with gaps",
+        "body": "Check whether you scored the Braden scale, massaged the heel and how soon you told the team."
+      },
+      "time_up": {
+        "headline": "Unprotected at 11:00",
+        "body": "Offload a deep tissue injury at once."
+      }
+    },
+    "modelReasoning": "Assess pressure injury risk with the Braden scale's six areas (sensory perception, moisture, activity, mobility, nutrition, friction and shear) plus hydration and cognition. Mrs. Hughes scores 11, high risk. Purple-maroon, intact, non-blanching skin over the heel is a suspected deep tissue pressure injury: float the heels at once, use a pressure-redistributing surface, plan repositioning around her risk factors, address nutrition, and never massage it."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "dtiQ": {
+      "during": "leaveT",
+      "ask": "While the surface comes: how is a suspected deep tissue injury handled?",
+      "choices": [
+        {
+          "id": "off",
+          "label": "Offload it fully; never massage"
+        },
+        {
+          "id": "massage",
+          "label": "Massage it"
+        },
+        {
+          "id": "dress",
+          "label": "Cover it and leave it loaded"
+        }
+      ],
+      "expect": "off",
+      "explain": "A deep tissue pressure injury is persistent non-blanchable deep red, maroon or purple discoloration that may evolve rapidly to reveal the actual extent of tissue injury, so it is protected from further pressure.",
+      "source": {
+        "cite": "Provider Magazine (AHCA/NCAL), July 2017: Definitions Included in Updated NPUAP Staging System",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.providermagazine.com/Issues/2017/July/Pages/Definitions-Included-in-Updated-NPUAP-Staging-System.aspx",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: Stage 1: 'Intact skin with a localized area of non-blanchable erythema'; Deep Tissue Pressure Injury: 'Persistent non-blanchable deep red, maroon, or purple discoloration', 'Intact or non-intact skin with localized area of persistent non-blanchable deep red, maroon, purple discoloration or epidermal separation'; 'The wound may evolve rapidly to reveal the actual extent of tissue injury.'"
+      }
+    },
+    "bradenQ": {
+      "during": "testT",
+      "ask": "While you score: what are the Braden scale's six areas?",
+      "choices": [
+        {
+          "id": "six",
+          "label": "Sensory perception, moisture, activity, mobility, nutrition, friction and shear"
+        },
+        {
+          "id": "vitals",
+          "label": "Vital signs"
+        },
+        {
+          "id": "age",
+          "label": "Age and weight"
+        }
+      ],
+      "expect": "six",
+      "explain": "The Braden scale's six areas: sensory perception, moisture, activity, mobility, nutrition, friction and shear.",
+      "source": {
+        "cite": "Zaidi SRH, Sharma S. Pressure Injury. StatPearls (updated 2026-07-05), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-PI; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: assess risk with the Braden scale's six areas (sensory perception, moisture, activity, mobility, nutrition, friction and shear), plus nutrition, hydration, cognition and mobility; pressure injuries are classified by etiology and stage (the course objectives' wording)."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

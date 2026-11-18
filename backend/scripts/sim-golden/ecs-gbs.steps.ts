@@ -1,12 +1,12 @@
-// REQ-323 (health breadth): golden paths for
-// ABPTSECS/carpal-tunnel-referral-demyelinating-gbs. No prototype exists, so the
+// REQ-334 (health depth, 2026-11-17 evening): golden paths for
+// ABPTSECS/too-early-to-test-day-four-weakness. No prototype exists, so the
 // expectations are the engine's own results, re-checked by every `npm test`.
 //
 //   npm run sim:golden -- steps ecs-gbs
 import type { Ctl, StepsSpec } from "./steps.ts";
 import { pace, teach, until } from "./s2b-helpers.ts";
 
-export const ENTRY = { course: "ABPTSECS", slug: "carpal-tunnel-referral-demyelinating-gbs" };
+export const ENTRY = { course: "ABPTSECS", slug: "too-early-to-test-day-four-weakness" };
 
 const ended = (c: Ctl): boolean => c.run.state.ended !== null;
 const upTo = (c: Ctl, tick: number): void => until(c, (x) => x.run.state.tick >= tick || ended(x));
@@ -28,81 +28,72 @@ export function spec(): StepsSpec {
     paths: [
       {
         id: "expert",
-        title: "Expert at study pace: history, strength and reflexes, single breath count, brief motor studies; suspected Guillain-Barre syndrome; 911; physician told",
+        title: "Expert at study pace: exam, H-reflexes, breathing, calls, conduction, repeat plan, report",
         reasoning: "met",
         drive: (c) => {
           pace(c, 3);
           upTo(c, 1);
-          test(c, "hx");
           test(c, "exam");
-          test(c, "sbc");
-          test(c, "ncs");
-          act(c, "diagnose", { dx: "aidp" });
-          act(c, "refer", { how: "ed" });
-          act(c, "tell");
-          toEnd(c);
-        },
-      },
-      {
-        id: "fullStudy",
-        title: "Completes a full needle EMG before checking breathing and calling 911",
-        reasoning: "partial",
-        drive: (c) => {
-          test(c, "hx");
-          test(c, "ncs");
-          test(c, "emg");
-          test(c, "sbc");
-          act(c, "diagnose", { dx: "aidp" });
-          act(c, "refer", { how: "ed" });
-          act(c, "tell");
-          toEnd(c);
-        },
-      },
-      {
-        id: "noBreathCheck",
-        title: "Reads the studies correctly and calls 911, but never checks her breathing",
-        reasoning: "partial",
-        drive: (c) => {
-          test(c, "hx");
-          test(c, "exam");
-          test(c, "ncs");
-          act(c, "diagnose", { dx: "aidp" });
-          act(c, "refer", { how: "ed" });
-          act(c, "tell");
-          toEnd(c);
-        },
-      },
-      {
-        id: "routineNeurology",
-        title: "Failure: a correct pattern, but a routine neurology referral and home",
-        reasoning: "missed",
-        drive: (c) => {
-          test(c, "hx");
-          test(c, "ncs");
-          act(c, "diagnose", { dx: "aidp" });
+          test(c, "href");
+          test(c, "breath");
+          act(c, "diagnose", { dx: "gbs" });
           act(c, "refer", { how: "neuro" });
+          test(c, "motor");
+          act(c, "repeat");
+          act(c, "tell");
           toEnd(c);
         },
       },
       {
-        id: "asReferred",
-        title: "Failure: straight to the studies, reported as bilateral carpal tunnel syndrome, splints and home",
-        reasoning: "missed",
+        id: "lateCall",
+        title: "Does the study, but calls 8 minutes after the H-reflexes",
+        reasoning: "partial",
         drive: (c) => {
-          test(c, "ncs");
-          act(c, "diagnose", { dx: "cts" });
-          act(c, "refer", { how: "home" });
+          test(c, "exam");
+          test(c, "href");
+          test(c, "motor");
+          test(c, "breath");
+          upTo(c, 130);
+          act(c, "diagnose", { dx: "gbs" });
+          act(c, "refer", { how: "neuro" });
+          act(c, "repeat");
+          act(c, "tell");
           toEnd(c);
         },
       },
       {
-        id: "studyOnly",
-        title: "Failure: a full study, a chronic axonal impression and no decision",
+        id: "noStudy",
+        title: "Calls on the exam alone without doing the study",
+        reasoning: "partial",
+        drive: (c) => {
+          test(c, "exam");
+          test(c, "breath");
+          act(c, "diagnose", { dx: "gbs" });
+          act(c, "refer", { how: "neuro" });
+          act(c, "tell");
+          toEnd(c);
+        },
+      },
+      {
+        id: "waited",
+        title: "Failure: too early to test, rebooked for three weeks",
         reasoning: "missed",
         drive: (c) => {
-          test(c, "hx");
-          test(c, "emg");
-          act(c, "diagnose", { dx: "axonal" });
+          act(c, "diagnose", { dx: "early" });
+          act(c, "home");
+          act(c, "refer", { how: "report" });
+          toEnd(c);
+        },
+      },
+      {
+        id: "misread",
+        title: "Failure: does the study, reads sural sparing as not GBS, sends him home",
+        reasoning: "missed",
+        drive: (c) => {
+          test(c, "href");
+          test(c, "motor");
+          act(c, "diagnose", { dx: "normal" });
+          act(c, "home");
           toEnd(c);
         },
       },

@@ -1,0 +1,1107 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "treadmill-ordered-freezing-in-doorways",
+  "title": "Treadmill ordered, freezing in doorways",
+  "objective": "Deliver Parkinson disease care within an integrated care approach, use behavior-change strategies to raise activity, and know telerehabilitation may be used to improve balance",
+  "secondaryObjectives": [
+    "Use external cueing for freezing of gait, plus gait training and task-specific training, in Parkinson disease; consider cycling over treadmill walking for people at high fall risk or with freezing"
+  ],
+  "sources": [
+    {
+      "cite": "Specialist certification examination outline: neurology (the certifying board's published outline page)",
+      "checkedAt": "2026-11-08",
+      "url": "https://specialization.apta.org/become-a-specialist/neurology/specialist-certification-examination-outline-neurology",
+      "note": "Relayed from the neurology specialty course seed (backend/supabase/seed/tracks/pt-abpts.ts, outline pages read 2026-10-08 and 2026-11-04, OUTLINE_CHECKED_AT 2026-11-08), not re-read: Clinical reasoning, professionalism, communication, education and systems-based practice (25%) is a tested area. Scope only; no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra neurology specialty course catalog (backend/supabase/seed/tracks/pt-abpts.ts, track ABPTSNCS)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Osborne JA, et al. Physical Therapist Management of Parkinson Disease: A Clinical Practice Guideline From the American Physical Therapy Association. Phys Ther 2022, doi:10.1093/ptj/pzab302",
+      "checkedAt": "2026-11-04",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9046970/",
+      "note": "Relayed from the course seed (backend/supabase/seed/tracks/pt-abpts.ts, tag PD-CPG; full text read 2026-11-04), not re-read: deliver Parkinson disease care within an integrated care approach, use behavior-change strategies to raise activity, and know telerehabilitation may be used to improve balance; use external cueing for freezing of gait, plus gait and task-specific training, and consider cycling over treadmill walking for people at high fall risk or with freezing (the neurology course objectives' wording)."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "10:00 in an outpatient neurologic clinic. You are the physical therapist. Mr. Brandt, 71, has had Parkinson disease for 8 years. His referral says 'treadmill training'. His wife says he freezes in doorways, has fallen twice in 3 months, sits most of the day now, coughs when he drinks, and 'seems down'.",
+    "handover": [
+      "He sees his neurologist every 6 months; no speech-language or occupational therapist is involved.",
+      "Clinic policy: share findings outside physical therapy scope with the referring neurologist the same day."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "10:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.004,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Inactivity and unaddressed freezing keep his fall risk high. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.001,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A team plan lowers it. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of fall on the treadmill. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The neurologist contacted within 5 minutes of the freezing assessment (clinic policy: same day)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min to finish the visit."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "freezeAt": {
+      "type": "time",
+      "init": null
+    },
+    "fallsAt": {
+      "type": "time",
+      "init": null
+    },
+    "lifeAt": {
+      "type": "time",
+      "init": null
+    },
+    "cuetryAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "freeze",
+        "falls",
+        "life",
+        "cuetry"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "team",
+        "none"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "team",
+        "tread",
+        "pt"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "treadAt": {
+      "type": "time",
+      "init": null
+    },
+    "cueAt": {
+      "type": "time",
+      "init": null
+    },
+    "goalsAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(isNull(treadAt) ? 74 : 102)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(isNull(treadAt) ? 132 : 148)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.58)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (route == \"team\" and isNull(treadAt) ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Mr. Brandt, 71, Parkinson disease for 8 years",
+        "presentation": "Referred for 'treadmill training'. Two falls in 3 months. {not isNull(treadAt) ? \"On the treadmill.\" : \"\"}"
+      },
+      "vitals": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "colour": "ecg",
+          "alarm": {
+            "high": 130
+          },
+          "announce": {
+            "bands": [
+              115,
+              130
+            ]
+          }
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "announce": {
+            "bands": [
+              160,
+              180
+            ]
+          },
+          "colour": "art"
+        }
+      ],
+      "activity": "{not inClinic ? \"Visit over.\" : (not isNull(treadAt) ? \"On the treadmill, steps shortening.\" : (not isNull(cueAt) ? \"Stepping over floor lines to a metronome.\" : \"Seated with his wife.\"))}",
+      "measures": [
+        {
+          "id": "freezeResult",
+          "label": "Freezing",
+          "result": "Freezes at the doorway and on the turn; feet 'glued'.",
+          "when": "not isNull(freezeAt)",
+          "flag": "true"
+        },
+        {
+          "id": "fallsResult",
+          "label": "Falls",
+          "result": "Both in doorways at home, turning.",
+          "when": "not isNull(fallsAt)"
+        },
+        {
+          "id": "lifeResult",
+          "label": "Daily life",
+          "result": "Sits most of the day; coughs with drinks; low mood; wants to walk his dog again.",
+          "when": "not isNull(lifeAt)"
+        },
+        {
+          "id": "cuetryResult",
+          "label": "Cue trial",
+          "result": "Steps through the doorway with lines and a beat.",
+          "when": "not isNull(cuetryAt)"
+        }
+      ],
+      "dosage": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "Care team contacted",
+            "when": "route == \"team\""
+          },
+          {
+            "label": "Activity plan agreed",
+            "when": "not isNull(goalsAt)"
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleFreeze",
+          "label": "Freezing of gait with recent falls",
+          "text": "High fall risk: cueing and cycling over treadmill walking; bring in the wider team.",
+          "met": "not isNull(freezeAt) and isNull(callAt)"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "freeze": {
+      "label": "Walk him through the clinic doorway and a turn",
+      "group": "Examine",
+      "available": "not testPending and isNull(freezeAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"freeze\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "falls": {
+      "label": "Ask about each fall",
+      "group": "Examine",
+      "available": "not testPending and isNull(fallsAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"falls\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "life": {
+      "label": "Ask about his day, activity, mood, swallowing and what matters to him",
+      "group": "Examine",
+      "available": "not testPending and isNull(lifeAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"life\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "cuetry": {
+      "label": "Try a cue: lines on the floor and a metronome",
+      "group": "Examine",
+      "available": "not testPending and isNull(cuetryAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"cuetry\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "tread": {
+      "label": "Follow the referral: start treadmill walking at a brisk pace",
+      "group": "Treat",
+      "available": "isNull(treadAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "treadAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.6, 2)"
+        },
+        {
+          "log": "On the treadmill his steps shorten, he freezes mid-stride and is pitched backward against the harness bar.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "cue": {
+      "label": "Train gait with external cues and task practice in doorways and turns; use the stationary cycle for aerobic work",
+      "group": "Treat",
+      "available": "isNull(cueAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "cueAt",
+          "to": "t"
+        },
+        {
+          "log": "Cued gait and doorway practice; aerobic work on the stationary cycle.",
+          "kind": "act"
+        }
+      ]
+    },
+    "goals": {
+      "label": "Set an activity plan with him and his wife: a dog-walk goal, a daily step log, cue strategies at home and telerehab check-ins for balance",
+      "group": "Treat",
+      "available": "isNull(goalsAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "goalsAt",
+          "to": "t"
+        },
+        {
+          "log": "Together you set a goal to walk the dog with his wife, a daily step log and cue strategies, with video check-ins for balance.",
+          "kind": "act"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "What does Mr. Brandt need?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "team",
+              "label": "High fall risk from freezing, inactivity, coughing with drinks and low mood: cued gait and cycling, an activity plan, and the wider team"
+            },
+            {
+              "value": "tread",
+              "label": "Treadmill training as referred will fix his walking"
+            },
+            {
+              "value": "pt",
+              "label": "A gait problem only; the rest is outside physical therapy"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"team\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"team\""
+                },
+                {
+                  "log": "Integrated care.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"tread\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"tread\""
+                },
+                {
+                  "log": "Read as treadmill.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"pt\""
+                },
+                {
+                  "log": "Read as gait only.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Coordinate",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "team",
+              "label": "Call the neurologist: freezing with two falls, cueing and cycling plan instead of treadmill; coughing with drinks and low mood; ask for speech-language and occupational therapy referrals and a review of his mood"
+            },
+            {
+              "value": "none",
+              "label": "Treat the walking and leave the rest for his next neurology visit"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"team\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"team\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "The neurologist agrees, refers him to speech-language pathology for a swallow assessment and to occupational therapy for the home, and books a mood review.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"none\""
+                },
+                {
+                  "log": "Left for the next visit.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document the findings, the plan and the referrals",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Freezing, cues, activity plan and referrals documented.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Neuro clinic",
+      "clock": "running",
+      "actions": [
+        "freeze",
+        "falls",
+        "life",
+        "cuetry",
+        "tread",
+        "cue",
+        "goals",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the test",
+      "wait": {
+        "skipLabel": "the test result"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each test or question takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"freeze\"",
+              "then": [
+                {
+                  "set": "freezeAt",
+                  "to": "t"
+                },
+                {
+                  "log": "He freezes at the doorway and on the turn, feet 'glued' to the floor: freezing of gait with two recent falls. High fall risk.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"falls\"",
+              "then": [
+                {
+                  "set": "fallsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Both falls happened turning in doorways at home.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"life\"",
+              "then": [
+                {
+                  "set": "lifeAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Sits most of the day; coughs when drinking; low mood; his goal is to walk his dog again.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "cuetryAt",
+                  "to": "t"
+                },
+                {
+                  "log": "With floor lines and a metronome beat, he steps through the doorway without freezing.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the end of the visit",
+      "wait": {
+        "skipLabel": "the end of the visit"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min to finish the visit."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "He leaves with a cue plan, an activity goal and referrals.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What does Mr. Brandt need, and who needs to be involved?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "Freezing of gait with two doorway falls means high fall risk, so external cueing and cycling are favored over treadmill walking; inactivity, coughing with drinks and low mood need the integrated team.",
+          "modelAnswer": "He freezes in doorways and has fallen twice, so cues and the bike, not the treadmill. And his sitting all day, coughing with drinks and low mood need the rest of the team."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Cued gait and doorway practice, cycling, an activity plan built on his goal (walking the dog) with a step log and telerehab balance check-ins, and a same-day call to the neurologist for speech-language, occupational therapy and mood review.",
+          "modelAnswer": "Cues and doorway practice, the bike, a dog-walk goal with a step log and video check-ins, and call his neurologist today for speech, OT and a mood check."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "spo2Floor": {
+        "value": 88,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "escalateWindow": {
+        "value": 300,
+        "source": {
+          "cite": "Unit practice (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "The neurologist contacted within 5 minutes of the freezing assessment (clinic policy: same day)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "A high fall risk left unaddressed is harm here.",
+      "source": {
+        "cite": "Osborne JA, et al. Physical Therapist Management of Parkinson Disease: A Clinical Practice Guideline From the American Physical Therapy Association. Phys Ther 2022, doi:10.1093/ptj/pzab302",
+        "checkedAt": "2026-11-04",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9046970/",
+        "note": "Relayed from the course seed (backend/supabase/seed/tracks/pt-abpts.ts, tag PD-CPG; full text read 2026-11-04), not re-read: deliver Parkinson disease care within an integrated care approach, use behavior-change strategies to raise activity, and know telerehabilitation may be used to improve balance; use external cueing for freezing of gait, plus gait and task-specific training, and consider cycling over treadmill walking for people at high fall risk or with freezing (the neurology course objectives' wording)."
+      }
+    }
+  },
+  "endings": {
+    "fall": {
+      "label": "Fall on the treadmill",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "He freezes mid-stride on the moving belt and falls backward, striking his head on the rail."
+    },
+    "safe": {
+      "label": "Integrated plan",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"team\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and (not isNull(freezeAt) and not isNull(cuetryAt)) and isNull(treadAt) and (not isNull(cueAt))",
+      "narrative": "{timeAt(leftAt)|clock}: he has a cue plan, cycling, an activity goal and a team around him."
+    },
+    "safeGaps": {
+      "label": "Planned, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: he has a plan, but the team call was slow or a step was skipped."
+    },
+    "time_up": {
+      "label": "No plan at 11:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "11:00 and no plan."
+    }
+  },
+  "endingOrder": [
+    "fall",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "The neurologist contacted within 5 minutes of the freezing assessment",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"team\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"team\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "freezeC",
+        "label": "Assessed freezing and tried a cue",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(freezeAt) and not isNull(cuetryAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not assessed."
+          }
+        ]
+      },
+      {
+        "id": "safeC",
+        "label": "Used cueing and cycling instead of treadmill walking",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(treadAt)",
+            "score": "missed",
+            "why": "Treadmill walking with freezing."
+          },
+          {
+            "when": "not isNull(cueAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Asked about his life and goals and set an activity plan",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(lifeAt) and not isNull(goalsAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(lifeAt) or not isNull(goalsAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Saw the whole picture for integrated care",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"team\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"tread\"",
+            "score": "missed",
+            "why": "With freezing and falls, cycling and cueing are favored; and his other problems need the team."
+          },
+          {
+            "when": "dxEnum == \"pt\"",
+            "score": "missed",
+            "why": "Integrated care means bringing the swallowing and mood concerns to the team."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: freezing and falls; cueing and cycling; behavior change; integrated team",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Freezing found to the team call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "10:00 to the freezing check",
+        "value": "isNull(freezeAt) ? -1 : timeAt(freezeAt)",
+        "format": "duration",
+        "expert": "under 3 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "10:00",
+        "text": "Doorway and turn: freezes."
+      },
+      {
+        "at": "~10:01",
+        "text": "Cue trial: lines and metronome work."
+      },
+      {
+        "at": "~10:02",
+        "text": "Call the neurologist: plan and referrals."
+      },
+      {
+        "at": "~10:04",
+        "text": "Falls and daily life; cued gait and cycling; activity plan; document."
+      }
+    ],
+    "debrief": {
+      "fall": {
+        "headline": "Fall on the treadmill",
+        "body": "With freezing and falls, use external cues and favor cycling over treadmill walking; and bring in the rest of the team."
+      },
+      "safe": {
+        "headline": "Integrated plan",
+        "body": "You assessed freezing, found a cue that works, chose cycling, set an activity plan with him and his wife and brought in his neurologist and the wider team within minutes. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Planned, with gaps",
+        "body": "Check whether you assessed freezing, set goals with him, and how soon you contacted the team."
+      },
+      "time_up": {
+        "headline": "No plan at 11:00",
+        "body": "Make the plan in the visit."
+      }
+    },
+    "modelReasoning": "Parkinson disease care works best as integrated care: physical therapy alongside neurology, speech-language pathology, occupational therapy and mental health. Behavior-change strategies (a meaningful goal, self-monitoring) raise activity, and telerehabilitation may be used to improve balance. For freezing, use external cueing with gait and task practice, and consider cycling over treadmill walking when fall risk is high or freezing is present."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "bcQ": {
+      "during": "leaveT",
+      "ask": "While you finish: what raises activity in Parkinson disease?",
+      "choices": [
+        {
+          "id": "bc",
+          "label": "Behavior-change strategies, such as a meaningful goal and self-monitoring"
+        },
+        {
+          "id": "info",
+          "label": "A printed exercise sheet alone"
+        },
+        {
+          "id": "rest",
+          "label": "Rest between visits"
+        }
+      ],
+      "expect": "bc",
+      "explain": "Use behavior-change strategies to raise activity.",
+      "source": {
+        "cite": "Osborne JA, et al. Physical Therapist Management of Parkinson Disease: A Clinical Practice Guideline From the American Physical Therapy Association. Phys Ther 2022, doi:10.1093/ptj/pzab302",
+        "checkedAt": "2026-11-04",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9046970/",
+        "note": "Relayed from the course seed (backend/supabase/seed/tracks/pt-abpts.ts, tag PD-CPG; full text read 2026-11-04), not re-read: deliver Parkinson disease care within an integrated care approach, use behavior-change strategies to raise activity, and know telerehabilitation may be used to improve balance; use external cueing for freezing of gait, plus gait and task-specific training, and consider cycling over treadmill walking for people at high fall risk or with freezing (the neurology course objectives' wording)."
+      }
+    },
+    "cycleQ": {
+      "during": "testT",
+      "ask": "While you assess: for someone with freezing and high fall risk, which aerobic option is favored?",
+      "choices": [
+        {
+          "id": "cycle",
+          "label": "Cycling over treadmill walking"
+        },
+        {
+          "id": "tread",
+          "label": "Brisk treadmill walking"
+        },
+        {
+          "id": "none",
+          "label": "No aerobic exercise"
+        }
+      ],
+      "expect": "cycle",
+      "explain": "Consider cycling over treadmill walking for people at high fall risk or with freezing.",
+      "source": {
+        "cite": "Osborne JA, et al. Physical Therapist Management of Parkinson Disease: A Clinical Practice Guideline From the American Physical Therapy Association. Phys Ther 2022, doi:10.1093/ptj/pzab302",
+        "checkedAt": "2026-11-04",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9046970/",
+        "note": "Relayed from the course seed (backend/supabase/seed/tracks/pt-abpts.ts, tag PD-CPG; full text read 2026-11-04), not re-read: deliver Parkinson disease care within an integrated care approach, use behavior-change strategies to raise activity, and know telerehabilitation may be used to improve balance; use external cueing for freezing of gait, plus gait and task-specific training, and consider cycling over treadmill walking for people at high fall risk or with freezing (the neurology course objectives' wording)."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

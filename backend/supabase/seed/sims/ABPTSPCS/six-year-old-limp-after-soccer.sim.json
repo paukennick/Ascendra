@@ -1,0 +1,1054 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "six-year-old-limp-after-soccer",
+  "title": "Six, limping after soccer",
+  "objective": "Recognize Legg-Calve-Perthes disease (avascular necrosis of the femoral head, boys 3 to 5 times more often) by limp, hip, groin or knee pain and lost abduction and internal rotation, staged through necrosis to healing",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "Specialist certification examination outline: pediatrics (the certifying board's published outline page)",
+      "checkedAt": "2026-11-08",
+      "url": "https://specialization.apta.org/become-a-specialist/pediatrics/specialist-certification-examination-outline-pediatrics",
+      "note": "Relayed from the pediatrics specialty course seed (backend/supabase/seed/tracks/pt-abpts.ts, outline pages read 2026-10-08 and 2026-11-04, OUTLINE_CHECKED_AT 2026-11-08), not re-read: Evaluation, diagnosis and prognosis (20%) is a tested area. Scope only; no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra pediatrics specialty course catalog (backend/supabase/seed/tracks/pt-abpts.ts, track ABPTSPCS)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Sabry A, et al.. Legg-Calve-Perthes Disease. StatPearls (updated 2026-03-25), StatPearls Publishing",
+      "checkedAt": "2026-11-04",
+      "note": "Relayed from the course seed (tag SP-LCP; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: Legg-Calve-Perthes disease is avascular necrosis of the femoral head, 3 to 5 times more common in boys, presenting with a limp, hip, groin or knee pain and lost abduction and internal rotation, and staged through necrosis to healing (the course objective's wording)."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "16:00 in an outpatient pediatric clinic. You are the physical therapist. Leo, 6, was referred by his pediatrician for 'knee pain, likely growing pains, strengthening and agility'. His father says the limp comes and goes and is worse after soccer.",
+    "handover": [
+      "No imaging has been done. No fever or recent illness.",
+      "Clinic policy: a child's limp with hip signs goes back to the pediatrician for hip X-rays and pediatric orthopedics the same week."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "16:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.01,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Impact loading on a necrotic femoral head risks collapse. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.002,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Referral is under way and impact is stopped. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of femoral head collapse. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The pediatrician called within 5 minutes of the hip findings (clinic policy: same week)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 min to finish and arrange X-rays."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "kneeAt": {
+      "type": "time",
+      "init": null
+    },
+    "hipAt": {
+      "type": "time",
+      "init": null
+    },
+    "gaitAt": {
+      "type": "time",
+      "init": null
+    },
+    "sickAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "knee",
+        "hip",
+        "gait",
+        "sick"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "ped",
+        "program"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "lcp",
+        "growing",
+        "strain"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "jumpAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(96 + sin(t / 9) * 3)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "pain": {
+      "expr": "round(clamp(3 + 5 * max(0, prog - 0.5), 0, 10))",
+      "unit": "/10",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (route == \"ped\" ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Leo, 6, with his father",
+        "presentation": "Intermittent right limp for 5 weeks, 'knee hurts after soccer'. {not isNull(jumpAt) ? \"Doing the hopping drill.\" : \"\"}"
+      },
+      "vitals": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "colour": "ecg",
+          "alarm": {
+            "high": 130
+          },
+          "announce": {
+            "bands": [
+              115,
+              130
+            ]
+          }
+        },
+        {
+          "id": "pain",
+          "label": "Pain",
+          "spokenLabel": "Pain, out of 10",
+          "value": "pain",
+          "unit": "/10",
+          "colour": "neutral",
+          "alarm": {
+            "high": 8
+          },
+          "announce": {
+            "bands": [
+              6,
+              8
+            ]
+          }
+        }
+      ],
+      "activity": "{not inClinic ? \"Gone for X-rays.\" : (not isNull(jumpAt) ? \"Hopping and limping more.\" : \"Walking with a slight limp.\")}",
+      "measures": [
+        {
+          "id": "kneeResult",
+          "label": "Knee",
+          "result": "Normal knee examination.",
+          "when": "not isNull(kneeAt)"
+        },
+        {
+          "id": "hipResult",
+          "label": "Hip",
+          "result": "Right hip: abduction and internal rotation reduced and painful.",
+          "when": "not isNull(hipAt)",
+          "flag": "true"
+        },
+        {
+          "id": "gaitResult",
+          "label": "Gait",
+          "result": "Antalgic, Trendelenburg-type limp on the right.",
+          "when": "not isNull(gaitAt)"
+        },
+        {
+          "id": "sickResult",
+          "label": "Systemic screen",
+          "result": "No fever, no recent illness, no night pain.",
+          "when": "not isNull(sickAt)"
+        }
+      ],
+      "dosage": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "Hip examined",
+            "when": "not isNull(hipAt)"
+          },
+          {
+            "label": "Jumping and running drills",
+            "when": "not isNull(jumpAt)"
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleHip",
+          "label": "A child's limp with knee pain and a normal knee",
+          "text": "Examine the hip; lost abduction and internal rotation need X-rays and orthopedics.",
+          "met": "not isNull(kneeAt) and isNull(hipAt)"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "knee": {
+      "label": "Examine the knee",
+      "group": "Examine",
+      "available": "not testPending and isNull(kneeAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"knee\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "hip": {
+      "label": "Examine hip range of motion lying down",
+      "group": "Examine",
+      "available": "not testPending and isNull(hipAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"hip\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "gait": {
+      "label": "Watch him walk and run",
+      "group": "Examine",
+      "available": "not testPending and isNull(gaitAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"gait\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "sick": {
+      "label": "Ask about fever, illness and night pain; take a temperature",
+      "group": "Examine",
+      "available": "not testPending and isNull(sickAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"sick\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "jump": {
+      "label": "Start agility, hopping and jumping drills as referred",
+      "group": "Treat",
+      "available": "isNull(jumpAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "jumpAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.4, 2)"
+        },
+        {
+          "log": "He hops and lands awkwardly, crying out at the hip.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "What do you suspect?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "lcp",
+              "label": "Possible Legg-Calve-Perthes disease: a 6-year-old boy with a limp, knee pain from the hip, and lost abduction and internal rotation"
+            },
+            {
+              "value": "growing",
+              "label": "Growing pains"
+            },
+            {
+              "value": "strain",
+              "label": "A soccer strain"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"lcp\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"lcp\""
+                },
+                {
+                  "log": "Possible Legg-Calve-Perthes disease.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"growing\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"growing\""
+                },
+                {
+                  "log": "Read as growing pains.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"strain\""
+                },
+                {
+                  "log": "Read as strain.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Refer",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "ped",
+              "label": "Call the pediatrician: right hip abduction and internal rotation lost, Trendelenburg limp, normal knee, afebrile; ask for hip X-rays and pediatric orthopedics this week"
+            },
+            {
+              "value": "program",
+              "label": "Write back that strengthening and agility have started"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"ped\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"ped\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "The pediatrician orders AP and frog-leg pelvis X-rays and refers to pediatric orthopedics this week.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"program\""
+                },
+                {
+                  "log": "A letter goes back.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Explain to his father: no soccer or jumping until orthopedics sees him; document",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "His father understands: no soccer or jumping until orthopedics sees him.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Pediatric clinic",
+      "clock": "running",
+      "actions": [
+        "knee",
+        "hip",
+        "gait",
+        "sick",
+        "jump",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the test",
+      "wait": {
+        "skipLabel": "the test result"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each test or question takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"knee\"",
+              "then": [
+                {
+                  "set": "kneeAt",
+                  "to": "t"
+                },
+                {
+                  "log": "The knee is normal: no effusion, full painless motion.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"hip\"",
+              "then": [
+                {
+                  "set": "hipAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Right hip: reduced, painful abduction and internal rotation that reproduce his knee pain.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"gait\"",
+              "then": [
+                {
+                  "set": "gaitAt",
+                  "to": "t"
+                },
+                {
+                  "log": "An antalgic limp with a right Trendelenburg-type lurch.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "sickAt",
+                  "to": "t"
+                },
+                {
+                  "log": "No fever, no recent illness, no night pain.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the end of the visit",
+      "wait": {
+        "skipLabel": "the end of the visit"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 min to finish and arrange X-rays."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "He leaves with X-rays and an orthopedic visit booked.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What do you suspect, and what happens next?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "A 6-year-old boy with a limp, knee pain, a normal knee and lost, painful hip abduction and internal rotation suggests Legg-Calve-Perthes disease, avascular necrosis of the femoral head.",
+          "modelAnswer": "Not growing pains. He's a 6-year-old boy with a limp, his knee is normal, and his hip has lost abduction and internal rotation. That's Perthes until proven otherwise."
+        },
+        {
+          "label": "What I do",
+          "criteria": "No impact or jumping; call the pediatrician for hip X-rays and pediatric orthopedics; explain activity limits; document.",
+          "modelAnswer": "No jumping or soccer, call the pediatrician for hip X-rays and orthopedics, and explain the limits to his dad."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "spo2Floor": {
+        "value": 88,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "escalateWindow": {
+        "value": 300,
+        "source": {
+          "cite": "Unit practice (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "The pediatrician called within 5 minutes of the hip findings (clinic policy: same week)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Suspected Perthes loaded and unreferred an hour on is harm here.",
+      "source": {
+        "cite": "Sabry A, et al.. Legg-Calve-Perthes Disease. StatPearls (updated 2026-03-25), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-LCP; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: Legg-Calve-Perthes disease is avascular necrosis of the femoral head, 3 to 5 times more common in boys, presenting with a limp, hip, groin or knee pain and lost abduction and internal rotation, and staged through necrosis to healing (the course objective's wording)."
+      }
+    }
+  },
+  "endings": {
+    "collapse": {
+      "label": "Femoral head collapse",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "Months of agility work later, the femoral head has collapsed and flattened, with a worse long-term outlook."
+    },
+    "safe": {
+      "label": "Perthes suspected and referred",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"ped\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and (not isNull(hipAt)) and isNull(jumpAt)",
+      "narrative": "{timeAt(leftAt)|clock}: he goes for X-rays with an orthopedic visit booked and no impact activity."
+    },
+    "safeGaps": {
+      "label": "Referred, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: he is referred, but late or after impact drills."
+    },
+    "time_up": {
+      "label": "Undecided at 17:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "17:00 and no referral."
+    }
+  },
+  "endingOrder": [
+    "collapse",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "The pediatrician called within 5 minutes of the hip findings",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"ped\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"ped\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "hipC",
+        "label": "Examined the hip when the knee was normal",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(hipAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Hip not examined."
+          }
+        ]
+      },
+      {
+        "id": "noJumpC",
+        "label": "No jumping or impact drills",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(jumpAt)",
+            "score": "missed",
+            "why": "Impact drills."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "No impact."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Watched gait and screened for systemic illness",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(gaitAt) and not isNull(sickAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(gaitAt) or not isNull(sickAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Suspected Legg-Calve-Perthes disease",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"lcp\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"growing\"",
+            "score": "missed",
+            "why": "Growing pains don't cause a limp or lost hip motion."
+          },
+          {
+            "when": "dxEnum == \"strain\"",
+            "score": "missed",
+            "why": "The hip signs say otherwise."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Explained activity limits and documented",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: knee pain from the hip; lost abduction and internal rotation; X-rays and orthopedics; no impact",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Hip findings to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "16:00 to the hip exam",
+        "value": "isNull(hipAt) ? -1 : timeAt(hipAt)",
+        "format": "duration",
+        "expert": "under 5 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "16:00",
+        "text": "Knee: normal."
+      },
+      {
+        "at": "~16:01",
+        "text": "Hip: lost abduction and internal rotation."
+      },
+      {
+        "at": "~16:02",
+        "text": "Call the pediatrician for X-rays and orthopedics."
+      },
+      {
+        "at": "~16:05",
+        "text": "Gait, systemic screen; explain limits."
+      }
+    ],
+    "debrief": {
+      "collapse": {
+        "headline": "Femoral head collapse",
+        "body": "A limp with knee pain in a young boy, with a normal knee and lost hip abduction and internal rotation, is Legg-Calve-Perthes disease until proven otherwise: no impact, X-rays and orthopedics."
+      },
+      "safe": {
+        "headline": "Perthes suspected and referred",
+        "body": "You examined the hip when the knee was normal, found lost abduction and internal rotation, avoided impact and called within minutes. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Referred, with gaps",
+        "body": "Check whether you examined the hip before drills and how soon you called."
+      },
+      "time_up": {
+        "headline": "Undecided at 17:00",
+        "body": "Refer hip signs the same visit."
+      }
+    },
+    "modelReasoning": "Legg-Calve-Perthes disease is avascular necrosis of the femoral head, 3 to 5 times more common in boys, presenting with a limp and hip, groin or knee pain with lost abduction and internal rotation. Knee pain with a normal knee means examine the hip. Avoid impact, refer for hip X-rays and pediatric orthopedics, and explain activity limits."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "lcpQ": {
+      "during": "testT",
+      "ask": "While you examine: which hip motions are lost early in Perthes disease?",
+      "choices": [
+        {
+          "id": "abd",
+          "label": "Abduction and internal rotation"
+        },
+        {
+          "id": "flex",
+          "label": "Flexion only"
+        },
+        {
+          "id": "none",
+          "label": "None"
+        }
+      ],
+      "expect": "abd",
+      "explain": "Perthes presents with a limp, hip, groin or knee pain, and lost abduction and internal rotation.",
+      "source": {
+        "cite": "Sabry A, et al.. Legg-Calve-Perthes Disease. StatPearls (updated 2026-03-25), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-LCP; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: Legg-Calve-Perthes disease is avascular necrosis of the femoral head, 3 to 5 times more common in boys, presenting with a limp, hip, groin or knee pain and lost abduction and internal rotation, and staged through necrosis to healing (the course objective's wording)."
+      }
+    },
+    "whoQ": {
+      "during": "leaveT",
+      "ask": "While he leaves: who gets Perthes disease more often?",
+      "choices": [
+        {
+          "id": "boys",
+          "label": "Boys, 3 to 5 times more often"
+        },
+        {
+          "id": "girls",
+          "label": "Girls"
+        },
+        {
+          "id": "teens",
+          "label": "Older teenagers"
+        }
+      ],
+      "expect": "boys",
+      "explain": "Boys are affected 3 to 5 times more often.",
+      "source": {
+        "cite": "Sabry A, et al.. Legg-Calve-Perthes Disease. StatPearls (updated 2026-03-25), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-LCP; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: Legg-Calve-Perthes disease is avascular necrosis of the femoral head, 3 to 5 times more common in boys, presenting with a limp, hip, groin or knee pain and lost abduction and internal rotation, and staged through necrosis to healing (the course objective's wording)."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

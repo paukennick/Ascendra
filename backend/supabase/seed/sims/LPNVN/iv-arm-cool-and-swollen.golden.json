@@ -1,0 +1,460 @@
+{
+  "slug": "iv-arm-cool-and-swollen",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: site, stop, remove, elevate, report, circulation and pain, document",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "site",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "infQ",
+          "choice": "inf",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "stop",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "remove",
+          "seq": 6,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "elevate",
+          "seq": 7,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "infil"
+          },
+          "seq": 8,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "rn"
+          },
+          "seq": 9,
+          "tick": 13
+        },
+        {
+          "type": "teach",
+          "prompt": "actQ",
+          "choice": "stop",
+          "seq": 10,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "pulse",
+          "seq": 11,
+          "tick": 13
+        },
+        {
+          "type": "chapter",
+          "chapter": "escalated",
+          "choice": "continue",
+          "seq": 12,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "pain",
+          "seq": 13,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 14,
+          "tick": 37
+        }
+      ],
+      "expect": {
+        "ending": "safe",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "reportC": "met",
+          "stopC": "met",
+          "noFlushC": "met",
+          "lookC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": 65
+        },
+        "stateHash": "bd15ece29c59f22b"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateReport",
+      "title": "Stops and removes at once, but checks everything before reporting 8 minutes later",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "site",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "infQ",
+          "choice": "inf",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "stop",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "remove",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "elevate",
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "flow",
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "pulse",
+          "seq": 8,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "pain",
+          "seq": 9,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "infil"
+          },
+          "seq": 10,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "rn"
+          },
+          "seq": 11,
+          "tick": 120
+        },
+        {
+          "type": "teach",
+          "prompt": "actQ",
+          "choice": "stop",
+          "seq": 12,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 13,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "reportC": "partial",
+          "stopC": "met",
+          "noFlushC": "met",
+          "lookC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 540,
+          "toKey": 60
+        },
+        "stateHash": "7b8ba05a6d172c4c"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "flushed",
+      "title": "Reports promptly but flushes the line first and never removes the catheter",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "site",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "infQ",
+          "choice": "inf",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "flush",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "stop",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "infil"
+          },
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "rn"
+          },
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "actQ",
+          "choice": "stop",
+          "seq": 8,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 9,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "reportC": "met",
+          "stopC": "missed",
+          "noFlushC": "missed",
+          "lookC": "missed",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": 60
+        },
+        "stateHash": "4866f23d0ace4b92"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "occlusion",
+      "title": "Failure: reads it as an occlusion, flushes and restarts the pump, reports at 14:00",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "flow",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "infQ",
+          "choice": "inf",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "occl"
+          },
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "flush",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "restart",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "later"
+          },
+          "seq": 6,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "compart",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "reportC": "missed",
+          "stopC": "missed",
+          "noFlushC": "missed",
+          "lookC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": -1,
+          "toKey": -1
+        },
+        "stateHash": "6f19945cf149ff59"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "phleb",
+      "title": "Failure: calls it phlebitis and restarts the pump",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "phleb"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "restart",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "compart",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "reportC": "missed",
+          "stopC": "missed",
+          "noFlushC": "missed",
+          "lookC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": -1,
+          "toKey": -1
+        },
+        "stateHash": "5551808b1d074b54"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

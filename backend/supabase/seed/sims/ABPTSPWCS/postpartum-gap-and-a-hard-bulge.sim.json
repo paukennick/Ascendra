@@ -1,0 +1,1039 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "postpartum-gap-and-a-hard-bulge",
+  "title": "A gap, and a hard bulge",
+  "objective": "Assess diastasis recti, treating an inter-rectus distance over 2 cm at the midline as abnormal, and discuss options from conservative exercise programs to surgery",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "Specialist certification examination outline: pelvic and women's health (the certifying board's published outline page)",
+      "checkedAt": "2026-11-08",
+      "url": "https://specialization.apta.org/become-a-specialist/pelvic-womens-health/specialist-certification-examination-outline-womens-health",
+      "note": "Relayed from the pelvic and women's health specialty course seed (backend/supabase/seed/tracks/pt-abpts.ts, outline pages read 2026-10-08 and 2026-11-04, OUTLINE_CHECKED_AT 2026-11-08), not re-read: Patient and client management (55%) is a tested area. Scope only; no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra pelvic and women's health specialty course catalog (backend/supabase/seed/tracks/pt-abpts.ts, track ABPTSPWCS)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Hall H, Sanjaghsaz H. Diastasis Recti Rehabilitation. StatPearls (updated 2023-08-08), StatPearls Publishing",
+      "checkedAt": "2026-11-04",
+      "note": "Relayed from the course seed (tag SP-DRA; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: an inter-rectus distance over 2 cm at the midline is abnormal; options range from conservative exercise programs to surgery (the course objective's wording)."
+    },
+    {
+      "cite": "MedlinePlus Medical Encyclopedia: Umbilical hernia repair (reviewed 2025-01-17)",
+      "checkedAt": "2026-11-17",
+      "url": "https://medlineplus.gov/ency/article/002935.htm",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'Umbilical hernias also occur in adults' and 'tend to get bigger over time'; 'If the blood supply to this area is cut off (strangulation), urgent surgery is needed'; 'Get medical care right away if you have a painful hernia or a hernia that does not get smaller when you are lying down'; nausea or vomiting, and the bulge may turn blue or darker."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "10:00 in an outpatient pelvic health clinic. You are the physical therapist. Ms. Chen, 34, is 10 weeks after her second vaginal birth, referred for diastasis recti. She mentions a 'lump at my belly button' that has been sore since yesterday and is not going away.",
+    "handover": [
+      "She has been doing online 'flat belly' curl-ups and lifting her toddler.",
+      "Clinic policy: a painful, tender or irreducible abdominal wall bulge goes for same-day surgical assessment; no abdominal exercise until it is cleared."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "10:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.016,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A trapped hernia risks strangulation. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.003,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "She is on the way to surgical care. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of strangulated hernia. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Same-day surgical care within 5 minutes of a tender irreducible bulge (clinic policy)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 min to arrange transport."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "iraAt": {
+      "type": "time",
+      "init": null
+    },
+    "bulgeAt": {
+      "type": "time",
+      "init": null
+    },
+    "giAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "ira",
+        "bulge",
+        "gi"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "ed",
+        "gp"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "hernia",
+        "dra",
+        "fat"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "crunchAt": {
+      "type": "time",
+      "init": null
+    },
+    "reduceAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(88 + 20 * max(0, prog - 0.6))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "pain": {
+      "expr": "round(clamp(5 + 5 * max(0, prog - 0.5), 0, 10))",
+      "unit": "/10",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (route == \"ed\" ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Ms. Chen, 34, 10 weeks postpartum",
+        "presentation": "Referred for 'abdominal separation, core program'. {not isNull(crunchAt) ? \"Doing curl-ups.\" : \"\"}"
+      },
+      "vitals": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "colour": "ecg",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              105,
+              120
+            ]
+          }
+        },
+        {
+          "id": "pain",
+          "label": "Pain",
+          "spokenLabel": "Pain, out of 10",
+          "value": "pain",
+          "unit": "/10",
+          "colour": "neutral",
+          "alarm": {
+            "high": 8
+          },
+          "announce": {
+            "bands": [
+              6,
+              8
+            ]
+          }
+        }
+      ],
+      "activity": "{not inClinic ? \"Gone for surgical review.\" : (not isNull(crunchAt) ? \"Straining through curl-ups.\" : \"Lying supine on the plinth.\")}",
+      "measures": [
+        {
+          "id": "iraResult",
+          "label": "Inter-rectus distance",
+          "result": "3.5 cm at the umbilicus; 2.5 cm above.",
+          "when": "not isNull(iraAt)"
+        },
+        {
+          "id": "bulgeResult",
+          "label": "Umbilical bulge",
+          "result": "Firm, tender 3 cm bulge that does not reduce lying down; skin slightly dusky.",
+          "when": "not isNull(bulgeAt)",
+          "flag": "true"
+        },
+        {
+          "id": "giResult",
+          "label": "Bowel",
+          "result": "Nauseated since this morning; no gas since last night.",
+          "when": "not isNull(giAt)"
+        }
+      ],
+      "dosage": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "Inter-rectus distance measured",
+            "when": "not isNull(iraAt)"
+          },
+          {
+            "label": "Loaded curl-ups",
+            "when": "not isNull(crunchAt)"
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleHernia",
+          "label": "A painful bulge that won't go back",
+          "text": "Possible incarcerated hernia: no exercise; urgent surgical care.",
+          "met": "not isNull(bulgeAt) and isNull(callAt)"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "ira": {
+      "label": "Measure the inter-rectus distance at, above and below the umbilicus with a head lift",
+      "group": "Examine",
+      "available": "not testPending and isNull(iraAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"ira\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "bulge": {
+      "label": "Examine the umbilical bulge lying down: size, tenderness, color, whether it reduces",
+      "group": "Examine",
+      "available": "not testPending and isNull(bulgeAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"bulge\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "gi": {
+      "label": "Ask about nausea, vomiting, bowel movements, gas",
+      "group": "Examine",
+      "available": "not testPending and isNull(giAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"gi\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "crunch": {
+      "label": "Start her core program with curl-ups and a binder",
+      "group": "Treat",
+      "available": "isNull(crunchAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "crunchAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.4, 2)"
+        },
+        {
+          "log": "On the curl-ups the bulge becomes more painful.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "reduce": {
+      "label": "Push the bulge back in firmly",
+      "group": "Treat",
+      "available": "isNull(reduceAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "reduceAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.3, 2)"
+        },
+        {
+          "log": "Firm pressure; severe pain; it stays out.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "What is going on?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "hernia",
+              "label": "Diastasis recti (3.5 cm) and a possible incarcerated umbilical hernia: tender, firm, irreducible, dusky, with nausea and no gas"
+            },
+            {
+              "value": "dra",
+              "label": "Diastasis recti only; start the core program"
+            },
+            {
+              "value": "fat",
+              "label": "A fat pad"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"hernia\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"hernia\""
+                },
+                {
+                  "log": "Diastasis recti with a possible incarcerated hernia.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"dra\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"dra\""
+                },
+                {
+                  "log": "Read as diastasis only.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"fat\""
+                },
+                {
+                  "log": "Read as fat.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Refer",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "ed",
+              "label": "Send her to the emergency department now for surgical review and tell her obstetric provider: tender irreducible dusky umbilical bulge, nausea, no gas"
+            },
+            {
+              "value": "gp",
+              "label": "Suggest she mention it at her next checkup"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"ed\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"ed\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "The emergency department confirms an incarcerated umbilical hernia; she goes to surgery.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"gp\""
+                },
+                {
+                  "log": "Left for her next checkup.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document the measurements and explain that diastasis care resumes after surgical clearance",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Measurements and the referral documented; she knows diastasis options (exercise to surgery) come after clearance.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Pelvic health clinic",
+      "clock": "running",
+      "actions": [
+        "ira",
+        "bulge",
+        "gi",
+        "crunch",
+        "reduce",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the test",
+      "wait": {
+        "skipLabel": "the test result"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each test or question takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"ira\"",
+              "then": [
+                {
+                  "set": "iraAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Inter-rectus distance 3.5 cm at the umbilicus and 2.5 cm above it: diastasis recti.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"bulge\"",
+              "then": [
+                {
+                  "set": "bulgeAt",
+                  "to": "t"
+                },
+                {
+                  "log": "A firm, tender 3 cm umbilical bulge that does not go back in lying down; the skin over it looks slightly dusky.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "giAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Nauseated since this morning; she has not passed gas since last night.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the emergency department",
+      "wait": {
+        "skipLabel": "the emergency department"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 min to arrange transport."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "She leaves for the emergency department.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What is going on, and what do you do?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "An inter-rectus distance of 3.5 cm is diastasis recti (over 2 cm is abnormal), but the firm, tender, irreducible, dusky umbilical bulge with nausea and no gas is a possible incarcerated hernia, an emergency.",
+          "modelAnswer": "She has diastasis recti, 3.5 cm, but that bulge is the urgent thing: firm, tender, won't go back, a bit dusky, and she's nauseated with no gas. That's a possible incarcerated hernia."
+        },
+        {
+          "label": "What I do",
+          "criteria": "No exercise or forced reduction; emergency department now; tell her obstetric provider; diastasis options (conservative exercise to surgery) after clearance.",
+          "modelAnswer": "No curl-ups and no pushing on it. Emergency department now, tell her OB provider, and we'll talk diastasis options after."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "spo2Floor": {
+        "value": 88,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "escalateWindow": {
+        "value": 300,
+        "source": {
+          "cite": "Unit practice (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "Same-day surgical care within 5 minutes of a tender irreducible bulge (clinic policy)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "A possible incarcerated hernia unreferred an hour on is harm here.",
+      "source": {
+        "cite": "MedlinePlus Medical Encyclopedia: Umbilical hernia repair (reviewed 2025-01-17)",
+        "checkedAt": "2026-11-17",
+        "url": "https://medlineplus.gov/ency/article/002935.htm",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'Umbilical hernias also occur in adults' and 'tend to get bigger over time'; 'If the blood supply to this area is cut off (strangulation), urgent surgery is needed'; 'Get medical care right away if you have a painful hernia or a hernia that does not get smaller when you are lying down'; nausea or vomiting, and the bulge may turn blue or darker."
+      }
+    }
+  },
+  "endings": {
+    "strangulation": {
+      "label": "Strangulated hernia",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "That evening the bulge turns dark and she vomits repeatedly; the bowel is strangulated and needs resection."
+    },
+    "safe": {
+      "label": "Hernia caught",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"ed\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and (not isNull(bulgeAt)) and isNull(crunchAt) and isNull(reduceAt)",
+      "narrative": "{timeAt(leftAt)|clock}: she is in surgical care, with diastasis rehab to follow."
+    },
+    "safeGaps": {
+      "label": "Sent, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: she gets surgery, but late or after exercise or forced reduction."
+    },
+    "time_up": {
+      "label": "Undecided at 11:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "11:00 and no referral."
+    }
+  },
+  "endingOrder": [
+    "strangulation",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "Same-day surgical care within 5 minutes of examining the bulge",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"ed\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"ed\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "bulgeC",
+        "label": "Examined the bulge before any exercise",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(bulgeAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not examined."
+          }
+        ]
+      },
+      {
+        "id": "noExC",
+        "label": "No curl-ups and no forced reduction",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(crunchAt) or not isNull(reduceAt)",
+            "score": "missed",
+            "why": "Exercised or forced it."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Avoided."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Measured the gap and asked about bowel symptoms",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(iraAt) and not isNull(giAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(iraAt) or not isNull(giAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Recognized a possible incarcerated umbilical hernia on top of diastasis recti",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"hernia\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"dra\"",
+            "score": "missed",
+            "why": "The bulge is a hernia emergency."
+          },
+          {
+            "when": "dxEnum == \"fat\"",
+            "score": "missed",
+            "why": "Tender, irreducible and dusky is not fat."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented and explained",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: diastasis over 2 cm; a painful irreducible bulge is a hernia emergency first",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Bulge examined to the referral",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "10:00 to the bulge exam",
+        "value": "isNull(bulgeAt) ? -1 : timeAt(bulgeAt)",
+        "format": "duration",
+        "expert": "under 5 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "10:00",
+        "text": "Measure the gap: 3.5 cm at the umbilicus."
+      },
+      {
+        "at": "~10:01",
+        "text": "Bulge: firm, tender, irreducible, dusky."
+      },
+      {
+        "at": "~10:02",
+        "text": "Emergency department now."
+      },
+      {
+        "at": "~10:04",
+        "text": "Bowel symptoms; document; explain the diastasis plan for later."
+      }
+    ],
+    "debrief": {
+      "strangulation": {
+        "headline": "Strangulated hernia",
+        "body": "Measure the diastasis, but examine any bulge first: a painful hernia that won't reduce needs urgent surgical care, not curl-ups."
+      },
+      "safe": {
+        "headline": "Hernia caught",
+        "body": "You measured the diastasis, examined the bulge, avoided exercise and forced reduction, and sent her within minutes. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Sent, with gaps",
+        "body": "Check whether you exercised or pushed on the bulge, and how soon you sent her."
+      },
+      "time_up": {
+        "headline": "Undecided at 11:00",
+        "body": "An irreducible painful hernia needs same-day care."
+      }
+    },
+    "modelReasoning": "Diastasis recti is an inter-rectus distance over 2 cm at the midline; management ranges from conservative exercise programs to surgery. Before exercise, examine any abdominal wall bulge: a painful hernia that does not get smaller lying down, with nausea, vomiting or a dusky color, may be incarcerated or strangulated and needs urgent surgical care."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "draQ": {
+      "during": "testT",
+      "ask": "While you measure: what inter-rectus distance is abnormal?",
+      "choices": [
+        {
+          "id": "two",
+          "label": "Over 2 cm at the midline"
+        },
+        {
+          "id": "five",
+          "label": "Over 5 cm only"
+        },
+        {
+          "id": "any",
+          "label": "Any measurable gap"
+        }
+      ],
+      "expect": "two",
+      "explain": "An inter-rectus distance over 2 cm at the midline is abnormal.",
+      "source": {
+        "cite": "Hall H, Sanjaghsaz H. Diastasis Recti Rehabilitation. StatPearls (updated 2023-08-08), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-DRA; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: an inter-rectus distance over 2 cm at the midline is abnormal; options range from conservative exercise programs to surgery (the course objective's wording)."
+      }
+    },
+    "herQ": {
+      "during": "leaveT",
+      "ask": "While she goes: which hernia signs need urgent care?",
+      "choices": [
+        {
+          "id": "urg",
+          "label": "Pain, not getting smaller lying down, nausea or vomiting, a darker color"
+        },
+        {
+          "id": "size",
+          "label": "Any visible bulge"
+        },
+        {
+          "id": "none",
+          "label": "None; hernias are never urgent"
+        }
+      ],
+      "expect": "urg",
+      "explain": "Get care right away for a painful hernia or one that does not get smaller lying down; nausea, vomiting or a dark color suggest strangulation.",
+      "source": {
+        "cite": "MedlinePlus Medical Encyclopedia: Umbilical hernia repair (reviewed 2025-01-17)",
+        "checkedAt": "2026-11-17",
+        "url": "https://medlineplus.gov/ency/article/002935.htm",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'Umbilical hernias also occur in adults' and 'tend to get bigger over time'; 'If the blood supply to this area is cut off (strangulation), urgent surgery is needed'; 'Get medical care right away if you have a painful hernia or a hernia that does not get smaller when you are lying down'; nausea or vomiting, and the bulge may turn blue or darker."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

@@ -1,0 +1,1102 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pain-better-then-belly-rigid",
+  "title": "The pain got better, then the belly went hard",
+  "objective": "Recognize appendicitis with a positive Rovsing sign, and peritonitis after perforation as a route to sepsis",
+  "secondaryObjectives": [
+    "Sepsis recognition and the first hour of response"
+  ],
+  "sources": [
+    {
+      "cite": "NCSBN. 2026 NCLEX-RN Test Plan (effective April 2026)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.ncsbn.org/public-files/2026_RN_Test%20Plan_English-F.pdf",
+      "note": "Relayed from the ADN-RN course's earlier cases (read 2026-11-11, primary PDF), not re-read: the pre-licensure RN course is built toward this test plan. Scope only."
+    },
+    {
+      "cite": "Ascendra ADN-RN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Nurse.com Clinical Guides: Appendicitis (no date shown)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.nurse.com/clinical-guides/appendicitis",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: Rovsing sign: 'Abdominal pain in right lower quadrant (RLQ) upon palpation of left lower quadrant (LLQ)'; tachycardia, guarding, rebound tenderness and low-grade fever; rising pressure 'can potentially lead to ischemia and the rupture of the appendix, and frank peritonitis'; 'Individual is kept NPO and hydrated with IV fluids'; 'Avoid administering cathartics or enemas or applying heat to lower abdomen as they may cause appendix to rupture'."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "05:00 on a surgical unit. You are the RN for Mr. Becker, 24, admitted at 23:00 with suspected appendicitis: right lower quadrant pain, a positive Rovsing sign and a white count of 15,000. He is NPO with IV fluid running, waiting for the first case in the operating room at 08:00.",
+    "handover": [
+      "At 03:00 he rated his pain 8/10 at McBurney's point.",
+      "At 04:30 he told the nursing assistant the pain 'suddenly got a lot better', and asked for a heating pad for his belly and a laxative because he 'hasn't gone in two days'.",
+      "Unit policy: the RN reports a change in abdominal findings or a positive sepsis screen to the surgical resident at once; blood cultures and lactate may be drawn on the sepsis standing order."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "05:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.016,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Peritonitis spreads toward septic shock. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.004,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It slows with antibiotics and an emergency operation under way. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of septic shock. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The surgical resident called within 5 minutes of a change in abdominal findings (unit policy: at once)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 1500,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 25 min for antibiotics, the bolus and the move to the operating room."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "abdomenAt": {
+      "type": "time",
+      "init": null
+    },
+    "tempAt": {
+      "type": "time",
+      "init": null
+    },
+    "labsAt": {
+      "type": "time",
+      "init": null
+    },
+    "outputAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "abdomen",
+        "temp",
+        "labs",
+        "output"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "call",
+        "or"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "perf",
+        "better",
+        "const"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "fowlerAt": {
+      "type": "time",
+      "init": null
+    },
+    "heatAt": {
+      "type": "time",
+      "init": null
+    },
+    "laxativeAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(112 + 24 * max(0, prog - 0.4) + sin(t / 11) * 3)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(112 - 30 * max(0, prog - 0.55))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.6)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "round(22 + 8 * max(0, prog - 0.4))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "96",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (route == \"call\" ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "Pulse",
+          "spokenLabel": "Pulse",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              100,
+              120
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "high": 24
+          },
+          "announce": {
+            "bands": [
+              20,
+              24
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              92
+            ]
+          },
+          "colour": "spo2"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "NPO: yes. IV fluid running. Heating pad: {not isNull(heatAt)|yesno}.",
+      "banner": [
+        {
+          "when": "route == \"call\" and inClinic",
+          "text": "The surgical resident is examining him; the operating room is being moved up."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "abdomen": {
+      "label": "Examine the abdomen: tone, tenderness, rebound, where it hurts",
+      "group": "Assess",
+      "available": "not testPending and isNull(abdomenAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"abdomen\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "temp": {
+      "label": "Temperature and a sepsis screen",
+      "group": "Assess",
+      "available": "not testPending and isNull(tempAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"temp\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "labs": {
+      "label": "Draw blood cultures and lactate on the sepsis standing order",
+      "group": "Assess",
+      "available": "not testPending and isNull(labsAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"labs\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "output": {
+      "label": "Check urine output since midnight",
+      "group": "Assess",
+      "available": "not testPending and isNull(outputAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"output\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "fowler": {
+      "label": "Keep him NPO, in a position of comfort, with the IV fluid running as ordered",
+      "group": "Treat",
+      "available": "isNull(fowlerAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "fowlerAt",
+          "to": "t"
+        },
+        {
+          "log": "NPO maintained; semi-Fowler with knees supported; fluid running.",
+          "kind": "act"
+        }
+      ]
+    },
+    "heat": {
+      "label": "Bring the heating pad he asked for",
+      "group": "Treat",
+      "available": "isNull(heatAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "heatAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.15, 2)"
+        },
+        {
+          "log": "Heating pad on his abdomen.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "laxative": {
+      "label": "Ask for an order for a laxative for his constipation",
+      "group": "Treat",
+      "available": "isNull(laxativeAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "laxativeAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.2, 2)"
+        },
+        {
+          "log": "A laxative is requested.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Why did the pain suddenly ease?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "perf",
+              "label": "Perforation: sudden relief of pain then a rigid abdomen with diffuse pain is peritonitis, a route to sepsis"
+            },
+            {
+              "value": "better",
+              "label": "The appendicitis is settling"
+            },
+            {
+              "value": "const",
+              "label": "Constipation"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"perf\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"perf\""
+                },
+                {
+                  "log": "Perforated appendix with peritonitis.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"better\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"better\""
+                },
+                {
+                  "log": "Read as improving.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"const\""
+                },
+                {
+                  "log": "Read as constipation.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Escalate",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "call",
+              "label": "Call the surgical resident now: sudden pain relief at 04:30, now rigid with rebound, 39.0, tachycardic, sepsis screen positive, lactate pending; NPO, no heat or laxative"
+            },
+            {
+              "value": "or",
+              "label": "He goes to the operating room at 08:00 anyway; mention it then"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"call\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"call\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "The resident comes at once: IV antibiotics as ordered, a fluid bolus, and the operating room moved up to now.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"or\""
+                },
+                {
+                  "log": "Left for the 08:00 case.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Explain to him why no heat or laxative, and document the change and call",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "He understands why heat and laxatives are unsafe now; the change in his abdomen and the call are documented.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Surgical unit, room 7",
+      "clock": "running",
+      "actions": [
+        "abdomen",
+        "temp",
+        "labs",
+        "output",
+        "fowler",
+        "heat",
+        "laxative",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"abdomen\"",
+              "then": [
+                {
+                  "set": "abdomenAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Rigid, board-like abdomen with diffuse tenderness and rebound; he lies still with his knees drawn up and says it now hurts 'everywhere'.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"temp\"",
+              "then": [
+                {
+                  "set": "tempAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Temperature 39.0; heart rate and respiratory rate up; positive sepsis screen.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"labs\"",
+              "then": [
+                {
+                  "set": "labsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Blood cultures and lactate drawn; lactate 3.4 mmol/L.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "outputAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Urine output 90 mL in 5 hours.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the move to the operating room",
+      "wait": {
+        "skipLabel": "the move to the operating room"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 25 min for antibiotics, the bolus and the move to the operating room."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "He leaves for an emergency operation with antibiotics running.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "Why did Mr. Becker's pain suddenly improve, and what do you do?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "In appendicitis, sudden relief of pain followed by a rigid, diffusely tender abdomen with fever and tachycardia means perforation and peritonitis, which leads to sepsis.",
+          "modelAnswer": "His appendix has probably ruptured. The pain eased when it burst, and now his belly is rigid and tender all over with a fever and a fast heart rate: peritonitis heading for sepsis."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Keeps him NPO with fluid running, avoids heat, laxatives and enemas, screens for sepsis with cultures and lactate, and calls the surgical resident at once.",
+          "modelAnswer": "Keep him NPO with the IV running, no heating pad and no laxative, do the sepsis screen with cultures and lactate, and call the surgical resident now."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "A perforated appendix unescalated an hour on is harm here.",
+      "source": {
+        "cite": "Nurse.com Clinical Guides: Appendicitis (no date shown)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.nurse.com/clinical-guides/appendicitis",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: Rovsing sign: 'Abdominal pain in right lower quadrant (RLQ) upon palpation of left lower quadrant (LLQ)'; tachycardia, guarding, rebound tenderness and low-grade fever; rising pressure 'can potentially lead to ischemia and the rupture of the appendix, and frank peritonitis'; 'Individual is kept NPO and hydrated with IV fluids'; 'Avoid administering cathartics or enemas or applying heat to lower abdomen as they may cause appendix to rupture'."
+      }
+    }
+  },
+  "endings": {
+    "shock": {
+      "label": "Septic shock",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "His pressure falls to 78/40, he is confused and mottled, and the rapid response team is called."
+    },
+    "safe": {
+      "label": "Perforation caught",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"call\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and isNull(heatAt) and isNull(laxativeAt) and (not isNull(tempAt) and not isNull(labsAt))",
+      "narrative": "{timeAt(leftAt)|clock}: he goes for an emergency operation with antibiotics running."
+    },
+    "safeGaps": {
+      "label": "Operated, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: he goes to the operating room, but the call was slow, heat or a laxative was given, or the sepsis screen waited."
+    },
+    "time_up": {
+      "label": "Unescalated at 06:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "06:00 and the surgeon does not know."
+    }
+  },
+  "endingOrder": [
+    "shock",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "The surgical resident called within 5 minutes of the rigid abdomen",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"call\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"call\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "noHeatC",
+        "label": "No heat, laxative or enema",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(heatAt) or not isNull(laxativeAt)",
+            "score": "missed",
+            "why": "Heat or a laxative given."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Avoided."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "sepsisC",
+        "label": "Screened for sepsis with cultures and lactate",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(tempAt) and not isNull(labsAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not both."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Kept him NPO in comfort and checked his urine output",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(fowlerAt) and not isNull(outputAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(fowlerAt) or not isNull(outputAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Read the change as perforation with peritonitis",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"perf\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"better\"",
+            "score": "missed",
+            "why": "Sudden relief then a rigid belly is perforation."
+          },
+          {
+            "when": "dxEnum == \"const\"",
+            "score": "missed",
+            "why": "Constipation does not make the belly rigid with fever."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Explained and documented",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: sudden relief then rigidity means perforation and peritonitis; sepsis screen; no heat or laxative; call",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Rigid abdomen to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "05:00 to the sepsis labs",
+        "value": "isNull(labsAt) ? -1 : timeAt(labsAt)",
+        "format": "duration",
+        "expert": "under 10 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "05:00",
+        "text": "Rigid, board-like abdomen with rebound."
+      },
+      {
+        "at": "~05:01",
+        "text": "39.0 and a positive sepsis screen."
+      },
+      {
+        "at": "~05:02",
+        "text": "Call the surgical resident; cultures and lactate."
+      },
+      {
+        "at": "~05:05",
+        "text": "Comfort, NPO, urine output; explain no heat or laxative; document."
+      }
+    ],
+    "debrief": {
+      "shock": {
+        "headline": "Septic shock",
+        "body": "Sudden relief of appendicitis pain followed by a rigid, diffusely tender abdomen is perforation. Peritonitis leads to sepsis: screen, call the surgeon at once, and never apply heat or give a laxative."
+      },
+      "safe": {
+        "headline": "Perforation caught",
+        "body": "You read the sudden relief as perforation, found peritonitis and sepsis, avoided heat and laxatives, and called within minutes. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Operated, with gaps",
+        "body": "Check how soon you called, whether heat or a laxative was given, and whether cultures and lactate were drawn."
+      },
+      "time_up": {
+        "headline": "Unescalated at 06:00",
+        "body": "A rigid abdomen after sudden relief goes to the surgeon at once."
+      }
+    },
+    "modelReasoning": "Appendicitis brings pain at McBurney's point and a positive Rovsing sign (right lower quadrant pain when the left lower quadrant is pressed). Rising pressure can lead to rupture and peritonitis: the pain may ease suddenly, then the abdomen becomes rigid and diffusely tender with fever and tachycardia, and sepsis follows. Keep him NPO with IV fluid, avoid cathartics, enemas and heat on the abdomen, screen for sepsis with cultures and lactate, and call the surgeon at once."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "rovQ": {
+      "during": "testT",
+      "ask": "While you examine: what is a positive Rovsing sign?",
+      "choices": [
+        {
+          "id": "rov",
+          "label": "Right lower quadrant pain when the left lower quadrant is pressed"
+        },
+        {
+          "id": "mcb",
+          "label": "Pain at the umbilicus on coughing"
+        },
+        {
+          "id": "none",
+          "label": "Pain in the left shoulder"
+        }
+      ],
+      "expect": "rov",
+      "explain": "Rovsing sign: abdominal pain in the right lower quadrant upon palpation of the left lower quadrant.",
+      "source": {
+        "cite": "Nurse.com Clinical Guides: Appendicitis (no date shown)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.nurse.com/clinical-guides/appendicitis",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: Rovsing sign: 'Abdominal pain in right lower quadrant (RLQ) upon palpation of left lower quadrant (LLQ)'; tachycardia, guarding, rebound tenderness and low-grade fever; rising pressure 'can potentially lead to ischemia and the rupture of the appendix, and frank peritonitis'; 'Individual is kept NPO and hydrated with IV fluids'; 'Avoid administering cathartics or enemas or applying heat to lower abdomen as they may cause appendix to rupture'."
+      }
+    },
+    "heatQ": {
+      "during": "leaveT",
+      "ask": "While he goes to the operating room: why no heat or laxative?",
+      "choices": [
+        {
+          "id": "rupt",
+          "label": "They can cause or worsen rupture"
+        },
+        {
+          "id": "fine",
+          "label": "They are fine for comfort"
+        },
+        {
+          "id": "only",
+          "label": "Only because he is NPO"
+        }
+      ],
+      "expect": "rupt",
+      "explain": "Avoid cathartics or enemas or applying heat to the lower abdomen, as they may cause the appendix to rupture.",
+      "source": {
+        "cite": "Nurse.com Clinical Guides: Appendicitis (no date shown)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.nurse.com/clinical-guides/appendicitis",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: Rovsing sign: 'Abdominal pain in right lower quadrant (RLQ) upon palpation of left lower quadrant (LLQ)'; tachycardia, guarding, rebound tenderness and low-grade fever; rising pressure 'can potentially lead to ischemia and the rupture of the appendix, and frank peritonitis'; 'Individual is kept NPO and hydrated with IV fluids'; 'Avoid administering cathartics or enemas or applying heat to lower abdomen as they may cause appendix to rupture'."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

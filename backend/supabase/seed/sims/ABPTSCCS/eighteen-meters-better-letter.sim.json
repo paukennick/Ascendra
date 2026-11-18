@@ -1,0 +1,1086 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "eighteen-meters-better-letter",
+  "title": "Eighteen meters better",
+  "objective": "Apply the ERS/ATS technical standard when interpreting 6-minute walk results: a 30 m change is the smallest difference that counts as clinically meaningful",
+  "secondaryObjectives": [
+    "Titrate supplemental oxygen to target saturations: 94% to 98% for most patients, 88% to 92% for those at risk of hypercapnic respiratory failure, such as COPD"
+  ],
+  "sources": [
+    {
+      "cite": "Specialist certification examination outline: cardiovascular and pulmonary (the certifying board's published outline page)",
+      "checkedAt": "2026-11-08",
+      "url": "https://specialization.apta.org/become-a-specialist/cardiovascular-pulmonary/exam-outline",
+      "note": "Relayed from the cardiovascular and pulmonary specialty course seed (backend/supabase/seed/tracks/pt-abpts.ts, outline pages read 2026-10-08 and 2026-11-04, OUTLINE_CHECKED_AT 2026-11-08), not re-read: Evidence-based clinical practice and critical inquiry (10%) is a tested area. Scope only; no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra cardiovascular and pulmonary specialty course catalog (backend/supabase/seed/tracks/pt-abpts.ts, track ABPTSCCS)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Matos Casano HA, et al.. Six-Minute Walk Test. StatPearls (updated 2025-07-07), StatPearls Publishing",
+      "checkedAt": "2026-11-04",
+      "note": "Relayed from the course seed (tag SP-6MWT; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: the ERS/ATS technical standard puts the smallest clinically meaningful change in 6-minute walk distance at 30 m; a fall in SpO2 of more than 4% during a walk test is clinically significant (the course objectives' wording)."
+    },
+    {
+      "cite": "Weekley MS, et al.. Oxygen Therapy. StatPearls (updated 2025-01-22), StatPearls Publishing",
+      "checkedAt": "2026-11-04",
+      "note": "Relayed from the course seed (tag SP-O2; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: supplemental oxygen is titrated to a target saturation; the course seed corrected its targets on 2026-11-09 to the BTS 2017 guideline's 94-98% for most patients and 88-92% for those at risk of hypercapnic respiratory failure, such as COPD."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "09:00 in an outpatient pulmonary rehabilitation gym. You are the physical therapist. Mrs. Lindqvist, 72, with COPD, is in her last week. Her discharge 6-minute walk yesterday was 328 m against 310 m at intake, on the same course and her same ordered oxygen. The program manager has drafted a letter to her pulmonologist and insurer saying she 'achieved a clinically meaningful improvement' and wants you to sign it. Meanwhile she is cycling an interval.",
+    "handover": [
+      "Her oxygen order: titrate to a saturation of 88-92%; she is at risk of hypercapnic respiratory failure.",
+      "Program policy: outcome reports go to the referring pulmonologist; the physical therapist signs the functional results."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "09:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.004,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Hard exercise below her target saturation keeps her desaturating. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.001,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Recovered at an easier load. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of severe desaturation. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "An accurate report within 5 minutes of the comparison (program policy: the physical therapist signs the functional results)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min to finish the session."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "satAt": {
+      "type": "time",
+      "init": null
+    },
+    "distAt": {
+      "type": "time",
+      "init": null
+    },
+    "condAt": {
+      "type": "time",
+      "init": null
+    },
+    "goalsAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "sat",
+        "dist",
+        "cond",
+        "goals"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "honest",
+        "sign"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "no",
+        "yes",
+        "pct"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "pushAt": {
+      "type": "time",
+      "init": null
+    },
+    "restAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(isNull(restAt) ? 112 : 94)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(not isNull(restAt) ? 90 : 85 - 6 * max(0, prog - 0.7))",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (not isNull(restAt) ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Mrs. Lindqvist, 72, COPD, last week of pulmonary rehabilitation",
+        "presentation": "Exercising on her ordered oxygen. {not isNull(pushAt) ? \"Pushing on through the interval.\" : \"\"}"
+      },
+      "vitals": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "colour": "ecg",
+          "alarm": {
+            "high": 130
+          },
+          "announce": {
+            "bands": [
+              115,
+              130
+            ]
+          }
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "colour": "spo2",
+          "alarm": {
+            "low": 88
+          },
+          "announce": {
+            "bands": [
+              91,
+              88
+            ]
+          }
+        }
+      ],
+      "activity": "{not inClinic ? \"Session over.\" : (not isNull(pushAt) ? \"Pedaling hard, lips dusky, breathing fast.\" : (not isNull(restAt) ? \"Resting on the bike, breathing settling.\" : \"Cycling an interval.\"))}",
+      "measures": [
+        {
+          "id": "satResult",
+          "label": "SpO2",
+          "result": "SpO2 85% on her ordered oxygen; breathless.",
+          "when": "not isNull(satAt)"
+        },
+        {
+          "id": "distResult",
+          "label": "Distance",
+          "result": "+18 m: below the 30 m smallest meaningful change.",
+          "when": "not isNull(distAt)",
+          "flag": "true"
+        },
+        {
+          "id": "condResult",
+          "label": "Conditions",
+          "result": "Same course, same oxygen, same time of day.",
+          "when": "not isNull(condAt)"
+        },
+        {
+          "id": "goalsResult",
+          "label": "Her view",
+          "result": "Walks to the mailbox without stopping now; showers without resting.",
+          "when": "not isNull(goalsAt)"
+        }
+      ],
+      "dosage": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "Intensity reduced and recovered",
+            "when": "not isNull(restAt)"
+          },
+          {
+            "label": "Honest result sent",
+            "when": "route == \"honest\""
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleDesat",
+          "label": "SpO2 below her 88-92% target",
+          "text": "Ease off and recover before going on.",
+          "met": "not isNull(satAt) and isNull(restAt)"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "sat": {
+      "label": "Check her saturation and breathlessness mid-interval",
+      "group": "Examine",
+      "available": "not testPending and isNull(satAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"sat\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "dist": {
+      "label": "Compare yesterday's walk with intake against the smallest meaningful change",
+      "group": "Examine",
+      "available": "not testPending and isNull(distAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"dist\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "cond": {
+      "label": "Check the two walks were done the same way",
+      "group": "Examine",
+      "available": "not testPending and isNull(condAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"cond\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "goals": {
+      "label": "Ask her what has changed day to day",
+      "group": "Examine",
+      "available": "not testPending and isNull(goalsAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"goals\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "push": {
+      "label": "Encourage her to push through to finish the interval",
+      "group": "Treat",
+      "available": "isNull(pushAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "pushAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.6, 2)"
+        },
+        {
+          "log": "She pushes on; her saturation keeps falling and she becomes confused and dusky.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "rest": {
+      "label": "Ease the load and let her recover until her saturation is back in her target range before going on",
+      "group": "Treat",
+      "available": "isNull(restAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "restAt",
+          "to": "t"
+        },
+        {
+          "log": "Load eased; she rests on the bike and her saturation recovers to 90%.",
+          "kind": "act"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Is +18 m a clinically meaningful improvement?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "no",
+              "label": "No: +18 m is below the 30 m smallest meaningful change; report it as it is, with her day-to-day gains"
+            },
+            {
+              "value": "yes",
+              "label": "Yes: any increase is an improvement"
+            },
+            {
+              "value": "pct",
+              "label": "Yes: it is about 6% better"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"no\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"no\""
+                },
+                {
+                  "log": "Not clinically meaningful.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"yes\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"yes\""
+                },
+                {
+                  "log": "Read as meaningful.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"pct\""
+                },
+                {
+                  "log": "Read as meaningful by percent.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Report",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "honest",
+              "label": "Decline to sign the letter as drafted; tell the manager and send the pulmonologist an accurate report: +18 m, below the 30 m smallest meaningful change, with her reported day-to-day gains and today's desaturation on exertion"
+            },
+            {
+              "value": "sign",
+              "label": "Sign the letter as drafted"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"honest\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"honest\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "The manager agrees to revise the letter; the pulmonologist gets the accurate result and asks about her oxygen during exercise.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"sign\""
+                },
+                {
+                  "set": "prog",
+                  "to": "min(prog + 0.3, 2)"
+                },
+                {
+                  "log": "The letter goes out claiming a clinically meaningful improvement.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document the comparison, today's saturation and the plan",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Comparison, saturations and plan documented.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Pulmonary rehab gym",
+      "clock": "running",
+      "actions": [
+        "sat",
+        "dist",
+        "cond",
+        "goals",
+        "push",
+        "rest",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the test",
+      "wait": {
+        "skipLabel": "the test result"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each test or question takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"sat\"",
+              "then": [
+                {
+                  "set": "satAt",
+                  "to": "t"
+                },
+                {
+                  "log": "SpO2 85% on her ordered oxygen, breathless: below her 88-92% target.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"dist\"",
+              "then": [
+                {
+                  "set": "distAt",
+                  "to": "t"
+                },
+                {
+                  "log": "328 m against 310 m is +18 m, below the 30 m smallest clinically meaningful change: not a clinically meaningful improvement.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"cond\"",
+              "then": [
+                {
+                  "set": "condAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Same course, same oxygen and same time of day: the comparison is fair.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "goalsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "She now walks to the mailbox and showers without stopping to rest.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the end of the session",
+      "wait": {
+        "skipLabel": "the end of the session"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min to finish the session."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "The session ends; the report is accurate.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "Is Mrs. Lindqvist's walk result a clinically meaningful improvement, and what do you report?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "No: +18 m on the same course and oxygen is below the ERS/ATS 30 m smallest meaningful change, though she reports real day-to-day gains; today she also desaturated below her 88-92% target on exertion.",
+          "modelAnswer": "No. 18 m is under the 30 m that counts as meaningful, even though she feels she's doing more. And she dropped below 88% on the bike today."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Ease the load until she recovers; decline to sign the letter as drafted; send an accurate report with the distance, the threshold, her day-to-day gains and today's desaturation; document.",
+          "modelAnswer": "Back off the bike till she's back in range, don't sign the letter as written, and send an honest report with all of it."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "spo2Floor": {
+        "value": 88,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "escalateWindow": {
+        "value": 300,
+        "source": {
+          "cite": "Unit practice (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "An accurate report within 5 minutes of the comparison (program policy: the physical therapist signs the functional results)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "A misleading outcome report or an unrecovered desaturation is harm here.",
+      "source": {
+        "cite": "Weekley MS, et al.. Oxygen Therapy. StatPearls (updated 2025-01-22), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-O2; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: supplemental oxygen is titrated to a target saturation; the course seed corrected its targets on 2026-11-09 to the BTS 2017 guideline's 94-98% for most patients and 88-92% for those at risk of hypercapnic respiratory failure, such as COPD."
+      }
+    }
+  },
+  "endings": {
+    "desat": {
+      "label": "Severe desaturation",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "Her saturation drops into the 70s; she is confused and dusky and the team calls for help."
+    },
+    "safe": {
+      "label": "Accurate and safe",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"honest\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and (not isNull(distAt)) and isNull(pushAt) and (not isNull(satAt) and not isNull(restAt))",
+      "narrative": "{timeAt(leftAt)|clock}: she recovered in her target range and the report says what the walk test shows."
+    },
+    "safeGaps": {
+      "label": "Handled, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: she is safe and the report is accurate, but late, or a step was skipped."
+    },
+    "time_up": {
+      "label": "Unresolved at 10:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "10:00 and the letter is unresolved."
+    }
+  },
+  "endingOrder": [
+    "desat",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "An accurate report sent within 5 minutes of the comparison",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"honest\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"honest\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "distC",
+        "label": "Compared the change with the 30 m smallest meaningful change",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(distAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not compared."
+          }
+        ]
+      },
+      {
+        "id": "satC",
+        "label": "Checked her saturation and eased the load",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(pushAt)",
+            "score": "missed",
+            "why": "Pushed her on."
+          },
+          {
+            "when": "not isNull(satAt) and not isNull(restAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Checked the test conditions and her day-to-day change",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(condAt) and not isNull(goalsAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(condAt) or not isNull(goalsAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Interpreted the walk result correctly",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"no\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"yes\"",
+            "score": "missed",
+            "why": "A change under 30 m is not clinically meaningful."
+          },
+          {
+            "when": "dxEnum == \"pct\"",
+            "score": "missed",
+            "why": "The standard's threshold is 30 m."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: +18 m is below the 30 m threshold; report it as it is; keep her saturation in target",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Comparison to the report",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "09:00 to the comparison",
+        "value": "isNull(distAt) ? -1 : timeAt(distAt)",
+        "format": "duration",
+        "expert": "under 5 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "09:00",
+        "text": "Mid-interval: SpO2 85%; ease the load until she recovers."
+      },
+      {
+        "at": "~09:02",
+        "text": "Compare: +18 m, below 30 m."
+      },
+      {
+        "at": "~09:03",
+        "text": "Decline the letter; accurate report to the pulmonologist."
+      },
+      {
+        "at": "~09:05",
+        "text": "Conditions, her gains; document."
+      }
+    ],
+    "debrief": {
+      "desat": {
+        "headline": "Severe desaturation",
+        "body": "Keep her in her 88-92% target: ease the load when she falls below it. And read the walk test against the 30 m threshold, not by whether the number went up."
+      },
+      "safe": {
+        "headline": "Accurate and safe",
+        "body": "You eased the load when she desaturated, compared +18 m with the 30 m threshold and sent an accurate report within minutes. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Handled, with gaps",
+        "body": "Check whether you compared against the threshold and how soon you reported."
+      },
+      "time_up": {
+        "headline": "Unresolved at 10:00",
+        "body": "Decide on the report in the session."
+      }
+    },
+    "modelReasoning": "The ERS/ATS technical standard puts the smallest clinically meaningful change in 6-minute walk distance at 30 m, so +18 m on the same course and oxygen is not a clinically meaningful improvement, whatever the percentage. Report it accurately alongside her own day-to-day gains. During exercise, keep her at her 88-92% target as someone at risk of hypercapnic respiratory failure: ease off when she falls below it."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "o2Q": {
+      "during": "leaveT",
+      "ask": "While you finish: what is her saturation target?",
+      "choices": [
+        {
+          "id": "low",
+          "label": "88-92%, as someone at risk of hypercapnic respiratory failure"
+        },
+        {
+          "id": "high",
+          "label": "94-98%"
+        },
+        {
+          "id": "full",
+          "label": "100%"
+        }
+      ],
+      "expect": "low",
+      "explain": "88-92% for those at risk of hypercapnic respiratory failure, such as COPD.",
+      "source": {
+        "cite": "Weekley MS, et al.. Oxygen Therapy. StatPearls (updated 2025-01-22), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-O2; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: supplemental oxygen is titrated to a target saturation; the course seed corrected its targets on 2026-11-09 to the BTS 2017 guideline's 94-98% for most patients and 88-92% for those at risk of hypercapnic respiratory failure, such as COPD."
+      }
+    },
+    "mcidQ": {
+      "during": "testT",
+      "ask": "While you compare: what is the smallest clinically meaningful change in 6-minute walk distance?",
+      "choices": [
+        {
+          "id": "m30",
+          "label": "30 m"
+        },
+        {
+          "id": "m10",
+          "label": "10 m"
+        },
+        {
+          "id": "any",
+          "label": "Any increase"
+        }
+      ],
+      "expect": "m30",
+      "explain": "The ERS/ATS technical standard puts it at 30 m.",
+      "source": {
+        "cite": "Matos Casano HA, et al.. Six-Minute Walk Test. StatPearls (updated 2025-07-07), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-6MWT; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: the ERS/ATS technical standard puts the smallest clinically meaningful change in 6-minute walk distance at 30 m; a fall in SpO2 of more than 4% during a walk test is clinically significant (the course objectives' wording)."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

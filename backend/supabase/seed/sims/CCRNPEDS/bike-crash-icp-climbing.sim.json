@@ -1,0 +1,1169 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "bike-crash-icp-climbing",
+  "title": "The ICP number climbs",
+  "objective": "Manage traumatic brain injury, intracranial hemorrhage, stroke and space-occupying lesions using neuroprotective protocols",
+  "secondaryObjectives": [
+    "Care for children with acute spinal cord injury or after spinal fusion, applying spinal precautions"
+  ],
+  "sources": [
+    {
+      "cite": "AACN Certification Corporation. CCRN Exam Handbook - Direct Care (July 2026), Pediatric test plan",
+      "checkedAt": "2026-10-31",
+      "url": "https://www.aacn.org/certification/get-certified/ccrn-pediatric",
+      "note": "Relayed from the CCRN Pediatric course seed (backend/supabase/seed/tracks/ccrn-peds-neo.ts), which read the handbook 2026-10-31, not re-read: the objective titles are the course's own. Scope only."
+    },
+    {
+      "cite": "Ascendra CCRN Pediatric course catalog (backend/supabase/seed/tracks/ccrn-peds-neo.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Brain Trauma Foundation: Guidelines for the Management of Pediatric Severe TBI, 3rd Edition (2019), summary page",
+      "checkedAt": "2026-11-17",
+      "url": "https://braintrauma.org/coma/guidelines/pediatric",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'Treatment of ICP targeting a threshold of less than 20 mmHg is suggested'; 'Bolus HTS (3%) is recommended in patients with intracranial hypertension'; 'Prophylactic severe hyperventilation to a Paco2 less than 30 mm Hg in the initial 48 hours after injury is not suggested'; 'Treatment to maintain a CPP at a minimum of 40 mm Hg is suggested'. Read on the foundation's summary page; the guideline text itself was not opened."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "15:00 in the PICU. You are the nurse for Ava, 11 years old, 38 kg, intubated after a bicycle crash this morning with a severe traumatic brain injury. She has an intracranial pressure (ICP) monitor and an arterial line; she is sedated on infusions as ordered. Her cervical spine has not been cleared.",
+    "handover": [
+      "Her ICP has run 12-16 mmHg all day. The neurosurgeon is in the hospital.",
+      "Physical therapy just repositioned her flat to change her linen, and her head is turned to the right on a rolled towel.",
+      "Unit TBI protocol: head of bed 30 degrees with the head midline and the collar fitted, avoid hypotension, hypoxia and fever, target normal CO2, keep the cerebral perfusion pressure at or above 40 mmHg; the nurse calls the intensivist and neurosurgeon at once for an ICP of 20 or more for 5 minutes; hyperosmolar therapy is given on order."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "15:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.018,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Intracranial pressure keeps climbing while positioning and the cause go uncorrected. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.004,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It slows once the head is up and midline and the team treats. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of herniation signs. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The intensivist and neurosurgeon called within 5 minutes (protocol: an ICP of 20 or more for 5 minutes)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 1200,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 20 min for hyperosmolar therapy to work and the CT to be arranged."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.45,
+      "min": 0,
+      "max": 2
+    },
+    "trendAt": {
+      "type": "time",
+      "init": null
+    },
+    "pupilsAt": {
+      "type": "time",
+      "init": null
+    },
+    "etco2At": {
+      "type": "time",
+      "init": null
+    },
+    "collarAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "trend",
+        "pupils",
+        "etco2",
+        "collar"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "call",
+        "watch"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "icp",
+        "artifact",
+        "pain"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "hobAt": {
+      "type": "time",
+      "init": null
+    },
+    "quietAt": {
+      "type": "time",
+      "init": null
+    },
+    "hypervAt": {
+      "type": "time",
+      "init": null
+    },
+    "flatAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(96 - 30 * max(0, prog - 0.85) + sin(t / 9) * 3)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(112 + 30 * max(0, prog - 0.8))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.58)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "18",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "98",
+      "unit": "%",
+      "precision": 0
+    },
+    "icp": {
+      "expr": "round(14 + 22 * max(0, prog - 0.45))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "cpp": {
+      "expr": "round((sbp + 2 * dbp) / 3 - icp)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (not isNull(hobAt) and route == \"call\" ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 140
+          },
+          "announce": {
+            "bands": [
+              120,
+              140
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "announce": {
+            "bands": [
+              90,
+              80
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "high": 30
+          },
+          "announce": {
+            "bands": [
+              20,
+              30
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              95,
+              92
+            ]
+          },
+          "colour": "spo2"
+        },
+        {
+          "id": "icp",
+          "label": "ICP",
+          "spokenLabel": "Intracranial pressure",
+          "value": "icp",
+          "unit": "mmHg",
+          "alarm": {
+            "high": 20
+          },
+          "announce": {
+            "bands": [
+              20,
+              25
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "cpp",
+          "label": "CPP",
+          "spokenLabel": "Cerebral perfusion pressure",
+          "value": "cpp",
+          "unit": "mmHg",
+          "alarm": {
+            "low": 40
+          },
+          "announce": {
+            "bands": [
+              50,
+              40
+            ]
+          },
+          "colour": "neutral"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Head of bed: {isNull(hobAt) ? \"flat, head turned\" : \"30 degrees, midline\"}. Ventilator unchanged: {isNull(hypervAt)|yesno}.",
+      "banner": [
+        {
+          "when": "route == \"call\" and inClinic",
+          "text": "The intensivist is at the bedside; the neurosurgeon is reviewing."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "trend": {
+      "label": "Read the ICP and CPP trend for the last 10 minutes",
+      "group": "Assess",
+      "available": "not testPending and isNull(trendAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"trend\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "pupils": {
+      "label": "Pupils and the neuro exam her sedation allows",
+      "group": "Assess",
+      "available": "not testPending and isNull(pupilsAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"pupils\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "etco2": {
+      "label": "Check end-tidal CO2, temperature and the last gas",
+      "group": "Assess",
+      "available": "not testPending and isNull(etco2At)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"etco2\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "collar": {
+      "label": "Check the collar fit and the neck veins",
+      "group": "Assess",
+      "available": "not testPending and isNull(collarAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"collar\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "hob": {
+      "label": "Head of bed to 30 degrees, head midline, collar refitted, towel removed (protocol)",
+      "group": "Treat",
+      "available": "isNull(hobAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "hobAt",
+          "to": "t"
+        },
+        {
+          "log": "Head of bed 30 degrees, head midline, collar refitted; the ICP waveform settles a little.",
+          "kind": "act"
+        }
+      ]
+    },
+    "quiet": {
+      "label": "Cluster care and keep stimulation to a minimum",
+      "group": "Treat",
+      "available": "isNull(quietAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "quietAt",
+          "to": "t"
+        },
+        {
+          "log": "Lights lowered; care clustered.",
+          "kind": "act"
+        }
+      ]
+    },
+    "hyperv": {
+      "label": "Turn up the ventilator rate to blow off CO2 and bring the ICP down",
+      "group": "Treat",
+      "available": "isNull(hypervAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "hypervAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.2, 2)"
+        },
+        {
+          "log": "Ventilator rate increased; end-tidal CO2 falls to 26.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "flat": {
+      "label": "Leave her flat for now to protect the unsecured spine and recheck after the next set",
+      "group": "Treat",
+      "available": "isNull(flatAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "flatAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.1, 2)"
+        },
+        {
+          "log": "Left flat, head still turned.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Why is her ICP up?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "icp",
+              "label": "Intracranial hypertension above 20 for 5 minutes, worsened by flat positioning, a turned head and a tight collar obstructing venous drainage"
+            },
+            {
+              "value": "artifact",
+              "label": "Monitor artifact after the move"
+            },
+            {
+              "value": "pain",
+              "label": "Pain; more sedation will fix it"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"icp\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"icp\""
+                },
+                {
+                  "log": "Raised ICP; positioning is a cause.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"artifact\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"artifact\""
+                },
+                {
+                  "log": "Read as artifact.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"pain\""
+                },
+                {
+                  "log": "Read as pain.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Escalate",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "call",
+              "label": "Call the intensivist and neurosurgeon now: ICP 21-24 for 6 minutes after a flat reposition, CPP falling toward 50, pupils equal; head now up and midline"
+            },
+            {
+              "value": "watch",
+              "label": "Watch it for another half hour first"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"call\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"call\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "The intensivist comes at once and orders hyperosmolar therapy as ordered; the neurosurgeon reviews the ICP trend and plans a repeat CT.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"watch\""
+                },
+                {
+                  "log": "Watching for another half hour.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document the ICP episode, positioning and calls, and tell physical therapy about positioning",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "The episode, positioning, numbers and calls are documented; physical therapy is told to keep her head up and midline for linen changes.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "PICU, bed 1",
+      "clock": "running",
+      "actions": [
+        "trend",
+        "pupils",
+        "etco2",
+        "collar",
+        "hob",
+        "quiet",
+        "hyperv",
+        "flat",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"trend\"",
+              "then": [
+                {
+                  "set": "trendAt",
+                  "to": "t"
+                },
+                {
+                  "log": "ICP 21-24 mmHg for 6 minutes since the linen change; CPP falling toward 50.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"pupils\"",
+              "then": [
+                {
+                  "set": "pupilsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Pupils 3 mm, equal and reactive; cough and gag present.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"etco2\"",
+              "then": [
+                {
+                  "set": "etco2At",
+                  "to": "t"
+                },
+                {
+                  "log": "End-tidal CO2 38; temperature 37.6; the 14:00 gas had a PaCO2 of 39.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "collarAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Collar riding up and tight under the jaw with the head turned.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the team's treatment",
+      "wait": {
+        "skipLabel": "the team's treatment"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 20 min for hyperosmolar therapy to work and the CT to be arranged."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "Her ICP is back under 20 and she is going for a repeat CT.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "Why has Ava's ICP risen, and what do you do?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "An ICP of 20 or more for over 5 minutes is intracranial hypertension; lying flat with the head turned and a tight collar impede venous drainage; CPP must stay at or above 40.",
+          "modelAnswer": "Her ICP has been over 20 for six minutes since she was laid flat with her head turned and the collar tight, which blocks venous drainage. Her CPP is heading down toward 40."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Puts the head of bed at 30 degrees with the head midline and the collar refitted, minimizes stimulation, keeps normal CO2 without hyperventilating, and calls the intensivist and neurosurgeon at once.",
+          "modelAnswer": "Head up to 30, midline, fix the collar, keep things quiet, keep her CO2 normal, and call the intensivist and neurosurgeon now. No hyperventilating."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Sustained intracranial hypertension unescalated an hour on is harm here.",
+      "source": {
+        "cite": "Brain Trauma Foundation: Guidelines for the Management of Pediatric Severe TBI, 3rd Edition (2019), summary page",
+        "checkedAt": "2026-11-17",
+        "url": "https://braintrauma.org/coma/guidelines/pediatric",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'Treatment of ICP targeting a threshold of less than 20 mmHg is suggested'; 'Bolus HTS (3%) is recommended in patients with intracranial hypertension'; 'Prophylactic severe hyperventilation to a Paco2 less than 30 mm Hg in the initial 48 hours after injury is not suggested'; 'Treatment to maintain a CPP at a minimum of 40 mm Hg is suggested'. Read on the foundation's summary page; the guideline text itself was not opened."
+      }
+    }
+  },
+  "endings": {
+    "herniation": {
+      "label": "Herniation signs",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "Her ICP climbs past 35, her left pupil dilates, her blood pressure rises and her heart rate slows."
+    },
+    "safe": {
+      "label": "ICP controlled",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"call\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and isNull(flatAt) and (not isNull(hobAt) and timeAt(hobAt) <= 300) and isNull(hypervAt)",
+      "narrative": "{timeAt(leftAt)|clock}: her ICP is under 20 with a CPP above 40, and she is going for a repeat CT."
+    },
+    "safeGaps": {
+      "label": "Controlled, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: her ICP is controlled, but the call was slow, she stayed flat, or she was hyperventilated."
+    },
+    "time_up": {
+      "label": "Unescalated at 16:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "16:00 and the ICP is still high."
+    }
+  },
+  "endingOrder": [
+    "herniation",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "The intensivist and neurosurgeon called within 5 minutes of a sustained ICP of 20 or more",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"call\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"call\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "posC",
+        "label": "Head up 30 degrees and midline with the collar refitted",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(flatAt)",
+            "score": "missed",
+            "why": "Left flat."
+          },
+          {
+            "when": "not isNull(hobAt) and timeAt(hobAt) <= 300",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not within 5 minutes."
+          }
+        ]
+      },
+      {
+        "id": "noHypervC",
+        "label": "No prophylactic hyperventilation",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(hypervAt)",
+            "score": "missed",
+            "why": "Hyperventilated."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Normal CO2 kept."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Checked pupils, CO2 and temperature, and the collar",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(pupilsAt) and not isNull(etco2At) and not isNull(collarAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(pupilsAt) or not isNull(etco2At) or not isNull(collarAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Read the rise as intracranial hypertension with a correctable cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"icp\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"artifact\"",
+            "score": "missed",
+            "why": "A sustained rise with a falling CPP is not artifact."
+          },
+          {
+            "when": "dxEnum == \"pain\"",
+            "score": "missed",
+            "why": "Positioning comes first, and the team must know."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented and told the team about positioning",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: sustained ICP over 20; positioning and collar; normal CO2; call",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Sustained ICP to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "15:00 to head up and midline",
+        "value": "isNull(hobAt) ? -1 : timeAt(hobAt)",
+        "format": "duration",
+        "expert": "under 2 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "15:00",
+        "text": "ICP 21-24 for 6 minutes; CPP falling."
+      },
+      {
+        "at": "~15:01",
+        "text": "Head up 30, midline, collar refitted."
+      },
+      {
+        "at": "~15:02",
+        "text": "Call the intensivist and neurosurgeon."
+      },
+      {
+        "at": "~15:04",
+        "text": "Pupils, CO2, temperature; quiet the room; document; brief physical therapy."
+      }
+    ],
+    "debrief": {
+      "herniation": {
+        "headline": "Herniation signs",
+        "body": "A sustained ICP of 20 or more needs the protocol's first steps (head up, midline, collar loose, normal CO2) and the team at once. Never hyperventilate prophylactically."
+      },
+      "safe": {
+        "headline": "ICP controlled",
+        "body": "You read the trend, fixed the positioning and collar, kept normal CO2 and called within minutes. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Controlled, with gaps",
+        "body": "Check how soon you called, whether her head went up and midline, and whether you hyperventilated."
+      },
+      "time_up": {
+        "headline": "Unescalated at 16:00",
+        "body": "A sustained ICP of 20 or more needs the team now."
+      }
+    },
+    "modelReasoning": "In pediatric severe TBI, an ICP of 20 mmHg or more is treated and CPP is kept at or above 40 mmHg. Ava's rise followed flat positioning with her head turned and a tight collar, which obstruct venous drainage: put the head of bed at 30 degrees, head midline, collar refitted, cluster care, keep normal CO2, and call the intensivist and neurosurgeon at once for hyperosmolar therapy and imaging. Prophylactic severe hyperventilation (PaCO2 under 30) in the first 48 hours is not suggested; it lowers ICP by cutting cerebral blood flow."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "hvQ": {
+      "during": "leaveT",
+      "ask": "While the team treats: why not hyperventilate her?",
+      "choices": [
+        {
+          "id": "flow",
+          "label": "It lowers ICP by cutting cerebral blood flow; prophylactic hyperventilation is not suggested"
+        },
+        {
+          "id": "ok",
+          "label": "It is always first line"
+        },
+        {
+          "id": "lungs",
+          "label": "Only because it hurts the lungs"
+        }
+      ],
+      "expect": "flow",
+      "explain": "Prophylactic severe hyperventilation to a PaCO2 under 30 mmHg in the first 48 hours is not suggested.",
+      "source": {
+        "cite": "Brain Trauma Foundation: Guidelines for the Management of Pediatric Severe TBI, 3rd Edition (2019), summary page",
+        "checkedAt": "2026-11-17",
+        "url": "https://braintrauma.org/coma/guidelines/pediatric",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'Treatment of ICP targeting a threshold of less than 20 mmHg is suggested'; 'Bolus HTS (3%) is recommended in patients with intracranial hypertension'; 'Prophylactic severe hyperventilation to a Paco2 less than 30 mm Hg in the initial 48 hours after injury is not suggested'; 'Treatment to maintain a CPP at a minimum of 40 mm Hg is suggested'. Read on the foundation's summary page; the guideline text itself was not opened."
+      }
+    },
+    "thrQ": {
+      "during": "testT",
+      "ask": "While you check: what ICP and CPP targets apply in pediatric severe TBI?",
+      "choices": [
+        {
+          "id": "t",
+          "label": "Treat an ICP of 20 or more; keep the CPP at least 40"
+        },
+        {
+          "id": "thirty",
+          "label": "Treat only above 30"
+        },
+        {
+          "id": "none",
+          "label": "There are no targets"
+        }
+      ],
+      "expect": "t",
+      "explain": "Treatment of ICP targeting under 20 mmHg is suggested, and a CPP of at least 40 mmHg.",
+      "source": {
+        "cite": "Brain Trauma Foundation: Guidelines for the Management of Pediatric Severe TBI, 3rd Edition (2019), summary page",
+        "checkedAt": "2026-11-17",
+        "url": "https://braintrauma.org/coma/guidelines/pediatric",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'Treatment of ICP targeting a threshold of less than 20 mmHg is suggested'; 'Bolus HTS (3%) is recommended in patients with intracranial hypertension'; 'Prophylactic severe hyperventilation to a Paco2 less than 30 mm Hg in the initial 48 hours after injury is not suggested'; 'Treatment to maintain a CPP at a minimum of 40 mm Hg is suggested'. Read on the foundation's summary page; the guideline text itself was not opened."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

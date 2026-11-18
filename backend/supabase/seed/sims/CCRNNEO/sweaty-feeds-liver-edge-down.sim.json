@@ -1,0 +1,1105 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "sweaty-feeds-liver-edge-down",
+  "title": "Sweaty with every feed",
+  "objective": "Recognize heart failure in the newborn -- tachypnea, feeding difficulty, sweating with feeds, hepatomegaly -- and treat bradycardia and apnea as signs of collapse",
+  "secondaryObjectives": [
+    "Recognize and manage heart failure (high output, congestive, secondary)"
+  ],
+  "sources": [
+    {
+      "cite": "AACN Certification Corporation. CCRN Exam Handbook - Direct Care (July 2026), Neonatal test plan",
+      "checkedAt": "2026-10-31",
+      "url": "https://www.aacn.org/certification/get-certified/ccrn-neonatal",
+      "note": "Relayed from the CCRN Neonatal course seed (backend/supabase/seed/tracks/ccrn-peds-neo.ts), which read the handbook 2026-10-31, not re-read: the objective titles are the course's own. Scope only."
+    },
+    {
+      "cite": "Ascendra CCRN Neonatal course catalog (backend/supabase/seed/tracks/ccrn-peds-neo.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "FPnotebook: Congestive Heart Failure in Children (no update date shown)",
+      "checkedAt": "2026-11-17",
+      "url": "https://fpnotebook.com/CV/Peds/PdtrcCngstvHrtFlr.htm",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: infant symptoms 'Poor feeding', 'Diaphoresis with feeding'; signs S3 gallop, 'Tachypnea', 'Hepatomegaly', 'Tachycardia (out of proportion to condition)'; consult pediatric cardiology early; 'Elevate head of bed 45 degrees'; avoid hyperoxygenation in congenital heart disease; use nitroglycerin cautiously since many are preload-dependent. Secondary, physician-edited."
+    },
+    {
+      "cite": "WisTech Open, Health Promotion: 17.5 Applying the Nursing Process and Clinical Judgment Model to Congenital Heart Defects",
+      "checkedAt": "2026-11-17",
+      "url": "https://wtcs.pressbooks.pub/healthpromo/chapter/17-5-applying-the-nursing-process-to-congenital-heart-defects/",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: interventions: 'Monitor daily weights', 'Strictly monitor intake and output', 'Administer oxygen as needed', 'Provide rest/ calm environment', 'Monitor for respiratory distress'; 'Tachypnea, sternal or intercostal retractions, or nasal flaring indicate respiratory distress'."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "11:00 in the NICU step-down room. You are the nurse for Baby Dubois, a girl born at 38 weeks, now 18 days old, with a large ventricular septal defect awaiting a cardiology review next week. She is bottle-fed every 3 hours.",
+    "handover": [
+      "Her mother says she 'sweats buckets' when she feeds and stops after a few minutes, breathing fast.",
+      "Today's weight is the same as four days ago. She had two wet diapers overnight.",
+      "The neonatal nurse practitioner covers the room; pediatric cardiology is in house. Unit policy: the nurse may stop an oral feed and give the remainder by the existing gavage tube, raise the head of the bed, and calls the provider at once for apnea, bradycardia or rising work of breathing."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "11:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.014,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Failure progresses while it is unrecognized and she keeps working hard to feed. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.003,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It slows with feeds limited and the cardiology plan in place. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of apnea and bradycardia. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The nurse practitioner called within 5 minutes of finding the enlarged liver (unit policy: at once for rising work of breathing)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 1500,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 25 min for the nurse practitioner and cardiology to examine her and set the plan."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "respAt": {
+      "type": "time",
+      "init": null
+    },
+    "liverAt": {
+      "type": "time",
+      "init": null
+    },
+    "listenAt": {
+      "type": "time",
+      "init": null
+    },
+    "growthAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "resp",
+        "liver",
+        "listen",
+        "growth"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "call",
+        "nextweek"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "chf",
+        "lazy",
+        "reflux"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "hobAt": {
+      "type": "time",
+      "init": null
+    },
+    "gavageAt": {
+      "type": "time",
+      "init": null
+    },
+    "pushAt": {
+      "type": "time",
+      "init": null
+    },
+    "o2highAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(178 - 90 * max(0, prog - 0.85) + sin(t / 9) * 3)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "round(68 + 12 * max(0, prog - 0.4))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(95 - 8 * max(0, prog - 0.6))",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (route == \"call\" ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "low": 100,
+            "high": 180
+          },
+          "announce": {
+            "bands": [
+              160,
+              180
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "high": 70
+          },
+          "announce": {
+            "bands": [
+              60,
+              70
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              94,
+              90
+            ]
+          },
+          "colour": "spo2"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Head of bed raised: {not isNull(hobAt)|yesno}. Feed: {not isNull(gavageAt) ? \"by gavage\" : \"by bottle\"}.",
+      "banner": [
+        {
+          "when": "route == \"call\" and inClinic",
+          "text": "The nurse practitioner is with her; cardiology is on the way."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "resp": {
+      "label": "Count her breathing and look for retractions and flaring at rest",
+      "group": "Assess",
+      "available": "not testPending and isNull(respAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"resp\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "liver": {
+      "label": "Palpate the liver edge",
+      "group": "Assess",
+      "available": "not testPending and isNull(liverAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"liver\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "listen": {
+      "label": "Listen to the heart and lungs",
+      "group": "Assess",
+      "available": "not testPending and isNull(listenAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"listen\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "growth": {
+      "label": "Review weights and intake and output for the week",
+      "group": "Assess",
+      "available": "not testPending and isNull(growthAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"growth\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "hob": {
+      "label": "Raise the head of the bed",
+      "group": "Treat",
+      "available": "isNull(hobAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "hobAt",
+          "to": "t"
+        },
+        {
+          "log": "Head of the bed raised; she settles a little.",
+          "kind": "act"
+        }
+      ]
+    },
+    "gavage": {
+      "label": "Stop the bottle after 15 minutes and give the rest by gavage (unit policy)",
+      "group": "Treat",
+      "available": "isNull(gavageAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "gavageAt",
+          "to": "t"
+        },
+        {
+          "log": "Oral feed time-limited; the remainder by gavage.",
+          "kind": "act"
+        }
+      ]
+    },
+    "push": {
+      "label": "Keep her on the bottle until she finishes the whole feed",
+      "group": "Treat",
+      "available": "isNull(pushAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "pushAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.25, 2)"
+        },
+        {
+          "log": "She works for 40 minutes at the bottle, sweating and breathing faster.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "o2high": {
+      "label": "Put her in high-flow oxygen to bring her saturation to 100%",
+      "group": "Treat",
+      "available": "isNull(o2highAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "o2highAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.15, 2)"
+        },
+        {
+          "log": "Oxygen turned up high; saturation 100%.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "What explains her feeding and breathing?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "chf",
+              "label": "Heart failure from her VSD: tachypnea, sweating and tiring with feeds, a growing liver, a gallop and poor weight gain"
+            },
+            {
+              "value": "lazy",
+              "label": "A lazy feeder; push the feeds"
+            },
+            {
+              "value": "reflux",
+              "label": "Reflux making her uncomfortable"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"chf\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"chf\""
+                },
+                {
+                  "log": "Heart failure.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"lazy\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"lazy\""
+                },
+                {
+                  "log": "Read as poor feeding behavior.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"reflux\""
+                },
+                {
+                  "log": "Read as reflux.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Escalate",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "call",
+              "label": "Call the nurse practitioner now: VSD, tachypnea and retractions at rest, sweating and tiring with feeds, liver 3.5 cm (was 1), gallop and crackles, no gain in 4 days; ask for cardiology"
+            },
+            {
+              "value": "nextweek",
+              "label": "Leave it for her cardiology review next week"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"call\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"call\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "The nurse practitioner examines her and cardiology comes: diuretic therapy as ordered, fortified feeds and an earlier surgical review are planned.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"nextweek\""
+                },
+                {
+                  "log": "Left for next week's review.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Explain to her mother why feeds are shorter and document the findings and calls",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Her mother understands why feeds are time-limited; findings and calls are documented.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "NICU step-down",
+      "clock": "running",
+      "actions": [
+        "resp",
+        "liver",
+        "listen",
+        "growth",
+        "hob",
+        "gavage",
+        "push",
+        "o2high",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"resp\"",
+              "then": [
+                {
+                  "set": "respAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Respiratory rate in the high 60s at rest with mild subcostal retractions; no grunting.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"liver\"",
+              "then": [
+                {
+                  "set": "liverAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Liver edge 3.5 cm below the right costal margin; it was 1 cm at admission.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"listen\"",
+              "then": [
+                {
+                  "set": "listenAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Loud harsh murmur as before, a gallop rhythm now, fine crackles at both bases.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "growthAt",
+                  "to": "t"
+                },
+                {
+                  "log": "No weight gain in 4 days; intake falling from about 150 to 110 mL/kg/day; fewer wet diapers.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the cardiology review",
+      "wait": {
+        "skipLabel": "the cardiology review"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 25 min for the nurse practitioner and cardiology to examine her and set the plan."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "Cardiology has seen her; the plan is in place.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What is going on with Baby Dubois, and what do you do?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "A large VSD at about 2-3 weeks causes heart failure as pulmonary resistance falls: tachypnea, sweating and tiring with feeds, hepatomegaly, a gallop and crackles, and poor weight gain.",
+          "modelAnswer": "With a big VSD at almost three weeks, she's going into heart failure: fast breathing, sweating and tiring with feeds, a liver that's grown, a gallop and crackles, and she's stopped gaining."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Raises the head, time-limits oral feeds with gavage for the rest, avoids high oxygen, watches for apnea and bradycardia, and calls the provider and cardiology now.",
+          "modelAnswer": "Head up, short bottle feeds with the rest by gavage, no blasting her with oxygen, watch for apnea or bradycardia, and call the nurse practitioner and cardiology now."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Heart failure signs unescalated an hour on are harm here.",
+      "source": {
+        "cite": "WisTech Open, Health Promotion: 17.5 Applying the Nursing Process and Clinical Judgment Model to Congenital Heart Defects",
+        "checkedAt": "2026-11-17",
+        "url": "https://wtcs.pressbooks.pub/healthpromo/chapter/17-5-applying-the-nursing-process-to-congenital-heart-defects/",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: interventions: 'Monitor daily weights', 'Strictly monitor intake and output', 'Administer oxygen as needed', 'Provide rest/ calm environment', 'Monitor for respiratory distress'; 'Tachypnea, sternal or intercostal retractions, or nasal flaring indicate respiratory distress'."
+      }
+    }
+  },
+  "endings": {
+    "collapse": {
+      "label": "Apnea and bradycardia",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "Midway through a feed she stops breathing; her heart rate falls to 70 and she needs stimulation and bag-mask ventilation."
+    },
+    "safe": {
+      "label": "Failure recognized and escalated",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"call\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and isNull(pushAt) and (not isNull(gavageAt) and not isNull(hobAt)) and isNull(o2highAt)",
+      "narrative": "{timeAt(leftAt)|clock}: she is resting with time-limited feeds, the head up and a cardiology plan in place."
+    },
+    "safeGaps": {
+      "label": "Escalated, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: cardiology has seen her, but the call was slow, she was pushed to finish feeds, or she was given high oxygen."
+    },
+    "time_up": {
+      "label": "Unescalated at 12:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "12:00 and no one who can treat her knows."
+    }
+  },
+  "endingOrder": [
+    "collapse",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "The nurse practitioner and cardiology called within 5 minutes of finding the liver",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"call\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"call\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "feedC",
+        "label": "Cut the energy cost of feeding: time-limited oral feed with gavage, head up",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(pushAt)",
+            "score": "missed",
+            "why": "Pushed to finish the bottle."
+          },
+          {
+            "when": "not isNull(gavageAt) and not isNull(hobAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not both."
+          }
+        ]
+      },
+      {
+        "id": "o2C",
+        "label": "Did not give high oxygen to a saturation of 100%",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(o2highAt)",
+            "score": "missed",
+            "why": "High oxygen given."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Avoided hyperoxygenation."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Listened to heart and lungs and reviewed growth and output",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(listenAt) and not isNull(growthAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(listenAt) or not isNull(growthAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Read the picture as heart failure",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"chf\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"lazy\"",
+            "score": "missed",
+            "why": "Sweating and a growing liver are not behavior."
+          },
+          {
+            "when": "dxEnum == \"reflux\"",
+            "score": "missed",
+            "why": "Reflux does not enlarge the liver."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Told her mother and documented",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: heart failure from the VSD; reduce feeding work; avoid hyperoxygenation; escalate",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Liver found to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "11:00 to time-limited feeds",
+        "value": "isNull(gavageAt) ? -1 : timeAt(gavageAt)",
+        "format": "duration",
+        "expert": "under 10 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "11:00",
+        "text": "Breathing at rest: high 60s, retractions."
+      },
+      {
+        "at": "~11:01",
+        "text": "Liver 3.5 cm: up from 1."
+      },
+      {
+        "at": "~11:02",
+        "text": "Head up; time-limited feeds with gavage; call the nurse practitioner and cardiology."
+      },
+      {
+        "at": "~11:04",
+        "text": "Gallop and crackles; growth chart; tell her mother; document."
+      }
+    ],
+    "debrief": {
+      "collapse": {
+        "headline": "Apnea and bradycardia",
+        "body": "Tachypnea, sweating with feeds, a growing liver and no weight gain are heart failure. Cut the work of feeding and escalate; apnea and bradycardia mean collapse."
+      },
+      "safe": {
+        "headline": "Failure recognized and escalated",
+        "body": "You found the liver, linked the signs to heart failure, cut the energy cost of feeding, avoided hyperoxygenation and called within minutes. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Escalated, with gaps",
+        "body": "Check how soon you called, whether she was pushed through a long feed, and whether oxygen was turned up to 100%."
+      },
+      "time_up": {
+        "headline": "Unescalated at 12:00",
+        "body": "Heart failure signs in an infant with a VSD go to the provider and cardiology now."
+      }
+    },
+    "modelReasoning": "Infant heart failure shows as poor feeding, sweating with feeds, tachypnea, hepatomegaly, a gallop and tachycardia, with poor weight gain; a large VSD typically declares itself in the first weeks. Reduce the energy cost of feeding (head up, time-limited oral feeds with the rest by gavage), avoid hyperoxygenation in congenital heart disease, and call the provider and cardiology now. Bradycardia, apnea or lethargy are signs of collapse."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "careQ": {
+      "during": "leaveT",
+      "ask": "While cardiology reviews her: which nursing care fits?",
+      "choices": [
+        {
+          "id": "care",
+          "label": "Daily weights, strict intake and output, rest, oxygen only as needed"
+        },
+        {
+          "id": "push",
+          "label": "Push full oral feeds"
+        },
+        {
+          "id": "o2",
+          "label": "Oxygen to 100% at all times"
+        }
+      ],
+      "expect": "care",
+      "explain": "Monitor daily weights, strictly monitor intake and output, administer oxygen as needed, provide rest.",
+      "source": {
+        "cite": "WisTech Open, Health Promotion: 17.5 Applying the Nursing Process and Clinical Judgment Model to Congenital Heart Defects",
+        "checkedAt": "2026-11-17",
+        "url": "https://wtcs.pressbooks.pub/healthpromo/chapter/17-5-applying-the-nursing-process-to-congenital-heart-defects/",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: interventions: 'Monitor daily weights', 'Strictly monitor intake and output', 'Administer oxygen as needed', 'Provide rest/ calm environment', 'Monitor for respiratory distress'; 'Tachypnea, sternal or intercostal retractions, or nasal flaring indicate respiratory distress'."
+      }
+    },
+    "signsQ": {
+      "during": "testT",
+      "ask": "While you examine: which signs point to heart failure in an infant?",
+      "choices": [
+        {
+          "id": "hf",
+          "label": "Poor feeding, sweating with feeds, tachypnea, hepatomegaly, a gallop"
+        },
+        {
+          "id": "edema",
+          "label": "Ankle swelling first"
+        },
+        {
+          "id": "fever",
+          "label": "Fever and rash"
+        }
+      ],
+      "expect": "hf",
+      "explain": "Poor feeding, diaphoresis with feeding, tachypnea, hepatomegaly, an S3 gallop and tachycardia out of proportion.",
+      "source": {
+        "cite": "FPnotebook: Congestive Heart Failure in Children (no update date shown)",
+        "checkedAt": "2026-11-17",
+        "url": "https://fpnotebook.com/CV/Peds/PdtrcCngstvHrtFlr.htm",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: infant symptoms 'Poor feeding', 'Diaphoresis with feeding'; signs S3 gallop, 'Tachypnea', 'Hepatomegaly', 'Tachycardia (out of proportion to condition)'; consult pediatric cardiology early; 'Elevate head of bed 45 degrees'; avoid hyperoxygenation in congenital heart disease; use nitroglycerin cautiously since many are preload-dependent. Secondary, physician-edited."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

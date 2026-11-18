@@ -1,0 +1,1107 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "she-pulls-him-up-by-the-arms",
+  "title": "She pulls him up by the arms",
+  "objective": "Education of patients, families and interprofessional staff about activity, risk and self-management",
+  "secondaryObjectives": [
+    "Teach risk-factor work that runs through every rehab phase: managing medical conditions, nutrition, smoking cessation, stress reduction and psychosocial support"
+  ],
+  "sources": [
+    {
+      "cite": "Specialist certification examination outline: cardiovascular and pulmonary (the certifying board's published outline page)",
+      "checkedAt": "2026-11-08",
+      "url": "https://specialization.apta.org/become-a-specialist/cardiovascular-pulmonary/exam-outline",
+      "note": "Relayed from the cardiovascular and pulmonary specialty course seed (backend/supabase/seed/tracks/pt-abpts.ts, outline pages read 2026-10-08 and 2026-11-04, OUTLINE_CHECKED_AT 2026-11-08), not re-read: Professional behaviors, leadership, education, administration and consultation (5%) is a tested area. Scope only; no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra cardiovascular and pulmonary specialty course catalog (backend/supabase/seed/tracks/pt-abpts.ts, track ABPTSCCS)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "MedlinePlus Medical Encyclopedia: Heart bypass surgery - discharge (reviewed 2024-07-14)",
+      "checkedAt": "2026-11-17",
+      "url": "https://medlineplus.gov/ency/patientinstructions/000102.htm",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'For the first 6 weeks after your surgery, you must be careful about using your arms and upper body'; 'Do not reach backward'; 'Do not let anyone pull on your arms for any reason -- for instance, if they are helping you move around or get out of bed'; 'Do not lift anything heavier than 5 to 7 pounds'; 'Always stop if you feel pulling on your breastbone'. Contact the surgeon if 'Your wound changes. It is red or swollen, it has opened, or there is more drainage coming from it' or 'You have chills or a fever over 101°F (38.3°C)'."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "10:00 at an outpatient cardiac rehabilitation program. You are the physical therapist. Mr. Grant, 63, is 12 days after coronary artery bypass surgery through a sternotomy. At intake his wife says she 'pulls him up by both arms' to get him out of bed, and he plans to lift his 30-pound grandson this weekend. He mentions the bottom of his incision 'weeps a bit more' and he felt hot last night. He quit smoking the day of surgery.",
+    "handover": [
+      "The surgeon's discharge sheet lists breastbone precautions for 6 weeks and when to call.",
+      "Program policy: wound or fever concerns go to the surgeon's office the same day; no exercise session until cleared."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "10:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.004,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "An untreated wound infection keeps progressing. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.001,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The surgeon's team is seeing him. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of wound infection missed. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The surgeon's office called within 5 minutes of the wound check (program policy: same day)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min to finish the teaching."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "woundAt": {
+      "type": "time",
+      "init": null
+    },
+    "knowAt": {
+      "type": "time",
+      "init": null
+    },
+    "riskAt": {
+      "type": "time",
+      "init": null
+    },
+    "medsAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "wound",
+        "know",
+        "risk",
+        "meds"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "surgeon",
+        "note"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "inf",
+        "normal",
+        "later"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "exAt": {
+      "type": "time",
+      "init": null
+    },
+    "teachAt": {
+      "type": "time",
+      "init": null
+    },
+    "planAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(isNull(exAt) ? 96 : 118)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(isNull(exAt) ? 128 : 146)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.6)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (route == \"surgeon\" and isNull(exAt) ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Mr. Grant, 63, 12 days after coronary artery bypass surgery",
+        "presentation": "First cardiac rehabilitation visit; his wife came with him. {not isNull(exAt) ? \"On the treadmill.\" : \"\"}"
+      },
+      "vitals": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "colour": "ecg",
+          "alarm": {
+            "high": 130
+          },
+          "announce": {
+            "bands": [
+              115,
+              130
+            ]
+          }
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "announce": {
+            "bands": [
+              160,
+              180
+            ]
+          },
+          "colour": "art"
+        }
+      ],
+      "activity": "{not inClinic ? \"Visit over.\" : (not isNull(exAt) ? \"Walking on the treadmill, rubbing his chest.\" : \"Seated with his wife.\")}",
+      "measures": [
+        {
+          "id": "woundResult",
+          "label": "Wound",
+          "result": "Lower incision red and swollen with more drainage; 101.8°F (38.8°C).",
+          "when": "not isNull(woundAt)",
+          "flag": "true"
+        },
+        {
+          "id": "knowResult",
+          "label": "Teach-back first",
+          "result": "Neither knew pulling on his arms or lifting the grandson was a problem.",
+          "when": "not isNull(knowAt)"
+        },
+        {
+          "id": "riskResult",
+          "label": "Risk factors",
+          "result": "Craving cigarettes; eating takeout; anxious about another heart attack.",
+          "when": "not isNull(riskAt)"
+        },
+        {
+          "id": "medsResult",
+          "label": "Medicines",
+          "result": "Taking them; unsure which is for what.",
+          "when": "not isNull(medsAt)"
+        }
+      ],
+      "dosage": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "Surgeon's office called",
+            "when": "route == \"surgeon\""
+          },
+          {
+            "label": "Teach-back done",
+            "when": "not isNull(teachAt)"
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleWound",
+          "label": "A red, draining incision with fever over 101°F (38.3°C)",
+          "text": "Call the surgeon today; no exercise session until seen.",
+          "met": "not isNull(woundAt) and isNull(callAt)"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "wound": {
+      "label": "Look at the incision and take his temperature",
+      "group": "Examine",
+      "available": "not testPending and isNull(woundAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"wound\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "know": {
+      "label": "Ask them both what they understand about arm use and lifting",
+      "group": "Examine",
+      "available": "not testPending and isNull(knowAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"know\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "risk": {
+      "label": "Ask about smoking, diet, stress and mood since surgery",
+      "group": "Examine",
+      "available": "not testPending and isNull(riskAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"risk\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "meds": {
+      "label": "Check he is taking his heart medicines as prescribed",
+      "group": "Examine",
+      "available": "not testPending and isNull(medsAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"meds\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "ex": {
+      "label": "Start his first exercise session as booked",
+      "group": "Treat",
+      "available": "isNull(exAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "exAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.6, 2)"
+        },
+        {
+          "log": "He walks on the treadmill; afterward the incision is wetter and he is shivering.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "teach": {
+      "label": "Teach them both with teach-back: no one pulls on his arms, nothing over 5 to 7 pounds, no reaching back or overhead, stop if the breastbone pulls, and when to call the surgeon",
+      "group": "Treat",
+      "available": "isNull(teachAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "teachAt",
+          "to": "t"
+        },
+        {
+          "log": "They practice getting him out of bed without anyone pulling on his arms; he explains back the lifting limit and when to call.",
+          "kind": "act"
+        }
+      ]
+    },
+    "plan": {
+      "label": "Start a risk-factor plan: smoking cessation support, a dietitian visit, and the program's stress and mood support",
+      "group": "Treat",
+      "available": "isNull(planAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "planAt",
+          "to": "t"
+        },
+        {
+          "log": "Referred to the smoking cessation program and a dietitian; booked into the program's stress and mood support.",
+          "kind": "act"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "What do the incision and temperature mean today?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "inf",
+              "label": "A possible wound infection: redness, swelling and more drainage with fever over 101°F (38.3°C), so he needs his surgeon today"
+            },
+            {
+              "value": "normal",
+              "label": "Normal healing at 12 days"
+            },
+            {
+              "value": "later",
+              "label": "Watch it until the next visit"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"inf\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"inf\""
+                },
+                {
+                  "log": "Possible wound infection.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"normal\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"normal\""
+                },
+                {
+                  "log": "Read as normal.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"later\""
+                },
+                {
+                  "log": "Read as watch-and-wait.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Report",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "surgeon",
+              "label": "Call the surgeon's office: day 12 after bypass, lower incision red and swollen with more drainage, 101.8°F; no exercise today; ask for a same-day review"
+            },
+            {
+              "value": "note",
+              "label": "Note it for his next rehab visit"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"surgeon\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"surgeon\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "The surgeon's nurse asks him to come in this afternoon for a wound review.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"note\""
+                },
+                {
+                  "log": "Noted.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document the wound findings, the call and the teaching",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Wound, call, teach-back and risk-factor plan documented.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Cardiac rehab",
+      "clock": "running",
+      "actions": [
+        "wound",
+        "know",
+        "risk",
+        "meds",
+        "ex",
+        "teach",
+        "plan",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the test",
+      "wait": {
+        "skipLabel": "the test result"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each test or question takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"wound\"",
+              "then": [
+                {
+                  "set": "woundAt",
+                  "to": "t"
+                },
+                {
+                  "log": "The lower end of the incision is red and swollen with more drainage, and his temperature is 101.8°F (38.8°C): both on the list for calling the surgeon.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"know\"",
+              "then": [
+                {
+                  "set": "knowAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Neither knew that pulling on his arms or lifting the grandson strains the healing breastbone.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"risk\"",
+              "then": [
+                {
+                  "set": "riskAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Craving cigarettes, eating takeout, anxious about another heart attack.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "medsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Taking his heart medicines but unsure which is for what.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the end of the visit",
+      "wait": {
+        "skipLabel": "the end of the visit"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min to finish the teaching."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "They leave for the surgeon's office, knowing how to protect his breastbone.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What do you do first for Mr. Grant, and what do he and his wife need to learn?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "A red, swollen incision with more drainage and a fever over 101°F (38.3°C) is on the call-the-surgeon list: no exercise today. They also don't know the breastbone precautions: no pulling on his arms, nothing over 5 to 7 pounds.",
+          "modelAnswer": "His wound looks infected and he has a fever, so the surgeon today and no exercise. And neither of them knows not to pull on his arms or lift the grandson."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Call the surgeon's office now; teach them both with teach-back (getting out of bed without arm pulling, lifting limits, when to call); start smoking cessation, diet and stress support; document.",
+          "modelAnswer": "Call the surgeon, teach them both and have them show it back, set up smoking, diet and stress help, and write it up."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "spo2Floor": {
+        "value": 88,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "escalateWindow": {
+        "value": 300,
+        "source": {
+          "cite": "Unit practice (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "The surgeon's office called within 5 minutes of the wound check (program policy: same day)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "An unreported wound infection is harm here.",
+      "source": {
+        "cite": "MedlinePlus Medical Encyclopedia: Heart bypass surgery - discharge (reviewed 2024-07-14)",
+        "checkedAt": "2026-11-17",
+        "url": "https://medlineplus.gov/ency/patientinstructions/000102.htm",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'For the first 6 weeks after your surgery, you must be careful about using your arms and upper body'; 'Do not reach backward'; 'Do not let anyone pull on your arms for any reason -- for instance, if they are helping you move around or get out of bed'; 'Do not lift anything heavier than 5 to 7 pounds'; 'Always stop if you feel pulling on your breastbone'. Contact the surgeon if 'Your wound changes. It is red or swollen, it has opened, or there is more drainage coming from it' or 'You have chills or a fever over 101°F (38.3°C)'."
+      }
+    }
+  },
+  "endings": {
+    "infection": {
+      "label": "Wound infection missed",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "He exercises and goes home; two days later he is readmitted with a spreading wound infection."
+    },
+    "safe": {
+      "label": "Taught and seen",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"surgeon\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and (not isNull(woundAt) and timeAt(woundAt) <= 300) and isNull(exAt) and (not isNull(teachAt))",
+      "narrative": "{timeAt(leftAt)|clock}: his wound is being reviewed today and he and his wife know how to protect his breastbone."
+    },
+    "safeGaps": {
+      "label": "Handled, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: he is safe, but the call was slow or a step was skipped."
+    },
+    "time_up": {
+      "label": "Unresolved at 11:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "11:00 and nothing is settled."
+    }
+  },
+  "endingOrder": [
+    "infection",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "The surgeon's office called within 5 minutes of the wound check",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"surgeon\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"surgeon\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "woundC",
+        "label": "Checked the incision and temperature before exercise",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(woundAt) and timeAt(woundAt) <= 300",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not checked first."
+          }
+        ]
+      },
+      {
+        "id": "teachC",
+        "label": "Taught patient and wife with teach-back, instead of exercising him",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(exAt)",
+            "score": "missed",
+            "why": "Exercised him."
+          },
+          {
+            "when": "not isNull(teachAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not taught."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Asked about risk factors and started a plan",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(riskAt) and not isNull(planAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(riskAt) or not isNull(planAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Recognized a possible wound infection",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"inf\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"normal\"",
+            "score": "missed",
+            "why": "More drainage, redness and fever are on the call-the-surgeon list."
+          },
+          {
+            "when": "dxEnum == \"later\"",
+            "score": "missed",
+            "why": "These signs mean calling the surgeon now."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: wound signs first; teach both with teach-back; risk factors",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Wound check to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "10:00 to the wound check",
+        "value": "isNull(woundAt) ? -1 : timeAt(woundAt)",
+        "format": "duration",
+        "expert": "under 3 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "10:00",
+        "text": "Incision and temperature: red, draining, 101.8°F."
+      },
+      {
+        "at": "~10:01",
+        "text": "Call the surgeon's office; no exercise."
+      },
+      {
+        "at": "~10:03",
+        "text": "Ask what they know; teach with teach-back."
+      },
+      {
+        "at": "~10:10",
+        "text": "Risk factors and plan; document."
+      }
+    ],
+    "debrief": {
+      "infection": {
+        "headline": "Wound infection missed",
+        "body": "Check the incision and temperature first: redness, more drainage and fever over 101°F (38.3°C) mean calling the surgeon, not exercising. Then teach the family."
+      },
+      "safe": {
+        "headline": "Taught and seen",
+        "body": "You checked the wound first, called the surgeon within minutes, taught them both with teach-back and started his risk-factor plan. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Handled, with gaps",
+        "body": "Check whether you looked at the wound first, how soon you called, and whether you used teach-back."
+      },
+      "time_up": {
+        "headline": "Unresolved at 11:00",
+        "body": "Act on wound signs in the visit."
+      }
+    },
+    "modelReasoning": "Education is for the patient and family, and teach-back shows whether it landed. After sternotomy, for 6 weeks: no one pulls on his arms, no lifting over 5 to 7 pounds, no reaching back or overhead, and stop if the breastbone pulls. A changing wound (red, swollen, more drainage) or fever over 101°F (38.3°C) means calling the surgeon, so check before exercise. Risk-factor work (smoking cessation, nutrition, stress and mood) runs through every phase of rehab."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "callQ": {
+      "during": "leaveT",
+      "ask": "While they get ready: which fever means calling the surgeon?",
+      "choices": [
+        {
+          "id": "f101",
+          "label": "Over 101°F (38.3°C), or chills"
+        },
+        {
+          "id": "f103",
+          "label": "Only over 103°F"
+        },
+        {
+          "id": "nofev",
+          "label": "Fever doesn't matter after surgery"
+        }
+      ],
+      "expect": "f101",
+      "explain": "Call for chills or a fever over 101°F (38.3°C), or a red, swollen, opened or more draining wound.",
+      "source": {
+        "cite": "MedlinePlus Medical Encyclopedia: Heart bypass surgery - discharge (reviewed 2024-07-14)",
+        "checkedAt": "2026-11-17",
+        "url": "https://medlineplus.gov/ency/patientinstructions/000102.htm",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'For the first 6 weeks after your surgery, you must be careful about using your arms and upper body'; 'Do not reach backward'; 'Do not let anyone pull on your arms for any reason -- for instance, if they are helping you move around or get out of bed'; 'Do not lift anything heavier than 5 to 7 pounds'; 'Always stop if you feel pulling on your breastbone'. Contact the surgeon if 'Your wound changes. It is red or swollen, it has opened, or there is more drainage coming from it' or 'You have chills or a fever over 101°F (38.3°C)'."
+      }
+    },
+    "liftQ": {
+      "during": "testT",
+      "ask": "While you check: after sternotomy, what is the lifting limit in the first 6 weeks?",
+      "choices": [
+        {
+          "id": "light",
+          "label": "About 5 to 7 pounds"
+        },
+        {
+          "id": "thirty",
+          "label": "30 pounds, if he keeps his back straight"
+        },
+        {
+          "id": "none",
+          "label": "No limit once home"
+        }
+      ],
+      "expect": "light",
+      "explain": "Do not lift anything heavier than 5 to 7 pounds, and do not let anyone pull on his arms.",
+      "source": {
+        "cite": "MedlinePlus Medical Encyclopedia: Heart bypass surgery - discharge (reviewed 2024-07-14)",
+        "checkedAt": "2026-11-17",
+        "url": "https://medlineplus.gov/ency/patientinstructions/000102.htm",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'For the first 6 weeks after your surgery, you must be careful about using your arms and upper body'; 'Do not reach backward'; 'Do not let anyone pull on your arms for any reason -- for instance, if they are helping you move around or get out of bed'; 'Do not lift anything heavier than 5 to 7 pounds'; 'Always stop if you feel pulling on your breastbone'. Contact the surgeon if 'Your wound changes. It is red or swollen, it has opened, or there is more drainage coming from it' or 'You have chills or a fever over 101°F (38.3°C)'."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

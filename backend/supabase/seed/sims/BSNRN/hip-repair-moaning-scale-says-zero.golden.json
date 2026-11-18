@@ -1,0 +1,455 @@
+{
+  "slug": "hip-repair-moaning-scale-says-zero",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: PAINAD, analgesic and comfort, calls to change the plan, asks the daughter, screens other causes, updates the plan",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "painad",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "toolQ",
+          "choice": "obs",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "analg",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "position",
+          "seq": 6,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "plan"
+          },
+          "seq": 7,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "call"
+          },
+          "seq": 8,
+          "tick": 13
+        },
+        {
+          "type": "teach",
+          "prompt": "reQ",
+          "choice": "after",
+          "seq": 9,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "daughter",
+          "seq": 10,
+          "tick": 13
+        },
+        {
+          "type": "chapter",
+          "chapter": "escalated",
+          "choice": "continue",
+          "seq": 11,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "delirium",
+          "seq": 12,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 13,
+          "tick": 37
+        }
+      ],
+      "expect": {
+        "ending": "safe",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "reportC": "met",
+          "toolC": "met",
+          "treatC": "met",
+          "lookC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": 65
+        },
+        "stateHash": "06adcafc663431c9"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Scores and treats at once, but calls 8 minutes later",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "painad",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "toolQ",
+          "choice": "obs",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "analg",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "position",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "daughter",
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "delirium",
+          "seq": 7,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "mar",
+          "seq": 8,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "plan"
+          },
+          "seq": 9,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "call"
+          },
+          "seq": 10,
+          "tick": 120
+        },
+        {
+          "type": "teach",
+          "prompt": "reQ",
+          "choice": "after",
+          "seq": 11,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "reportC": "partial",
+          "toolC": "met",
+          "treatC": "met",
+          "lookC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 540,
+          "toKey": 60
+        },
+        "stateHash": "214cf2408a69c745"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "sedated",
+      "title": "Calls promptly but gives the antipsychotic first",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "painad",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "toolQ",
+          "choice": "obs",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "antipsych",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "plan"
+          },
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "call"
+          },
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "reQ",
+          "choice": "after",
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "analg",
+          "seq": 8,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 9,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 64,
+        "criteria": {
+          "reportC": "met",
+          "toolC": "met",
+          "treatC": "missed",
+          "lookC": "missed",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": 60
+        },
+        "stateHash": "9def987a8db204df"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "agitation",
+      "title": "Failure: calls it agitation, gives the antipsychotic and mitts, leaves a note",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "mar",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "toolQ",
+          "choice": "obs",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "agitation"
+          },
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "antipsych",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "restrain",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "dayteam"
+          },
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 7,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "delirium",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "reportC": "missed",
+          "toolC": "missed",
+          "treatC": "missed",
+          "lookC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": -1,
+          "toKey": -1
+        },
+        "stateHash": "826dc68aeafaf167"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "fine",
+      "title": "Failure: trusts the zeros and restrains her",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "fine"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "restrain",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "delirium",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "reportC": "missed",
+          "toolC": "missed",
+          "treatC": "missed",
+          "lookC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": -1,
+          "toKey": -1
+        },
+        "stateHash": "c60ea7f408476473"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

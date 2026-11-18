@@ -1,0 +1,1088 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "second-stress-fracture-no-period",
+  "title": "A second stress fracture and no period",
+  "objective": "Explain the female athlete triad as low energy availability (intake that falls short of what training burns, with or without an eating disorder) combined with menstrual disorder and reduced bone mineral density",
+  "secondaryObjectives": [
+    "Recognize stress fractures as overload injuries, 0.7% to 20% of sports medicine clinic injuries; flag high-risk sites (femoral neck, anterior tibia, tarsal navicular, talus, sesamoids, 5th metatarsal) where non-union risk is high"
+  ],
+  "sources": [
+    {
+      "cite": "Specialist certification examination outline: sports (the certifying board's published outline page)",
+      "checkedAt": "2026-11-08",
+      "url": "https://specialization.apta.org/become-a-specialist/sports/specialist-certification-examination-outline-sports",
+      "note": "Relayed from the sports specialty course seed (backend/supabase/seed/tracks/pt-abpts.ts, outline pages read 2026-10-08 and 2026-11-04, OUTLINE_CHECKED_AT 2026-11-08), not re-read: Knowledge areas (20%) is a tested area. Scope only; no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra sports specialty course catalog (backend/supabase/seed/tracks/pt-abpts.ts, track ABPTSSCS)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Raj MA, et al.. Female Athlete Triad. StatPearls (updated 2023-08-08), StatPearls Publishing",
+      "checkedAt": "2026-11-04",
+      "note": "Relayed from the course seed (tag SP-FAT; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: the triad is low energy availability (intake short of what training burns, with or without an eating disorder) with menstrual disorder and reduced bone mineral density (the course objective's wording)."
+    },
+    {
+      "cite": "May T, et al.. Stress Fractures. StatPearls (updated 2023-07-10), StatPearls Publishing",
+      "checkedAt": "2026-11-04",
+      "note": "Relayed from the course seed (tag SP-SF; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: stress fractures are overload injuries; high-risk sites include the femoral neck, anterior tibia, tarsal navicular, talus, sesamoids and fifth metatarsal, where non-union risk is high (the course objective's wording)."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "15:30 in a sports physical therapy clinic. You are the physical therapist. Maya, 17, a cross-country runner, is back for her return-to-run plan after a tibial stress fracture, her second stress fracture this year. Her coach has emailed asking you to 'get her to 50 miles a week for the season'. Her mother is with her.",
+    "handover": [
+      "Her imaging report shows the tibial fracture healing; her pain is gone with walking.",
+      "Clinic policy: for a minor, share concerns with the parent present; refer suspected energy or eating problems to the team physician the same day."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "15:30",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.004,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "More load on unready bone raises the fracture risk. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.001,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Held while the team looks at the cause. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of a third stress fracture. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The team physician called within 5 minutes of the menstrual history (clinic policy: same day)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min to finish the visit."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "mensAt": {
+      "type": "time",
+      "init": null
+    },
+    "foodAt": {
+      "type": "time",
+      "init": null
+    },
+    "hopAt": {
+      "type": "time",
+      "init": null
+    },
+    "histAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "mens",
+        "food",
+        "hop",
+        "hist"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "md",
+        "coach"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "triad",
+        "load",
+        "normal"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "loadAt": {
+      "type": "time",
+      "init": null
+    },
+    "holdAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(isNull(loadAt) ? 54 : 172)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(isNull(loadAt) ? 102 : 130)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.6)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (isNull(loadAt) ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Maya, 17, high school cross-country runner",
+        "presentation": "Return-to-run visit after a tibial stress fracture, her second this year. {not isNull(loadAt) ? \"Running intervals on the track.\" : \"\"}"
+      },
+      "vitals": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "colour": "ecg",
+          "alarm": {
+            "high": 180
+          },
+          "announce": {
+            "bands": [
+              165,
+              180
+            ]
+          }
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "announce": {
+            "bands": [
+              160,
+              180
+            ]
+          },
+          "colour": "art"
+        }
+      ],
+      "activity": "{not inClinic ? \"Visit over.\" : (not isNull(loadAt) ? \"Running hard intervals.\" : \"Sitting on the plinth with her mother.\")}",
+      "measures": [
+        {
+          "id": "mensResult",
+          "label": "Menstrual history",
+          "result": "No period for 7 months; she thought that was normal for runners.",
+          "when": "not isNull(mensAt)",
+          "flag": "true"
+        },
+        {
+          "id": "foodResult",
+          "label": "Energy",
+          "result": "Skips breakfast and lunch on run days; lost weight since summer; worries about 'racing weight'.",
+          "when": "not isNull(foodAt)"
+        },
+        {
+          "id": "hopResult",
+          "label": "Hop and hip",
+          "result": "Hops pain-free on the tibia; no groin pain.",
+          "when": "not isNull(hopAt)"
+        },
+        {
+          "id": "histResult",
+          "label": "History",
+          "result": "Metatarsal stress fracture in spring, tibia in autumn; mileage up 40% this summer.",
+          "when": "not isNull(histAt)"
+        }
+      ],
+      "dosage": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "Team physician called",
+            "when": "route == \"md\""
+          },
+          {
+            "label": "Running held at the current level",
+            "when": "not isNull(holdAt)"
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleTriad",
+          "label": "Two stress fractures with no period for months",
+          "text": "Possible female athlete triad: no added load until energy availability is addressed.",
+          "met": "not isNull(mensAt) and isNull(callAt)"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "mens": {
+      "label": "Ask, privately and plainly, about her periods",
+      "group": "Examine",
+      "available": "not testPending and isNull(mensAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"mens\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "food": {
+      "label": "Ask about eating and training: meals, snacks, weight change, how she feels about food",
+      "group": "Examine",
+      "available": "not testPending and isNull(foodAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"food\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "hop": {
+      "label": "Single-leg hop test and groin and hip check on each side",
+      "group": "Examine",
+      "available": "not testPending and isNull(hopAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"hop\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "hist": {
+      "label": "Review her fracture history and training load",
+      "group": "Examine",
+      "available": "not testPending and isNull(histAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"hist\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "load": {
+      "label": "Build to the coach's 50 miles a week starting with intervals today",
+      "group": "Treat",
+      "available": "isNull(loadAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "loadAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.6, 2)"
+        },
+        {
+          "log": "She runs hard intervals; by the end she is limping with a deep ache in her groin.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "hold": {
+      "label": "Hold running at a short walk-run level and explain why to Maya and her mother",
+      "group": "Treat",
+      "available": "isNull(holdAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "holdAt",
+          "to": "t"
+        },
+        {
+          "log": "Running held at a short walk-run level; you explain that her bones need energy and her periods matter.",
+          "kind": "act"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "What explains two stress fractures in a year?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "triad",
+              "label": "Possible female athlete triad: low energy availability, 7 months without a period and likely low bone density, with a training spike on top"
+            },
+            {
+              "value": "load",
+              "label": "Training error only: too much mileage too fast"
+            },
+            {
+              "value": "normal",
+              "label": "Normal for a distance runner"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"triad\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"triad\""
+                },
+                {
+                  "log": "Possible female athlete triad.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"load\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"load\""
+                },
+                {
+                  "log": "Read as training error.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"normal\""
+                },
+                {
+                  "log": "Read as normal.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Refer",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "md",
+              "label": "With Maya and her mother, call the team physician today: two stress fractures, 7 months without a period, restricted eating; ask for evaluation, bone density and dietitian and mental health support"
+            },
+            {
+              "value": "coach",
+              "label": "Email the coach that she can build up slowly"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"md\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"md\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "The team physician sees her this week, orders bone density testing and brings in a sports dietitian and a counselor.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"coach\""
+                },
+                {
+                  "log": "Coach emailed.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document the history, the hold and the referral",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "History, hold and referral documented.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Sports clinic",
+      "clock": "running",
+      "actions": [
+        "mens",
+        "food",
+        "hop",
+        "hist",
+        "load",
+        "hold",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the test",
+      "wait": {
+        "skipLabel": "the test result"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each test or question takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"mens\"",
+              "then": [
+                {
+                  "set": "mensAt",
+                  "to": "t"
+                },
+                {
+                  "log": "No period for 7 months; she thought it was normal for runners. A menstrual disorder alongside two stress fractures.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"food\"",
+              "then": [
+                {
+                  "set": "foodAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Skips breakfast and lunch on training days, has lost weight since summer and worries about 'racing weight': likely low energy availability, possibly disordered eating.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"hop\"",
+              "then": [
+                {
+                  "set": "hopAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Pain-free hopping on the healed tibia; no groin or hip pain.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "histAt",
+                  "to": "t"
+                },
+                {
+                  "log": "A metatarsal stress fracture in spring and the tibia in autumn; mileage up 40% over the summer.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the end of the visit",
+      "wait": {
+        "skipLabel": "the end of the visit"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min to finish the visit."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "She leaves with a held plan and an appointment.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "Why has Maya had two stress fractures, and what do you do?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "Possible female athlete triad: low energy availability (skipped meals, weight loss, worry about racing weight), a menstrual disorder (7 months without a period) and likely reduced bone density, shown by two stress fractures; the summer mileage spike added load.",
+          "modelAnswer": "Probably the triad. She's not eating enough for her training, hasn't had a period in 7 months, and two stress fractures suggest weak bones. The mileage jump made it worse."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Hold running at a low level, explain to her and her mother, refer to the team physician today for evaluation and bone density with dietitian and mental health support, and tell the coach only that she is on a held plan.",
+          "modelAnswer": "Keep her at walk-run, explain it to her and her mom, and call the team doctor today for a workup, a dietitian and a counselor."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "spo2Floor": {
+        "value": 88,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "escalateWindow": {
+        "value": 300,
+        "source": {
+          "cite": "Unit practice (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "The team physician called within 5 minutes of the menstrual history (clinic policy: same day)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "More load on an athlete with the triad is harm here.",
+      "source": {
+        "cite": "May T, et al.. Stress Fractures. StatPearls (updated 2023-07-10), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-SF; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: stress fractures are overload injuries; high-risk sites include the femoral neck, anterior tibia, tarsal navicular, talus, sesamoids and fifth metatarsal, where non-union risk is high (the course objective's wording)."
+      }
+    }
+  },
+  "endings": {
+    "fracture": {
+      "label": "A third stress fracture",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "The groin ache does not settle; imaging shows a femoral neck stress fracture, a high-risk site."
+    },
+    "safe": {
+      "label": "Triad recognized",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"md\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and (not isNull(mensAt) and not isNull(foodAt)) and isNull(loadAt) and (not isNull(holdAt))",
+      "narrative": "{timeAt(leftAt)|clock}: her load is held and the team physician, a dietitian and a counselor are involved."
+    },
+    "safeGaps": {
+      "label": "Recognized, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: she has a plan, but the referral was slow or a question was skipped."
+    },
+    "time_up": {
+      "label": "Undecided at 16:30",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "16:30 and no plan."
+    }
+  },
+  "endingOrder": [
+    "fracture",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "The team physician called within 5 minutes of the menstrual history",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"md\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"md\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "mensC",
+        "label": "Asked about periods and energy intake",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(mensAt) and not isNull(foodAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not asked."
+          }
+        ]
+      },
+      {
+        "id": "holdC",
+        "label": "Held the load instead of building to the coach's target",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(loadAt)",
+            "score": "missed",
+            "why": "Loaded her up."
+          },
+          {
+            "when": "not isNull(holdAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not held."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Checked hop, hip and fracture history",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(hopAt) and not isNull(histAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(hopAt) or not isNull(histAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Recognized the female athlete triad",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"triad\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"load\"",
+            "score": "missed",
+            "why": "The training spike matters, but missing periods and low intake point to the triad."
+          },
+          {
+            "when": "dxEnum == \"normal\"",
+            "score": "missed",
+            "why": "Missing periods are not normal for runners; they are part of the triad."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: the triad's three parts; hold the load; refer",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "History to the referral",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "15:30 to the menstrual history",
+        "value": "isNull(mensAt) ? -1 : timeAt(mensAt)",
+        "format": "duration",
+        "expert": "under 3 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "15:30",
+        "text": "Ask privately about periods: none for 7 months."
+      },
+      {
+        "at": "~15:31",
+        "text": "Ask about eating: skipped meals, weight loss."
+      },
+      {
+        "at": "~15:32",
+        "text": "Call the team physician with Maya and her mother."
+      },
+      {
+        "at": "~15:35",
+        "text": "Hop and history; hold running; document."
+      }
+    ],
+    "debrief": {
+      "fracture": {
+        "headline": "A third stress fracture",
+        "body": "Two stress fractures and no period is the female athlete triad until shown otherwise. Ask about periods and energy, hold the load, and refer."
+      },
+      "safe": {
+        "headline": "Triad recognized",
+        "body": "You asked about periods and eating, held the load against the coach's target and referred within minutes. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Recognized, with gaps",
+        "body": "Check whether you asked about periods and eating, and how soon you referred."
+      },
+      "time_up": {
+        "headline": "Undecided at 16:30",
+        "body": "Decide on load and referral in the visit."
+      }
+    },
+    "modelReasoning": "The female athlete triad is low energy availability (intake short of what training burns, with or without an eating disorder) combined with menstrual disorder and reduced bone mineral density. Two stress fractures in a year with 7 months of no periods and restricted eating fits it. Hold the load, explain, and refer to the team physician the same day; the femoral neck is a high-risk stress fracture site."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "siteQ": {
+      "during": "leaveT",
+      "ask": "While you finish: which of these is a high-risk stress fracture site?",
+      "choices": [
+        {
+          "id": "fn",
+          "label": "Femoral neck"
+        },
+        {
+          "id": "fib",
+          "label": "Distal fibula"
+        },
+        {
+          "id": "rib",
+          "label": "A rib"
+        }
+      ],
+      "expect": "fn",
+      "explain": "The femoral neck is a high-risk site where non-union risk is high.",
+      "source": {
+        "cite": "May T, et al.. Stress Fractures. StatPearls (updated 2023-07-10), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-SF; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: stress fractures are overload injuries; high-risk sites include the femoral neck, anterior tibia, tarsal navicular, talus, sesamoids and fifth metatarsal, where non-union risk is high (the course objective's wording)."
+      }
+    },
+    "triadQ": {
+      "during": "testT",
+      "ask": "While you ask: what are the triad's three parts?",
+      "choices": [
+        {
+          "id": "triad",
+          "label": "Low energy availability, menstrual disorder, reduced bone density"
+        },
+        {
+          "id": "anemia",
+          "label": "Anemia, fatigue, overtraining"
+        },
+        {
+          "id": "weight",
+          "label": "Low weight, fast times, injury"
+        }
+      ],
+      "expect": "triad",
+      "explain": "Low energy availability, with or without an eating disorder, combined with menstrual disorder and reduced bone mineral density.",
+      "source": {
+        "cite": "Raj MA, et al.. Female Athlete Triad. StatPearls (updated 2023-08-08), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-FAT; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: the triad is low energy availability (intake short of what training burns, with or without an eating disorder) with menstrual disorder and reduced bone mineral density (the course objective's wording)."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice.",
+  "mature": true
+}

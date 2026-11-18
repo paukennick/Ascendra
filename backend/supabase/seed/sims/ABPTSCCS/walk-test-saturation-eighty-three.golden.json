@@ -1,0 +1,486 @@
+{
+  "slug": "walk-test-saturation-eighty-three",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: screens, walks, stops at 83%, titrates oxygen, calls the pulmonologist, records and teaches",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "screen",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "desatQ",
+          "choice": "four",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "walk",
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "stop",
+          "seq": 6,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "o2",
+          "seq": 7,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "desat"
+          },
+          "seq": 8,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "md"
+          },
+          "seq": 9,
+          "tick": 25
+        },
+        {
+          "type": "teach",
+          "prompt": "targetQ",
+          "choice": "low",
+          "seq": 10,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "borg",
+          "seq": 11,
+          "tick": 25
+        },
+        {
+          "type": "chapter",
+          "chapter": "escalated",
+          "choice": "continue",
+          "seq": 12,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "dist",
+          "seq": 13,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 14,
+          "tick": 49
+        }
+      ],
+      "expect": {
+        "ending": "safe",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "reportC": "met",
+          "stopC": "met",
+          "o2C": "met",
+          "lookC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": 125
+        },
+        "stateHash": "80a82418119354e6"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Stops and titrates at once but calls the pulmonologist 8 minutes later",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "screen",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "desatQ",
+          "choice": "four",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "walk",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "stop",
+          "seq": 5,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "o2",
+          "seq": 6,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "borg",
+          "seq": 7,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "dist",
+          "seq": 8,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "desat"
+          },
+          "seq": 9,
+          "tick": 140
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "md"
+          },
+          "seq": 10,
+          "tick": 140
+        },
+        {
+          "type": "teach",
+          "prompt": "targetQ",
+          "choice": "low",
+          "seq": 11,
+          "tick": 140
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 140
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "reportC": "partial",
+          "stopC": "met",
+          "o2C": "met",
+          "lookC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 580,
+          "toKey": 120
+        },
+        "stateHash": "a1612157b50f66de"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "highO2",
+      "title": "Stops and calls promptly, but puts him on high-flow oxygen to 100%",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "screen",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "desatQ",
+          "choice": "four",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "walk",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "stop",
+          "seq": 5,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "o2high",
+          "seq": 6,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "desat"
+          },
+          "seq": 7,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "md"
+          },
+          "seq": 8,
+          "tick": 24
+        },
+        {
+          "type": "teach",
+          "prompt": "targetQ",
+          "choice": "low",
+          "seq": 9,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 10,
+          "tick": 24
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 64,
+        "criteria": {
+          "reportC": "met",
+          "stopC": "met",
+          "o2C": "missed",
+          "lookC": "missed",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": 120
+        },
+        "stateHash": "59642cc72e3a8cb0"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "pushed",
+      "title": "Failure: calls it normal for COPD, pushes him to finish and writes a note",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "screen",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "desatQ",
+          "choice": "four",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "walk",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "normal"
+          },
+          "seq": 5,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "push",
+          "seq": 6,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "note"
+          },
+          "seq": 7,
+          "tick": 24
+        }
+      ],
+      "expect": {
+        "ending": "collapse",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "reportC": "missed",
+          "stopC": "missed",
+          "o2C": "missed",
+          "lookC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": -1
+        },
+        "stateHash": "88023b850dd087d9"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "artifact",
+      "title": "Failure: blames the probe and pushes on",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "screen",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "desatQ",
+          "choice": "four",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "walk",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "probe"
+          },
+          "seq": 5,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "push",
+          "seq": 6,
+          "tick": 24
+        }
+      ],
+      "expect": {
+        "ending": "collapse",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "reportC": "missed",
+          "stopC": "missed",
+          "o2C": "missed",
+          "lookC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": -1,
+          "toKey": -1
+        },
+        "stateHash": "2a4553cf07e7455a"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

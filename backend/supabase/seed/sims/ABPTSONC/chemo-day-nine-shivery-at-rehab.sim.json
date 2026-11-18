@@ -1,0 +1,1060 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "chemo-day-nine-shivery-at-rehab",
+  "title": "Shivery on chemo day nine",
+  "objective": "Recognize febrile neutropenia (temperature of 38.3 C once or 38 C sustained for an hour, with ANC below 500 or expected to fall below 500 within 48 hours) as an emergency; ANC below 100 is profound",
+  "secondaryObjectives": [
+    "Integrating oncologic history, treatment phase and comorbidities into a movement-system diagnosis"
+  ],
+  "sources": [
+    {
+      "cite": "Specialist certification examination outline: oncology (the certifying board's published outline page)",
+      "checkedAt": "2026-11-08",
+      "url": "https://specialization.apta.org/become-a-specialist/oncology/specialist-certification-examination-outline-oncology",
+      "note": "Relayed from the oncology specialty course seed (backend/supabase/seed/tracks/pt-abpts.ts, outline pages read 2026-10-08 and 2026-11-04, OUTLINE_CHECKED_AT 2026-11-08), not re-read: Examination and reexamination (23%) is a tested area. Scope only; no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra oncology specialty course catalog (backend/supabase/seed/tracks/pt-abpts.ts, track ABPTSONC)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Punnapuzha S, et al.. Febrile Neutropenia. StatPearls (updated 2023-03-30), StatPearls Publishing",
+      "checkedAt": "2026-11-04",
+      "note": "Relayed from the course seed (tag SP-FN; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: febrile neutropenia is a temperature of 38.3 C once or 38 C sustained for an hour with an ANC below 500 or expected to fall below 500 within 48 hours; ANC below 100 is profound; it is an emergency (the course objective's wording, corrected 2026-11-09 to the IDSA 2010 definition)."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "15:00 in an outpatient oncology rehabilitation clinic. You are the physical therapist. Ms. Rhodes, 47, is 9 days after her third chemotherapy cycle. She says she feels 'shivery and wiped out' but 'doesn't want to miss a session'.",
+    "handover": [
+      "Her blood count from 2 days ago showed an ANC of 700 'and falling', per her oncology portal.",
+      "Clinic policy: any temperature of 38.0 or more, or chills, in a patient on chemotherapy: hold exercise and call the oncology triage line at once; they direct her to the emergency department."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "15:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.018,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Neutropenic sepsis progresses without antibiotics. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.004,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "She is on the way to antibiotics. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of neutropenic sepsis. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Oncology triage called within 5 minutes of a fever (clinic policy: at once)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min to arrange transport."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "vitalsAt": {
+      "type": "time",
+      "init": null
+    },
+    "countsAt": {
+      "type": "time",
+      "init": null
+    },
+    "sourceAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "vitals",
+        "counts",
+        "source"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "onc",
+        "next"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "fn",
+        "fatigue",
+        "cold"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "exAt": {
+      "type": "time",
+      "init": null
+    },
+    "homeAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(112 + 20 * max(0, prog - 0.5))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(104 - 30 * max(0, prog - 0.6))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.6)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "temp": {
+      "expr": "38.6",
+      "unit": "C",
+      "precision": 1
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (route == \"onc\" ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Ms. Rhodes, 47, oncology rehabilitation during chemotherapy for breast cancer",
+        "presentation": "Cycle 3, day 9 after chemotherapy; twice-weekly supervised exercise. {not isNull(exAt) ? \"On the bike.\" : \"\"}"
+      },
+      "vitals": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "colour": "ecg",
+          "alarm": {
+            "high": 110
+          },
+          "announce": {
+            "bands": [
+              95,
+              110
+            ]
+          }
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "announce": {
+            "bands": [
+              160,
+              180
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "temp",
+          "label": "Temp",
+          "spokenLabel": "Temperature",
+          "value": "temp",
+          "unit": "C",
+          "colour": "neutral",
+          "alarm": {
+            "high": 38
+          },
+          "announce": {
+            "bands": [
+              37.5,
+              38
+            ]
+          }
+        }
+      ],
+      "activity": "{not inClinic ? \"Gone to the emergency department.\" : (not isNull(exAt) ? \"Cycling, shivering.\" : \"Seated, wrapped in a blanket.\")}",
+      "measures": [
+        {
+          "id": "vitalsResult",
+          "label": "Pre-exercise vitals",
+          "result": "T 38.6, HR 112, BP 104/66.",
+          "when": "not isNull(vitalsAt)",
+          "flag": "true"
+        },
+        {
+          "id": "countsResult",
+          "label": "Counts",
+          "result": "ANC 700 two days ago, falling; nadir expected days 7-12.",
+          "when": "not isNull(countsAt)"
+        },
+        {
+          "id": "sourceResult",
+          "label": "Sources",
+          "result": "Port site red and tender.",
+          "when": "not isNull(sourceAt)"
+        }
+      ],
+      "dosage": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "Exercise held",
+            "when": "isNull(exAt)"
+          },
+          {
+            "label": "Oncology triage called",
+            "when": "route == \"onc\""
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleFn",
+          "label": "Fever during chemotherapy",
+          "text": "Hold exercise; call the oncology triage line now.",
+          "met": "not isNull(vitalsAt) and isNull(callAt)"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "vitals": {
+      "label": "Temperature, heart rate and blood pressure before exercise",
+      "group": "Examine",
+      "available": "not testPending and isNull(vitalsAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"vitals\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "counts": {
+      "label": "Check her latest counts and the chemotherapy timeline",
+      "group": "Examine",
+      "available": "not testPending and isNull(countsAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"counts\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "source": {
+      "label": "Ask about infection sources: port, mouth, urine, cough, skin",
+      "group": "Examine",
+      "available": "not testPending and isNull(sourceAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"source\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "ex": {
+      "label": "Do a light session on the bike since she wants to",
+      "group": "Treat",
+      "available": "isNull(exAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "exAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.3, 2)"
+        },
+        {
+          "log": "Five minutes in she is rigoring and light-headed.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "home": {
+      "label": "Send her home to rest and take acetaminophen for the fever",
+      "group": "Treat",
+      "available": "isNull(homeAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "homeAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.2, 2)"
+        },
+        {
+          "log": "She goes home to rest.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "What does the fever mean?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "fn",
+              "label": "Probable febrile neutropenia: 38.6 at her nadir with an ANC of 700 falling, expected under 500: an emergency"
+            },
+            {
+              "value": "fatigue",
+              "label": "Chemotherapy fatigue"
+            },
+            {
+              "value": "cold",
+              "label": "A cold"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"fn\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"fn\""
+                },
+                {
+                  "log": "Probable febrile neutropenia.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"fatigue\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"fatigue\""
+                },
+                {
+                  "log": "Read as fatigue.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"cold\""
+                },
+                {
+                  "log": "Read as a cold.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Refer",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "onc",
+              "label": "Call the oncology triage line now: day 9 cycle 3, T 38.6, HR 112, ANC 700 falling, red tender port; exercise held"
+            },
+            {
+              "value": "next",
+              "label": "Reschedule her session for next week"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"onc\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"onc\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "Oncology triage sends her straight to the emergency department for cultures and IV antibiotics; transport is arranged.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"next\""
+                },
+                {
+                  "log": "Rescheduled.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document and update her exercise plan for after recovery",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Findings, call and plan documented.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Oncology rehab gym",
+      "clock": "running",
+      "actions": [
+        "vitals",
+        "counts",
+        "source",
+        "ex",
+        "home",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the test",
+      "wait": {
+        "skipLabel": "the test result"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each test or question takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"vitals\"",
+              "then": [
+                {
+                  "set": "vitalsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Temperature 38.6, heart rate 112, blood pressure 104/66: a fever on chemotherapy.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"counts\"",
+              "then": [
+                {
+                  "set": "countsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "ANC 700 two days ago and falling; she is at her expected nadir.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "sourceAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Her chest port site is red and tender.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "transport",
+      "wait": {
+        "skipLabel": "transport"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min to arrange transport."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "She leaves for the emergency department.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What does Ms. Rhodes's fever mean, and what do you do?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "A temperature of 38.6 at her chemotherapy nadir with an ANC of 700 and falling (expected under 500) is febrile neutropenia, an emergency; the red port is a likely source.",
+          "modelAnswer": "She's 38.6 at her nadir with an ANC of 700 and falling. That's febrile neutropenia, an emergency, and the port looks infected."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Holds exercise, calls oncology triage at once, checks counts and sources, documents.",
+          "modelAnswer": "No exercise today, call oncology triage now, and document."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "spo2Floor": {
+        "value": 88,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "escalateWindow": {
+        "value": 300,
+        "source": {
+          "cite": "Unit practice (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "Oncology triage called within 5 minutes of a fever (clinic policy: at once)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Probable febrile neutropenia unescalated an hour on is harm here.",
+      "source": {
+        "cite": "Punnapuzha S, et al.. Febrile Neutropenia. StatPearls (updated 2023-03-30), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-FN; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: febrile neutropenia is a temperature of 38.3 C once or 38 C sustained for an hour with an ANC below 500 or expected to fall below 500 within 48 hours; ANC below 100 is profound; it is an emergency (the course objective's wording, corrected 2026-11-09 to the IDSA 2010 definition)."
+      }
+    }
+  },
+  "endings": {
+    "sepsis": {
+      "label": "Neutropenic sepsis",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "That evening she is brought in hypotensive and confused with septic shock."
+    },
+    "safe": {
+      "label": "Febrile neutropenia caught",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"onc\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and (not isNull(vitalsAt)) and isNull(exAt) and isNull(homeAt)",
+      "narrative": "{timeAt(leftAt)|clock}: she is on her way to cultures and antibiotics."
+    },
+    "safeGaps": {
+      "label": "Sent, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: she gets care, but late or after exercising."
+    },
+    "time_up": {
+      "label": "Unescalated at 16:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "16:00 and no call."
+    }
+  },
+  "endingOrder": [
+    "sepsis",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "Oncology triage called within 5 minutes of the temperature",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"onc\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"onc\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "tempC",
+        "label": "Took her temperature before exercise",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(vitalsAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not taken."
+          }
+        ]
+      },
+      {
+        "id": "holdC",
+        "label": "Held exercise and did not send her home to rest",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(exAt) or not isNull(homeAt)",
+            "score": "missed",
+            "why": "Exercised or sent home."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Held."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Checked counts and possible sources",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(countsAt) and not isNull(sourceAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(countsAt) or not isNull(sourceAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Recognized probable febrile neutropenia as an emergency",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"fn\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"fatigue\"",
+            "score": "missed",
+            "why": "Fever at nadir is an emergency."
+          },
+          {
+            "when": "dxEnum == \"cold\"",
+            "score": "missed",
+            "why": "Not on chemotherapy at nadir."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: fever at nadir is febrile neutropenia; hold and call",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Fever to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "15:00 to the temperature",
+        "value": "isNull(vitalsAt) ? -1 : timeAt(vitalsAt)",
+        "format": "duration",
+        "expert": "under 2 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "15:00",
+        "text": "Pre-exercise vitals: 38.6, HR 112."
+      },
+      {
+        "at": "~15:01",
+        "text": "Hold exercise; call oncology triage."
+      },
+      {
+        "at": "~15:03",
+        "text": "Counts and sources: red port."
+      },
+      {
+        "at": "~15:05",
+        "text": "Document."
+      }
+    ],
+    "debrief": {
+      "sepsis": {
+        "headline": "Neutropenic sepsis",
+        "body": "A fever in a patient on chemotherapy, especially at nadir, is febrile neutropenia until proven otherwise: hold exercise and call oncology triage at once."
+      },
+      "safe": {
+        "headline": "Febrile neutropenia caught",
+        "body": "You took her temperature before exercise, held the session, linked it to her nadir and called within minutes. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Sent, with gaps",
+        "body": "Check whether you exercised her and how soon you called."
+      },
+      "time_up": {
+        "headline": "Unescalated at 16:00",
+        "body": "Call oncology triage at once."
+      }
+    },
+    "modelReasoning": "Febrile neutropenia is a temperature of 38.3 C once or 38 C for an hour with an ANC below 500 or expected to fall below 500 within 48 hours; it is an emergency, and an ANC below 100 is profound. Take a temperature before exercise in anyone on chemotherapy. Ms. Rhodes is 38.6 at her nadir with a falling ANC and a red port: hold exercise and call oncology triage at once."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "fnQ": {
+      "during": "testT",
+      "ask": "While you check: what defines febrile neutropenia?",
+      "choices": [
+        {
+          "id": "fn",
+          "label": "38.3 C once or 38 C for an hour, with ANC below 500 or expected below 500"
+        },
+        {
+          "id": "any",
+          "label": "Any temperature over 37"
+        },
+        {
+          "id": "wbc",
+          "label": "A white count over 11,000"
+        }
+      ],
+      "expect": "fn",
+      "explain": "A temperature of 38.3 C once or 38 C sustained for an hour, with an ANC below 500 or expected to fall below 500 within 48 hours.",
+      "source": {
+        "cite": "Punnapuzha S, et al.. Febrile Neutropenia. StatPearls (updated 2023-03-30), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-FN; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: febrile neutropenia is a temperature of 38.3 C once or 38 C sustained for an hour with an ANC below 500 or expected to fall below 500 within 48 hours; ANC below 100 is profound; it is an emergency (the course objective's wording, corrected 2026-11-09 to the IDSA 2010 definition)."
+      }
+    },
+    "profQ": {
+      "during": "leaveT",
+      "ask": "While she goes: what ANC is profound neutropenia?",
+      "choices": [
+        {
+          "id": "hundred",
+          "label": "Below 100"
+        },
+        {
+          "id": "thousand",
+          "label": "Below 1,000"
+        },
+        {
+          "id": "normal",
+          "label": "Below 1,500"
+        }
+      ],
+      "expect": "hundred",
+      "explain": "ANC below 100 is profound.",
+      "source": {
+        "cite": "Punnapuzha S, et al.. Febrile Neutropenia. StatPearls (updated 2023-03-30), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-FN; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: febrile neutropenia is a temperature of 38.3 C once or 38 C sustained for an hour with an ANC below 500 or expected to fall below 500 within 48 hours; ANC below 100 is profound; it is an emergency (the course objective's wording, corrected 2026-11-09 to the IDSA 2010 definition)."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

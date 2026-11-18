@@ -1,0 +1,400 @@
+{
+  "slug": "home-visit-quiet-and-sleepy-today",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: vital signs, calls 911, delirium screen, urine and intake, explains",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "hypoQ",
+          "choice": "hypo",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "sepsis"
+          },
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "ems"
+          },
+          "seq": 6,
+          "tick": 13
+        },
+        {
+          "type": "teach",
+          "prompt": "refQ",
+          "choice": "ref",
+          "seq": 7,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "cam",
+          "seq": 8,
+          "tick": 13
+        },
+        {
+          "type": "chapter",
+          "chapter": "escalated",
+          "choice": "continue",
+          "seq": 9,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "urine",
+          "seq": 10,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 11,
+          "tick": 37
+        }
+      ],
+      "expect": {
+        "ending": "safe",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "reportC": "met",
+          "vitC": "met",
+          "holdC": "met",
+          "lookC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": 65
+        },
+        "stateHash": "bded3e71ea87209a"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Finds it but screens fully before calling 8 minutes later",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "hypoQ",
+          "choice": "hypo",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "cam",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "urine",
+          "seq": 5,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "sepsis"
+          },
+          "seq": 6,
+          "tick": 130
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "ems"
+          },
+          "seq": 7,
+          "tick": 130
+        },
+        {
+          "type": "teach",
+          "prompt": "refQ",
+          "choice": "ref",
+          "seq": 8,
+          "tick": 130
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 9,
+          "tick": 130
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "reportC": "partial",
+          "vitC": "met",
+          "holdC": "met",
+          "lookC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 590,
+          "toKey": 60
+        },
+        "stateHash": "7f5ef613b1138695"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "exFirst",
+      "title": "Starts exercise before checking, then finds it and calls",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "ex",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "hypoQ",
+          "choice": "hypo",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "sepsis"
+          },
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "ems"
+          },
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "refQ",
+          "choice": "ref",
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 8,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 64,
+        "criteria": {
+          "reportC": "met",
+          "vitC": "met",
+          "holdC": "missed",
+          "lookC": "missed",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": 60
+        },
+        "stateHash": "b73e819c65c96815"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "tired",
+      "title": "Failure: calls it tiredness and lets her sleep",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "tired"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "nap",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "tomorrow"
+          },
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "shock",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "reportC": "missed",
+          "vitC": "missed",
+          "holdC": "missed",
+          "lookC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": -1,
+          "toKey": -1
+        },
+        "stateHash": "715d4197e5abfeb5"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "dementia",
+      "title": "Failure: calls it dementia and exercises her",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "dementia"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "ex",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "shock",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "reportC": "missed",
+          "vitC": "missed",
+          "holdC": "missed",
+          "lookC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": -1,
+          "toKey": -1
+        },
+        "stateHash": "89a3d90c834ad386"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

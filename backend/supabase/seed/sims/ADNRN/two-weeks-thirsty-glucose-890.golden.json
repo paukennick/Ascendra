@@ -1,0 +1,449 @@
+{
+  "slug": "two-weeks-thirsty-glucose-890",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: potassium, fluid at the ordered rate, insulin held, calls, neuro, volume and rhythm, documents",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "potassium",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "hhsQ",
+          "choice": "hhs",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "fluids",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "holdIns",
+          "seq": 6,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "hhs"
+          },
+          "seq": 7,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "call"
+          },
+          "seq": 8,
+          "tick": 13
+        },
+        {
+          "type": "teach",
+          "prompt": "kQ",
+          "choice": "k",
+          "seq": 9,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 10,
+          "tick": 13
+        },
+        {
+          "type": "chapter",
+          "chapter": "escalated",
+          "choice": "continue",
+          "seq": 11,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "volume",
+          "seq": 12,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "ecg",
+          "seq": 13,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 14,
+          "tick": 49
+        }
+      ],
+      "expect": {
+        "ending": "safe",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "reportC": "met",
+          "insC": "met",
+          "fluidC": "met",
+          "lookC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": 65
+        },
+        "stateHash": "6e5156b73cbeddaf"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Starts fluid and holds insulin, but calls 7 minutes after the potassium",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "potassium",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "hhsQ",
+          "choice": "hhs",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "fluids",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "holdIns",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "volume",
+          "seq": 7,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "ecg",
+          "seq": 8,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "hhs"
+          },
+          "seq": 9,
+          "tick": 100
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "call"
+          },
+          "seq": 10,
+          "tick": 100
+        },
+        {
+          "type": "teach",
+          "prompt": "kQ",
+          "choice": "k",
+          "seq": 11,
+          "tick": 100
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 100
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "reportC": "partial",
+          "insC": "met",
+          "fluidC": "met",
+          "lookC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 440,
+          "toKey": 60
+        },
+        "stateHash": "6910ba4eb2783643"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "wideOpen",
+      "title": "Calls promptly but runs the fluid wide open and never addresses the insulin",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "potassium",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "hhsQ",
+          "choice": "hhs",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "wideOpen",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "hhs"
+          },
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "call"
+          },
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "kQ",
+          "choice": "k",
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 8,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "reportC": "met",
+          "insC": "missed",
+          "fluidC": "missed",
+          "lookC": "missed",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": -1
+        },
+        "stateHash": "961430f8824a4388"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "dka",
+      "title": "Failure: reads it as DKA and starts insulin before fluid with a low potassium",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "potassium",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "hhsQ",
+          "choice": "hhs",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "dka"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "insulinNow",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "later"
+          },
+          "seq": 6,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "arrhythmia",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "reportC": "missed",
+          "insC": "missed",
+          "fluidC": "missed",
+          "lookC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": -1
+        },
+        "stateHash": "0ec4bd140dd4e125"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "dehyd",
+      "title": "Failure: calls it dehydration and starts insulin",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "dehyd"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "insulinNow",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "arrhythmia",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "reportC": "missed",
+          "insC": "missed",
+          "fluidC": "missed",
+          "lookC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": -1,
+          "toKey": -1
+        },
+        "stateHash": "2afd2195072ae807"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}
