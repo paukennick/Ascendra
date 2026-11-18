@@ -3,7 +3,7 @@
 
 import { httpErrorMessage, isNetworkFailure, NETWORK_MESSAGE, parseBody } from "../lib/errorMessage.ts";
 import { isTermsRequired, LEGAL_VERSION_HEADER, TERMS_VERSION } from "../lib/legal.ts";
-import { isSignedOutAuthRoute, refreshOutcome, type RefreshResult } from "../lib/sessionStore.ts";
+import { isSignedOutAuthRoute, refreshAfter401, refreshOutcome, type RefreshResult } from "../lib/sessionStore.ts";
 import { isStudyNoticeRequired, studyNoticeGate } from "../lib/studyNotice.ts";
 import { askMatureConfirmation, hasMatureContentHandler, MatureContentBlockedError, MatureContentDeclinedError, matureRefusalTarget } from "../lib/matureContent.ts";
 import { DEVICE_ID_HEADER, isDeviceId } from "../lib/deviceId.ts";
@@ -327,6 +327,8 @@ async function request<T>(
   // REQ-165: the study notice (with its AI data disclosure) comes before the first request
   // that sends the learner's own text to the AI provider.
   if (!alreadyRetried) await studyNoticeGate(options.method, path);
+  // REQ-339 (FAIL-2552): the access token this attempt goes out with.
+  const sentWith = getAccessToken?.() ?? null;
   try {
     return await rawRequest<T>(path, opts.headers ? { ...options, headers: { ...(options.headers as Record<string, string> | undefined), ...opts.headers } } : options, timeoutMs);
   } catch (err) {
@@ -342,6 +344,9 @@ async function request<T>(
       refreshAccessToken &&
       !isSignedOutAuthRoute(path);
     if (canRetry) {
+      // Another request refreshed while this one was out: resend with the
+      // new access token instead of rotating the refresh token again.
+      if (!refreshAfter401(sentWith, getAccessToken?.() ?? null)) return request<T>(path, options, opts, true, matureAsked);
       const result = await refreshAccessToken!();
       const outcome = refreshOutcome(result);
       if (outcome === "refreshed") {

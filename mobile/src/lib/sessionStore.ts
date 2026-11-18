@@ -193,3 +193,12 @@ export function unlockToken(sealed: string | null, latest: string | null): strin
 export function biometricOffered(input: { hardware: boolean; enrolled: boolean; strong: boolean | null }): boolean {
   return input.hardware && input.enrolled && input.strong !== false;
 }
+
+// REQ-339 (FAIL-2552): a request that went out with an access token that has
+// since been replaced (another request's 401 already refreshed it) is simply
+// resent with the new one. Refreshing again rotated the refresh token a
+// second time for nothing (production, 2026-11-17 19:49:32.151 and .736): one
+// more rotation, one more chance to lose the newest token.
+export function refreshAfter401(sentWith: string | null, now: string | null): boolean {
+  return !(sentWith && now && sentWith !== now);
+}

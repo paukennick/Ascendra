@@ -99,6 +99,31 @@ export const RELEASE_NOTE_LIMITS = {
 // Newest first.
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    // REQ-339 (Nick, 2026-11-18): Android biometric unlock kept losing the newest session token.
+    id: "2026-11-18-b",
+    date: "2026-11-18",
+    appVersion: "2.1.0",
+    covers: ["REQ-339"],
+    title: "Staying signed in with your fingerprint",
+    items: [
+      {
+        icon: "shield",
+        headline: "Fingerprint unlock keeps you signed in",
+        body: "On Android, an app update or a quick return could lose your newest sign-in, so you had to type your password again. The app now saves it before using it and keeps only the newest one.",
+      },
+      {
+        icon: "rotate-ccw",
+        headline: "Updates wait for your sign-in",
+        body: "When an update is ready as you come back to the app, it now waits until your sign-in is safely saved before it restarts.",
+      },
+      {
+        icon: "check-circle",
+        headline: "A second try before signing you out",
+        body: "If the app ever can't use its newest sign-in, it tries the other one it saved before asking for your password.",
+      },
+    ],
+  },
+  {
     // The sim depth round of 2026-11-17 (Nick, 19:51 PT: "build those out
     // more robustly"): REQ-333 academic and programming, REQ-334 nursing and
     // PT specialties, REQ-335 AWS, Azure and Google Cloud, REQ-336 CNCF, CompTIA, security and project management,

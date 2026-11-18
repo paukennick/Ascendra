@@ -18827,7 +18827,7 @@
       "title": "Short course name kept the new 'Exam Prep for' title prefix",
       "status": "fixed",
       "severity": "low",
-      "symptom": "With REQ-324 titles, shortCourseName's title fallback (no credential name) would print 'Exam Prep for CISSP®' cut to 18 characters in reminder and countdown emails.",
+      "symptom": "With REQ-324 titles, shortCourseName's title fallback (no credential name) would print 'Exam Prep for CISSP\u00ae' cut to 18 characters in reminder and countdown emails.",
       "how_detected": "review of title readers during REQ-324",
       "root_cause": "VENDOR_PREFIX listed the old 'Prep for' prefix only; a title-format change did not look at the readers that strip title prefixes.",
       "requirement": "REQ-324",
@@ -18850,7 +18850,7 @@
       "title": "Reminder short name cut a long credential name to its first words",
       "status": "fixed",
       "severity": "low",
-      "symptom": "With names on again, reminder and countdown emails for CISSP would call the course 'Information…' (the credential name without 'Certified', cut to 18 characters).",
+      "symptom": "With names on again, reminder and countdown emails for CISSP would call the course 'Information\u2026' (the credential name without 'Certified', cut to 18 characters).",
       "how_detected": "lib/unbranded.test.ts (REQ-324 short-name test)",
       "root_cause": "shortCourseName fell back to the exam code or an ellipsis; CISSP and similar exams have no code and are known by the acronym at the end of their name. REQ-319 had hidden it by nulling the names.",
       "requirement": "REQ-324",
@@ -19575,6 +19575,163 @@
       "no_test_reason": "",
       "prevention_rules": [],
       "prevention_notes": "A round that re-reads an earlier wave's source updates that wave's pinned date with the exact new one, in the same commit.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2550",
+      "date": "2026-11-18",
+      "title": "A background seal finishing after a newer rotation deleted the newer token",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Biometric unlock fell back to the password screen; the server revoked the family on a replay of an older token (Nick, 2026-11-18).",
+      "how_detected": "user report; code reading against production refresh_tokens; reproduced in tokenVault.test.ts against a model of AuthContext at a0c9866c",
+      "root_cause": "On Android every sealed write shows the fingerprint prompt (expo-secure-store 57 AuthenticationHelper.openAuthenticationPrompt). The background seal of token B could wait on that prompt until the learner returned; a refresh on return rotated B to C and wrote latest=C; answering the stale prompt sealed B and then deleted latest unconditionally (C lost). Cancelling it wrote B to the plain key and deleted latest=C. Overlapping seals could also finish out of order.",
+      "requirement": "REQ-339",
+      "affected": [
+        "mobile/src/auth/AuthContext.tsx storeSessionToken"
+      ],
+      "fix_summary": "tokenVault.seal: seals the newest token, one seal at a time; deletes latest and plain only when they hold the sealed token or nothing newer; a failed seal writes the newest token to the plain key",
+      "fix_commits": [
+        "566b7fe6",
+        "b0c37436"
+      ],
+      "regression_tests": [
+        "mobile/src/lib/tokenVault.test.ts::REQ-339 (FAIL-2550): a background seal that finishes after a rotation",
+        "mobile/src/lib/tokenVault.test.ts::REQ-339 (FAIL-2550): seals run one after another"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A seal never deletes a copy newer than what it sealed; storage writes compare against the vault's newest token.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2551",
+      "date": "2026-11-18",
+      "title": "Unlock kept the rotated token only in memory until the second fingerprint prompt",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "A close or reload during the post-unlock seal prompt left only the spent sealed token on the phone.",
+      "how_detected": "code review; reproduced in tokenVault.test.ts",
+      "root_cause": "unlockWithBiometric rotated the token and persisted it only through storeSessionToken's sealed write, which on Android waits on a second prompt; latest was not written on this path.",
+      "requirement": "REQ-339",
+      "affected": [
+        "mobile/src/auth/AuthContext.tsx unlockWithBiometric"
+      ],
+      "fix_summary": "vault.unlock persists the rotated token to the latest key before returning; the seal follows",
+      "fix_commits": [
+        "566b7fe6",
+        "b0c37436"
+      ],
+      "regression_tests": [
+        "mobile/src/lib/tokenVault.test.ts::REQ-339 (FAIL-2551): persist before use on the unlock path"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Every exchange persists the rotated token to a plain secure-store key before anything uses it.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2552",
+      "date": "2026-11-18",
+      "title": "Exchanges outside the refresh dedupe and a second rotation on a stale 401",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Production: two chained rotations 585 ms apart (11-17 19:49:32.151 and .736 PT).",
+      "how_detected": "production refresh_tokens; code review",
+      "root_cause": "unlockWithBiometric posted /api/auth/refresh itself, outside refresh()'s in-flight dedupe; and a request sent with the old access token that came back 401 after another request's refresh called refresh() again, rotating the refresh token a second time.",
+      "requirement": "REQ-339",
+      "affected": [
+        "mobile/src/auth/AuthContext.tsx",
+        "mobile/src/api/client.ts"
+      ],
+      "fix_summary": "All native exchanges run under the vault's lock (concurrent silent refreshes share one); the client resends without refreshing when the access token changed since the request went out (refreshAfter401)",
+      "fix_commits": [
+        "566b7fe6",
+        "b0c37436"
+      ],
+      "regression_tests": [
+        "mobile/src/lib/tokenVault.test.ts::REQ-339 (FAIL-2552): one exchange at a time"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "One lock for every exchange; a 401 is compared with the access token it was sent with.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2553",
+      "date": "2026-11-18",
+      "title": "An update reload cut a refresh in flight",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "After returning to the app, the rotated token issued by the server was never stored; the next unlock replayed a spent one.",
+      "how_detected": "production refresh_tokens and OTA history; reproduced in tokenVault.test.ts",
+      "root_cause": "useAppUpdates applies a downloaded update silently on a return after five minutes by calling Updates.reloadAsync at once, the same moment the return's expired access token sets off a refresh. The server commits the rotation; the reload tears down the JavaScript before the answer is written. The phone's server record shows the pattern at 11-17 03:31:52 (old bundle) and 03:32:01 (new bundle, first request with the device id).",
+      "requirement": "REQ-339",
+      "affected": [
+        "mobile/src/updates/useAppUpdates.ts",
+        "mobile/src/components/UpdateRequired.tsx"
+      ],
+      "fix_summary": "prepareForReload (reloadGuard.ts) calls the vault's quiesce: new exchanges are refused as unavailable and the one in flight is stored first; a silent reload that does not settle in 5 s becomes the banner",
+      "fix_commits": [
+        "566b7fe6",
+        "b0c37436"
+      ],
+      "regression_tests": [
+        "mobile/src/lib/tokenVault.test.ts::REQ-339 (FAIL-2553): an update reload never cuts a refresh in half",
+        "mobile/src/lib/tokenVault.test.ts::REQ-339 (FAIL-2553): the reload guard"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Every reloadAsync call goes through prepareForReload; a static test pins both call sites.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2554",
+      "date": "2026-11-18",
+      "title": "A refused token signed the device out without trying the other stored token",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Unlock or resume signed out on the first 401 even when another stored token might still be live.",
+      "how_detected": "code review (requested by the lead)",
+      "root_cause": "unlockToken picked one of latest or sealed and any 401 ended the sealed session.",
+      "requirement": "REQ-339",
+      "affected": [
+        "mobile/src/auth/AuthContext.tsx"
+      ],
+      "fix_summary": "tryInOrder: newest first, then each other distinct stored token once on a 401; a non-401 failure stops at once and keeps every token",
+      "fix_commits": [
+        "566b7fe6",
+        "b0c37436"
+      ],
+      "regression_tests": [
+        "mobile/src/lib/tokenVault.test.ts::REQ-339 (FAIL-2554): fall back to the other stored token before signing out"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Sign-out after a refresh needs a 401 on every stored token.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2555",
+      "date": "2026-11-18",
+      "title": "A token lost when the OS ends the app between the server's rotation and the write",
+      "status": "open",
+      "severity": "medium",
+      "symptom": "Same as FAIL-2553 when the OS, not an update, ends the app mid-refresh.",
+      "how_detected": "analysis of rotateRefreshToken (backend/lib/auth/tokens.ts)",
+      "root_cause": "Rotation is not idempotent: the server revokes the presented token when it issues the successor, so a lost answer leaves the device holding only spent tokens. The client cannot recover a token it never received.",
+      "requirement": "REQ-339",
+      "affected": [
+        "backend/lib/auth/tokens.ts"
+      ],
+      "fix_summary": "",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/tokenVault.test.ts::REQ-339 (FAIL-2555): what the device cannot fix on its own"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Open: server allowance for a replay of the immediately previous token from the same device while its successor is unused, proposed to the lead.",
       "recurrence_of": ""
     }
   ]

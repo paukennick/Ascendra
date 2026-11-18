@@ -231,7 +231,9 @@ describe("biometric unlock is offered only where sealing can work (FAIL-1063)", 
     const auth = read("../auth/AuthContext.tsx");
     const enable = auth.slice(auth.indexOf("const enableBiometric = useCallback"), auth.indexOf("const disableBiometric"));
     assert.ok(enable.indexOf("setItem(REFRESH_TOKEN_SECURE_KEY") < enable.indexOf('setItem(BIOMETRIC_ENABLED_KEY, "1")'));
-    assert.match(enable, /catch \{[\s\S]*setItem\(REFRESH_TOKEN_KEY, refreshTokenRef\.current\)[\s\S]*return \{ ok: false/);
+    // REQ-339: the token comes from the vault (`const token = vault.current`).
+    assert.match(enable, /const token = vault\.current;/);
+    assert.match(enable, /catch \{[\s\S]*setItem\(REFRESH_TOKEN_KEY, token\)[\s\S]*return \{ ok: false/);
   });
 });
 
