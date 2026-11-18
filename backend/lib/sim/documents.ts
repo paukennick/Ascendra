@@ -698,6 +698,9 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("ABPTSSCS", "lacrosse-ball-to-chest-collapse"),
   entry("ABPTSSCS", "header-collision-wants-back-in"),
   entry("ABPTSSCS", "runner-groin-pain-hop-test"),
+  entry("ABPTSOCS", "neck-pain-headache-after-adjustment"),
+  band("ABPTSGCS", "parkinson-freezing-session-geri"),
+  entry("ABPTSNCS", "tilt-table-pounding-headache-t4"),
   // ---- end REQ-334 ----
 ];
 
