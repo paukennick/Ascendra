@@ -1,0 +1,1823 @@
+{
+  "slug": "mshi-ehr-downtime-tabletop",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Calls the downtime at once, pages and texts, briefs the administrator, downtime numbers, phoned results with read-back, drains and reconciles, three gaps owned",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "declare",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "notifyStaff",
+          "params": {
+            "m": "page"
+          },
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "briefExec",
+          "seq": 5,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 4,
+          "seq": 6,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "askBackup",
+          "seq": 7,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 5,
+          "seq": 8,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "register",
+          "params": {
+            "r": "temp"
+          },
+          "seq": 9,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 7,
+          "seq": 10,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "askForms",
+          "seq": 11,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 8,
+          "seq": 12,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 13,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 11,
+          "seq": 14,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "criticalResults",
+          "params": {
+            "c": "phone"
+          },
+          "seq": 15,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 13,
+          "seq": 16,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "askLead",
+          "seq": 17,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 14,
+          "seq": 18,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 19,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 17,
+          "seq": 20,
+          "tick": 14
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 21,
+          "tick": 17
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 20,
+          "seq": 22,
+          "tick": 17
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 23,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 12,
+          "to": 23,
+          "seq": 24,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 25,
+          "tick": 23
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 13,
+          "to": 26,
+          "seq": 26,
+          "tick": 23
+        },
+        {
+          "type": "act",
+          "action": "restore",
+          "params": {
+            "b": "reconcile"
+          },
+          "seq": 27,
+          "tick": 26
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 14,
+          "to": 28,
+          "seq": 28,
+          "tick": 26
+        },
+        {
+          "type": "act",
+          "action": "endEx",
+          "seq": 29,
+          "tick": 28
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 30,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "afterAction",
+          "params": {
+            "plan": "owned"
+          },
+          "seq": 31,
+          "tick": 28
+        }
+      ],
+      "expect": {
+        "ending": "exercised",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "declared": "met",
+          "identified": "met",
+          "loop": "met",
+          "reconciled": "met",
+          "gaps": "met"
+        },
+        "kpis": {
+          "declareMin": 0,
+          "onTimeK": 4,
+          "gapsK": 3
+        },
+        "stateHash": "5ab62e0e552f1752"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "doeNames",
+      "title": "Registers the unidentified patient as 'John Doe'",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "declare",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "notifyStaff",
+          "params": {
+            "m": "page"
+          },
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "briefExec",
+          "seq": 5,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 4,
+          "seq": 6,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "askBackup",
+          "seq": 7,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 5,
+          "seq": 8,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "register",
+          "params": {
+            "r": "doe"
+          },
+          "seq": 9,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 7,
+          "seq": 10,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "askForms",
+          "seq": 11,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 8,
+          "seq": 12,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 13,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 11,
+          "seq": 14,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "criticalResults",
+          "params": {
+            "c": "phone"
+          },
+          "seq": 15,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 13,
+          "seq": 16,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "askLead",
+          "seq": 17,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 14,
+          "seq": 18,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 19,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 17,
+          "seq": 20,
+          "tick": 14
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 21,
+          "tick": 17
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 20,
+          "seq": 22,
+          "tick": 17
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 23,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 12,
+          "to": 23,
+          "seq": 24,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 25,
+          "tick": 23
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 13,
+          "to": 26,
+          "seq": 26,
+          "tick": 23
+        },
+        {
+          "type": "act",
+          "action": "restore",
+          "params": {
+            "b": "reconcile"
+          },
+          "seq": 27,
+          "tick": 26
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 14,
+          "to": 28,
+          "seq": 28,
+          "tick": 26
+        },
+        {
+          "type": "act",
+          "action": "endEx",
+          "seq": 29,
+          "tick": 28
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 30,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "afterAction",
+          "params": {
+            "plan": "owned"
+          },
+          "seq": 31,
+          "tick": 28
+        }
+      ],
+      "expect": {
+        "ending": "wrongPatient",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "declared": "met",
+          "identified": "missed",
+          "loop": "met",
+          "reconciled": "met",
+          "gaps": "met"
+        },
+        "kpis": {
+          "declareMin": 0,
+          "onTimeK": 4,
+          "gapsK": 3
+        },
+        "stateHash": "578aa353681a1d57"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "trayResults",
+      "title": "Prints results to the unit trays",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "declare",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "notifyStaff",
+          "params": {
+            "m": "page"
+          },
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "briefExec",
+          "seq": 5,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 4,
+          "seq": 6,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "askBackup",
+          "seq": 7,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 5,
+          "seq": 8,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "register",
+          "params": {
+            "r": "temp"
+          },
+          "seq": 9,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 7,
+          "seq": 10,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "askForms",
+          "seq": 11,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 8,
+          "seq": 12,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 13,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 11,
+          "seq": 14,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "criticalResults",
+          "params": {
+            "c": "tray"
+          },
+          "seq": 15,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 13,
+          "seq": 16,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "askLead",
+          "seq": 17,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 14,
+          "seq": 18,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 19,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 17,
+          "seq": 20,
+          "tick": 14
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 21,
+          "tick": 17
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 20,
+          "seq": 22,
+          "tick": 17
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 23,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 12,
+          "to": 23,
+          "seq": 24,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 25,
+          "tick": 23
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 13,
+          "to": 26,
+          "seq": 26,
+          "tick": 23
+        },
+        {
+          "type": "act",
+          "action": "restore",
+          "params": {
+            "b": "reconcile"
+          },
+          "seq": 27,
+          "tick": 26
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 14,
+          "to": 28,
+          "seq": 28,
+          "tick": 26
+        },
+        {
+          "type": "act",
+          "action": "endEx",
+          "seq": 29,
+          "tick": 28
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 30,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "afterAction",
+          "params": {
+            "plan": "owned"
+          },
+          "seq": 31,
+          "tick": 28
+        }
+      ],
+      "expect": {
+        "ending": "lostResult",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "declared": "met",
+          "identified": "met",
+          "loop": "missed",
+          "reconciled": "met",
+          "gaps": "met"
+        },
+        "kpis": {
+          "declareMin": 0,
+          "onTimeK": 4,
+          "gapsK": 3
+        },
+        "stateHash": "f5e29b0cb6983702"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "flipBack",
+      "title": "Switches everything back on at once and files the paper",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "declare",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "notifyStaff",
+          "params": {
+            "m": "page"
+          },
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "briefExec",
+          "seq": 5,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 4,
+          "seq": 6,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "askBackup",
+          "seq": 7,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 5,
+          "seq": 8,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "register",
+          "params": {
+            "r": "temp"
+          },
+          "seq": 9,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 7,
+          "seq": 10,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "askForms",
+          "seq": 11,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 8,
+          "seq": 12,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 13,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 11,
+          "seq": 14,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "criticalResults",
+          "params": {
+            "c": "phone"
+          },
+          "seq": 15,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 13,
+          "seq": 16,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "askLead",
+          "seq": 17,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 14,
+          "seq": 18,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 19,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 17,
+          "seq": 20,
+          "tick": 14
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 21,
+          "tick": 17
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 20,
+          "seq": 22,
+          "tick": 17
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 23,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 12,
+          "to": 23,
+          "seq": 24,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 25,
+          "tick": 23
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 13,
+          "to": 26,
+          "seq": 26,
+          "tick": 23
+        },
+        {
+          "type": "act",
+          "action": "restore",
+          "params": {
+            "b": "flip"
+          },
+          "seq": 27,
+          "tick": 26
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 14,
+          "to": 28,
+          "seq": 28,
+          "tick": 26
+        },
+        {
+          "type": "act",
+          "action": "endEx",
+          "seq": 29,
+          "tick": 28
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 30,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "afterAction",
+          "params": {
+            "plan": "owned"
+          },
+          "seq": 31,
+          "tick": 28
+        }
+      ],
+      "expect": {
+        "ending": "lostRecord",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "declared": "met",
+          "identified": "met",
+          "loop": "met",
+          "reconciled": "missed",
+          "gaps": "met"
+        },
+        "kpis": {
+          "declareMin": 0,
+          "onTimeK": 4,
+          "gapsK": 3
+        },
+        "stateHash": "6f63bc8f6a5fa347"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "noReport",
+      "title": "Runs the expert's exercise and writes no after-action",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "declare",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "notifyStaff",
+          "params": {
+            "m": "page"
+          },
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "briefExec",
+          "seq": 5,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 4,
+          "seq": 6,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "askBackup",
+          "seq": 7,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 5,
+          "seq": 8,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "register",
+          "params": {
+            "r": "temp"
+          },
+          "seq": 9,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 7,
+          "seq": 10,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "askForms",
+          "seq": 11,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 8,
+          "seq": 12,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 13,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 11,
+          "seq": 14,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "criticalResults",
+          "params": {
+            "c": "phone"
+          },
+          "seq": 15,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 13,
+          "seq": 16,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "askLead",
+          "seq": 17,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 14,
+          "seq": 18,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 19,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 17,
+          "seq": 20,
+          "tick": 14
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 21,
+          "tick": 17
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 20,
+          "seq": 22,
+          "tick": 17
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 23,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 12,
+          "to": 23,
+          "seq": 24,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 25,
+          "tick": 23
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 13,
+          "to": 26,
+          "seq": 26,
+          "tick": 23
+        },
+        {
+          "type": "act",
+          "action": "restore",
+          "params": {
+            "b": "reconcile"
+          },
+          "seq": 27,
+          "tick": 26
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 14,
+          "to": 28,
+          "seq": 28,
+          "tick": 26
+        },
+        {
+          "type": "act",
+          "action": "endEx",
+          "seq": 29,
+          "tick": 28
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 30,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "afterAction",
+          "params": {
+            "plan": "none"
+          },
+          "seq": 31,
+          "tick": 28
+        }
+      ],
+      "expect": {
+        "ending": "noReport",
+        "class": "harm",
+        "rating": "bad",
+        "score": 83,
+        "criteria": {
+          "declared": "met",
+          "identified": "met",
+          "loop": "met",
+          "reconciled": "met",
+          "gaps": "partial"
+        },
+        "kpis": {
+          "declareMin": 0,
+          "onTimeK": 4,
+          "gapsK": 3
+        },
+        "stateHash": "2ffdde3a65951ef7"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "neverCalled",
+      "title": "Holds off, tells staff by page but never calls the downtime; the other injects handled well",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "retry",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "notifyStaff",
+          "params": {
+            "m": "page"
+          },
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 4,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "briefExec",
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 5,
+          "seq": 6,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "askBackup",
+          "seq": 7,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 6,
+          "seq": 8,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "register",
+          "params": {
+            "r": "temp"
+          },
+          "seq": 9,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 8,
+          "seq": 10,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "askForms",
+          "seq": 11,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 9,
+          "seq": 12,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 13,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 12,
+          "seq": 14,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 12,
+          "seq": 15,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "criticalResults",
+          "params": {
+            "c": "phone"
+          },
+          "seq": 16,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 14,
+          "seq": 17,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "askLead",
+          "seq": 18,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 15,
+          "seq": 19,
+          "tick": 14
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 20,
+          "tick": 15
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 18,
+          "seq": 21,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 22,
+          "tick": 18
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 21,
+          "seq": 23,
+          "tick": 18
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 24,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 12,
+          "to": 24,
+          "seq": 25,
+          "tick": 21
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 26,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 13,
+          "to": 27,
+          "seq": 27,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 13,
+          "to": 27,
+          "seq": 28,
+          "tick": 26
+        },
+        {
+          "type": "act",
+          "action": "restore",
+          "params": {
+            "b": "reconcile"
+          },
+          "seq": 29,
+          "tick": 27
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 14,
+          "to": 29,
+          "seq": 30,
+          "tick": 27
+        },
+        {
+          "type": "act",
+          "action": "endEx",
+          "seq": 31,
+          "tick": 29
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 32,
+          "tick": 29
+        },
+        {
+          "type": "act",
+          "action": "afterAction",
+          "params": {
+            "plan": "owned"
+          },
+          "seq": 33,
+          "tick": 29
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "declared": "missed",
+          "identified": "met",
+          "loop": "met",
+          "reconciled": "met",
+          "gaps": "met"
+        },
+        "kpis": {
+          "declareMin": 0,
+          "onTimeK": 3,
+          "gapsK": 3
+        },
+        "stateHash": "595d1790b62e1828"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "emailLate",
+      "title": "Holds off half an hour, then emails staff; one gap found, listed but not owned",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "retry",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "declare",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 5,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 5,
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "notifyStaff",
+          "params": {
+            "m": "email"
+          },
+          "seq": 6,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 6,
+          "seq": 7,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "askBackup",
+          "seq": 8,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 7,
+          "seq": 9,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "register",
+          "params": {
+            "r": "temp"
+          },
+          "seq": 10,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 9,
+          "seq": 11,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 12,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 12,
+          "seq": 13,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 12,
+          "seq": 14,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "criticalResults",
+          "params": {
+            "c": "phone"
+          },
+          "seq": 15,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 14,
+          "seq": 16,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 17,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 17,
+          "seq": 18,
+          "tick": 14
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 19,
+          "tick": 17
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 20,
+          "seq": 20,
+          "tick": 17
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 21,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 23,
+          "seq": 22,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 23,
+          "tick": 23
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 26,
+          "seq": 24,
+          "tick": 23
+        },
+        {
+          "type": "act",
+          "action": "restore",
+          "params": {
+            "b": "reconcile"
+          },
+          "seq": 25,
+          "tick": 26
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 12,
+          "to": 28,
+          "seq": 26,
+          "tick": 26
+        },
+        {
+          "type": "act",
+          "action": "endEx",
+          "seq": 27,
+          "tick": 28
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 28,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "afterAction",
+          "params": {
+            "plan": "listed"
+          },
+          "seq": 29,
+          "tick": 28
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "declared": "partial",
+          "identified": "met",
+          "loop": "met",
+          "reconciled": "met",
+          "gaps": "partial"
+        },
+        "kpis": {
+          "declareMin": 30,
+          "onTimeK": 4,
+          "gapsK": 1
+        },
+        "stateHash": "04fede9ef92c393c"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    }
+  ]
+}

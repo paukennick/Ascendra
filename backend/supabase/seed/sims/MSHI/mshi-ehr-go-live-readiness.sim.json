@@ -1,0 +1,470 @@
+{
+  "schemaVersion": 1,
+  "engine": { "major": 1, "minor": 2 },
+  "slug": "mshi-ehr-go-live-readiness",
+  "title": "Go-live in four weeks, ready or not",
+  "screen": {
+    "type": "governance-board",
+    "level": 1,
+    "governance": {
+      "risks": [
+        {
+          "id": "rRx",
+          "label": "Prescriptions to pharmacies: 6% fail in integrated testing (severity 1)",
+          "spokenLabel": "Prescription interface defect",
+          "owner": "\"Interface lead, with the vendor\"",
+          "rating": "rxFixed ? \"low\" : \"critical\"",
+          "appetite": "rxFixed ? \"within\" : \"above\"",
+          "status": "{rxFixed ? \"Fixed and retested: 0 of 400 test prescriptions fail\" : isNull(rxAt) ? \"Open\" : \"Vendor fix in progress; retest booked\"}"
+        },
+        {
+          "id": "rConv",
+          "label": "Converted allergy and medication lists not yet validated against the old system",
+          "spokenLabel": "Unvalidated data conversion",
+          "owner": "\"Clinical informatics\"",
+          "rating": "convFixed ? \"low\" : isNull(validateAt) ? \"high\" : \"critical\"",
+          "appetite": "convFixed ? \"within\" : \"above\"",
+          "status": "{convFixed ? \"Validated; the allergy mapping error corrected and reloaded\" : isNull(validateAt) ? \"Not validated\" : \"Sample found 3% of allergies converted as 'no known allergies'\"}"
+        },
+        {
+          "id": "rTrain",
+          "label": "Clinicians trained before go-live",
+          "spokenLabel": "Training completion",
+          "owner": "\"Training lead\"",
+          "rating": "trained >= 90 ? \"low\" : trained >= 75 ? \"medium\" : \"high\"",
+          "appetite": "trained >= 90 ? \"within\" : \"above\"",
+          "status": "{trained}% trained (go-live criterion: 90%, with EHR access granted only after training)"
+        }
+      ],
+      "stakeholders": [
+        { "id": "sCmo", "label": "Chief medical officer", "spokenLabel": "The chief medical officer's support", "value": "cmo", "max": 10, "bands": [4, 6, 8], "words": ["opposed", "unconvinced", "supportive", "championing"] },
+        { "id": "sCfo", "label": "Chief financial officer", "spokenLabel": "The chief financial officer's support", "value": "cfo", "max": 10, "bands": [4, 6, 8], "words": ["opposed", "unconvinced", "supportive", "championing"] }
+      ],
+      "docket": [
+        { "id": "dGo", "kind": "Board decision", "label": "Day 21: go/no-go meeting for the day-28 go-live", "status": "{call == \"unset\" ? \"Waiting for your recommendation\" : call == \"asPlanned\" ? \"Go on day 28 as planned\" : call == \"criteria\" ? \"Go on day 28 if every criterion is met; otherwise two weeks to meet them\" : \"Postponed to next quarter\"}", "when": "true", "flag": "call == \"unset\" and t >= goNoGoDay - 3 * 86400" },
+        { "id": "dCriteria", "kind": "Readiness", "label": "Go-live criteria: no open severity-1 defect, conversion validated, 90% trained, command center and downtime plan ready", "status": "Agreed with the steering committee", "when": "not isNull(criteriaAt)" },
+        { "id": "dLive", "kind": "Milestone", "label": "Go-live", "status": "Live on day {timeAt(liveAt) / 86400|0dp}", "when": "not isNull(liveAt)" },
+        { "id": "dCmd", "kind": "Support", "label": "Command center and at-the-elbow super-users for the first two weeks", "status": "Staffed", "when": "not isNull(commandAt)" },
+        { "id": "dSustain", "kind": "Sustain", "label": "30-day optimization: usage reports, workflow fixes, refresher sessions", "status": "{isNull(sustainAt) ? \"\" : \"Under way\"}", "when": "not isNull(sustainAt)" }
+      ],
+      "budget": { "label": "Go-live budget committed", "spent": "spent", "total": "budget", "unit": "thousand dollars" },
+      "meters": [
+        { "id": "mDay", "label": "Day", "value": "{t / 86400|0dp}" },
+        { "id": "mCriteria", "label": "Go-live criteria met", "value": "{criteriaMet} of 4" }
+      ]
+    }
+  },
+  "objective": "The EHR implementation life cycle: selecting a vendor, building a project plan, training staff, going live and sustaining the change",
+  "secondaryObjectives": [
+    "Health IT project management: the project team, scope document, schedule tools such as Gantt charts and the critical path, issue tracking, testing and contingency planning",
+    "Implementing health informatics solutions alongside clinical and business processes"
+  ],
+  "sources": [
+    {
+      "cite": "AMIA Accreditation Committee, foundational domains for master's-level health informatics education (CAHIIM HI master's curriculum requirements PDF)",
+      "checkedAt": "2026-11-17",
+      "url": "https://cahiim.org/wp-content/uploads/2024/08/hi-ms-curriculum.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch. F7 integrates social, business, human factors, behavioral and information sciences into designing, implementing and evaluating health informatics solutions; graduates should 'Demonstrate an awareness of the interrelatedness' of those sciences. The MSHI course's life-cycle objective draws on ONC's change-management primer (seed source P6), not re-read for this round."
+    },
+    {
+      "cite": "ONC/ASTP, SAFER Guides, Contingency Planning (SAFER Self Assessment, August 2024)",
+      "checkedAt": "2026-11-17",
+      "url": "https://healthit.gov/wp-content/uploads/2025/06/SAFER-Guide-2.-Contingency-Planning-Final.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch. Cited for the downtime plan among the go-live criteria: a written downtime and recovery policy, paper forms for key functions, and staff trained in paper-based ordering and charting."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Cedar Valley Clinics (fictional), its vendor, defects, percentages, costs and days are invented teaching values. Go-live criteria such as 'no open severity-1 defect' and a training threshold are common project practice as the author describes them, not a cited standard. No patient data appears."
+    }
+  ],
+  "brief": {
+    "situation": "You are the clinical informatics project lead at Cedar Valley Clinics (fictional), six primary care clinics moving to a new ambulatory EHR. Go-live is set for day 28, and the steering committee holds the go/no-go meeting on day 21. Three things are open: 6% of test prescriptions fail to reach pharmacies, the converted allergy and medication lists have not been checked against the old system, and 61% of clinicians have finished training.",
+    "handover": [
+      "The go-live budget left is 400 thousand dollars. Each extra week of the old and new systems running side by side costs about 60 thousand.",
+      "The chief medical officer wants clinicians safe and supported; the chief financial officer wants the date kept."
+    ],
+    "howItWorks": [
+      "The clock runs in days: each task takes days. Choose it, then let it finish, which moves the calendar on.",
+      "The board shows the readiness risks against the appetite, each executive's support in words, the budget committed and the docket.",
+      "After go-live, close the project and write the readiness record."
+    ]
+  },
+  "clock": { "start": "2027-01-04T08:00", "tick": "1d", "maxDuration": "100d", "calendar": "week" },
+  "params": {
+    "budget": { "value": 400, "source": { "cite": "Author's scenario (REQ-333)", "checkedAt": "2026-11-17", "note": "Go-live budget left, thousand dollars; invented." } },
+    "goNoGoDay": { "value": 1814400, "unit": "s", "source": { "cite": "Author's scenario (REQ-333)", "checkedAt": "2026-11-17", "note": "The go/no-go meeting on day 21." } },
+    "liveDay": { "value": 2419200, "unit": "s", "source": { "cite": "Author's scenario (REQ-333)", "checkedAt": "2026-11-17", "note": "The planned go-live on day 28." } },
+    "slipDay": { "value": 3628800, "unit": "s", "source": { "cite": "Author's scenario (REQ-333)", "checkedAt": "2026-11-17", "note": "Two weeks later, day 42." } },
+    "projectEnd": { "value": 7776000, "unit": "s", "source": { "cite": "Author's scenario (REQ-333)", "checkedAt": "2026-11-17", "note": "The case closes on day 90." } }
+  },
+  "state": {
+    "busy": { "type": "bool", "init": false },
+    "documented": { "type": "bool", "init": false },
+    "closedAt": { "type": "time", "init": null },
+    "criteriaAt": { "type": "time", "init": null },
+    "rxAt": { "type": "time", "init": null },
+    "rxFixed": { "type": "bool", "init": false },
+    "validateAt": { "type": "time", "init": null },
+    "convFixed": { "type": "bool", "init": false },
+    "trainAt": { "type": "time", "init": null },
+    "trained": { "type": "number", "init": 61, "min": 0, "max": 100 },
+    "commandAt": { "type": "time", "init": null },
+    "call": { "type": "enum", "values": ["unset", "asPlanned", "criteria", "nextQuarter"], "init": "unset" },
+    "callAt": { "type": "time", "init": null },
+    "liveAt": { "type": "time", "init": null },
+    "liveCriteria": { "type": "number", "init": 0, "min": 0, "max": 4 },
+    "rxFailedLive": { "type": "bool", "init": false },
+    "allergyLive": { "type": "bool", "init": false },
+    "sustainAt": { "type": "time", "init": null },
+    "slipWeeks": { "type": "number", "init": 0, "min": 0, "max": 20 },
+    "cmo": { "type": "number", "init": 5, "min": 0, "max": 10 },
+    "cfo": { "type": "number", "init": 6, "min": 0, "max": 10 },
+    "basisDoc": { "type": "enum", "values": ["unset", "criteria", "date", "vendor"], "init": "unset" }
+  },
+  "derived": {
+    "criteriaMet": { "expr": "(rxFixed ? 1 : 0) + (convFixed ? 1 : 0) + (trained >= 90 ? 1 : 0) + (isNull(commandAt) ? 0 : 1)" },
+    "spent": { "expr": "(isNull(trainAt) ? 0 : 60) + (isNull(validateAt) ? 0 : 30) + (isNull(commandAt) ? 0 : 80) + slipWeeks * 60 + (rxFailedLive ? 90 : 0)" },
+    "spendPct": { "expr": "spent / budget * 100" },
+    "aboveCount": { "expr": "(rxFixed ? 0 : 1) + (convFixed ? 0 : 1) + (trained >= 90 ? 0 : 1)" },
+    "criteriaFirst": { "expr": "not isNull(criteriaAt) and not isNull(callAt) and timeAt(criteriaAt) <= timeAt(callAt)" },
+    "minSupport": { "expr": "min(cmo, cfo)" },
+    "unsafeLive": { "expr": "rxFailedLive or allergyLive" }
+  },
+  "processes": [],
+  "phases": {
+    "project": { "label": "The project", "clock": "turns", "actions": ["criteria", "fixRx", "validate", "trainPush", "command", "decide", "sustain", "watch", "closeProject"] },
+    "report": { "label": "Readiness record", "clock": "stopped", "actions": ["document"] }
+  },
+  "initialPhase": "project",
+  "actions": {
+    "criteria": {
+      "label": "Agree measurable go-live criteria with the steering committee (2 days)",
+      "group": "Plan",
+      "available": "not busy and isNull(criteriaAt)",
+      "why": "Agreed, or finish the task in progress first.",
+      "effects": [
+        { "set": "criteriaAt", "to": "t" },
+        { "add": "cmo", "by": "1" },
+        { "log": "Agreed: no open severity-1 defect, conversion validated, 90% of clinicians trained, command center and downtime plan ready.", "kind": "act" },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "2d" }
+      ]
+    },
+    "fixRx": {
+      "label": "Hold the vendor to the contract: fix the prescription defect and retest 400 prescriptions end to end (10 days)",
+      "group": "Test",
+      "available": "not busy and isNull(rxAt)",
+      "why": "Under way, or finish the task in progress first.",
+      "effects": [
+        { "set": "rxAt", "to": "t" },
+        { "log": "The vendor finds a pharmacy directory mapping fault; the fix and retest are booked.", "kind": "act" },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "10d" },
+        { "schedule": "rxDone", "after": "10d" }
+      ]
+    },
+    "validate": {
+      "label": "Validate the conversion: compare 200 sampled charts' allergies and medications with the old system (5 days, then a reload)",
+      "group": "Test",
+      "available": "not busy and isNull(validateAt)",
+      "why": "Done, or finish the task in progress first.",
+      "effects": [
+        { "set": "validateAt", "to": "t" },
+        { "finding": "6 of 200 sampled charts (3%) show 'no known allergies' where the old system lists an allergy: a mapping error for free-text allergies." },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "5d" },
+        { "schedule": "convDone", "after": "8d" }
+      ]
+    },
+    "trainPush": {
+      "label": "Training push: extra sessions in every clinic, and EHR access granted only after training (10 days)",
+      "group": "People",
+      "available": "not busy and isNull(trainAt)",
+      "why": "Done, or finish the task in progress first.",
+      "effects": [
+        { "set": "trainAt", "to": "t" },
+        { "add": "cmo", "by": "1" },
+        { "add": "cfo", "by": "-1" },
+        { "log": "Extra sessions start; access is tied to finishing training.", "kind": "act" },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "10d" },
+        { "schedule": "trainDone", "after": "10d" }
+      ]
+    },
+    "command": {
+      "label": "Stand up a command center and at-the-elbow super-users for the first two weeks, with the downtime plan rehearsed (4 days)",
+      "group": "People",
+      "available": "not busy and isNull(commandAt)",
+      "why": "Done, or finish the task in progress first.",
+      "effects": [
+        { "set": "commandAt", "to": "t" },
+        { "add": "cmo", "by": "1" },
+        { "log": "Command center staffed; one super-user per eight clinicians; the downtime plan walked through.", "kind": "good" },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "4d" }
+      ]
+    },
+    "decide": {
+      "label": "Recommend the go/no-go call",
+      "group": "Decide",
+      "available": "not busy and call == \"unset\"",
+      "why": "Decided, or finish the task in progress first.",
+      "params": [
+        { "id": "g", "kind": "choice", "label": "Recommendation", "options": [
+          { "value": "criteria", "label": "Go on day 28 if every criterion is met; otherwise take up to two more weeks to meet them" },
+          { "value": "asPlanned", "label": "Go on day 28 as planned; fix what is left after go-live" },
+          { "value": "nextQuarter", "label": "Postpone to next quarter to be safe" }
+        ] }
+      ],
+      "effects": [
+        { "set": "call", "to": "g" },
+        { "set": "callAt", "to": "t" },
+        { "cases": [
+          { "when": "g == \"asPlanned\"", "then": [{ "add": "cfo", "by": "2" }, { "add": "cmo", "by": "-2" }, { "log": "The date holds, whatever is open on day 28.", "kind": "bad" }] },
+          { "when": "g == \"nextQuarter\"", "then": [{ "add": "cfo", "by": "-4" }, { "add": "slipWeeks", "by": "12" }, { "log": "Go-live moves to next quarter: twelve more weeks of two systems.", "kind": "bad" }] },
+          { "when": "g == \"criteria\"", "then": [{ "add": "cfo", "by": "1" }, { "log": "The committee accepts: the criteria, not the calendar, decide, with the slip bounded at two weeks.", "kind": "act" }] }
+        ] },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "1d" }
+      ]
+    },
+    "sustain": {
+      "label": "Start the 30-day optimization: usage reports, workflow fixes and refresher sessions (5 days)",
+      "group": "Sustain",
+      "available": "not busy and not isNull(liveAt) and isNull(sustainAt)",
+      "why": "Not live yet, already started, or finish the task in progress first.",
+      "effects": [
+        { "set": "sustainAt", "to": "t" },
+        { "add": "cmo", "by": "1" },
+        { "log": "Weekly usage reports and workflow fixes start; clinicians see their requests acted on.", "kind": "good" },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "5d" }
+      ]
+    },
+    "watch": {
+      "label": "Let the week pass (7 days)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        { "log": "A week passes.", "kind": "act" },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "7d" }
+      ]
+    },
+    "closeProject": {
+      "label": "Close the project and write the readiness record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        { "cancel": "work" },
+        { "set": "busy", "to": "false" },
+        { "set": "closedAt", "to": "t" },
+        { "log": "You close the project and write the record.", "kind": "act" },
+        { "phase": "report" }
+      ]
+    },
+    "document": {
+      "label": "Write the readiness record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        { "id": "record", "kind": "form", "label": "Record", "fields": [
+          { "id": "basis", "label": "What decided the go-live date", "options": [
+            { "value": "criteria", "label": "Measured readiness criteria agreed before the go/no-go" },
+            { "value": "date", "label": "The planned date" },
+            { "value": "vendor", "label": "The vendor's advice" }
+          ] }
+        ] }
+      ],
+      "effects": [
+        { "set": "basisDoc", "to": "basis" },
+        { "log": "Recorded: {basis}.", "kind": "act" },
+        { "set": "documented", "to": "true" }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Work in progress",
+      "wait": { "skipLabel": "Let the work finish" },
+      "instances": "one",
+      "source": { "cite": "Author's scenario (REQ-333)", "checkedAt": "2026-11-17", "note": "How many days each task takes is an invented teaching value." },
+      "effects": [{ "set": "busy", "to": "false" }]
+    },
+    "rxDone": {
+      "label": "Prescription fix and retest",
+      "instances": "one",
+      "source": { "cite": "Author's scenario (REQ-333)", "checkedAt": "2026-11-17", "note": "Ten days; invented." },
+      "effects": [{ "set": "rxFixed", "to": "true" }, { "log": "Retest: 0 of 400 test prescriptions fail. The severity-1 defect is closed.", "kind": "good" }]
+    },
+    "convDone": {
+      "label": "Allergy mapping fix and reload",
+      "instances": "one",
+      "source": { "cite": "Author's scenario (REQ-333)", "checkedAt": "2026-11-17", "note": "Three days after the validation; invented." },
+      "effects": [{ "set": "convFixed", "to": "true" }, { "log": "The allergy mapping is fixed and reloaded; a new sample of 200 matches the old system.", "kind": "good" }]
+    },
+    "trainDone": {
+      "label": "Training push",
+      "instances": "one",
+      "source": { "cite": "Author's scenario (REQ-333)", "checkedAt": "2026-11-17", "note": "Ten days; invented." },
+      "effects": [{ "set": "trained", "to": "94" }, { "log": "94% of clinicians have finished training.", "kind": "good" }]
+    }
+  },
+  "triggers": [
+    {
+      "id": "goLive",
+      "when": "isNull(liveAt) and phase == \"project\" and ((call == \"asPlanned\" and t >= liveDay) or (call == \"criteria\" and t >= liveDay and criteriaMet >= 4) or (call == \"criteria\" and t >= slipDay) or (call == \"unset\" and t >= liveDay))",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        { "set": "liveAt", "to": "t" },
+        { "set": "liveCriteria", "to": "criteriaMet" },
+        { "if": "call == \"criteria\" and t > liveDay", "then": [{ "add": "slipWeeks", "by": "2" }] },
+        { "if": "not rxFixed", "then": [{ "set": "rxFailedLive", "to": "true" }, { "add": "cmo", "by": "-3" }, { "log": "Go-live: in the scenario, about one prescription in sixteen never reaches the pharmacy; patients arrive to collect medicines that are not there, and staff re-send by fax for weeks.", "kind": "alarm" }] },
+        { "if": "isNull(validateAt)", "then": [{ "set": "allergyLive", "to": "true" }, { "add": "cmo", "by": "-3" }, { "log": "Go-live: in the scenario, clinicians find charts that say 'no known allergies' for patients who have them; every chart must now be checked by hand.", "kind": "alarm" }] },
+        { "if": "trained < 90", "then": [{ "add": "cmo", "by": "-1" }, { "log": "Untrained clinicians fall behind; clinics cut appointments for two weeks.", "kind": "bad" }] },
+        { "if": "rxFixed and not isNull(validateAt) and trained >= 90", "then": [{ "log": "Go-live: prescriptions flow, allergy lists match, and clinicians know the system.", "kind": "good" }] }
+      ]
+    },
+    {
+      "id": "projectEndT",
+      "when": "t >= projectEnd and phase == \"project\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        { "cancel": "work" },
+        { "set": "busy", "to": "false" },
+        { "set": "closedAt", "to": "t" },
+        { "log": "Day 90: the project closes. Write the readiness record.", "kind": "alarm" },
+        { "phase": "report" }
+      ]
+    },
+    { "id": "writeUp", "when": "phase == \"report\"", "mode": "once", "effects": [{ "reason": "writeup" }] }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the steering committee: how you decided when to go live, what had to be true first, and how the change will stick.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Deciding",
+          "criteria": "Measurable go-live criteria agreed before the go/no-go meeting; the criteria, not the calendar or a vendor, decide; a bounded slip when they are not met rather than an open-ended postponement.",
+          "modelAnswer": "No severity-1 open, conversion validated, 90% trained, command center ready; go when met, up to two weeks to meet them."
+        },
+        {
+          "label": "What had to be true",
+          "criteria": "The prescription defect fixed and retested end to end (testing); the converted allergy lists validated by sampling against the old system (a patient safety check); training finished with access tied to it; a command center, super-users and the downtime plan (contingency).",
+          "modelAnswer": "0 of 400 test prescriptions failing; 3% allergy error found and reloaded; 94% trained; command center staffed."
+        },
+        {
+          "label": "Sustaining",
+          "criteria": "Go-live is a step in the life cycle, not its end: optimization with usage reports, workflow fixes and refresher training after go-live.",
+          "modelAnswer": "A 30-day optimization with weekly usage reports and fixes."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "governance",
+    "thresholds": {
+      "budgetCap": { "value": 100, "source": { "cite": "Governance outcome profile (docs/sims.md 9.2, 22.26)", "checkedAt": "2026-11-17", "note": "Committed spend within the go-live budget." } },
+      "aboveAppetite": { "value": 0, "source": { "cite": "Governance outcome profile (docs/sims.md 9.2, 22.26)", "checkedAt": "2026-11-17", "note": "No readiness risk above appetite at the close." } },
+      "supportTarget": { "value": 6, "source": { "cite": "Governance outcome profile (docs/sims.md 9.2, 22.26)", "checkedAt": "2026-11-17", "note": "The chief medical officer and the chief financial officer at 6 of 10 or more at the close." } }
+    },
+    "noProgress": {
+      "when": "documented and call == \"unset\" and not unsafeLive",
+      "class": "recovered",
+      "rationale": "No recommendation was made, yet nothing unsafe reached clinics; the project drifted rather than failed.",
+      "source": { "cite": "Author's scenario (REQ-333)", "checkedAt": "2026-11-17", "note": "An invented teaching scenario." }
+    }
+  },
+  "endings": {
+    "unsafe": { "label": "Live with a known safety defect", "class": "harm", "terminal": true, "when": "documented and unsafeLive", "narrative": "The clinics went live with failing prescriptions or unchecked allergy lists, and patients met the consequences in the scenario." },
+    "overspend": { "label": "Over budget", "class": "harm", "terminal": true, "when": "documented and spendPct > budgetCap", "narrative": "The postponement ran the two systems side by side far past the budget." },
+    "live": { "label": "Live on criteria, supported and sustained", "class": "target", "terminal": true, "when": "documented and criteriaFirst and liveCriteria >= 4 and not isNull(sustainAt) and aboveCount <= aboveAppetite and spendPct <= budgetCap and minSupport >= supportTarget", "narrative": "The clinics went live when every criterion was met, with a command center beside them and an optimization plan after." },
+    "costly": { "label": "Live, at a cost", "class": "recovered", "terminal": true, "when": "documented", "narrative": "Nothing unsafe reached the clinics, but go-live came without every criterion, without the criteria agreed first, without a sustain plan, or with an executive lost." },
+    "time_up": { "label": "Time up", "class": "harm", "terminal": true, "narrative": "The run reached its time limit with no readiness record." }
+  },
+  "endingOrder": ["unsafe", "overspend", "live", "costly"],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "criteriaSet",
+        "label": "Agreed measurable go-live criteria before the go/no-go call",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          { "when": "criteriaFirst", "score": "met", "why": "Criteria first, then the call." },
+          { "when": "not isNull(criteriaAt)", "score": "partial", "why": "Criteria agreed only after the call." },
+          { "when": "true", "score": "missed", "why": "No criteria: the calendar decided." }
+        ]
+      },
+      {
+        "id": "tested",
+        "label": "The severity-1 defect fixed and retested before go-live",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          { "when": "not isNull(liveAt) and not rxFailedLive", "score": "met", "why": "0 of 400 failing at go-live." },
+          { "when": "isNull(liveAt) and rxFixed", "score": "partial", "why": "Fixed, but never live." },
+          { "when": "true", "score": "missed", "why": "{rxFailedLive ? \"Live with prescriptions failing.\" : \"Not fixed.\"}" }
+        ]
+      },
+      {
+        "id": "validated",
+        "label": "The converted allergy and medication lists validated against the old system",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          { "when": "not isNull(validateAt) and not allergyLive", "score": "met", "why": "Sampled, error found, reloaded." },
+          { "when": "true", "score": "missed", "why": "{allergyLive ? \"Live with unvalidated allergy lists.\" : \"Not validated.\"}" }
+        ]
+      },
+      {
+        "id": "people",
+        "label": "Trained to 90% with access tied to training, and a command center at go-live",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          { "when": "not isNull(liveAt) and liveCriteria >= 4", "score": "met", "why": "Every criterion met on go-live day." },
+          { "when": "trained >= 90 or not isNull(commandAt)", "score": "partial", "why": "Training or support, not both, at go-live." },
+          { "when": "true", "score": "missed", "why": "Neither training nor support was in place." }
+        ]
+      },
+      {
+        "id": "sustained",
+        "label": "Planned to sustain the change after go-live",
+        "weight": 1,
+        "rows": [
+          { "when": "not isNull(sustainAt)", "score": "met", "why": "Optimization under way." },
+          { "when": "true", "score": "missed", "why": "No plan after go-live." }
+        ]
+      }
+    ],
+    "reasoningCriteria": [{ "moment": "writeup", "label": "Written explanation", "weight": 1 }],
+    "kpis": [
+      { "id": "liveDayK", "label": "Go-live day", "value": "isNull(liveAt) ? 0 : timeAt(liveAt) / 86400", "format": "number", "expert": "28" },
+      { "id": "critK", "label": "Criteria met at go-live", "value": "liveCriteria", "format": "number", "expert": "4" },
+      { "id": "spentK", "label": "Spent, thousand dollars", "value": "spent", "format": "number", "expert": "170" }
+    ],
+    "expertPath": [
+      { "at": "Day 0-2", "text": "Agree measurable go-live criteria with the steering committee." },
+      { "at": "Day 2-12", "text": "Hold the vendor to the prescription fix and an end-to-end retest." },
+      { "at": "Day 12-17", "text": "Validate the conversion by sampling; the allergy mapping error is fixed and reloaded." },
+      { "at": "Day 17-27", "text": "Training push with access tied to training; command center and super-users; recommend go-on-criteria." },
+      { "at": "Day 28-33", "text": "Go live with every criterion met; start the 30-day optimization." }
+    ],
+    "debrief": {
+      "live": { "headline": "Good: the criteria decided", "body": "Measured criteria agreed in advance turned a date fight into a checklist. The defect was retested end to end, the conversion was validated against the old system before anyone relied on it, clinicians were trained with access tied to training, and support and optimization carried the change past go-live." },
+      "costly": { "headline": "Live, at a cost", "body": "No unsafe defect reached the clinics, but something in the life cycle was skipped: criteria agreed after the call, go-live without full training or support, or no plan to sustain the change." },
+      "unsafe": { "headline": "Live with a known safety defect", "body": "A failing prescription interface and unvalidated allergy lists are patient safety problems, not post-go-live tasks. Test end to end and validate converted clinical data before go-live." },
+      "overspend": { "headline": "Over budget", "body": "Postponing without criteria keeps two systems running and fixes nothing faster. A bounded slip tied to named criteria costs far less." },
+      "time_up": { "headline": "Time up", "body": "No readiness record was written before the case's limit." }
+    },
+    "modelReasoning": "Go-live is a step in the EHR life cycle, not its finish line, and the go/no-go call should rest on criteria agreed in advance. Here those are no open severity-1 defect, validated conversion, 90% of clinicians trained with access tied to training, and a command center with the downtime plan rehearsed. The prescription defect needs the vendor's fix and an end-to-end retest; the converted allergy lists need sampling against the old system, which finds a 3% mapping error to fix before anyone relies on them. Go when the criteria are met, with a bounded slip if not, then sustain the change with usage reports, workflow fixes and refreshers."
+  }
+}

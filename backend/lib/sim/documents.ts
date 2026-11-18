@@ -661,6 +661,20 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   // courses; listed by slug in lib/sim/depth-academic.ts. Keep these together. ----
   entry("MSHI", "mshi-a1c-units-quality-dashboard"),
   entry("MSHI", "mshi-misdirected-email-breach-notice"),
+  entry("MSHI", "mshi-ehr-downtime-tabletop"),
+  entry("MSHI", "mshi-ehr-go-live-readiness"),
+  entry("MSCS", "mscs-transfer-workers-deadlock"),
+  band("MSHI", "sql-not-in-null-empty-list-mshi"),
+  band("MSHI", "ethics-shared-credentials-mshi"),
+  band("MSHI", "phi-in-application-logs-mshi"),
+  band("MSHI", "fill-weight-chart-mshi"),
+  band("MSCS", "py-report-too-slow-profile-mscs"),
+  band("MSCS", "sql-flash-sale-oversold-mscs"),
+  band("MSCS", "sql-slow-login-seq-scan-mscs"),
+  band("MSCS", "report-workers-starve-api-mscs"),
+  band("MSCS", "full-var-stops-database-mscs"),
+  band("MSCS", "ceh-blind-sqli-search-mscs"),
+  band("MSCS", "loan-data-bias-mscs"),
   // ---- end REQ-333 ----
 ];
 

@@ -1,0 +1,59 @@
+{
+  "band": "mscs",
+  "label": "MSCS Foundations",
+  "base": {
+    "course": "LINUXPLUS",
+    "slug": "full-var-stops-database"
+  },
+  "slug": "full-var-stops-database-mscs",
+  "patch": {
+    "objective": "Basic file-system/persistence concepts",
+    "secondaryObjectives": [
+      "Programs vs processes"
+    ],
+    "sources": [
+      {
+        "cite": "ACM/IEEE-CS/AAAI, Computer Science Curricula 2023 (CS2023), knowledge areas (OS: Operating Systems)",
+        "checkedAt": "2026-11-17",
+        "url": "https://csed.acm.org/wp-content/uploads/2025/11/CS2023-Report.htm",
+        "note": "Read 2026-11-17 through a summarizing fetch of the report's first part: 17 knowledge areas, among them OS: Operating Systems. The fetch reached the table of contents, not the knowledge units' topic lists, so topic detail is from the MSCS course's own dated unit sources (read 2026-11-11, REQ-245). The case's decision: deleting a file a process still holds open removes its name, not its blocks; the space returns only when the last open handle closes, so find the process before freeing anything, and never delete the database's own files."
+      },
+      {
+        "cite": "CompTIA Linux+ (V8), exam XK0-006: domains System Management 23%, Troubleshooting 22%, Services and User Management 20%, Security 18%, Automation, Orchestration, and Scripting 17%; launched 2025-07-15",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.comptia.org/en-us/certifications/linux/",
+        "note": "Relevant text: Troubleshooting, 'Hardware/storage: Diagnose boot, mount, and repair issues'; 'Fix SELinux, permission, and vulnerability issues'. Read on CompTIA's certification page through a summarizing fetch on 2026-11-11; the XK0-006 objectives PDF was not opened. The course objective titles are the course seed's (2026-11-07)."
+      },
+      {
+        "cite": "Linux man-pages 6.19 (2026-02-08), unlink(2)",
+        "checkedAt": "2026-11-11",
+        "url": "https://man7.org/linux/man-pages/man2/unlink.2.html",
+        "note": "Relevant text: 'If the name was the last link to a file but any processes still have the file open, the file will remain in existence until the last file descriptor referring to it is closed.' Read in primary text on 2026-11-11. Why df counts space that du cannot find, and why restarting the process that holds the file frees it."
+      },
+      {
+        "cite": "lsof(8) manual page (man7.org)",
+        "checkedAt": "2026-11-11",
+        "url": "https://man7.org/linux/man-pages/man8/lsof.8.html",
+        "note": "Relevant text: 'A specification of the form ``+L1'' will select open files that have been unlinked.' Read through a summarizing fetch on 2026-11-11 (the first 100,000 characters; the output column list was not reached, so the column layout shown in the scenario is an authored rendering)."
+      },
+      {
+        "cite": "GNU coreutils 9.11 (April 2026), df(1)",
+        "checkedAt": "2026-11-11",
+        "url": "https://man7.org/linux/man-pages/man1/df.1.html",
+        "note": "Relevant text: df 'displays the amount of space available on the file system containing each file name argument'; -h 'print sizes in powers of 1024 (e.g., 1023M)'; -i 'list inode information instead of block usage'. Read through a summarizing fetch on 2026-11-11."
+      },
+      {
+        "cite": "PostgreSQL 18 Documentation, 27.6.2 Disk Full Failure, and 28.5 WAL Configuration",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.postgresql.org/docs/current/diskusage.html",
+        "note": "Relevant text (27.6.2): 'A filled data disk will not result in data corruption, but it might prevent useful activity from occurring. If the disk holding the WAL files grows full, database server panic and consequent shutdown might occur.' 'If you cannot free up additional space on the disk by deleting other things, you can move some of the database files to other file systems by making use of tablespaces.' (28.5, wal-configuration): 'after a checkpoint, WAL segments preceding the one containing the redo record are no longer needed and can be recycled or removed'; the server removes or recycles them itself. Both read in primary text on 2026-11-11. That deleting segments by hand can remove ones crash recovery still needs is the scenario's reading of 28.5, not a quoted warning; the exact PANIC wording in the scenario's journal lines is an authored rendering."
+      },
+      {
+        "cite": "systemd 262, journald.conf(5)",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.freedesktop.org/software/systemd/man/latest/journald.conf.html",
+        "note": "Relevant text: SystemMaxUse= and SystemKeepFree= default to 10% and 15% of the file system, 'but each of the calculated default values is capped to 4G.' Read through a summarizing fetch on 2026-11-11. Why the system journal is not what filled /var here."
+      }
+    ]
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "band": "mscs",
+  "label": "MSCS Foundations",
+  "base": {
+    "course": "SQL",
+    "slug": "sql-flash-sale-oversold"
+  },
+  "slug": "sql-flash-sale-oversold-mscs",
+  "patch": {
+    "objective": "Isolation levels",
+    "secondaryObjectives": [
+      "Transactions and ACID",
+      "Race conditions"
+    ],
+    "sources": [
+      {
+        "cite": "ACM/IEEE-CS/AAAI, Computer Science Curricula 2023 (CS2023), knowledge areas (DM: Data Management)",
+        "checkedAt": "2026-11-17",
+        "url": "https://csed.acm.org/wp-content/uploads/2025/11/CS2023-Report.htm",
+        "note": "Read 2026-11-17 through a summarizing fetch of the report's first part: 17 knowledge areas, among them DM: Data Management. The fetch reached the table of contents, not the knowledge units' topic lists, so topic detail is from the MSCS course's own dated unit sources (read 2026-11-11, REQ-245). The case's decision: two concurrent read-then-write transactions lose an update at READ COMMITTED; a row lock (SELECT ... FOR UPDATE), a single atomic UPDATE, or a stricter isolation level with retries removes it."
+      },
+      {
+        "cite": "PostgreSQL 18 Documentation, 13.2 Transaction Isolation",
+        "checkedAt": "2026-11-14",
+        "url": "https://www.postgresql.org/docs/current/transaction-iso.html",
+        "note": "Relevant text (Read Committed): an UPDATE that finds its target row already changed by a concurrent transaction 'will wait for the first updating transaction to commit or roll back' and then 'the WHERE clause is re-evaluated to see if the updated version of the row still matches'; the example 'UPDATE accounts SET balance = balance + 100.00 WHERE acctnum = 12345' is safe because 'each command is affecting only a predetermined row'. (Repeatable Read): if a concurrent updater commits, the transaction 'will be rolled back with the message ERROR: could not serialize access due to concurrent update', and the application should 'abort the current transaction and retry the whole transaction from the beginning'. Read through a summarizing fetch of the PostgreSQL 18.7 page on 2026-11-14."
+      },
+      {
+        "cite": "PostgreSQL 18 Documentation, 13.3 Explicit Locking (row-level locks)",
+        "checkedAt": "2026-11-14",
+        "url": "https://www.postgresql.org/docs/current/explicit-locking.html",
+        "note": "Relevant text: 'FOR UPDATE causes the rows retrieved by the SELECT statement to be locked as though for update. This prevents them from being locked, modified or deleted by other transactions until the current transaction ends.' Read through a summarizing fetch on 2026-11-14. Why a read-then-write inside one transaction with FOR UPDATE does not lose updates."
+      },
+      {
+        "cite": "PostgreSQL 18 Documentation, 3.4 Transactions",
+        "checkedAt": "2026-11-14",
+        "url": "https://www.postgresql.org/docs/current/tutorial-transactions.html",
+        "note": "Relevant text: BEGIN starts a transaction block, COMMIT makes its changes visible together and ROLLBACK discards them. Read in full as raw HTML on 2026-11-14 for the course (REQ-265); the course's key value is used here."
+      }
+    ]
+  }
+}

@@ -1,0 +1,992 @@
+{
+  "slug": "mshi-ehr-go-live-readiness",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Criteria first; prescription fix and retest; conversion validated; training push; command center; go on criteria; 30-day optimization",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "criteria",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "fixRx",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 12,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "validate",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 17,
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "trainPush",
+          "seq": 7,
+          "tick": 17
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 27,
+          "seq": 8,
+          "tick": 17
+        },
+        {
+          "type": "act",
+          "action": "command",
+          "seq": 9,
+          "tick": 27
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 31,
+          "seq": 10,
+          "tick": 27
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 31,
+          "seq": 11,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "decide",
+          "params": {
+            "g": "criteria"
+          },
+          "seq": 12,
+          "tick": 31
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 32,
+          "seq": 13,
+          "tick": 31
+        },
+        {
+          "type": "act",
+          "action": "sustain",
+          "seq": 14,
+          "tick": 32
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 37,
+          "seq": 15,
+          "tick": 32
+        },
+        {
+          "type": "act",
+          "action": "closeProject",
+          "seq": 16,
+          "tick": 37
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 17,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "basis": "criteria"
+          },
+          "seq": 18,
+          "tick": 37
+        }
+      ],
+      "expect": {
+        "ending": "live",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "criteriaSet": "met",
+          "tested": "met",
+          "validated": "met",
+          "people": "met",
+          "sustained": "met"
+        },
+        "kpis": {
+          "liveDayK": 28,
+          "critK": 4,
+          "spentK": 170
+        },
+        "stateHash": "3dfec9056a15e008"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "datePlan",
+      "title": "Recommends go as planned with only the training push and the command center: live with failing prescriptions and unchecked allergies",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "trainPush",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 10,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "command",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 14,
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "decide",
+          "params": {
+            "g": "asPlanned"
+          },
+          "seq": 5,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 15,
+          "seq": 6,
+          "tick": 14
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 7,
+          "tick": 15
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 22,
+          "seq": 8,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 9,
+          "tick": 22
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 29,
+          "seq": 10,
+          "tick": 22
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 29,
+          "seq": 11,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "sustain",
+          "seq": 12,
+          "tick": 29
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 34,
+          "seq": 13,
+          "tick": 29
+        },
+        {
+          "type": "act",
+          "action": "closeProject",
+          "seq": 14,
+          "tick": 34
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 15,
+          "tick": 34
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "basis": "date"
+          },
+          "seq": 16,
+          "tick": 34
+        }
+      ],
+      "expect": {
+        "ending": "unsafe",
+        "class": "harm",
+        "rating": "bad",
+        "score": 25,
+        "criteria": {
+          "criteriaSet": "missed",
+          "tested": "missed",
+          "validated": "missed",
+          "people": "partial",
+          "sustained": "met"
+        },
+        "kpis": {
+          "liveDayK": 28,
+          "critK": 2,
+          "spentK": 230
+        },
+        "stateHash": "af7657aebfdccaff"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "nextQuarter",
+      "title": "Agrees criteria, then postpones to next quarter: twelve more weeks of two systems",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "criteria",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "decide",
+          "params": {
+            "g": "nextQuarter"
+          },
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "fixRx",
+          "seq": 5,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 13,
+          "seq": 6,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "validate",
+          "seq": 7,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 18,
+          "seq": 8,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 9,
+          "tick": 18
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 25,
+          "seq": 10,
+          "tick": 18
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 11,
+          "tick": 25
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 32,
+          "seq": 12,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 13,
+          "tick": 32
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 39,
+          "seq": 14,
+          "tick": 32
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 15,
+          "tick": 39
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 46,
+          "seq": 16,
+          "tick": 39
+        },
+        {
+          "type": "act",
+          "action": "closeProject",
+          "seq": 17,
+          "tick": 46
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 18,
+          "tick": 46
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "basis": "criteria"
+          },
+          "seq": 19,
+          "tick": 46
+        }
+      ],
+      "expect": {
+        "ending": "overspend",
+        "class": "harm",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "criteriaSet": "met",
+          "tested": "partial",
+          "validated": "met",
+          "people": "missed",
+          "sustained": "missed"
+        },
+        "kpis": {
+          "liveDayK": 0,
+          "critK": 0,
+          "spentK": 750
+        },
+        "stateHash": "737de71ff8ac8686"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "slipped",
+      "title": "Fixes and validates, decides on criteria before agreeing them, trains late: goes live on day 42 without a command center",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "fixRx",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 10,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "decide",
+          "params": {
+            "g": "criteria"
+          },
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 11,
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "criteria",
+          "seq": 5,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 13,
+          "seq": 6,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "validate",
+          "seq": 7,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 18,
+          "seq": 8,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 9,
+          "tick": 18
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 25,
+          "seq": 10,
+          "tick": 18
+        },
+        {
+          "type": "act",
+          "action": "trainPush",
+          "seq": 11,
+          "tick": 25
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 35,
+          "seq": 12,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 13,
+          "tick": 35
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 42,
+          "seq": 14,
+          "tick": 35
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 15,
+          "tick": 42
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 49,
+          "seq": 16,
+          "tick": 42
+        },
+        {
+          "type": "act",
+          "action": "sustain",
+          "seq": 17,
+          "tick": 49
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 12,
+          "to": 54,
+          "seq": 18,
+          "tick": 49
+        },
+        {
+          "type": "act",
+          "action": "closeProject",
+          "seq": 19,
+          "tick": 54
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 20,
+          "tick": 54
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "basis": "criteria"
+          },
+          "seq": 21,
+          "tick": 54
+        }
+      ],
+      "expect": {
+        "ending": "costly",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "criteriaSet": "partial",
+          "tested": "met",
+          "validated": "met",
+          "people": "partial",
+          "sustained": "met"
+        },
+        "kpis": {
+          "liveDayK": 42,
+          "critK": 3,
+          "spentK": 210
+        },
+        "stateHash": "91eebdaa8845cb9e"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "noSustain",
+      "title": "The expert's readiness, but closes at go-live with no plan to sustain the change",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "criteria",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "fixRx",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 12,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "validate",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 17,
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "trainPush",
+          "seq": 7,
+          "tick": 17
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 27,
+          "seq": 8,
+          "tick": 17
+        },
+        {
+          "type": "act",
+          "action": "command",
+          "seq": 9,
+          "tick": 27
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 31,
+          "seq": 10,
+          "tick": 27
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 31,
+          "seq": 11,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "decide",
+          "params": {
+            "g": "criteria"
+          },
+          "seq": 12,
+          "tick": 31
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 32,
+          "seq": 13,
+          "tick": 31
+        },
+        {
+          "type": "act",
+          "action": "closeProject",
+          "seq": 14,
+          "tick": 32
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 15,
+          "tick": 32
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "basis": "criteria"
+          },
+          "seq": 16,
+          "tick": 32
+        }
+      ],
+      "expect": {
+        "ending": "costly",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "criteriaSet": "met",
+          "tested": "met",
+          "validated": "met",
+          "people": "met",
+          "sustained": "missed"
+        },
+        "kpis": {
+          "liveDayK": 28,
+          "critK": 4,
+          "spentK": 170
+        },
+        "stateHash": "450e0e996c3e498f"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "unvalidated",
+      "title": "Criteria, fix, training and command center, go on criteria, but the conversion is never validated: the day-42 go-live carries unchecked allergies",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "criteria",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "fixRx",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 12,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "trainPush",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 22,
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "command",
+          "seq": 7,
+          "tick": 22
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 26,
+          "seq": 8,
+          "tick": 22
+        },
+        {
+          "type": "act",
+          "action": "decide",
+          "params": {
+            "g": "criteria"
+          },
+          "seq": 9,
+          "tick": 26
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 27,
+          "seq": 10,
+          "tick": 26
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 11,
+          "tick": 27
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 34,
+          "seq": 12,
+          "tick": 27
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 13,
+          "tick": 34
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 41,
+          "seq": 14,
+          "tick": 34
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 15,
+          "tick": 41
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 48,
+          "seq": 16,
+          "tick": 41
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 48,
+          "seq": 17,
+          "tick": 42
+        },
+        {
+          "type": "act",
+          "action": "sustain",
+          "seq": 18,
+          "tick": 48
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 53,
+          "seq": 19,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "closeProject",
+          "seq": 20,
+          "tick": 53
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 21,
+          "tick": 53
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "basis": "vendor"
+          },
+          "seq": 22,
+          "tick": 53
+        }
+      ],
+      "expect": {
+        "ending": "unsafe",
+        "class": "harm",
+        "rating": "bad",
+        "score": 58,
+        "criteria": {
+          "criteriaSet": "met",
+          "tested": "met",
+          "validated": "missed",
+          "people": "partial",
+          "sustained": "met"
+        },
+        "kpis": {
+          "liveDayK": 42,
+          "critK": 3,
+          "spentK": 260
+        },
+        "stateHash": "43d25511a1d7cad6"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    }
+  ]
+}

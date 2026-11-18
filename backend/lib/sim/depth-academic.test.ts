@@ -178,4 +178,40 @@ describe("REQ-333: the new cases behave as taught", () => {
     assert.equal(u.v("harborProven"), false, "the burden of proof needs the device record first");
     assert.equal(goldenOf(S).paths.find((p) => p.id === "waitForensics")!.expect.class, "harm");
   });
+
+  test("MSHI downtime: each unsafe workaround is its own harm ending, ahead of the target; email to staff tonight is not a working channel", () => {
+    const S = "mshi-ehr-downtime-tabletop";
+    const d = docOf(S);
+    assert.deepEqual(d.endingOrder!.slice(0, 4), ["wrongPatient", "lostResult", "lostRecord", "noReport"]);
+    const g = goldenOf(S);
+    for (const [id, end] of [["doeNames", "wrongPatient"], ["trayResults", "lostResult"], ["flipBack", "lostRecord"]]) assert.equal(g.paths.find((p) => p.id === id)!.expect.ending, end);
+    assert.equal(g.paths.find((p) => p.id === "emailLate")!.expect.criteria?.declared, "partial");
+  });
+
+  test("MSHI go-live: going on the date with the defect open is unsafe; on criteria, the clinics go live on day 28 with all four met", () => {
+    const g = goldenOf("mshi-ehr-go-live-readiness");
+    assert.equal(g.paths.find((p) => p.id === "datePlan")!.expect.ending, "unsafe");
+    assert.equal(g.paths.find((p) => p.id === "unvalidated")!.expect.ending, "unsafe");
+    assert.equal(g.paths.find((p) => p.id === "nextQuarter")!.expect.ending, "overspend");
+    assert.equal(docOf("mshi-ehr-go-live-readiness").endingOrder![0], "unsafe");
+  });
+
+  test("MSCS deadlock: a restart only buys minutes; the lock order patch passes the concurrency test and more threads hang it", () => {
+    const S = "mscs-transfer-workers-deadlock";
+    const r = driver(S, "incident");
+    r.act("restart");
+    assert.equal(r.v("stuck"), false);
+    for (let i = 0; i < 2; i++) r.act("watch");
+    assert.equal(r.v("stuck"), true, "two opposite transfers meet again");
+    const o = driver(S, "incident");
+    o.act("write", { p: "order" });
+    o.act("test");
+    assert.equal(o.v("testPassed"), true);
+    const m = driver(S, "incident");
+    m.act("write", { p: "threads" });
+    m.act("test");
+    assert.equal(m.v("testPassed"), false);
+    assert.equal(goldenOf(S).paths.find((p) => p.id === "purge")!.expect.ending, "lost");
+  });
 });
+

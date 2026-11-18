@@ -1,0 +1,42 @@
+{
+  "band": "mscs",
+  "label": "MSCS Foundations",
+  "base": {
+    "course": "PYTHON",
+    "slug": "py-report-too-slow-profile"
+  },
+  "slug": "py-report-too-slow-profile-mscs",
+  "patch": {
+    "objective": "Compare access/search/insert/delete/space cost",
+    "secondaryObjectives": [
+      "Analyze simple loop and recursive patterns",
+      "Explain why hash-table ops are average-case O(1), not guaranteed"
+    ],
+    "sources": [
+      {
+        "cite": "ACM/IEEE-CS/AAAI, Computer Science Curricula 2023 (CS2023), knowledge areas (AL: Algorithmic Foundations)",
+        "checkedAt": "2026-11-17",
+        "url": "https://csed.acm.org/wp-content/uploads/2025/11/CS2023-Report.htm",
+        "note": "Read 2026-11-17 through a summarizing fetch of the report's first part: 17 knowledge areas, among them AL: Algorithmic Foundations. The fetch reached the table of contents, not the knowledge units' topic lists, so topic detail is from the MSCS course's own dated unit sources (read 2026-11-11, REQ-245). The case's decision: a membership test against a list inside a loop is O(n) per lookup, O(n x m) for the job; a set makes each lookup O(1) on average, and a profile shows where the time goes before anything changes."
+      },
+      {
+        "cite": "pstats -- Statistics for profilers, Python documentation (3.16 development version)",
+        "checkedAt": "2026-11-16",
+        "url": "https://docs.python.org/fr/dev/library/pstats.html",
+        "note": "Read through a summarizing fetch 2026-11-16. Relevant text: SortKey.CUMULATIVE, 'Sort by cumulative time'; SortKey.TIME, 'Sort by internal time (time in function excluding subcalls)'; 'All sorts on statistics are in descending order (most time consuming first)'. The column definitions (ncalls, tottime, cumtime) were not on the fetched text; the case uses them as the pstats report labels them."
+      },
+      {
+        "cite": "profile -- Pure Python profiler, Python 3.15 documentation",
+        "checkedAt": "2026-11-16",
+        "url": "https://docs.python.org/library/profile",
+        "note": "Read through a summarizing fetch 2026-11-16. Relevant text: 'The cProfile module remains available as a backward-compatible alias to profiling.tracing. Existing code using import cProfile will continue to work without modification'; the example sorts a Stats object by SortKey.CUMULATIVE. The case uses python -m cProfile -s cumulative, which is the long-standing command line."
+      },
+      {
+        "cite": "Time complexity of operations on built-in types, Python 3.15 documentation",
+        "checkedAt": "2026-11-16",
+        "url": "https://docs.python.org/3/builtins/time-complexity.html",
+        "note": "Read through a summarizing fetch 2026-11-16. Relevant rows: list 'x in l | O(n)'; set 'x in s | O(1)', with 'In the worst case, O(1) operations instead take O(n) time'. 'This page documents the time complexity of various operations on built-in types in CPython.'"
+      }
+    ]
+  }
+}

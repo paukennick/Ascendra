@@ -1,0 +1,48 @@
+{
+  "band": "mscs",
+  "label": "MSCS Foundations",
+  "base": {
+    "course": "LFCS",
+    "slug": "report-workers-starve-api"
+  },
+  "slug": "report-workers-starve-api-mscs",
+  "patch": {
+    "objective": "CPU scheduling",
+    "secondaryObjectives": [
+      "Programs vs processes",
+      "Process state"
+    ],
+    "sources": [
+      {
+        "cite": "ACM/IEEE-CS/AAAI, Computer Science Curricula 2023 (CS2023), knowledge areas (OS: Operating Systems (OS-Scheduling))",
+        "checkedAt": "2026-11-17",
+        "url": "https://csed.acm.org/wp-content/uploads/2025/11/CS2023-Report.htm",
+        "note": "Read 2026-11-17 through a summarizing fetch of the report's first part: 17 knowledge areas, among them OS: Operating Systems (OS-Scheduling). The fetch reached the table of contents, not the knowledge units' topic lists, so topic detail is from the MSCS course's own dated unit sources (read 2026-11-11, REQ-245). The case's decision: CPU-bound report workers at the same priority take the CPUs from the API; lowering their priority lets the scheduler favor the API while the report keeps running."
+      },
+      {
+        "cite": "Linux Foundation Certified System Administrator (LFCS): Domains & Competencies, Operations Deployment 25%",
+        "checkedAt": "2026-11-14",
+        "url": "https://training.linuxfoundation.org/certification/linux-foundation-certified-sysadmin-lfcs/",
+        "note": "Relevant text: Operations Deployment, 'Diagnose, identify, manage, and troubleshoot processes and services'; Operations Deployment, 'Manage and troubleshoot system performance'. Read as the page's HTML on 2026-11-14 (page last modified 2026-10-30)."
+      },
+      {
+        "cite": "sched(7) (Linux man-pages, man7.org)",
+        "checkedAt": "2026-11-14",
+        "url": "https://man7.org/linux/man-pages/man7/sched.7.html",
+        "note": "Relevant text: 'On modern Linux, the range is -20 (high priority) to +19 (low priority)'; under CFS each unit of difference in nice value 'results in a factor of 1.25 in the degree to which the scheduler favors the higher priority process'; 'on Linux, the nice value is a per-thread attribute'. Read through a summarizing fetch 2026-11-14."
+      },
+      {
+        "cite": "renice(1) (util-linux, man7.org)",
+        "checkedAt": "2026-11-14",
+        "url": "https://man7.org/linux/man-pages/man1/renice.1.html",
+        "note": "Relevant text: 'renice alters the scheduling priority of one or more running processes'; -p 'Interpret the succeeding arguments as process IDs (the default)'; 'an unprivileged user can only increase the \"nice value\"'; 'The superuser may alter the priority of any process'. Read through a summarizing fetch 2026-11-14."
+      },
+      {
+        "cite": "kill(1) and signal(7) (man7.org)",
+        "checkedAt": "2026-11-14",
+        "url": "https://man7.org/linux/man-pages/man7/signal.7.html",
+        "note": "Relevant text: kill(1), 'If no signal is specified, the TERM signal is sent' and 'If a process does not terminate after a TERM signal has been sent, then the KILL signal may be used'; signal(7), 'The signals SIGKILL and SIGSTOP cannot be caught, blocked, or ignored'. Both read through summarizing fetches 2026-11-14. That a SIGKILLed PostgreSQL server must run crash recovery on restart is the database's documented behavior after an unclean stop; the minutes it takes here are authored."
+      }
+    ]
+  }
+}
