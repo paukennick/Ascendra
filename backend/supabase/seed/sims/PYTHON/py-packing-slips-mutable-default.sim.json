@@ -1,0 +1,1003 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "py-packing-slips-mutable-default",
+  "title": "Every slip has someone else's extras",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "slips.py in the packing-slip worker, Tidewater Meal Kits (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Warehouse lead, Joel Park",
+          "text": "This morning's slips list extras the customer never ordered, and more on each slip. The 15:00 courier takes 412 boxes; slips print at 14:00.",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "grows",
+          "label": "Pattern",
+          "text": "Each slip carries every extra since the worker started at 06:00.",
+          "when": "not isNull(lookAt)",
+          "severity": "warning"
+        },
+        {
+          "id": "gift",
+          "label": "Customer service",
+          "text": "Gift notes have vanished from 40 slips that pass their own list.",
+          "when": "fix == \"clear\" and not isNull(ranAt)",
+          "severity": "error"
+        },
+        {
+          "id": "lock",
+          "label": "Warehouse",
+          "text": "14:00: slips printed from the old code.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [
+        {
+          "id": "slips",
+          "label": "Slips generated (dry run of the first four orders since a restart)",
+          "spokenLabel": "the generated slips",
+          "columns": [
+            {
+              "id": "order",
+              "label": "Order"
+            },
+            {
+              "id": "ordered",
+              "label": "Extras ordered"
+            },
+            {
+              "id": "printed",
+              "label": "Extras on the slip"
+            }
+          ],
+          "rows": [
+            {
+              "id": "o1",
+              "cells": [
+                "A-1001",
+                "lemons",
+                "lemons"
+              ]
+            },
+            {
+              "id": "o2",
+              "cells": [
+                "A-1002",
+                "(none)",
+                "{fixed ? \"(none)\" : \"lemons\"}"
+              ],
+              "flag": "not fixed"
+            },
+            {
+              "id": "o3",
+              "cells": [
+                "A-1003",
+                "rice",
+                "{fixed ? \"rice\" : \"lemons, rice\"}"
+              ],
+              "flag": "not fixed"
+            },
+            {
+              "id": "o4",
+              "cells": [
+                "G-2001 (gift, passes its own notes list)",
+                "gift note",
+                "{fix == \"clear\" ? \"(none)\" : fixed ? \"gift note\" : \"gift note, lemons, rice\"}"
+              ],
+              "flag": "not fixed or fix == \"clear\""
+            }
+          ],
+          "when": "not isNull(lookAt)"
+        }
+      ],
+      "code": [
+        {
+          "id": "code",
+          "label": "slips.py",
+          "language": "Python",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "def slip_lines(order, extras=[]):",
+              "when": "fix != \"none\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c1",
+              "text": "def slip_lines(order, extras=None):",
+              "when": "fix == \"none\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c2",
+              "text": "    if extras is None:",
+              "when": "fix == \"none\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c3",
+              "text": "        extras = []",
+              "when": "fix == \"none\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c4",
+              "text": "    extras.clear()",
+              "when": "fix == \"clear\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c5",
+              "text": "    for e in order.extras:"
+            },
+            {
+              "id": "c6",
+              "text": "        extras.append(e)"
+            },
+            {
+              "id": "c7",
+              "text": "    return [order.box] + extras",
+              "when": "fix != \"copy\""
+            },
+            {
+              "id": "c8",
+              "text": "    return [order.box] + list(extras)",
+              "when": "fix == \"copy\"",
+              "mark": "\"warning\""
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Slips print",
+          "value": "14:00"
+        },
+        {
+          "id": "restarts",
+          "label": "Worker restarts",
+          "value": "{restarts}"
+        }
+      ]
+    }
+  },
+  "objective": "The mutable-default-argument pitfall and how to avoid it",
+  "secondaryObjectives": [
+    "Defining functions: positional, keyword, default, and *args/**kwargs parameters",
+    "Writing unit tests with pytest: assertions, fixtures, parametrization"
+  ],
+  "sources": [
+    {
+      "cite": "Python Institute, PCAP-31-04 exam syllabus (revised November 2, 2026), objective 4.6.2",
+      "checkedAt": "2026-11-17",
+      "url": "https://pythoninstitute.org/pcap-exam-syllabus",
+      "note": "Read 2026-11-17 through a summarizing fetch: 4.6.2 'Explain why mutable default arguments (e.g., lists, dicts) should not be passed as initializer parameters.' Cited as a current statement of the pitfall; the PYTHON course is not that exam."
+    },
+    {
+      "cite": "Python 3.15 documentation, The Python Tutorial, 4.9.1 Default Argument Values (not re-read for this round)",
+      "checkedAt": "2026-11-17",
+      "note": "To verify: the tutorial's warning that 'The default value is evaluated only once', so a mutable default such as a list accumulates across calls, and its 'if L is None: L = []' pattern, are the standard statement of the pitfall; that section did not appear in a search for this round and was not opened. Every behavior in the case follows from defaults being evaluated once, when the def statement runs."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Tidewater Meal Kits, its orders, counts and deadline are invented teaching values; test and run output are authored renderings in each tool's style."
+    }
+  ],
+  "brief": {
+    "situation": "You maintain slips.py at Tidewater Meal Kits (fictional). The packing-slip worker starts at 06:00 and runs all day. Since yesterday's release, each slip lists extras the customer never ordered, and later slips list more. Slips print at 14:00 for the 15:00 courier. It is 13:05.",
+    "handover": [
+      "Yesterday's release added an optional extras list to slip_lines() so the gift service can pass its own notes.",
+      "Restarting the worker takes a minute and drops nothing."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: look at the slips, change the code, run the tests, restart the worker, or ship the fix. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "13:05",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3300,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Slips print at 14:00, 55 minutes after the start; invented."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "none",
+        "copy",
+        "clear"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "ranAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "restarts": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 50
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "default",
+        "worker",
+        "data"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "tests",
+        "restart",
+        "none"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "fix == \"none\" or fix == \"clear\""
+    },
+    "correct": {
+      "expr": "fix == \"none\""
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "dryrun",
+        "change",
+        "pytest",
+        "restart",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "actions": {
+    "dryrun": {
+      "label": "Dry run slip_lines() on four of today's orders in a fresh worker",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "ranAt",
+          "to": "t"
+        },
+        {
+          "output": "A-1001 ['Box 4P', 'lemons']\nA-1002 {fixed ? \"['Box 2P']\" : \"['Box 2P', 'lemons']\"}\nA-1003 {fixed ? \"['Box 4P', 'rice']\" : \"['Box 4P', 'lemons', 'rice']\"}\nG-2001 {fix == \"clear\" ? \"['Gift box']\" : fixed ? \"['Gift box', 'gift note']\" : \"['Gift box', 'gift note', 'lemons', 'rice']\"}"
+        },
+        {
+          "finding": "{fixed ? \"Each order's slip is independent now.\" : \"The extras list grows from call to call: the default [] is one list, made once when def ran, and every call without an argument appends to it.\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Change slip_lines()",
+      "group": "Change the code",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "none",
+              "label": "Default to None and make a new list inside: if extras is None: extras = []"
+            },
+            {
+              "value": "copy",
+              "label": "Return a copy: return [order.box] + list(extras)"
+            },
+            {
+              "value": "clear",
+              "label": "Empty the list first: extras.clear()"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "slip_lines() now uses the {f} change.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "pytest": {
+      "label": "pytest tests/test_slips.py (two calls in a row, and a caller's own list)",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"none\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "tests/test_slips.py::test_calls_are_independent PASSED\ntests/test_slips.py::test_keeps_callers_notes PASSED\n2 passed in 0.04s"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"clear\"",
+              "then": [
+                {
+                  "output": "tests/test_slips.py::test_calls_are_independent PASSED\ntests/test_slips.py::test_keeps_callers_notes FAILED\nE   AssertionError: assert ['Gift box'] == ['Gift box', 'gift note']\n1 failed, 1 passed in 0.05s"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "tests/test_slips.py::test_calls_are_independent FAILED\nE   AssertionError: assert ['Box 2P', 'lemons'] == ['Box 2P']\ntests/test_slips.py::test_keeps_callers_notes PASSED\n1 failed, 1 passed in 0.05s"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "restart": {
+      "label": "Restart the packing-slip worker",
+      "group": "Change the service",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "add": "restarts",
+          "by": "1"
+        },
+        {
+          "output": "worker restarted; the default list is empty again"
+        },
+        {
+          "log": "{fixed ? \"The worker restarts on the current code.\" : \"Slips are clean for the first order after the restart, then the extras start piling up again.\"}",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Ship the current slips.py to the worker before 14:00",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already shipped.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "output": "deployed slips.py ({fix})"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why the slips grew",
+              "options": [
+                {
+                  "value": "default",
+                  "label": "The default [] is created once, when def runs, and shared by every call that omits it"
+                },
+                {
+                  "value": "worker",
+                  "label": "The worker leaks memory"
+                },
+                {
+                  "value": "data",
+                  "label": "The order data has duplicate extras"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know it is fixed",
+              "options": [
+                {
+                  "value": "tests",
+                  "label": "Tests pass for two calls in a row and for a caller's own list"
+                },
+                {
+                  "value": "restart",
+                  "label": "Slips were clean after a restart"
+                },
+                {
+                  "value": "none",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "14:00: the slips printed from the old code.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the team channel: why the slips grew, what you changed, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "A default value is evaluated once, when def runs; extras=[] is one list object shared by every call that omits the argument, and append mutates it, so it accumulates for the life of the worker. Not memory, not data.",
+          "modelAnswer": "The default list lives on the function and every call appends to the same one."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "Default to None and create a new list in the body. Copying on return still mutates the shared default; clearing at the start wipes a list the caller passed in (the gift notes); restarting only resets the shared list.",
+          "modelAnswer": "def slip_lines(order, extras=None): if extras is None: extras = []."
+        },
+        {
+          "label": "How you know",
+          "criteria": "Tests after the last change: two calls in a row return independent results, and a caller's own list keeps its items.",
+          "modelAnswer": "Both tests pass on the shipped code."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3300,
+        "source": {
+          "cite": "Author's scenario (REQ-333)",
+          "checkedAt": "2026-11-17",
+          "note": "Slips print at 14:00; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Shipping nothing changes nothing, but the 14:00 slips print from the old code with the wrong extras.",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "wrongSent": {
+      "label": "Wrong slips shipped",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "{fix == \"clear\" ? \"Gift notes vanished from 40 boxes.\" : \"412 boxes went out with slips listing other customers' extras.\"}"
+    },
+    "notSent": {
+      "label": "Nothing shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "No new bug went out, but the slips printed from the old code."
+    },
+    "right": {
+      "label": "Fixed, tested, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "Every slip lists its own extras, and the gift notes are intact."
+    },
+    "gaps": {
+      "label": "Fixed, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The fix is right, but it went late, untested, or before you saw the pattern."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Reproduced the growing list before changing code",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Saw the pattern first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never reproduced it."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "A None default with a new list per call",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fix == \"none\"",
+            "score": "met",
+            "why": "Each call gets its own list."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{fix == \"copy\" ? \"The copy is new; the shared default still grows.\" : fix == \"clear\" ? \"Clearing wipes the caller's own list.\" : \"The shared default is still there.\"}"
+          }
+        ]
+      },
+      {
+        "id": "shipped",
+        "label": "Shipped no new defect",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sentAs != \"wrong\"",
+            "score": "met",
+            "why": "Nothing wrong shipped."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Shipped code that still produces wrong slips."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Tests passed after the last change, before shipping",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "Both tests pass."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Ran tests, but they failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never ran the tests."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the shared default and the tests",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"default\" and checkDoc == \"tests\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"default\" or checkDoc == \"tests\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rightK",
+        "label": "Correct slips shipped",
+        "value": "sentAs == \"right\" ? 412 : 0",
+        "format": "number",
+        "expert": "412"
+      },
+      {
+        "id": "restartsK",
+        "label": "Worker restarts",
+        "value": "restarts",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until shipped",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 11"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-3 min",
+        "text": "Dry run four orders: each slip carries every earlier extra."
+      },
+      {
+        "at": "3-8 min",
+        "text": "Default to None; new list inside."
+      },
+      {
+        "at": "8-11 min",
+        "text": "pytest: independent calls, and the gift service's own list kept."
+      },
+      {
+        "at": "11-13 min",
+        "text": "Ship before 14:00."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: a new list every call",
+        "body": "Defaults are evaluated once, when def runs, so a list default is shared. None plus a new list inside gives each call its own, and the tests prove both callers are safe."
+      },
+      "gaps": {
+        "headline": "Fixed, with gaps",
+        "body": "The fix is right; it shipped late, untested, or before you reproduced the pattern."
+      },
+      "wrongSent": {
+        "headline": "Wrong slips shipped",
+        "body": "Copying the result leaves the shared default growing; clearing it destroys a list the caller passed in. Change the default itself, and test both kinds of caller."
+      },
+      "notSent": {
+        "headline": "Nothing shipped",
+        "body": "Safe, but the slips printed wrong, and the fix is three lines."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "Slips that grow from call to call in a long-running worker point to state that outlives a call. extras=[] is evaluated once, when def runs, so every call that omits the argument appends to the same list. Restarting resets it only until the next calls. Returning a copy still grows the shared default, and extras.clear() wipes the gift service's own list. The fix is extras=None with a new list made inside, proved by one test for two calls in a row and one for a caller's own list."
+  }
+}

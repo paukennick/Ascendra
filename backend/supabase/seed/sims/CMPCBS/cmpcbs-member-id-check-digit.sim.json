@@ -1,0 +1,906 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cmpcbs-member-id-check-digit",
+  "title": "Swapped digits pass the check",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "id_scheme.md, new member ID numbers, Tri-County Library Consortium (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Systems librarian, Mei Lin",
+          "text": "The new member cards print at 13:00 with a check digit: the sum of the digits mod 10. Last week's test found two swapped-digit IDs that passed. Change the scheme or print?",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "seen",
+          "label": "Pattern",
+          "text": "Every adjacent swap passes the check.",
+          "when": "not isNull(lookAt) and not fixed",
+          "severity": "warning"
+        },
+        {
+          "id": "lock",
+          "label": "Card printing",
+          "text": "13:00: the cards printed with the scheme as it stood.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [],
+      "code": [
+        {
+          "id": "code",
+          "label": "id_scheme.md",
+          "language": "text",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "check = (d1 + d2 + ... + d8) mod 10",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c1",
+              "text": "check = (9 d1 + 8 d2 + ... + 2 d8) mod 11, written X when 10 (weights distinct and nonzero mod the prime 11)",
+              "when": "fix == \"mod11\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c2",
+              "text": "Luhn: double every second digit, mod 10",
+              "when": "fix == \"luhn\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c3",
+              "text": "check = (2 d1 + 2 d2 + ... + 2 d8) mod 10",
+              "when": "fix == \"times2\"",
+              "mark": "\"warning\""
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Printing",
+          "value": "13:00"
+        }
+      ]
+    }
+  },
+  "objective": "Groups and their properties",
+  "secondaryObjectives": [
+    "Homomorphisms and structure-preserving maps"
+  ],
+  "sources": [
+    {
+      "cite": "Wikipedia, Check digit",
+      "checkedAt": "2026-11-17",
+      "url": "https://en.wikipedia.org/wiki/Check_digit",
+      "note": "Read 2026-11-17 through a summarizing fetch. A plain digit sum 'does not catch any transposition errors (switching two digits) as re-ordering does not change the sum'; ISBN-10 'uses modulo 11, which is prime' and 'detects all single-digit substitution and transposition errors'; the Luhn algorithm catches most adjacent transpositions but 'does not detect 90 <-> 09'. A general reference; the group-theory reading (weights must be invertible and distinct modulo a prime) is the author's."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Every organization, person, count and deadline is invented teaching data; tool output is an authored rendering in the tool style."
+    }
+  ],
+  "brief": {
+    "situation": "You are designing member ID numbers for Tri-County Library Consortium (fictional): 8 digits plus a check digit, typed by staff at desks. The draft check digit is the digit sum mod 10. A test found that swapping two adjacent digits still passes. 40,000 cards print at 13:00. It is 12:05.",
+    "handover": [
+      "Staff errors observed: one wrong digit (about 80%), adjacent swaps (about 10%)."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: look, change, check or ship. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "12:05",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "The deadline is an invented teaching value."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "mod11",
+        "luhn",
+        "times2"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "c0",
+        "c1",
+        "c2"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "k0",
+        "k1",
+        "k2"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "(fix == \"mod11\")"
+    },
+    "correct": {
+      "expr": "(fix == \"mod11\" or fix == \"luhn\")"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "look",
+        "change",
+        "check",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "look": {
+      "label": "Run 10,000 simulated typing errors through the draft scheme",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "output": "single-digit errors caught: 100%; adjacent swaps caught: 100%"
+            }
+          ],
+          "else": [
+            {
+              "output": "single-digit errors caught: 100%\nadjacent swaps caught: 0%"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "finding": "Every single error and adjacent swap is caught."
+            }
+          ],
+          "else": [
+            {
+              "finding": "Addition mod 10 is commutative: a sum does not change when its terms are reordered, so no swap can be caught. Distinct weights break the symmetry."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Change the check digit",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "mod11",
+              "label": "Weighted sum mod 11 with distinct weights 9..2 (ISBN-10 style)"
+            },
+            {
+              "value": "luhn",
+              "label": "Luhn's mod 10 scheme"
+            },
+            {
+              "value": "times2",
+              "label": "Double every digit, mod 10"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: {f}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "check": {
+      "label": "Rerun the 10,000 simulated typing errors and check 100 valid IDs pass",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"mod11\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "10,000 simulated errors: all single-digit errors and all adjacent swaps caught\n2 passed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"luhn\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "adjacent swaps caught: 97.8% (misses 09/90)\n1 passed, 1 failed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"times2\"",
+              "then": [
+                {
+                  "output": "swaps caught: 0%; single errors caught: 89%\n1 failed"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "swaps caught 0%\n1 failed"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Send the scheme to the card printer",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "if": "correct",
+          "then": [
+            {
+              "output": "Sent: weighted mod 11 check digits."
+            }
+          ],
+          "else": [
+            {
+              "output": "Sent: a scheme that lets typing errors through."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why swaps passed",
+              "options": [
+                {
+                  "value": "c0",
+                  "label": "A plain sum is unchanged by reordering, so swaps cannot change the check"
+                },
+                {
+                  "value": "c1",
+                  "label": "Staff typed slowly"
+                },
+                {
+                  "value": "c2",
+                  "label": "The test data were wrong"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know the new scheme works",
+              "options": [
+                {
+                  "value": "k0",
+                  "label": "All single errors and adjacent swaps in 10,000 simulated errors are caught, and valid IDs pass"
+                },
+                {
+                  "value": "k1",
+                  "label": "It looks more complex"
+                },
+                {
+                  "value": "k2",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "13:00: the cards printed with the scheme as it stood.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the systems librarian: why swaps passed, what you chose, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Addition is commutative, so a plain sum of digits mod 10 is the same for any order of the digits.",
+          "modelAnswer": "Equal weights commute."
+        },
+        {
+          "label": "What you chose",
+          "criteria": "Distinct nonzero weights modulo the prime 11: a single error or a swap changes the sum by a nonzero multiple of an invertible element, so it is caught; Luhn misses 09/90; doubling mod 10 merges 0 and 5.",
+          "modelAnswer": "Weighted mod 11."
+        },
+        {
+          "label": "How you know",
+          "criteria": "10,000 simulated errors: all single errors and adjacent swaps caught.",
+          "modelAnswer": "100% caught."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-333)",
+          "checkedAt": "2026-11-17",
+          "note": "The case's deadline; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Shipping nothing ships nothing wrong, but the deadline passes without the fix.",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "wrongSent": {
+      "label": "Weak scheme printed",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "Typing errors attach loans and fines to the wrong member."
+    },
+    "notSent": {
+      "label": "Nothing shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "Printing slipped a week."
+    },
+    "right": {
+      "label": "Right, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and fixed and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "A typing slip at the desk is caught instead of filed under someone else."
+    },
+    "gaps": {
+      "label": "Right, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The result is right, but it went late, unchecked, before you looked, or with a weaker fix."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Tested the draft against realistic errors before changing it",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked before acting."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Used distinct weights modulo a prime",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed",
+            "score": "met",
+            "why": "Distinct weights modulo a prime."
+          },
+          {
+            "when": "fix == \"luhn\"",
+            "score": "partial",
+            "why": "Catches all single errors and most swaps, but not 09 <-> 90."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{fix == \"times2\" ? \"Equal weights still commute, and doubling mod 10 maps 0 and 5 to the same value: worse.\" : \"The scheme still cannot see swaps.\"}"
+          }
+        ]
+      },
+      {
+        "id": "shipped",
+        "label": "Shipped nothing wrong",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sentAs != \"wrong\"",
+            "score": "met",
+            "why": "Nothing wrong shipped."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Shipped a wrong result."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Simulated errors caught and valid IDs passed after the last change, before printing",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "Checked after the last change, before shipping."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Checked, but it failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"c0\" and checkDoc == \"k0\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"c0\" or checkDoc == \"k0\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rightK",
+        "label": "Right result shipped",
+        "value": "sentAs == \"right\" ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "altered",
+        "label": "Rows changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until shipped",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 14"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "Swaps caught: 0%."
+      },
+      {
+        "at": "4-9 min",
+        "text": "Weights 9..2 mod 11."
+      },
+      {
+        "at": "9-12 min",
+        "text": "100% caught."
+      },
+      {
+        "at": "12-14 min",
+        "text": "Send."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: structure catches errors",
+        "body": "In the integers mod a prime, every nonzero weight is invertible, so distinct weights make any single change or swap visible."
+      },
+      "gaps": {
+        "headline": "Right, with gaps",
+        "body": "The result is right; it went late, unchecked, before you looked, or with a weaker fix than the cause called for."
+      },
+      "wrongSent": {
+        "headline": "Weak scheme",
+        "body": "Equal weights commute; multiplying by 2 mod 10 is not invertible."
+      },
+      "notSent": {
+        "headline": "Nothing shipped",
+        "body": "Safe, but the deadline passed without the fix."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "Swaps pass because addition mod 10 is commutative: a digit sum ignores order. Give each position a distinct nonzero weight and work modulo 11, a prime: a single wrong digit changes the sum by weight x difference, nonzero mod 11 because every nonzero element is invertible, and an adjacent swap changes it by (w1 - w2)(a - b), also nonzero. Luhn misses 09/90; doubling every digit mod 10 keeps the symmetry and maps 0 and 5 together."
+  }
+}

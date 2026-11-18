@@ -1,0 +1,924 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "sql-branches-with-no-loans-count-one",
+  "title": "Zero loans, and the report says one",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "branch_activity.sql, the weekly activity report, Fernvale Libraries (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Service director, Omar Haddad",
+          "text": "Three branches were closed for repairs all week, and the report shows each lent 1 book and has a blank fine total. The council briefing is at 12:00.",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "seen",
+          "label": "Pattern",
+          "text": "Every branch with no loans shows exactly 1.",
+          "when": "not isNull(lookAt) and not fixed",
+          "severity": "warning"
+        },
+        {
+          "id": "lock",
+          "label": "Council briefing",
+          "text": "12:00: the council briefing started.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [],
+      "code": [
+        {
+          "id": "code",
+          "label": "branch_activity.sql",
+          "language": "SQL",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "SELECT b.name,"
+            },
+            {
+              "id": "c1",
+              "text": "  count(*) AS loans, sum(l.fine) AS fines",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c2",
+              "text": "  count(l.loan_id) AS loans, coalesce(sum(l.fine), 0) AS fines",
+              "when": "fix == \"col\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c3",
+              "text": "  count(*) AS loans, coalesce(sum(l.fine), 0) AS fines",
+              "when": "fix == \"coal\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c4",
+              "text": "  count(*) AS loans, sum(l.fine) AS fines",
+              "when": "fix == \"having\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c5",
+              "text": "FROM branches b LEFT JOIN loans l ON l.branch_id = b.id AND l.week = :week"
+            },
+            {
+              "id": "c6",
+              "text": "GROUP BY b.name;"
+            },
+            {
+              "id": "c7",
+              "text": "HAVING count(*) > 1;",
+              "when": "fix == \"having\"",
+              "mark": "\"warning\""
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Briefing",
+          "value": "12:00"
+        }
+      ]
+    }
+  },
+  "objective": "Summarize rows with count, sum, avg, min and max, and tell count(*) from count(column)",
+  "secondaryObjectives": [
+    "Handle empty groups and NULL inputs, returning 0 instead of NULL where a report needs it"
+  ],
+  "sources": [
+    {
+      "cite": "PostgreSQL 13 documentation, 9.21 Aggregate Functions",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.postgresql.org/docs/13/functions-aggregate.html",
+      "note": "Read 2026-11-17 through a summarizing fetch. count(*) 'Computes the number of input rows'; count(\"any\") 'Computes the number of input rows in which the input value is not null'; except for count, aggregates return null when no rows are selected, 'sum of no rows returns null, not zero', and coalesce substitutes zero."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Every organization, person, count and deadline is invented teaching data; tool output is an authored rendering in the tool style."
+    }
+  ],
+  "brief": {
+    "situation": "You maintain branch_activity.sql at Fernvale Libraries (fictional). It lists every branch with its loans and fines this week, using a LEFT JOIN so closed branches still appear. Three branches closed for repairs show 1 loan each and a blank fines total. The council briefing is at 12:00. It is 11:05.",
+    "handover": [
+      "The council compares branches by loans per week."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: look, change, check or ship. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "11:05",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "The deadline is an invented teaching value."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "col",
+        "coal",
+        "having"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "c0",
+        "c1",
+        "c2"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "k0",
+        "k1",
+        "k2"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "(fix == \"col\")"
+    },
+    "correct": {
+      "expr": "(fix == \"col\" or fix == \"coal\")"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "look",
+        "change",
+        "check",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "look": {
+      "label": "Show the joined rows for a closed branch before grouping",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "output": "Elm Street | loans 0 | fines 0.00"
+            }
+          ],
+          "else": [
+            {
+              "output": "Elm Street | loan_id NULL | fine NULL   (one row, all loan columns NULL)"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "finding": "Closed branches show 0 and 0.00."
+            }
+          ],
+          "else": [
+            {
+              "finding": "A LEFT JOIN keeps one row for an unmatched branch; count(*) counts that row; sum over only NULLs is NULL."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Change the aggregates",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "col",
+              "label": "count(l.loan_id) and coalesce(sum(l.fine), 0)"
+            },
+            {
+              "value": "coal",
+              "label": "Keep count(*), add coalesce to the fines"
+            },
+            {
+              "value": "having",
+              "label": "Add HAVING count(*) > 1 to hide the odd rows"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: {f}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "check": {
+      "label": "Compare with the circulation system for the closed branches and two open ones",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"col\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "Elm Street 0 / 0.00; open branches unchanged\n2 passed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"coal\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "Elm Street 1 / 0.00\n1 passed, 1 failed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"having\"",
+              "then": [
+                {
+                  "output": "3 closed branches and Pine Hill (1 real loan) missing\n1 failed"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "Elm Street: report 1, system 0\n1 failed"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Send the report for the council briefing",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "if": "correct",
+          "then": [
+            {
+              "output": "Sent: closed branches at 0."
+            }
+          ],
+          "else": [
+            {
+              "output": "Sent with wrong counts."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why closed branches showed 1 loan",
+              "options": [
+                {
+                  "value": "c0",
+                  "label": "count(*) counts the one all-NULL row a LEFT JOIN keeps for an unmatched branch"
+                },
+                {
+                  "value": "c1",
+                  "label": "Loans were entered by mistake"
+                },
+                {
+                  "value": "c2",
+                  "label": "The join used the wrong week"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know it is right",
+              "options": [
+                {
+                  "value": "k0",
+                  "label": "Counts match the circulation system for closed and open branches"
+                },
+                {
+                  "value": "k1",
+                  "label": "The ones are gone"
+                },
+                {
+                  "value": "k2",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "12:00: the council briefing started.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the director: why closed branches showed a loan, what you changed, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "count(*) counts rows, including the single NULL-filled row a LEFT JOIN keeps; count(column) counts non-null values; sum of no values is NULL.",
+          "modelAnswer": "count(*) counted the empty row."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "count(l.loan_id) and coalesce(sum(l.fine), 0); a HAVING filter hides real branches.",
+          "modelAnswer": "count(loan_id), coalesce."
+        },
+        {
+          "label": "How you know",
+          "criteria": "Counts match the circulation system for closed and open branches.",
+          "modelAnswer": "Elm Street 0 = 0."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-333)",
+          "checkedAt": "2026-11-17",
+          "note": "The case's deadline; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Shipping nothing ships nothing wrong, but the deadline passes without the fix.",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "wrongSent": {
+      "label": "Wrong activity sent",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "The council compares branches using loans that never happened."
+    },
+    "notSent": {
+      "label": "Nothing shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "No wrong figures, but the briefing went without them."
+    },
+    "right": {
+      "label": "Right, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and fixed and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "Closed branches show zero, and the comparison is fair."
+    },
+    "gaps": {
+      "label": "Right, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The result is right, but it went late, unchecked, before you looked, or with a weaker fix."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Looked at the joined rows for a closed branch before changing the query",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked before acting."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Used count(column) and a defaulted sum",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed",
+            "score": "met",
+            "why": "Counted a column from the joined table and defaulted the sum."
+          },
+          {
+            "when": "fix == \"coal\"",
+            "score": "partial",
+            "why": "Fines are fixed but closed branches still show 1 loan."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{fix == \"having\" ? \"Hides the closed branches, and any branch with exactly one loan.\" : \"count(*) still counts the empty joined row.\"}"
+          }
+        ]
+      },
+      {
+        "id": "shipped",
+        "label": "Shipped nothing wrong",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sentAs != \"wrong\"",
+            "score": "met",
+            "why": "Nothing wrong shipped."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Shipped a wrong result."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Counts matched the circulation system after the last change, before sending",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "Checked after the last change, before shipping."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Checked, but it failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"c0\" and checkDoc == \"k0\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"c0\" or checkDoc == \"k0\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rightK",
+        "label": "Right result shipped",
+        "value": "sentAs == \"right\" ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "altered",
+        "label": "Rows changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until shipped",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 14"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "One all-NULL row per closed branch."
+      },
+      {
+        "at": "4-9 min",
+        "text": "count(l.loan_id), coalesce(sum)."
+      },
+      {
+        "at": "9-12 min",
+        "text": "Matches the circulation system."
+      },
+      {
+        "at": "12-14 min",
+        "text": "Send."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: count what you mean",
+        "body": "After an outer join, count(*) counts placeholder rows. Count a column from the optional side."
+      },
+      "gaps": {
+        "headline": "Right, with gaps",
+        "body": "The result is right; it went late, unchecked, before you looked, or with a weaker fix than the cause called for."
+      },
+      "wrongSent": {
+        "headline": "Wrong figures",
+        "body": "Hiding rows with HAVING removes real branches too."
+      },
+      "notSent": {
+        "headline": "Nothing shipped",
+        "body": "Safe, but the deadline passed without the fix."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "Every closed branch shows exactly 1 because the LEFT JOIN keeps one row for it with all loan columns NULL, and count(*) counts rows. count(l.loan_id) counts only real loans; sum over only NULLs is NULL, so coalesce it to 0. Keeping count(*) leaves the 1; HAVING count(*) > 1 hides closed branches and any branch with one real loan."
+  }
+}

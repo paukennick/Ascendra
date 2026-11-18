@@ -1,0 +1,980 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "js-template-shallow-copy",
+  "title": "Everyone's new project has Dana's tasks",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "projects.js, the new-project wizard, Tallgrass Design Studio (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Studio manager, Dana Price",
+          "text": "Every new project created since lunch starts with my client's tasks in its checklist. Six project leads start new projects at 15:00.",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "seen",
+          "label": "Pattern",
+          "text": "Tasks added to one new project appear in the template and in every later project.",
+          "when": "not isNull(lookAt) and not fixed",
+          "severity": "warning"
+        },
+        {
+          "id": "altered",
+          "label": "Data",
+          "text": "Live projects lost their checklists.",
+          "when": "rowsAlteredOutsideFix > 0",
+          "severity": "error"
+        },
+        {
+          "id": "lock",
+          "label": "Project kickoff",
+          "text": "15:00: the leads started projects with the wizard as it stood.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [],
+      "code": [
+        {
+          "id": "code",
+          "label": "projects.js",
+          "language": "JavaScript",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "const project = { ...TEMPLATE };",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c1",
+              "text": "project.tasks.push(...newTasks);"
+            },
+            {
+              "id": "c2",
+              "text": "const project = structuredClone(TEMPLATE);",
+              "when": "fix == \"clone\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c3",
+              "text": "const project = { ...TEMPLATE, tasks: [...TEMPLATE.tasks] };",
+              "when": "fix == \"onelevel\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c4",
+              "text": "const project = Object.freeze(TEMPLATE);",
+              "when": "fix == \"freeze\"",
+              "mark": "\"warning\""
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Kickoff",
+          "value": "15:00"
+        },
+        {
+          "id": "alteredRows",
+          "label": "Changed outside the fix",
+          "value": "{rowsAlteredOutsideFix}"
+        }
+      ]
+    }
+  },
+  "objective": "Shallow vs. deep copying, and why reference semantics matter",
+  "secondaryObjectives": [
+    "Spread and rest syntax in object/array contexts"
+  ],
+  "sources": [
+    {
+      "cite": "MDN Web Docs, Glossary: Deep copy",
+      "checkedAt": "2026-11-17",
+      "url": "https://developer.mozilla.org/en-US/docs/Glossary/Deep_copy",
+      "note": "Read 2026-11-17 through a summarizing fetch. Built-in copy operations (spread syntax, concat, slice, Array.from, Object.assign) 'do not create deep copies (instead, they create shallow copies)'; with a shallow copy 'changes to nested properties in the source or the copy may cause the other object to change too'; structuredClone() creates deep copies."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Every organization, person, count and deadline is invented teaching data; tool output is an authored rendering in the tool style."
+    }
+  ],
+  "brief": {
+    "situation": "You maintain the new-project wizard at Tallgrass Design Studio (fictional). It copies a default template and lets the lead add tasks. Since lunch, every new project starts with tasks someone else added. Six leads start projects at 15:00. It is 14:05.",
+    "handover": [
+      "The template is an object with name, settings and a tasks array.",
+      "The copy is made with spread syntax."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: look, change, check or ship. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "14:05",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "The deadline is an invented teaching value."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "clone",
+        "onelevel",
+        "freeze"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "c0",
+        "c1",
+        "c2"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "k0",
+        "k1",
+        "k2"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "(fix == \"clone\") and rowsAlteredOutsideFix == 0"
+    },
+    "correct": {
+      "expr": "(fix == \"clone\" or fix == \"onelevel\") and rowsAlteredOutsideFix == 0"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "look",
+        "change",
+        "destroy",
+        "check",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "look": {
+      "label": "Create two test projects and compare project.tasks with TEMPLATE.tasks",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "output": "project1.tasks === TEMPLATE.tasks -> false; nested settings also separate"
+            }
+          ],
+          "else": [
+            {
+              "output": "project1.tasks === TEMPLATE.tasks -> true\nproject2.tasks === project1.tasks -> true"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "finding": "Each project has its own tasks and settings."
+            }
+          ],
+          "else": [
+            {
+              "finding": "Spread and Object.assign copy only the top level: tasks is the same array in the template and every project."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Change how the template is copied",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "clone",
+              "label": "structuredClone(TEMPLATE): a deep copy"
+            },
+            {
+              "value": "onelevel",
+              "label": "Spread the template and also copy the tasks array"
+            },
+            {
+              "value": "freeze",
+              "label": "Object.freeze the template"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: {f}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "destroy": {
+      "label": "Clear the tasks array on the template so new projects start empty",
+      "group": "Change the data",
+      "available": "not busy and rowsAlteredOutsideFix == 0",
+      "why": "Already done.",
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "add": "rowsAlteredOutsideFix",
+          "by": "37"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "output": "TEMPLATE.tasks.length = 0"
+        },
+        {
+          "log": "Every project made since lunch lost its tasks, because they share the array.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "check": {
+      "label": "Run the wizard test: create 10 projects, add tasks to each, check the template and the others",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"clone\" and rowsAlteredOutsideFix == 0",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "projects independent; template unchanged after 10 projects\n2 passed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"onelevel\" and rowsAlteredOutsideFix == 0",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "tasks independent; settings.labels shared\n1 passed, 1 failed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"freeze\"",
+              "then": [
+                {
+                  "output": "tasks still shared (freeze is shallow)\n1 failed"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "template has 40 tasks; projects share them\n1 failed"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Release the wizard",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "if": "correct",
+          "then": [
+            {
+              "output": "Released: each project starts clean."
+            }
+          ],
+          "else": [
+            {
+              "output": "Released: projects still share data."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why tasks appeared in every project",
+              "options": [
+                {
+                  "value": "c0",
+                  "label": "Spread copies only the top level, so every project shared the template's tasks array"
+                },
+                {
+                  "value": "c1",
+                  "label": "A lead used the wrong template"
+                },
+                {
+                  "value": "c2",
+                  "label": "The database merged projects"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know it is fixed",
+              "options": [
+                {
+                  "value": "k0",
+                  "label": "Ten test projects stay independent and the template is unchanged"
+                },
+                {
+                  "value": "k1",
+                  "label": "One new project looks right"
+                },
+                {
+                  "value": "k2",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "15:00: the leads started projects with the wizard as it stood.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the studio manager: why tasks leaked, what you changed, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Spread and Object.assign make shallow copies: nested arrays and objects are shared references.",
+          "modelAnswer": "The tasks array was shared."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "structuredClone makes a deep copy; copying one level misses other nested fields; freeze is shallow; clearing the shared array wipes live projects.",
+          "modelAnswer": "structuredClone(TEMPLATE)."
+        },
+        {
+          "label": "How you know",
+          "criteria": "Ten test projects stay independent and the template is unchanged.",
+          "modelAnswer": "Independent; template clean."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-333)",
+          "checkedAt": "2026-11-17",
+          "note": "The case's deadline; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Shipping nothing ships nothing wrong, but the deadline passes without the fix.",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "altered": {
+      "label": "Live checklists emptied",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and rowsAlteredOutsideFix > 0",
+      "narrative": "37 project checklists made since lunch are now empty."
+    },
+    "wrongSent": {
+      "label": "Shared checklists released",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "New projects keep inheriting other clients' tasks."
+    },
+    "notSent": {
+      "label": "Nothing shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "No damage, but the leads started on paper."
+    },
+    "right": {
+      "label": "Right, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and fixed and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "Each project starts from the template and stays its own."
+    },
+    "gaps": {
+      "label": "Right, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The result is right, but it went late, unchecked, before you looked, or with a weaker fix."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "altered",
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Compared references before changing code",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked before acting."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Deep-copied the template",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed",
+            "score": "met",
+            "why": "A deep copy for each project."
+          },
+          {
+            "when": "fix == \"onelevel\"",
+            "score": "partial",
+            "why": "Fixes tasks, but settings.labels is still shared."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{rowsAlteredOutsideFix > 0 ? \"Emptied the shared array.\" : fix == \"freeze\" ? \"Freeze is shallow: the nested tasks array is not frozen and is still shared.\" : \"The copy is still shallow.\"}"
+          }
+        ]
+      },
+      {
+        "id": "data",
+        "label": "Did not damage live projects",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "rowsAlteredOutsideFix == 0",
+            "score": "met",
+            "why": "Nothing changed outside the fix."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Emptied the shared array."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Projects and template were independent after the last change, before release",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "Checked after the last change, before shipping."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Checked, but it failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"c0\" and checkDoc == \"k0\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"c0\" or checkDoc == \"k0\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rightK",
+        "label": "Right result shipped",
+        "value": "sentAs == \"right\" ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "altered",
+        "label": "Rows changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until shipped",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 14"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "project.tasks === TEMPLATE.tasks."
+      },
+      {
+        "at": "4-9 min",
+        "text": "structuredClone."
+      },
+      {
+        "at": "9-12 min",
+        "text": "Ten projects independent."
+      },
+      {
+        "at": "12-14 min",
+        "text": "Release."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: copy what you mean to own",
+        "body": "Spread copies one level. Anything nested is shared until you deep-copy it."
+      },
+      "gaps": {
+        "headline": "Right, with gaps",
+        "body": "The result is right; it went late, unchecked, before you looked, or with a weaker fix than the cause called for."
+      },
+      "wrongSent": {
+        "headline": "Still shared",
+        "body": "Copying one level or freezing the top leaves nested data shared."
+      },
+      "notSent": {
+        "headline": "Nothing shipped",
+        "body": "Safe, but the deadline passed without the fix."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      },
+      "altered": {
+        "headline": "Live checklists emptied",
+        "body": "The array was shared; clearing it cleared it everywhere."
+      }
+    },
+    "modelReasoning": "Tasks appearing in every later project means they share one array. The wizard copies the template with spread-style copying, which is shallow, so project.tasks is TEMPLATE.tasks. structuredClone makes a deep copy. Copying the tasks array alone leaves settings shared; Object.freeze is shallow; clearing the template's array empties every live project that shares it."
+  }
+}

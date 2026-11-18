@@ -1,0 +1,913 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "ptprereq-app-users-attend-more-correlational",
+  "title": "App users attend more, so buy it for everyone?",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "newsletter draft and attendance data, Northshore Physical Therapy (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Practice manager, Leah Ford",
+          "text": "Patients who used the reminder app attended 92% of visits; non-users attended 71%. The newsletter says the app improves attendance, and I'm signing a license for every patient at 17:00.",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "seen",
+          "label": "Pattern",
+          "text": "Patients chose whether to use the app.",
+          "when": "not isNull(lookAt) and not fixed",
+          "severity": "warning"
+        },
+        {
+          "id": "lock",
+          "label": "License",
+          "text": "17:00: the license was signed on the newsletter's claim.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [],
+      "code": [
+        {
+          "id": "code",
+          "label": "newsletter draft",
+          "language": "text",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "Headline: 'Reminder app boosts attendance by 21 points'",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c1",
+              "text": "Headline: 'App users attended more; we are testing whether the app is the reason'",
+              "when": "fix == \"rct\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c2",
+              "text": "Plan: 3-month trial, patients randomly assigned to app or usual reminders",
+              "when": "fix == \"rct\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c3",
+              "text": "Headline: 'App users attended more after adjusting for age'",
+              "when": "fix == \"adjust\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c4",
+              "text": "Headline: 'Reminder app boosts attendance (92% vs 71%, a big difference)'",
+              "when": "fix == \"bigger\"",
+              "mark": "\"warning\""
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "License",
+          "value": "17:00"
+        }
+      ]
+    }
+  },
+  "objective": "Evaluate a plainly described study as correlational or experimental, and say whether it can support a cause-and-effect claim",
+  "secondaryObjectives": [
+    "Explain attitudes and persuasion, including the foot-in-the-door technique, and how they shape whether a person follows advice"
+  ],
+  "sources": [
+    {
+      "cite": "OpenStax, Psychology 2e, 2.3 Analyzing Findings",
+      "checkedAt": "2026-11-17",
+      "url": "https://openstax.org/books/psychology-2e/pages/2-3-analyzing-findings",
+      "note": "Read 2026-11-17 through a summarizing fetch. Correlation 'does not necessarily imply cause and effect'; a confounding variable can account for a relationship between two variables; a scientific experiment is 'the only way to establish that there is a cause-and-effect relationship', and random assignment lets differences between groups be attributed to the independent variable."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Every organization, person, count and deadline is invented teaching data; tool output is an authored rendering in the tool style."
+    }
+  ],
+  "brief": {
+    "situation": "You help with the patient newsletter at Northshore Physical Therapy (fictional). Last quarter, patients could opt in to a reminder app. App users attended 92% of booked visits and non-users 71%. The draft says the app improves attendance, and the manager will buy it for every patient at 17:00. It is 16:05. All figures are invented teaching data.",
+    "handover": [
+      "App users were younger on average and more often booked online.",
+      "The vendor offers a 3-month trial for half the patients."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: look, change, check or ship. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "16:05",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "The deadline is an invented teaching value."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "rct",
+        "adjust",
+        "bigger"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "c0",
+        "c1",
+        "c2"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "k0",
+        "k1",
+        "k2"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "(fix == \"rct\")"
+    },
+    "correct": {
+      "expr": "(fix == \"rct\" or fix == \"adjust\")"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "look",
+        "change",
+        "check",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "look": {
+      "label": "Check how patients ended up in each group, and compare the groups",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "output": "design: random assignment planned; claim limited to an association"
+            }
+          ],
+          "else": [
+            {
+              "output": "group: self-selected (opt-in)\napp users: median age 38, 64% booked online; non-users: 61, 22% online\nnon-users' attendance last year, before the app: 73%"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "finding": "The claim matches the design."
+            }
+          ],
+          "else": [
+            {
+              "finding": "Patients chose the app, so it is a correlational comparison; age, booking habits and motivation differ and could explain the gap."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Change the claim and the plan",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "rct",
+              "label": "Describe it as an association and run the vendor's trial with random assignment before buying for everyone"
+            },
+            {
+              "value": "adjust",
+              "label": "Adjust for age and keep the causal headline"
+            },
+            {
+              "value": "bigger",
+              "label": "Keep the headline: a 21-point gap is too big to be chance"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: {f}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "check": {
+      "label": "Check every claim in the draft against how the groups were formed",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"rct\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "claim matches a correlational design; randomized trial planned\n2 passed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"adjust\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "gap 14 points after age; other differences remain\n1 passed, 1 failed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"bigger\"",
+              "then": [
+                {
+                  "output": "claims cause from a self-selected comparison\n1 failed"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "causal headline on a self-selected comparison\n1 failed"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Send the newsletter and the recommendation",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "if": "correct",
+          "then": [
+            {
+              "output": "Sent: an association, and a randomized trial before the purchase."
+            }
+          ],
+          "else": [
+            {
+              "output": "Sent: a causal claim the data cannot support."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why the claim was not supported",
+              "options": [
+                {
+                  "value": "c0",
+                  "label": "Patients chose the app, so the comparison is correlational and confounders such as age and habits could explain the gap"
+                },
+                {
+                  "value": "c1",
+                  "label": "92% is a rounding error"
+                },
+                {
+                  "value": "c2",
+                  "label": "The app vendor wrote the data"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know the newsletter is right",
+              "options": [
+                {
+                  "value": "k0",
+                  "label": "Each claim matches a correlational design, with random assignment planned to test cause"
+                },
+                {
+                  "value": "k1",
+                  "label": "The manager approved it"
+                },
+                {
+                  "value": "k2",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "17:00: the license was signed on the newsletter's claim.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the practice manager: what the data show, what you changed, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "What they show",
+          "criteria": "A correlational comparison: patients chose the app, and the groups differ in age, booking habits and likely motivation, so the attendance gap cannot be credited to the app.",
+          "modelAnswer": "Association, not cause."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "State the association and test cause with random assignment; adjusting for age leaves other confounders; a large gap is not proof of cause.",
+          "modelAnswer": "Randomized trial first."
+        },
+        {
+          "label": "How you know",
+          "criteria": "Each claim in the draft matches how the groups were formed.",
+          "modelAnswer": "Claims match the design."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-333)",
+          "checkedAt": "2026-11-17",
+          "note": "The case's deadline; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Shipping nothing ships nothing wrong, but the deadline passes without the fix.",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "wrongSent": {
+      "label": "Causal claim sent",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "The practice pays for every patient on a claim the data cannot support."
+    },
+    "notSent": {
+      "label": "Nothing shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "The newsletter missed the decision."
+    },
+    "right": {
+      "label": "Right, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and fixed and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "The decision waits for a trial that can show whether the app helps."
+    },
+    "gaps": {
+      "label": "Right, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The result is right, but it went late, unchecked, before you looked, or with a weaker fix."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Checked how the groups were formed before accepting the claim",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked before acting."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Limited the claim and planned a randomized trial",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed",
+            "score": "met",
+            "why": "Claim matched to the design, with an experiment planned."
+          },
+          {
+            "when": "fix == \"adjust\"",
+            "score": "partial",
+            "why": "Adjusting for one confounder helps, but motivation and other differences remain: still correlational."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{fix == \"bigger\" ? \"Size does not turn a correlation into a cause.\" : \"The draft still claims the app causes better attendance.\"}"
+          }
+        ]
+      },
+      {
+        "id": "shipped",
+        "label": "Shipped nothing wrong",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sentAs != \"wrong\"",
+            "score": "met",
+            "why": "Nothing wrong shipped."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Shipped a wrong result."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Claims matched the study design after the last change, before the decision",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "Checked after the last change, before shipping."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Checked, but it failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"c0\" and checkDoc == \"k0\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"c0\" or checkDoc == \"k0\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rightK",
+        "label": "Right result shipped",
+        "value": "sentAs == \"right\" ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "altered",
+        "label": "Rows changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until shipped",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 14"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "Self-selected groups differ."
+      },
+      {
+        "at": "4-9 min",
+        "text": "Association; randomized trial."
+      },
+      {
+        "at": "9-12 min",
+        "text": "Claims match the design."
+      },
+      {
+        "at": "12-14 min",
+        "text": "Send."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: the design decides the claim",
+        "body": "People who choose something differ from people who don't. Only random assignment lets you credit the difference to it."
+      },
+      "gaps": {
+        "headline": "Right, with gaps",
+        "body": "The result is right; it went late, unchecked, before you looked, or with a weaker fix than the cause called for."
+      },
+      "wrongSent": {
+        "headline": "Causal claim",
+        "body": "A bigger gap is still a correlation."
+      },
+      "notSent": {
+        "headline": "Nothing shipped",
+        "body": "Safe, but the deadline passed without the fix."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "Patients chose whether to use the app, so this is a correlational comparison. The groups differ in age and booking habits, and non-users attended about as poorly the year before, so confounders can explain the gap. Report an association, not a cause, and use the vendor's trial with random assignment before buying for everyone. Adjusting for age leaves other differences; the size of a gap does not make it causal."
+  }
+}

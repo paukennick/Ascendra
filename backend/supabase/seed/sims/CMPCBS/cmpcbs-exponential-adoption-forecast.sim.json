@@ -1,0 +1,907 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cmpcbs-exponential-adoption-forecast",
+  "title": "120,000 users in a town of 40,000",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "adoption_forecast.py, library e-book app sign-ups, Millbrook Public Library (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Library director, Nora Quinn",
+          "text": "Your forecast says 120,000 app users by June, so I'm about to sign the license tier for 100,000+ seats at 11:00. Our service area has 40,000 people.",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "seen",
+          "label": "Pattern",
+          "text": "The forecast passes the population of the service area.",
+          "when": "not isNull(lookAt) and not fixed",
+          "severity": "warning"
+        },
+        {
+          "id": "lock",
+          "label": "License deadline",
+          "text": "11:00: the license tier was signed on the forecast as it stood.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [],
+      "code": [
+        {
+          "id": "code",
+          "label": "adoption_forecast.py",
+          "language": "Python",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "fit N(t) = N0 * exp(r t) to weeks 1-8; project to June",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c1",
+              "text": "fit logistic N(t) = K / (1 + A exp(-r t)), K bounded by the 40,000 residents; check fit on weeks 7-8",
+              "when": "fix == \"logistic\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c2",
+              "text": "fit exponential to weeks 5-8 only (the 'recent trend')",
+              "when": "fix == \"recent\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c3",
+              "text": "cap the exponential forecast at 40,000",
+              "when": "fix == \"cap\"",
+              "mark": "\"warning\""
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "License deadline",
+          "value": "11:00"
+        }
+      ]
+    }
+  },
+  "objective": "Critiquing model assumptions and limitations",
+  "secondaryObjectives": [
+    "Formulating mathematical models from real-world scenarios"
+  ],
+  "sources": [
+    {
+      "cite": "OpenStax, Biology, 45.3 Environmental Limits to Population Growth",
+      "checkedAt": "2026-11-17",
+      "url": "https://openstax.org/books/biology/pages/45-3-environmental-limits-to-population-growth",
+      "note": "Read 2026-11-17 through a summarizing fetch. Exponential growth assumes unlimited resources and gives a J-shaped curve; in logistic growth the rate slows as the population nears the carrying capacity K and levels off in an S-shaped curve. The case applies the same model choice to adoption in a fixed population (author's application)."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Every organization, person, count and deadline is invented teaching data; tool output is an authored rendering in the tool style."
+    }
+  ],
+  "brief": {
+    "situation": "You built adoption_forecast.py for Millbrook Public Library (fictional). It fits an exponential curve to the first eight weeks of app sign-ups and projects to June: 120,000 users. The service area has 40,000 residents, and weekly growth has started to slow. The license tier is signed at 11:00. It is 10:05.",
+    "handover": [
+      "Sign-ups: 900, 1,400, 2,100, 3,100, 4,300, 5,600, 6,800, 7,800 over 8 weeks.",
+      "Seat tiers: up to 15,000; up to 30,000; 100,000+."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: look, change, check or ship. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "10:05",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "The deadline is an invented teaching value."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "logistic",
+        "cap",
+        "recent"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "c0",
+        "c1",
+        "c2"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "k0",
+        "k1",
+        "k2"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "(fix == \"logistic\")"
+    },
+    "correct": {
+      "expr": "(fix == \"logistic\" or fix == \"cap\")"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "look",
+        "change",
+        "check",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "look": {
+      "label": "Plot weekly growth rate against users, and the projection against the population",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "output": "logistic fit: K about 14,500; June about 13,900"
+            }
+          ],
+          "else": [
+            {
+              "output": "weekly growth: 56%, 50%, 48%, 39%, 30%, 21%, 15%\nexponential projection passes 40,000 in week 13"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "finding": "A model with a ceiling fits the slowing growth."
+            }
+          ],
+          "else": [
+            {
+              "finding": "Exponential growth assumes a constant rate and no limit; the rate is already falling as the pool of residents is used up."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Change the model",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "logistic",
+              "label": "Fit a logistic curve with a carrying capacity, and check it on the latest weeks"
+            },
+            {
+              "value": "cap",
+              "label": "Keep the exponential and cap it at 40,000"
+            },
+            {
+              "value": "recent",
+              "label": "Refit the exponential on the last four weeks"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: {f}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "check": {
+      "label": "Fit on weeks 1-6, predict weeks 7-8, and compare",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"logistic\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "held-out weeks 7-8 within 4%; June about 13,900 (range 12,500 to 16,000)\n2 passed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"cap\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "June 40,000 (capped); held-out error 31%\n1 passed, 1 failed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"recent\"",
+              "then": [
+                {
+                  "output": "held-out error 22%; June 64,000\n1 failed"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "exponential predicts 9,800 for week 8; actual 7,800\n1 failed"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Send the forecast for the license decision",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "if": "correct",
+          "then": [
+            {
+              "output": "Sent: about 14,000 by June; the 15,000 tier fits."
+            }
+          ],
+          "else": [
+            {
+              "output": "Sent: a forecast far above the town's adoption path."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why the forecast was impossible",
+              "options": [
+                {
+                  "value": "c0",
+                  "label": "An exponential model assumes constant growth with no limit, but growth was already slowing toward a ceiling"
+                },
+                {
+                  "value": "c1",
+                  "label": "The sign-up data double-counted"
+                },
+                {
+                  "value": "c2",
+                  "label": "June has more days"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know the new forecast is credible",
+              "options": [
+                {
+                  "value": "k0",
+                  "label": "It predicts held-out weeks within 4% and stays below the population"
+                },
+                {
+                  "value": "k1",
+                  "label": "It is smaller"
+                },
+                {
+                  "value": "k2",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "11:00: the license tier was signed on the forecast as it stood.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the director: why the forecast was impossible, what you changed, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Exponential growth assumes a constant rate and unlimited resources; here the 'resource' is residents who have not signed up, and the growth rate was already falling.",
+          "modelAnswer": "Unlimited-growth assumption."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "A logistic model with a carrying capacity; capping an exponential still overshoots; refitting recent weeks keeps the same assumption.",
+          "modelAnswer": "Logistic with K."
+        },
+        {
+          "label": "How you know",
+          "criteria": "Fit on early weeks predicts later weeks within 4%, with a stated range.",
+          "modelAnswer": "Held-out error 4%."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-333)",
+          "checkedAt": "2026-11-17",
+          "note": "The case's deadline; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Shipping nothing ships nothing wrong, but the deadline passes without the fix.",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "wrongSent": {
+      "label": "Unsupported forecast sent",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "The library pays for a seat tier six times its likely use."
+    },
+    "notSent": {
+      "label": "Nothing shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "The license decision was made without a forecast."
+    },
+    "right": {
+      "label": "Right, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and fixed and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "The library buys the tier its adoption is heading for."
+    },
+    "gaps": {
+      "label": "Right, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The result is right, but it went late, unchecked, before you looked, or with a weaker fix."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Checked the model's assumptions against the data before trusting it",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked before acting."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Used a model with a carrying capacity",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed",
+            "score": "met",
+            "why": "A model whose assumptions fit the data."
+          },
+          {
+            "when": "fix == \"cap\"",
+            "score": "partial",
+            "why": "Removes the impossible number but still overshoots: the cap is the population, not where adoption is heading."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{fix == \"recent\" ? \"Still assumes constant growth: 64,000 by June.\" : \"The model still assumes unlimited, constant growth.\"}"
+          }
+        ]
+      },
+      {
+        "id": "shipped",
+        "label": "Shipped nothing wrong",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sentAs != \"wrong\"",
+            "score": "met",
+            "why": "Nothing wrong shipped."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Shipped a wrong result."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Held-out check passed after the last change, before the license decision",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "Checked after the last change, before shipping."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Checked, but it failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"c0\" and checkDoc == \"k0\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"c0\" or checkDoc == \"k0\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rightK",
+        "label": "Right result shipped",
+        "value": "sentAs == \"right\" ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "altered",
+        "label": "Rows changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until shipped",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 14"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "Growth rate falling; projection passes the population."
+      },
+      {
+        "at": "4-9 min",
+        "text": "Logistic fit."
+      },
+      {
+        "at": "9-12 min",
+        "text": "Held-out weeks within 4%."
+      },
+      {
+        "at": "12-14 min",
+        "text": "Send."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: check the assumptions, not just the fit",
+        "body": "Every model says something about the world. Exponential says nothing runs out; here, residents do."
+      },
+      "gaps": {
+        "headline": "Right, with gaps",
+        "body": "The result is right; it went late, unchecked, before you looked, or with a weaker fix than the cause called for."
+      },
+      "wrongSent": {
+        "headline": "Unsupported forecast",
+        "body": "A cap or a recent refit keeps the wrong assumption."
+      },
+      "notSent": {
+        "headline": "Nothing shipped",
+        "body": "Safe, but the deadline passed without the fix."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "A forecast three times the town's population means the model's assumption is wrong. Exponential growth assumes a constant rate with no limit, but the weekly rate has fallen from 56% to 15% as the pool of residents is used up. A logistic model with a carrying capacity fits the slowing growth and predicts held-out weeks within 4%, putting June near 14,000. Capping the exponential still overshoots; refitting recent weeks keeps the constant-growth assumption."
+  }
+}

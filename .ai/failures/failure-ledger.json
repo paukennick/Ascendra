@@ -18827,7 +18827,7 @@
       "title": "Short course name kept the new 'Exam Prep for' title prefix",
       "status": "fixed",
       "severity": "low",
-      "symptom": "With REQ-324 titles, shortCourseName's title fallback (no credential name) would print 'Exam Prep for CISSP®' cut to 18 characters in reminder and countdown emails.",
+      "symptom": "With REQ-324 titles, shortCourseName's title fallback (no credential name) would print 'Exam Prep for CISSP\u00ae' cut to 18 characters in reminder and countdown emails.",
       "how_detected": "review of title readers during REQ-324",
       "root_cause": "VENDOR_PREFIX listed the old 'Prep for' prefix only; a title-format change did not look at the readers that strip title prefixes.",
       "requirement": "REQ-324",
@@ -18850,7 +18850,7 @@
       "title": "Reminder short name cut a long credential name to its first words",
       "status": "fixed",
       "severity": "low",
-      "symptom": "With names on again, reminder and countdown emails for CISSP would call the course 'Information…' (the credential name without 'Certified', cut to 18 characters).",
+      "symptom": "With names on again, reminder and countdown emails for CISSP would call the course 'Information\u2026' (the credential name without 'Certified', cut to 18 characters).",
       "how_detected": "lib/unbranded.test.ts (REQ-324 short-name test)",
       "root_cause": "shortCourseName fell back to the exam code or an ellipsis; CISSP and similar exams have no code and are known by the acronym at the end of their name. REQ-319 had hidden it by nulling the names.",
       "requirement": "REQ-324",
@@ -19206,6 +19206,30 @@
       ],
       "prevention_notes": "Test checks the plugin output shape, app.json registration and that the website still lists the app with the existing fingerprint; README explains both halves and which fingerprints matter",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2480",
+      "date": "2026-11-17",
+      "title": "linux-depth-terminal.test.ts selected PYAUTO documents by course code",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Adding PYAUTO bands would have joined the REQ-292 terminal test's set, whose list assertion and terminal-screen checks assume only its ten documents",
+      "how_detected": "review while adding REQ-333 bands",
+      "root_cause": "The test built its set with e.course === LFCS or LINUXFUND or PYAUTO, so any later sim in those courses changes it; recurrence of FAIL-2002",
+      "requirement": "REQ-333",
+      "affected": [
+        "backend/lib/sim/linux-depth-terminal.test.ts"
+      ],
+      "fix_summary": "Select by course and slug from the test's EXPECTED list",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/linux-depth-terminal.test.ts",
+        "backend/lib/sim/depth-academic.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Sim tests select documents by slug (round-1116 working rule)",
+      "recurrence_of": "FAIL-2002"
     }
   ]
 }

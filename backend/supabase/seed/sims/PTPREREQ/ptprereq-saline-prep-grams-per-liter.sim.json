@@ -1,0 +1,914 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "ptprereq-saline-prep-grams-per-liter",
+  "title": "0.9 grams per liter is not 0.9 percent",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "prep sheet, physiology teaching lab, Whitmore Community College (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Lab coordinator, Gwen Halloway",
+          "text": "The osmosis lab starts at 10:00 with sheep red blood cells from the supplier. The isotonic control tube burst in yesterday's trial run. Is the saline wrong?",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "seen",
+          "label": "Pattern",
+          "text": "The 'isotonic' control behaves like distilled water.",
+          "when": "not isNull(lookAt) and not fixed",
+          "severity": "warning"
+        },
+        {
+          "id": "lock",
+          "label": "Lab session",
+          "text": "10:00: the lab session started with the solutions as they stood.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [],
+      "code": [
+        {
+          "id": "code",
+          "label": "prep sheet",
+          "language": "text",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "0.9% saline: 0.9 g NaCl made up to 1 L",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c1",
+              "text": "0.9% (w/v) = 0.9 g per 100 mL = 9.0 g per liter; 9.0 g / 58.44 g/mol = 0.154 mol; 0.154 M = 154 mM NaCl",
+              "when": "fix == \"fix\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c2",
+              "text": "0.9% saline: 0.9 g NaCl made up to 100 mL",
+              "when": "fix == \"fix\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c3",
+              "text": "0.9% saline: 0.9 g NaCl in 1 L, plus 0.1 g extra for safety",
+              "when": "fix == \"plus\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c4",
+              "text": "0.9% saline: 9.0 g NaCl added to 1 L of water (final volume not adjusted)",
+              "when": "fix == \"addto\"",
+              "mark": "\"warning\""
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Lab starts",
+          "value": "10:00"
+        }
+      ]
+    }
+  },
+  "objective": "Calculate molarity and convert between grams, moles and millimoles for a simple solution such as 0.9 percent saline",
+  "secondaryObjectives": [
+    "Apply tonicity to predict which way water moves when a cell sits in a hypertonic, isotonic or hypotonic solution, and what happens to the cell's volume",
+    "Explain how electrolytes (sodium, potassium, calcium, chloride) dissociate into ions in water and why their concentrations matter for nerve and muscle function"
+  ],
+  "sources": [
+    {
+      "cite": "OpenStax, Chemistry 2e, 3.3 Molarity",
+      "checkedAt": "2026-11-17",
+      "url": "https://openstax.org/books/chemistry-2e/pages/3-3-molarity",
+      "note": "Read 2026-11-17 through a summarizing fetch. 'Molarity is defined as the number of moles of solute in exactly 1 liter (1 L) of the solution', M = mol solute / L solution; when a mass is given, 'use the solute's molar mass to obtain the amount of solute in moles'. The 0.9 percent (weight per volume) convention, 9 g per liter, and NaCl's molar mass of 58.44 g/mol are the author's arithmetic."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Every organization, person, count and deadline is invented teaching data; tool output is an authored rendering in the tool style."
+    }
+  ],
+  "brief": {
+    "situation": "You are the student assistant in the physiology teaching lab at Whitmore Community College (fictional). Today's osmosis lab uses sheep red blood cells in three solutions; the control should be isotonic 0.9% saline. In yesterday's trial the cells in the control tube burst. The prep sheet is open. The lab starts at 10:00. It is 09:05. These solutions are for a teaching demonstration only.",
+    "handover": [
+      "Prep sheet: 'Dissolve 0.9 g NaCl and make up to 1 L'.",
+      "NaCl molar mass 58.44 g/mol."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: look, change, check or ship. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "09:05",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "The deadline is an invented teaching value."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "fix",
+        "addto",
+        "plus"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "c0",
+        "c1",
+        "c2"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "k0",
+        "k1",
+        "k2"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "(fix == \"fix\")"
+    },
+    "correct": {
+      "expr": "(fix == \"fix\" or fix == \"addto\")"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "look",
+        "change",
+        "check",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "look": {
+      "label": "Recalculate the molarity of the prep sheet's solution and of 0.9% saline",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "output": "9.0 g per liter = 0.154 M (154 mM)"
+            }
+          ],
+          "else": [
+            {
+              "output": "prep sheet: 0.9 g / 58.44 = 0.0154 mol in 1 L = 15.4 mM\n0.9% w/v: 9.0 g per L = 154 mM"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "finding": "The control is at the intended concentration."
+            }
+          ],
+          "else": [
+            {
+              "finding": "The sheet makes a solution ten times too dilute: hypotonic to the cells, so water moves in and they swell and burst."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Correct the prep sheet",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "fix",
+              "label": "9.0 g NaCl made up to 1 L (or 0.9 g to 100 mL): 0.154 M"
+            },
+            {
+              "value": "addto",
+              "label": "Add 9.0 g NaCl to 1 L of water without making up the volume"
+            },
+            {
+              "value": "plus",
+              "label": "Keep 0.9 g per liter and add 0.1 g extra"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: {f}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "check": {
+      "label": "Run a trial tube with the new control and recheck the arithmetic",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"fix\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "trial tube: cells keep their shape; 154 mM confirmed\n2 passed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"addto\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "about 153 mM; cells keep their shape\n1 passed, 1 failed (method not w/v)"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"plus\"",
+              "then": [
+                {
+                  "output": "trial tube: cells swell and burst\n1 failed"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "cells burst in the control\n1 failed"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Set out the solutions for the 10:00 lab",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "if": "correct",
+          "then": [
+            {
+              "output": "Set out: the control behaves as isotonic."
+            }
+          ],
+          "else": [
+            {
+              "output": "Set out: the control bursts the cells."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why the control cells burst",
+              "options": [
+                {
+                  "value": "c0",
+                  "label": "The sheet made 0.9 g per liter (15.4 mM), a tenth of 0.9% w/v, so the solution was hypotonic and water moved into the cells"
+                },
+                {
+                  "value": "c1",
+                  "label": "The cells were old"
+                },
+                {
+                  "value": "c2",
+                  "label": "The tubes were dirty"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know it is right",
+              "options": [
+                {
+                  "value": "k0",
+                  "label": "154 mM by calculation and cells keep their shape in a trial tube"
+                },
+                {
+                  "value": "k1",
+                  "label": "The solution tastes salty"
+                },
+                {
+                  "value": "k2",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "10:00: the lab session started with the solutions as they stood.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the lab coordinator: what was wrong, what you changed, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "What was wrong",
+          "criteria": "0.9% w/v means 0.9 g per 100 mL, so 9.0 g per liter; the sheet used 0.9 g per liter, 15.4 mM instead of 154 mM, a hypotonic solution, so water moved into the cells and they burst.",
+          "modelAnswer": "Ten times too dilute: hypotonic."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "9.0 g NaCl made up to 1 L: 9.0 / 58.44 = 0.154 mol, 0.154 M; adding to 1 L of water changes the final volume; adding 0.1 g is still far too dilute.",
+          "modelAnswer": "9.0 g made up to 1 L."
+        },
+        {
+          "label": "How you know",
+          "criteria": "The arithmetic gives 154 mM and a trial tube keeps the cells' shape.",
+          "modelAnswer": "154 mM; cells intact."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-333)",
+          "checkedAt": "2026-11-17",
+          "note": "The case's deadline; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Shipping nothing ships nothing wrong, but the deadline passes without the fix.",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "wrongSent": {
+      "label": "Wrong control set out",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "Students see the 'isotonic' control burst cells and learn the opposite of the lab's point."
+    },
+    "notSent": {
+      "label": "Nothing shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "The lab started late, without the control."
+    },
+    "right": {
+      "label": "Right, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and fixed and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "The control holds its shape, and the lab shows what tonicity does."
+    },
+    "gaps": {
+      "label": "Right, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The result is right, but it went late, unchecked, before you looked, or with a weaker fix."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Recalculated the concentration before remaking anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked before acting."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Prepared 0.9% saline as 9 g per liter",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed",
+            "score": "met",
+            "why": "9.0 g per liter, 0.154 M."
+          },
+          {
+            "when": "fix == \"addto\"",
+            "score": "partial",
+            "why": "Close (about 0.153 M) but not what 'w/v' means: the final volume is no longer exactly 1 L."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{fix == \"plus\" ? \"17 mM is still about a ninth of isotonic.\" : \"The sheet still makes 15.4 mM.\"}"
+          }
+        ]
+      },
+      {
+        "id": "shipped",
+        "label": "Shipped nothing wrong",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sentAs != \"wrong\"",
+            "score": "met",
+            "why": "Nothing wrong shipped."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Shipped a wrong result."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Trial tube and arithmetic checked after the last change, before the lab",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "Checked after the last change, before shipping."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Checked, but it failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"c0\" and checkDoc == \"k0\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"c0\" or checkDoc == \"k0\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rightK",
+        "label": "Right result shipped",
+        "value": "sentAs == \"right\" ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "altered",
+        "label": "Rows changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until shipped",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 14"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "Sheet gives 15.4 mM."
+      },
+      {
+        "at": "4-9 min",
+        "text": "9.0 g to 1 L."
+      },
+      {
+        "at": "9-12 min",
+        "text": "Trial tube intact."
+      },
+      {
+        "at": "12-14 min",
+        "text": "Set out."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: percent, grams and moles line up",
+        "body": "0.9% w/v is 9 g per liter, 154 mM. A tenth of that is hypotonic, and cells swell in it."
+      },
+      "gaps": {
+        "headline": "Right, with gaps",
+        "body": "The result is right; it went late, unchecked, before you looked, or with a weaker fix than the cause called for."
+      },
+      "wrongSent": {
+        "headline": "Wrong control",
+        "body": "A small top-up to a tenfold error is still a tenfold error."
+      },
+      "notSent": {
+        "headline": "Nothing shipped",
+        "body": "Safe, but the deadline passed without the fix."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "Cells bursting in the control means it is hypotonic. 0.9% weight per volume is 0.9 g per 100 mL, so 9.0 g per liter; the sheet used 0.9 g per liter. In moles, 0.9 g / 58.44 g/mol = 0.0154 mol, a 15.4 mM solution, a tenth of the intended 154 mM, so water moved into the cells. Make 9.0 g NaCl up to 1 L (0.154 M), and confirm with a trial tube."
+  }
+}

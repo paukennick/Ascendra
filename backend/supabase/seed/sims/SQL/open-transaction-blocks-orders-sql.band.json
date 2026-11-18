@@ -1,0 +1,35 @@
+{
+  "band": "sql",
+  "label": "SQL Fundamentals",
+  "base": {
+    "course": "DP300",
+    "slug": "sleeping-session-blocks-orders"
+  },
+  "slug": "open-transaction-blocks-orders-sql",
+  "patch": {
+    "objective": "Group statements into a transaction with BEGIN, COMMIT, ROLLBACK and SAVEPOINT, and explain atomicity",
+    "secondaryObjectives": [
+      "Prevent a lost update with SELECT ... FOR UPDATE or a single atomic UPDATE, and compare isolation levels"
+    ],
+    "sources": [
+      {
+        "cite": "PostgreSQL 18 documentation, 3.4 Transactions (tutorial)",
+        "checkedAt": "2026-11-17",
+        "url": "https://postgresql.org/docs/18/tutorial-transactions.html",
+        "note": "Read 2026-11-17 through a summarizing fetch: a transaction 'bundles multiple steps into a single, all-or-nothing operation'; it is set up with BEGIN and COMMIT, and ROLLBACK cancels 'all our updates so far'; 'The updates made so far by an open transaction are invisible to other transactions until the transaction completes.' The case runs on SQL Server: a session that began a transaction and never committed holds its locks, and every order save waits behind it. Ending the head blocker rolls its work back atomically."
+      },
+      {
+        "cite": "Microsoft Learn, Study guide for Exam DP-300: Administering Microsoft Azure SQL Solutions (skills as of October 27, 2026; page last updated 2026-10-30): data platform resources 15-20%, secure environment 20-25%, monitor, configure and optimize 20-25%, automation 15-20%, HA/DR 20-25%",
+        "checkedAt": "2026-11-17",
+        "url": "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/dp-300",
+        "note": "Read through a summarizing fetch on 2026-11-17. Bullets quoted there: 'Identify and resolve session blocking'; 'Monitor by using Extended Events'; 'Identify performance issues using dynamic management views (DMVs)'. The objective wording is the course seed's."
+      },
+      {
+        "cite": "Microsoft Learn, Understand and resolve SQL Server blocking problems (last updated 2026-08-04)",
+        "checkedAt": "2026-11-17",
+        "url": "https://learn.microsoft.com/da-dk/troubleshoot/sql/database-engine/performance/understand-resolve-blocking",
+        "note": "Read through a summarizing fetch of the Danish-locale page (English text summarized) on 2026-11-17. Relevant text: 'Identify the main blocking session (head blocker)'; scenario 2, a sleeping SPID with open_transaction_count greater than zero, which a timeout or cancel does not end ('doesn't automatically roll back or commit the transaction'), resolved by the application (IF @@TRANCOUNT > 0 ROLLBACK, SET XACT_ABORT ON) and listed as 'No, but SPID can be killed'; a killed session is marked KILLED/ROLLBACK until the rollback ends; blocked_process_report in Extended Events with the threshold set by sp_configure ('By default, no blocked process reports are produced'). KILL WITH STATUSONLY is not on that page; to verify against the KILL reference."
+      }
+    ]
+  }
+}

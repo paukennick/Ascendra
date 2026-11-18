@@ -1,0 +1,1140 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "mshi-syndromic-feed-ili-drop",
+  "title": "Flu-like illness halved in a week?",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "Weekly influenza-like illness (ILI) report from emergency department syndromic data, Cedar County Public Health (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "County epidemiologist, Dr. Ruth Okoye",
+          "text": "This week's ILI share of ED visits dropped from 6.1% to 3.4%. If that's real we tell hospitals flu season is easing. The report goes out at 12:00.",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "gone",
+          "label": "Completeness",
+          "text": "Riverside ED: 0 messages since Monday 06:00 (usually about 1,100 a week).",
+          "when": "not isNull(complAt)",
+          "severity": "warning"
+        },
+        {
+          "id": "blank",
+          "label": "Field check",
+          "text": "Northgate ED: chief complaint empty on 98% of visits since Monday.",
+          "when": "not isNull(fieldAt)",
+          "severity": "warning"
+        },
+        {
+          "id": "imputed",
+          "label": "Data",
+          "text": "Last week's counts were written into this week's rows for two facilities.",
+          "when": "imputed",
+          "severity": "error"
+        },
+        {
+          "id": "lock",
+          "label": "Epidemiology",
+          "text": "12:00: the weekly report went out without this week's ILI figure.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [
+        {
+          "id": "trend",
+          "label": "ILI share of ED visits",
+          "spokenLabel": "the weekly ILI share",
+          "kind": "line",
+          "unit": "%",
+          "min": 0,
+          "max": 10,
+          "points": [
+            {
+              "id": "w1",
+              "label": "W-4",
+              "value": "4.9"
+            },
+            {
+              "id": "w2",
+              "label": "W-3",
+              "value": "5.4"
+            },
+            {
+              "id": "w3",
+              "label": "W-2",
+              "value": "5.8"
+            },
+            {
+              "id": "w4",
+              "label": "W-1",
+              "value": "6.1"
+            },
+            {
+              "id": "w5",
+              "label": "This week",
+              "value": "rate",
+              "flag": "method == \"all\""
+            }
+          ],
+          "lines": []
+        }
+      ],
+      "tables": [
+        {
+          "id": "fac",
+          "label": "This week by facility",
+          "spokenLabel": "the facility table",
+          "columns": [
+            {
+              "id": "f",
+              "label": "Facility"
+            },
+            {
+              "id": "v",
+              "label": "ED visits",
+              "numeric": true
+            },
+            {
+              "id": "cc",
+              "label": "Chief complaint filled",
+              "numeric": true
+            },
+            {
+              "id": "ili",
+              "label": "ILI visits",
+              "numeric": true
+            }
+          ],
+          "rows": [
+            {
+              "id": "a",
+              "cells": [
+                "Bayview ED",
+                "1,420",
+                "99%",
+                "94"
+              ]
+            },
+            {
+              "id": "b",
+              "cells": [
+                "Hillcrest ED",
+                "980",
+                "99%",
+                "61"
+              ]
+            },
+            {
+              "id": "c",
+              "cells": [
+                "Northgate ED (new EHR Monday)",
+                "1,260",
+                "2%",
+                "3"
+              ],
+              "flag": "true"
+            },
+            {
+              "id": "d",
+              "cells": [
+                "Riverside ED (new EHR Monday)",
+                "0",
+                "-",
+                "0"
+              ],
+              "flag": "true"
+            }
+          ],
+          "when": "not isNull(complAt) or not isNull(fieldAt)"
+        }
+      ],
+      "code": [
+        {
+          "id": "code",
+          "label": "weekly_ili.sql",
+          "language": "SQL",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "SELECT sum(is_ili)::numeric / count(*) AS ili_share"
+            },
+            {
+              "id": "c1",
+              "text": "FROM ed_visits WHERE visit_week = :this_week",
+              "when": "method == \"all\""
+            },
+            {
+              "id": "c2",
+              "text": "FROM ed_visits WHERE visit_week = :this_week",
+              "when": "method != \"all\""
+            },
+            {
+              "id": "c3",
+              "text": "  AND facility_id IN (SELECT facility_id FROM complete_facilities(:this_week));",
+              "when": "method == \"complete\"",
+              "mark": "\"changed\""
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Report due",
+          "value": "12:00"
+        },
+        {
+          "id": "altered",
+          "label": "Rows changed outside the fix",
+          "value": "{rowsAlteredOutsideFix}"
+        }
+      ]
+    }
+  },
+  "objective": "How clinical systems feed public health: syndromic surveillance, electronic case reporting and immunization information systems, and what each tells health departments",
+  "secondaryObjectives": [
+    "Data quality dimensions -- correctness, completeness, concordance, plausibility and currency -- and how to check data against them",
+    "Population informatics: surveillance, prevention, preparedness and health promotion"
+  ],
+  "sources": [
+    {
+      "cite": "CDC, About the National Syndromic Surveillance Program (NSSP)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.cdc.gov/nssp/php/about/",
+      "note": "Read 2026-11-17 through a summarizing fetch: facilities send de-identified records with chief complaint, diagnosis codes, patient characteristics and location; 'Within 24 hours of a patient's ED visit, data are available in NSSP for analysis'; '85% of U.S. emergency departments send data to NSSP'; health departments use it to 'detect unusual levels of illness to determine whether a response is needed' and to 'monitor disease trends'."
+    },
+    {
+      "cite": "Virginia Department of Health, Limitations of Syndromic Surveillance Data",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.vdh.virginia.gov/surveillance-and-investigation/syndromic-surveillance/limitations/",
+      "note": "Read 2026-11-17 through a summarizing fetch: the chief complaint is a near real-time field 'commonly recorded as a free text field, which may include misspellings or abbreviations'; diagnosis transmission 'can be delayed'; changes in the number of reporting facilities 'should be taken into consideration when interpreting trends'. The page did not discuss feed outages; that a stopped or changed feed must be found before trends are read is the author's application of its point about participation."
+    },
+    {
+      "cite": "AMIA Accreditation Committee, foundational domains for master's-level health informatics education (CAHIIM HI master's curriculum requirements PDF)",
+      "checkedAt": "2026-11-17",
+      "url": "https://cahiim.org/wp-content/uploads/2024/08/hi-ms-curriculum.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch. F1 (Health): graduates 'Describe the history, goals, methods (including data and information used and produced), and current challenges' of the health sciences, including population health."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Cedar County, its facilities, counts, shares and deadline are invented teaching values; the data are de-identified visit counts, and no patient appears."
+    }
+  ],
+  "brief": {
+    "situation": "You are the informatics analyst at Cedar County Public Health (fictional). Four emergency departments send syndromic data: each visit's chief complaint and diagnosis codes, de-identified, within a day. This week the share of ED visits that look like influenza-like illness (ILI) fell from 6.1% to 3.4%. Two of the hospitals moved to a new EHR on Monday. The weekly report goes to hospitals and the public at 12:00. It is 10:45.",
+    "handover": [
+      "ILI is flagged from the chief complaint text (fever with cough or sore throat).",
+      "Each facility's informatics contact is on the feed roster."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: check completeness or fields, change how the share is computed, run a check, or send the report. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Sending the report is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "10:45",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 4500,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "The report goes out at 12:00, 75 minutes after the start; invented."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "method": {
+      "type": "enum",
+      "values": [
+        "all",
+        "complete"
+      ],
+      "init": "all"
+    },
+    "imputed": {
+      "type": "bool",
+      "init": false
+    },
+    "complAt": {
+      "type": "time",
+      "init": null
+    },
+    "fieldAt": {
+      "type": "time",
+      "init": null
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "checkAt": {
+      "type": "time",
+      "init": null
+    },
+    "checkMatched": {
+      "type": "bool",
+      "init": false
+    },
+    "raised": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "feeds",
+        "flu",
+        "holiday"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "consistent",
+        "lower",
+        "none"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "correct": {
+      "expr": "method == \"complete\" and not imputed"
+    },
+    "rate": {
+      "expr": "imputed ? 6.2 : method == \"complete\" ? 6.4 : 3.4"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(complAt) and not isNull(fieldAt) and (isNull(changedAt) or (timeAt(complAt) <= timeAt(changedAt) and timeAt(fieldAt) <= timeAt(changedAt)))"
+    },
+    "checkedCurrent": {
+      "expr": "checkMatched and not isNull(checkAt) and timeAt(checkAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "completeness",
+        "fields",
+        "restrict",
+        "impute",
+        "check",
+        "raise",
+        "send",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "completeness": {
+      "label": "Completeness: messages received per facility this week against the last four weeks",
+      "group": "Profile",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(complAt)",
+          "then": [
+            {
+              "set": "complAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "facility     4-wk avg  this week\nBayview         1,390      1,420\nHillcrest         960        980\nNorthgate       1,240      1,260\nRiverside       1,110          0"
+        },
+        {
+          "finding": "Riverside's feed has sent nothing since its EHR went live on Monday."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "fields": {
+      "label": "Field check: share of visits with a non-empty chief complaint, per facility",
+      "group": "Profile",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(fieldAt)",
+          "then": [
+            {
+              "set": "fieldAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "facility    cc filled (last week)  cc filled (this week)\nBayview          99%                   99%\nHillcrest        99%                   99%\nNorthgate        98%                    2%\nRiverside        99%                    -"
+        },
+        {
+          "finding": "Northgate's visits arrive, but the new EHR sends the chief complaint in a different segment the feed does not map, so almost none can be flagged as ILI."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "restrict": {
+      "label": "Compute this week's share from the facilities whose feeds are complete, the same set for every week compared, and note the two missing",
+      "group": "Change the query",
+      "available": "not busy and method != \"complete\"",
+      "why": "Already changed.",
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "method",
+          "to": "\"complete\""
+        },
+        {
+          "set": "checkMatched",
+          "to": "false"
+        },
+        {
+          "output": "Bayview + Hillcrest: ILI share this week 6.4% (W-1 on the same two: 6.0%)"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "impute": {
+      "label": "Fill in Northgate and Riverside with last week's counts so the totals look normal",
+      "group": "Change the data",
+      "available": "not busy and not imputed",
+      "why": "Already done.",
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "imputed",
+          "to": "true"
+        },
+        {
+          "set": "checkMatched",
+          "to": "false"
+        },
+        {
+          "add": "rowsAlteredOutsideFix",
+          "by": "2350"
+        },
+        {
+          "output": "INSERT 2350 (copied from last week)"
+        },
+        {
+          "log": "2,350 visit rows for this week are copies of last week's: invented data presented as observed.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "check": {
+      "label": "Check: the trend for the same facilities across all five weeks, and the two complete feeds' volumes against their averages",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "checkAt",
+          "to": "t"
+        },
+        {
+          "if": "correct",
+          "then": [
+            {
+              "set": "checkMatched",
+              "to": "true"
+            },
+            {
+              "output": "Bayview + Hillcrest: 4.8, 5.3, 5.7, 6.0, 6.4%: still rising\nvolumes within 3% of their averages"
+            },
+            {
+              "log": "Like compared with like, ILI is still rising.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "output": "{imputed ? \"this week's rows for two facilities duplicate last week's exactly\" : \"the denominator lost 1,110 visits and the numerator lost Northgate's ILI: the facility set changed\"}"
+            },
+            {
+              "log": "The figure is not comparable with earlier weeks.",
+              "kind": "bad"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "raise": {
+      "label": "Contact Northgate's and Riverside's informatics leads to fix the mapping and resend since Monday",
+      "group": "Escalate",
+      "available": "not busy and not raised",
+      "why": "Already raised.",
+      "effects": [
+        {
+          "set": "raised",
+          "to": "true"
+        },
+        {
+          "output": "Both acknowledge: Riverside's interface engine route was not moved to the new EHR; Northgate's chief complaint mapping is missing. Resend of the backlog by Monday."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "send": {
+      "label": "Send the weekly ILI report",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already sent.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "output": "{correct ? \"Sent: ILI 6.4% of ED visits at the two facilities with complete data, still rising; two facilities' feeds interrupted by EHR changes, to be revised.\" : imputed ? \"Sent: ILI 6.2%, all four facilities.\" : \"Sent: ILI 3.4%, falling.\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 15 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 15 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "15min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why the ILI share fell",
+              "options": [
+                {
+                  "value": "feeds",
+                  "label": "One facility's feed stopped and another's chief complaints arrive empty after their EHR changes"
+                },
+                {
+                  "value": "flu",
+                  "label": "Flu activity really fell"
+                },
+                {
+                  "value": "holiday",
+                  "label": "Fewer people went to EDs"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know the reported figure is right",
+              "options": [
+                {
+                  "value": "consistent",
+                  "label": "The same complete facilities across all weeks show 6.4%, still rising"
+                },
+                {
+                  "value": "lower",
+                  "label": "The number looks plausible"
+                },
+                {
+                  "value": "none",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "12:00: the weekly report went out without this week's ILI figure.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the epidemiologist: why the ILI share fell, what you reported, and how you know it is right.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "A data feed problem, not epidemiology: Riverside's feed stopped (completeness) and Northgate's chief complaints arrive empty (a field mapping change), both after EHR go-lives on Monday; the share's facility set changed.",
+          "modelAnswer": "Two EHR go-lives broke the feeds: one silent, one with blank chief complaints."
+        },
+        {
+          "label": "What you reported",
+          "criteria": "The share computed over facilities with complete data, the same set as earlier weeks, with the gap stated; the facilities asked to fix and resend. Not the raw 3.4%, and not last week's counts copied in.",
+          "modelAnswer": "6.4% from the two complete feeds, still rising, with a note and a revision promised."
+        },
+        {
+          "label": "How you know",
+          "criteria": "The five-week trend on the same facilities, and their volumes against their averages.",
+          "modelAnswer": "4.8 to 6.4% on Bayview and Hillcrest; volumes normal."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 4500,
+        "source": {
+          "cite": "Author's scenario (REQ-333)",
+          "checkedAt": "2026-11-17",
+          "note": "The report deadline, 75 minutes after the start; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Holding the report sends nothing wrong, but hospitals plan the week without the county's ILI figure.",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "fabricated": {
+      "label": "Invented data reported as observed",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and imputed",
+      "narrative": "The report's figure rests on 2,350 copied visit rows that no hospital recorded this week."
+    },
+    "wrongSent": {
+      "label": "A false decline reported",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "Hospitals were told flu was easing while it was still rising."
+    },
+    "notSent": {
+      "label": "Nothing sent",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "No wrong figure went out, but the week's report had no ILI figure."
+    },
+    "right": {
+      "label": "Like with like, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and sentSec <= deadline and checkedCurrent",
+      "narrative": "The county reported 6.4% and rising, said which feeds were out, and the hospitals are fixing them."
+    },
+    "gaps": {
+      "label": "Sent, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The figure is right, but it went late or unchecked."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "fabricated",
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Checked feed completeness and the chief complaint field by facility before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Both checks first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "One check, or only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked behind the drop."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Compared like with like: the same complete facilities, with the gap stated",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "correct",
+            "score": "met",
+            "why": "6.4% on a consistent set."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{imputed ? \"Copied counts are not observations.\" : \"The raw share mixes a changed facility set.\"}"
+          }
+        ]
+      },
+      {
+        "id": "data",
+        "label": "Added or changed no visit data",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "rowsAlteredOutsideFix == 0",
+            "score": "met",
+            "why": "No rows invented."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Inserted {rowsAlteredOutsideFix} copied rows."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Checked the trend on the same facilities after the last change",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(checkAt) <= sentSec)",
+            "score": "met",
+            "why": "Five weeks, still rising."
+          },
+          {
+            "when": "not isNull(checkAt)",
+            "score": "partial",
+            "why": "Checked, but it did not hold or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "raised",
+        "label": "Asked the facilities to fix their feeds and resend",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "raised",
+            "score": "met",
+            "why": "Both acknowledged."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The feeds stay broken."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the feeds and the like-with-like check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"feeds\" and checkDoc == \"consistent\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"feeds\" or checkDoc == \"consistent\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rateK",
+        "label": "ILI share reported, %",
+        "value": "sent ? rate : 0",
+        "format": "number",
+        "expert": "6.4"
+      },
+      {
+        "id": "altered",
+        "label": "Rows changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until sent",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 31"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-5 min",
+        "text": "Completeness by facility: Riverside sent nothing since Monday."
+      },
+      {
+        "at": "5-10 min",
+        "text": "Field check: Northgate's chief complaints 2% filled."
+      },
+      {
+        "at": "10-16 min",
+        "text": "Share over the two complete feeds: 6.4%."
+      },
+      {
+        "at": "16-21 min",
+        "text": "Same facilities over five weeks: still rising."
+      },
+      {
+        "at": "21-25 min",
+        "text": "Ask both facilities to fix and resend."
+      },
+      {
+        "at": "25-27 min",
+        "text": "Send, with the gap stated."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: the feeds first, then the flu",
+        "body": "A drop that starts the day two hospitals change EHRs is a data question. Completeness and field checks found one silent feed and one blank field; comparing the same facilities week to week showed ILI still rising."
+      },
+      "gaps": {
+        "headline": "Sent, with gaps",
+        "body": "The figure is right; it went late, or without the like-with-like trend to back it."
+      },
+      "wrongSent": {
+        "headline": "A false decline reported",
+        "body": "When the facility set or a key field changes, a share changes for reasons that are not epidemiology. Check completeness and fields before reading a trend."
+      },
+      "fabricated": {
+        "headline": "Invented data",
+        "body": "Copying last week's counts makes the total look normal and the report untrue. State the gap; never fill it with numbers nobody observed."
+      },
+      "notSent": {
+        "headline": "Nothing sent",
+        "body": "Safe, but hospitals needed the figure, and a consistent-facility share was ready."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "Syndromic surveillance turns ED visits into near real-time signals, and its trends are only as good as the feeds behind them. A drop that begins the day two hospitals go live on new EHRs points to the data: Riverside's feed stopped and Northgate's chief complaints arrive empty, so the ILI share's numerator and denominator lost different things. Report the share over the facilities with complete feeds, the same set as earlier weeks, with the gap stated: 6.4% and still rising. Copying last week's counts invents data. Ask both facilities to fix their routing and mapping and resend the backlog."
+  }
+}

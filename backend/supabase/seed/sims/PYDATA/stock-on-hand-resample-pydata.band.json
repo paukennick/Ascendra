@@ -1,0 +1,35 @@
+{
+  "band": "pydata",
+  "label": "Python for Data Analysis",
+  "base": {
+    "course": "PL300",
+    "slug": "pl300-stock-on-hand-summed"
+  },
+  "slug": "stock-on-hand-resample-pydata",
+  "patch": {
+    "objective": "Resample a series to a coarser frequency and choose the aggregate",
+    "secondaryObjectives": [
+      "Interpret group results correctly, including count versus size and missing keys"
+    ],
+    "sources": [
+      {
+        "cite": "pandas 3.1.1 documentation, pandas.Series.resample",
+        "checkedAt": "2026-11-17",
+        "url": "https://pandas.pydata.org/docs/reference/api/pandas.Series.resample.html",
+        "note": "Read 2026-11-17 through a summarizing fetch: resample returns a Resampler that must then be aggregated (.sum(), .mean(), .ffill(), .asfreq() and others). The case is a Power BI measure, not pandas: the decision it teaches is choosing the aggregate when daily stock snapshots go to months. Summing a closing balance over days counts the same stock thirty times; the month's value is the last snapshot (in pandas, .last()), and it must be reconciled with the latest count."
+      },
+      {
+        "cite": "Use DAX time intelligence functions in Power BI Desktop models: Additional time intelligence calculations, Microsoft Learn training (updated 2025-06-27)",
+        "checkedAt": "2026-11-16",
+        "url": "https://learn.microsoft.com/en-us/training/modules/dax-power-bi-time-intelligence/3-calculations",
+        "note": "Read through a summarizing fetch 2026-11-16. Relevant text: 'When summarizing snapshot values (like inventory stock levels), you can summarize values across any dimension except date'; 'Adding daily snapshot balances together doesn't produce a meaningful result'; the LASTDATE pattern returns BLANK when no snapshot exists for the last date in filter context ('A recorded date might not exist because it hasn't yet happened'); LASTNONBLANK 'returns the last date that produces a non-BLANK result'. Both measure patterns in the case are the page's."
+      },
+      {
+        "cite": "Semi-additive measures in DAX, SQLBI (Marco Russo and Alberto Ferrari; published 2020-11-10)",
+        "checkedAt": "2026-11-16",
+        "url": "https://www.sqlbi.com/articles/semi-additive-measures-in-dax",
+        "note": "Read through a summarizing fetch 2026-11-16. Relevant text: 'a semi-additive measure uses SUM to aggregate over some dimensions and a different aggregation over other dimensions'; with LASTDATE, 'If data is not available on the last date as with our model, the measure returns a BLANK.'"
+      }
+    ]
+  }
+}

@@ -1,0 +1,902 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pcap-csv-encoding-mangled-names",
+  "title": "Renée became RenÃ©e",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "badges.py, conference badge printing, Northlake Health Summit (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Event lead, Joon Park",
+          "text": "Badges print names like 'RenÃ©e' and 'JosÃ©'. Doors open at 08:00; the printer needs the file at 07:30.",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "seen",
+          "label": "Pattern",
+          "text": "Every name with an accent shows two odd characters.",
+          "when": "not isNull(lookAt) and not fixed",
+          "severity": "warning"
+        },
+        {
+          "id": "lock",
+          "label": "Registration desk",
+          "text": "07:30: badges printed with mangled names.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [],
+      "code": [
+        {
+          "id": "code",
+          "label": "badges.py",
+          "language": "Python",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "with open(\"registrations.csv\", newline=\"\") as f:",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c1",
+              "text": "with open(\"registrations.csv\", newline=\"\", encoding=\"utf-8\") as f:",
+              "when": "fix == \"utf8\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c2",
+              "text": "with open(\"registrations.csv\", newline=\"\", encoding=\"ascii\", errors=\"ignore\") as f:",
+              "when": "fix == \"ascii\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c3",
+              "text": "    rows = list(csv.DictReader(f))"
+            },
+            {
+              "id": "c4",
+              "text": "rows = [fix_mojibake(r) for r in rows]   # replace Ã© with é, etc.",
+              "when": "fix == \"patch\"",
+              "mark": "\"warning\""
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Printer deadline",
+          "value": "07:30"
+        }
+      ]
+    }
+  },
+  "objective": "Explain ASCII, Unicode code points and UTF-8, convert with ord() and chr(), and tell str from bytes",
+  "secondaryObjectives": [
+    "Predict how comparisons and sorting order strings by code point and case, and how operations build new strings"
+  ],
+  "sources": [
+    {
+      "cite": "Python 3.15 documentation, Unicode HOWTO",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.python.org/howto/unicode",
+      "note": "Read 2026-11-17 through a summarizing fetch. str holds Unicode text and bytes holds encoded data; open() 'assumes the file's contents are in a specified encoding'; the strict error handler raises UnicodeDecodeError; decode input as early as possible. That a wrong single-byte encoding can decode without error into the wrong characters is standard behavior, stated as the author's."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Every organization, person, count and deadline is invented teaching data; tool output is an authored rendering in the tool style."
+    }
+  ],
+  "brief": {
+    "situation": "You maintain badges.py for Northlake Health Summit (fictional). Registrations arrive as a UTF-8 CSV from the ticketing site. Since the script moved to a new Windows print server, 312 names with accents print wrongly. The printer needs the file at 07:30. It is 06:40.",
+    "handover": [
+      "The new print server's default encoding is cp1252.",
+      "The ticketing site documents its export as UTF-8."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: look, change, check or ship. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "06:40",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "The deadline is an invented teaching value."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "utf8",
+        "patch",
+        "ascii"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "c0",
+        "c1",
+        "c2"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "k0",
+        "k1",
+        "k2"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "(fix == \"utf8\")"
+    },
+    "correct": {
+      "expr": "(fix == \"utf8\")"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "look",
+        "change",
+        "check",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "look": {
+      "label": "Look at the raw bytes for one name and the platform's default encoding",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "output": "Renée decoded from 52 65 6E C3 A9 65 as UTF-8"
+            }
+          ],
+          "else": [
+            {
+              "output": ">>> open('registrations.csv','rb').read()[120:126]\nbytes for 'Renée': 52 65 6E C3 A9 65\n>>> locale.getpreferredencoding()\n'cp1252'"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "finding": "The bytes are decoded with the encoding they were written in."
+            }
+          ],
+          "else": [
+            {
+              "finding": "é is two bytes in UTF-8 (C3 A9); decoded as cp1252 they become two characters, Ã and ©."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Change how the CSV is read",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "utf8",
+              "label": "Open with encoding=\"utf-8\", the encoding the export uses"
+            },
+            {
+              "value": "patch",
+              "label": "Keep the default and replace the common bad pairs afterward"
+            },
+            {
+              "value": "ascii",
+              "label": "Read as ASCII and ignore anything that does not fit"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: {f}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "check": {
+      "label": "Compare all 312 accented names with the ticketing site's own export view",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"utf8\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "312 accented names correct; 0 characters outside the source\n2 passed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"patch\"",
+              "then": [
+                {
+                  "output": "289 fixed; 23 still wrong (Ł, ő, ň not in the table)\n1 failed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"ascii\"",
+              "then": [
+                {
+                  "output": "'Rene', 'Jos', 'Bjrk'\n2 failed"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "312 of 312 differ\n1 failed"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Send the badge file to the printer",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "if": "correct",
+          "then": [
+            {
+              "output": "Sent: 1,480 badges, names as registered."
+            }
+          ],
+          "else": [
+            {
+              "output": "Sent with wrong names."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why names were mangled",
+              "options": [
+                {
+                  "value": "c0",
+                  "label": "UTF-8 bytes were decoded with the server's default cp1252 encoding"
+                },
+                {
+                  "value": "c1",
+                  "label": "The ticketing site sent bad data"
+                },
+                {
+                  "value": "c2",
+                  "label": "The printer font lacks accents"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know the names are right",
+              "options": [
+                {
+                  "value": "k0",
+                  "label": "All 312 accented names match the ticketing site"
+                },
+                {
+                  "value": "k1",
+                  "label": "They looked fine on screen"
+                },
+                {
+                  "value": "k2",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "07:30: badges printed with mangled names.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the event lead: why names were wrong, what you changed, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Text in a file is bytes in an encoding; é is C3 A9 in UTF-8, and decoding those bytes as cp1252 gives two characters. The new server's default encoding differs from the file's.",
+          "modelAnswer": "UTF-8 decoded as cp1252."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "Pass encoding='utf-8' to open() so the bytes are decoded once, correctly; not a replacement table and not ignoring errors.",
+          "modelAnswer": "encoding='utf-8'."
+        },
+        {
+          "label": "How you know",
+          "criteria": "All accented names match the ticketing site.",
+          "modelAnswer": "312 of 312."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-333)",
+          "checkedAt": "2026-11-17",
+          "note": "The case's deadline; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Shipping nothing ships nothing wrong, but the deadline passes without the fix.",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "wrongSent": {
+      "label": "Wrong names printed",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "Hundreds of attendees get badges with their names misspelled."
+    },
+    "notSent": {
+      "label": "Nothing shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "No wrong badges, but none printed in time."
+    },
+    "right": {
+      "label": "Right, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and fixed and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "Every badge shows the name as the person registered it."
+    },
+    "gaps": {
+      "label": "Right, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The result is right, but it went late, unchecked, before you looked, or with a weaker fix."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Looked at the bytes and the default encoding before changing code",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked before acting."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Opened the file with the encoding it was written in",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed",
+            "score": "met",
+            "why": "Decoded as UTF-8, explicitly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{fix == \"patch\" ? \"A replacement table misses names it has never seen.\" : fix == \"ascii\" ? \"Dropping bytes deletes letters from people's names.\" : \"The file is still decoded with the platform's cp1252.\"}"
+          }
+        ]
+      },
+      {
+        "id": "shipped",
+        "label": "Shipped nothing wrong",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sentAs != \"wrong\"",
+            "score": "met",
+            "why": "Nothing wrong shipped."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Shipped a wrong result."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Names matched the source after the last change, before printing",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "Checked after the last change, before shipping."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Checked, but it failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"c0\" and checkDoc == \"k0\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"c0\" or checkDoc == \"k0\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rightK",
+        "label": "Right result shipped",
+        "value": "sentAs == \"right\" ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "altered",
+        "label": "Rows changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until shipped",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 14"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "Bytes C3 A9; default encoding cp1252."
+      },
+      {
+        "at": "4-9 min",
+        "text": "open(..., encoding='utf-8')."
+      },
+      {
+        "at": "9-12 min",
+        "text": "312 names match the source."
+      },
+      {
+        "at": "12-14 min",
+        "text": "Send to the printer."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: decode with the right encoding",
+        "body": "Files hold bytes. Name the encoding the producer used; never rely on the machine's default."
+      },
+      "gaps": {
+        "headline": "Right, with gaps",
+        "body": "The result is right; it went late, unchecked, before you looked, or with a weaker fix than the cause called for."
+      },
+      "wrongSent": {
+        "headline": "Wrong names printed",
+        "body": "Patching mojibake or ignoring bytes damages text you have not seen yet. Decode correctly at the boundary."
+      },
+      "notSent": {
+        "headline": "Nothing shipped",
+        "body": "Safe, but the deadline passed without the fix."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "Two odd characters in place of every accented letter is the signature of UTF-8 bytes decoded with a single-byte encoding. The raw bytes for é are C3 A9; the new server's default is cp1252, which turns them into Ã and ©. Text files are bytes in an encoding, and str is decoded text, so name the encoding the export uses: open(..., encoding='utf-8'). A replacement table misses unseen letters; errors='ignore' deletes them."
+  }
+}

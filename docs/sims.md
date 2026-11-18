@@ -7670,3 +7670,262 @@ SAMHSA SAFE-T (PEP24-01-036, product page only); RCW 71.05.120 (Legislature PDF)
 Med 2012); Abderhalden et al., BMC Psychiatry 2006 (Broset checklist); the Keppra label (revised 8/2023).
 Relayed, not re-read: RCW 70.02.050 and HIPAA FAQ 520 (2026-11-14), 988 (2026-11-10), 42 CFR 482.13(e)
 (2026-11-14), and the exam outlines from the course seeds.
+
+### 22.37 Sim depth for the academic and programming courses (REQ-333)
+
+Nick, 2026-11-17 (19:51 PT): "Courses have no sims still like the MS Health
+Informatics. Some still have 1 or two. Let's build those out more robustly."
+The round's rule: a course under 60 objectives gets at least 4 sims, 60 or
+more at least 8, every unit with an objective that fits the selection rule
+gets one, purpose-written cases preferred for a course's top domains, and a
+unit where nothing fits honestly is recorded as no fit. Existing screens only;
+no engine, schema or migration change. Every document is listed by slug in
+`lib/sim/depth-academic.ts` and checked by `lib/sim/depth-academic.test.ts`
+(FAIL-2002 rule).
+
+**New cases (17)**, each with one three-part written-reasoning moment,
+endings in all three classes with `endingOrder` (harm first), three or four
+critical criteria, three KPIs, an expert path, a debrief per ending and six
+or seven goldens rated Good, Mediocre and Bad with every critical criterion
+met and missed (`npm run sim:golden -- steps <name>`):
+
+| Course / slug | Screen | Objective (abridged) | Core of the case | Steps |
+|---|---|---|---|---|
+| MSHI/mshi-a1c-units-quality-dashboard | data | F4 data quality dimensions | A new lab sends A1c as LOINC 59261-8 in mmol/mol; the measure view reads it as %, so "A1c above 9%" jumps from 17.6% to 41.2%. Plausibility and the OBX-6 unit first; convert in the view with the NGSP equation; never rewrite stored results; never drop the lab (640 patients would look untested) | mshi-a1c |
+| MSHI/mshi-misdirected-email-breach-notice | governance board | F3 HIPAA breach notification | A misdirected spreadsheet (1,240 patients, 910 in-state) and a stolen encrypted laptop: four factors, letters, in-state media and HHS within 60 days; the laptop documented as secured PHI with the device record; the COO's per-state reading of the HHS threshold refuted | mshi-breach |
+| MSHI/mshi-ehr-downtime-tabletop | tabletop | F5 EHR safety: identification, downtime, results loop | Unplanned EHR downtime: call it and page staff (not email), unique downtime record numbers, critical results phoned with read-back, drain queues then reconcile; three plan gaps (forms, stale backup, no named lead) owned | mshi-downtime |
+| MSHI/mshi-ehr-go-live-readiness | governance board | F7 EHR implementation life cycle | Go-live criteria agreed before the go/no-go; a severity-1 prescription defect retested; converted allergies validated by sampling (3% error); training tied to access; command center; go on criteria with a bounded slip; 30-day optimization | mshi-golive |
+| MSHI/mshi-syndromic-feed-ili-drop | data | F1 clinical systems feeding public health | ED syndromic ILI share falls 6.1% to 3.4% the week two hospitals change EHRs: completeness and field checks find a silent feed and blank chief complaints; report the same complete facilities (6.4%, rising); never impute counts | mshi-ili |
+| MSHI/mshi-home-bp-app-vetting | governance board | F6 judging an mHealth app's quality, privacy and safety | A vendor's home BP app for 400 patients: advertising kit and no BAA, an unvalidated cuff, an unwatched alert inbox, no access without a smartphone; launch on conditions | mshi-rpm |
+| MSCS/mscs-transfer-workers-deadlock | terminal | Deadlocks and the four conditions | Opposite-direction transfers lock two accounts in opposite orders; a thread dump shows the cycle; a global lock order removes circular wait; a concurrency test proves it; never purge the queue | mscs-deadlock |
+| MSCS/mscs-freezer-bytes-little-endian | data | Binary and hex representation | New gateway sends int16 two's complement little-endian; the decoder reads big-endian unsigned (C6 F8 as 509.36 °C); '<h' gives -18.50 °C; byte order or sign alone still fail; filtering hides a real excursion | mscs-endian |
+| MSCS/mscs-pipeline-dependency-cycle | data | Cycle detection (topological sorting) | Kahn's planner silently drops three jobs on a cycle; DFS finds the back edge; fix the edges to follow the data and make the planner raise | mscs-cycle |
+| MSCS/mscs-renewed-cert-missing-intermediate | terminal | PKI and chains of trust | After renewal the server sends the leaf alone; browsers cope, the partner's client cannot build the path; serve leaf plus intermediate; never switch verification off | mscs-chain |
+| MSCS/mscs-unstable-sort-stage-order | data | Sort stability | A hand-written quicksort replaced the stable second sort, so names within each honor are scrambled; sorted() again; never rename records to force the order | mscs-stable |
+| PYTHON/py-packing-slips-mutable-default | data | The mutable-default-argument pitfall | extras=[] accumulates across calls in a long-running worker; None plus a new list; copy-on-return and clear() both fail a test | py-default |
+| PCEP/pcep-seat-map-shared-rows | data | The shared-row trap of multiplying a nested list | One booking sells a whole column; a comprehension builds each row; list() and a prebuilt row stay shared; never reset bookings | pcep-rows |
+| PCEP/pcep-lunch-balances-float-cents | data | Literals and inexact decimal floats | 312 lunch accounts frozen by float sums (0.30000000000000004); compare whole cents; never overwrite balances | pcep-cents |
+| PCAP/pcap-ai-helper-invented-function | data | Validate AI-generated code; secrets out of prompts | Generated code calls statistics.weighted_mean, which does not exist; fmean(data, weights) checked on the documentation's 87.6 example; an unknown package is a supply-chain harm; the leaked key rotated | pcap-ai |
+| JAVASCRIPT/js-shift-signup-foreach-async | data | async/await with try/catch | forEach does not await, so "All 12 shifts saved" shows before rejections, which go uncaught; for...of with per-save try/catch | js-foreach |
+| PYDATA/pydata-region-merge-duplicated-store | data | Validate a join with validate and indicator | A duplicate key in a lookup inflates revenue 3.1%; validate="m:1" raises; keep each store's latest row; drop_duplicates removes nothing; never delete orders | pydata-merge |
+
+**Bands (37)** register an existing case on another course's objective
+(4.7; the round's rule: where the same decision is taught). Each keeps its
+base's actions, endings, ending order and golden outcomes, and carries as its
+first source a page read 2026-11-17 on this course's objective (the CAHIIM
+master's curriculum PDF, CS2023, a course syllabus, or the language or
+library documentation), then the base's own sources:
+
+- MSHI: the clinic-records ethics conversation (F8) and PHI in application
+  logs (F4 protecting information in design). The first round's SQL NOT IN
+  (F2), control chart (F7) and PfMP rebalance (F10) bands were removed in the
+  continuation and replaced by purpose-written health-setting cases.
+- MSCS: list-to-set profiling (data structure costs), flash-sale lost update
+  (isolation levels), sign-in sequential scan (B-tree indexes), report
+  workers at nice 0 (CPU scheduling), deleted-but-open log on a full /var
+  (file systems), blind SQL injection (attack classes), loan-model split
+  (ML concepts).
+- CMPCBS: profiling (hashing), clinic-records ethics (computing ethics),
+  firewall change back-out (security policy), leaver account (protection
+  mechanisms), the CISM business case (choosing technology), the PfMP
+  rebalance (IT strategy alignment), report workers (operating systems).
+- PTPREREQ: treadmill pressure falls with grade (cardiovascular response to
+  exercise), 6-minute walk desaturation (oxygen-hemoglobin curve), the stroke
+  fall-risk visit (stability and base of support), new bladder symptoms with
+  back pain (dermatomes), central dizziness (brain regions for movement),
+  Parkinson orthostatic drop (baroreceptor reflex), ICU first stand with a new
+  rhythm (conduction system and ECG waves). Clinical bands keep their base's
+  clinical sources and clock.
+- PYAUTO: traceback import (which exceptions to catch), Node env-file silent
+  exit (exit codes for a scheduler), timer backup after a reboot (systemd
+  timers). PYDATA: stock-on-hand semi-additive (resample aggregate), amounts
+  with thousands separators (dtypes). PCEP: profiling (set membership). PCAP:
+  mutable default (constructor defaults), shared rows (nested comprehensions).
+  PYTHON: shared rows (nested data structures). JAVASCRIPT: env-file exit
+  (configuration). SQL: sleeping session holding locks (transactions and
+  atomicity). TSNODE: shipping concatenation (types are erased).
+
+#### Per-course table (production counts from round-1117b; base recount matched)
+
+After the continuation (below): 76 cases and 42 bands, 118 documents.
+
+| Course | Objectives | Before | After | Units covered | No fit |
+|---|---|---|---|---|---|
+| MSHI | 134 | 0 | 12 | F1-F10, all ten | none |
+| MSCS | 113 | 0 | 17 | every unit but one | Final integration (an architecture synthesis written as an essay, not a timed decision on one screen) |
+| CMPCBS | 102 | 1 | 22 | every unit but two | History of Mathematics (historical knowledge, no decision to time); Computational Mathematics Capstone (an independent project) |
+| PTPREREQ | 95 | 1 | 15 | all ten units | none |
+| PYTHON | 50 | 2 | 9 | all nine units | none |
+| JAVASCRIPT | 45 | 2 | 10 | all ten units | none |
+| PYAUTO | 52 | 1 | 11 | all ten units | none |
+| PYDATA | 42 | 1 | 9 | all nine units | none |
+| PCEP | 34 | 1 | 6 | all five units | none |
+| PCAP | 42 | 1 | 7 | all six units | none |
+| SQL | 44 | 3 | 10 | all eight units | none |
+| TSNODE | 37 | 3 | 7 | all seven units | none |
+
+Every course meets the count target, and every unit with an objective that
+fits the selection rule has at least one sim whose main objective is in that
+unit. The three units marked no fit are the only uncovered ones.
+
+**Sources** (each on its document with `checkedAt` and how it was read; all
+2026-11-17 through summarizing fetches of URLs that appeared in a search
+result or a fetched page): the CAHIIM master's curriculum PDF (AMIA F1-F10);
+HHS OCR's Breach Notification Rule page and "Submitting Notice of a Breach";
+HHS OCR's health app scenarios (2016); the SAFER Guides page and the
+Contingency Planning guide PDF; CMS122v13 on eCQI; NGSP's IFCC equation;
+FindACode listings for LOINC 4548-4 and 59261-8 (third-party); HL7
+V2-to-FHIR's OBX ConceptMap; CDC's NSSP page; Virginia's syndromic
+limitations page; the validated BP device listing FAQ; CS2023 (table of
+contents only); RFC 9846 sections 4.5.1; Python 3.15 struct, statistics and
+tutorial errors pages; the Python 3.12 (Indonesian) and 3.10 (Greek) tutorial
+pages (no current English page appeared in a search); the PCEP-30-03 and
+PCAP-31-04 syllabi; pandas 3.1.1 resample; Practical Data Science
+"Validating a merge"; MDN forEach; TypeScript's handbook; PostgreSQL 18's
+transactions tutorial; Node.js v26.13.1 environment variables; systemd.timer
+(Debian, systemd 241); OpenStax A&P 2e 16.5, 19.2, 19.4, 20.4, Biology 2e
+39.4 and College Physics (AP) 9.3; a Lumen spinal nerves page; Bourgeois,
+Information Systems for Business and Beyond (LibreTexts). Marked "to verify"
+on the documents: Weiskopf and Weng 2013 (the page did not load), the
+Python tutorial's default-argument and sequence-multiplication notes, the
+pandas MergeError name, the Python sorting HOWTO, and a Promise.all detail.
+Every organization, person, count and deadline is invented; no patient
+data appears, and the clinical bands add no drug, dose or new clinical claim.
+
+**Findings** (recorded, not worked around):
+
+1. **A test selected PYAUTO documents by course code (FAIL-2480,
+   recurrence of FAIL-2002).** `lib/sim/linux-depth-terminal.test.ts` took
+   every LFCS, LINUXFUND and PYAUTO document, so this round's PYAUTO bands
+   joined its terminal set. It now selects by course and slug.
+2. **A bare enum value in an effect is a name.** `{"set": "fix", "to":
+   "cache"}` reads `cache` as a state name; it must be `"\"cache\""`. Four
+   drafts had it and the validator caught each before a golden was written.
+3. **Braces in labels.** `.catch(() => {})` in learner text is a template
+   slot; the JavaScript case rewords it ("an empty .catch() handler").
+4. **`time_up`** is reached by no golden path in any case, as elsewhere.
+
+#### Continuation (same day): every fitting unit covered
+
+The lead's follow-up asked for every unit with a fitting objective to get a
+sim whose main objective is in that unit, MSHI F9 to be tried on the tabletop
+or governance board, and the three cross-domain MSHI bands to be replaced by
+health-setting cases. **59 new cases** (58 on the data console from one
+skeleton: look, change, an optional data-destroying shortcut, check, ship,
+record; one tabletop), each learner-paced with a three-part write-up, harm
+endings first, three or four critical criteria and seven or eight goldens
+rated Good, Mediocre and Bad:
+
+| Course / slug | Screen | Objective (abridged) | Case: the right change | Steps |
+|---|---|---|---|---|
+| PYTHON/py-class-attribute-shared-cart | data | __init__, self, and instance vs. class attributes | Every new cart already has someone's items: Create it per object in __init__: self.items = [] | py-classattr |
+| PCEP/pcep-audit-log-write-mode | data | Open text files in r, w and a modes inside with, and predict what... | The audit log only ever has one night in it: Open in append mode inside with: open(..., "a", encoding="utf-8") | pcep-filemode |
+| PCEP/pcep-shipping-tiers-unreachable-branch | data | Trace which branch of an if, if-else or if-elif-else chain runs,... | Nobody ever gets free shipping: Test the most specific case first: if total > 100 ... elif total > 50 ... | pcep-elif |
+| PCAP/pcap-local-module-shadows-stdlib | data | Inspect a module with dir() and diagnose an import failure from... | import statistics, and the wrong statistics: Rename the helper file to clinic_stats.py and import it by that name | pcap-shadow |
+| PYTHON/py-generator-used-twice | data | Generators and yield; generator expressions | Total: 0, after a perfect list: Build a list once: gifts = [parse(r) for r in ...] | py-gen |
+| PCAP/pcap-except-order-hides-timeout | data | Order except branches from specific to general, catch several... | Every failure looks like bad data: Put except TimeoutError first (retry), then except ValueError as e (skip with e.args) | pcap-except |
+| PCAP/pcap-csv-encoding-mangled-names | data | Explain ASCII, Unicode code points and UTF-8, convert with ord()... | Renée became RenÃ©e: Open with encoding="utf-8", the encoding the export uses | pcap-encoding |
+| PYAUTO/pyauto-dry-run-type-bool | data | Build a command-line interface with argparse: positional... | --dry-run False, and nothing was deleted: A real flag: action='store_true' (present means dry run); the scheduler drops the word False | pyauto-argparse |
+| PYAUTO/pyauto-greedy-user-field | data | Write regular expressions with character classes, quantifiers,... | One user logged in 4,000 times?: Name each field and use a character class: user=(?P<user>[^ ]+) ip=... result=...$ | pyauto-regex |
+| PYAUTO/pyauto-shell-true-upload-name | data | Prevent shell injection: keep shell=False, and quote with... | A file named 'report;rm -rf ~': Argument list with shell=False (the default), check=True, capture_output=True, text=True and a timeout | pyauto-subprocess |
+| PYAUTO/pyauto-api-first-page-only | data | Handle error status codes, rate limits and pagination | 342 open tickets, and the report says 30: Request 100 per page and follow rel="next" until there is none, raising on error statuses | pyauto-pages |
+| PYAUTO/pyauto-unpinned-dependency-breaks-job | data | Pin and reproduce dependencies with a requirements file or a lock file | Nothing changed, and the job broke: Pin every package to the last good versions with ==, plus hashes, generated from that run's freeze | pyauto-pin |
+| PYAUTO/pyauto-test-hits-real-clock-and-api | data | Replace the network, the clock and environment variables in tests... | Green at noon, red at midnight: monkeypatch the clock, the SMS sender and the API key environment variable | pyauto-monkeypatch |
+| SQL/sql-export-pages-without-order | data | Limit and page results with LIMIT/OFFSET or FETCH FIRST, always... | Some members twice, some never: ORDER BY member_id (the primary key, unique) before LIMIT/OFFSET | sql-limit |
+| SQL/sql-region-revenue-doubled-by-shipments | data | Recognize row multiplication when joining to a many-side table and... | Revenue up 38%, and nothing sold more: Reduce shipments to one region per order first (a CTE), then join and sum | sql-fanout |
+| SQL/sql-branches-with-no-loans-count-one | data | Summarize rows with count, sum, avg, min and max, and tell... | Zero loans, and the report says one: count(l.loan_id) and coalesce(sum(l.fine), 0) | sql-countstar |
+| SQL/sql-union-drops-equal-refunds | data | Combine results with UNION, UNION ALL, INTERSECT and EXCEPT, and... | Two refunds of 49.00, and one was paid: UNION ALL, and carry source and source_id so every payout stays traceable | sql-union |
+| SQL/sql-top-three-ties-row-number | data | Rank rows with row_number, rank and dense_rank, and predict how... | Third place was a tie: rank(): ties share a place, the next place is skipped (the rules) | sql-rank |
+| SQL/sql-erasure-cascades-to-invoices | data | Link tables with FOREIGN KEY constraints and choose ON DELETE... | Erase the customer, keep the invoice: ON DELETE RESTRICT, and change the job to anonymize customers and invoice names instead of deleting | sql-cascade |
+| JAVASCRIPT/js-reminder-buttons-share-var | data | Closures: what they capture and a real use case for one | Every button reminds about the last class: Declare the loop variable with let, so each iteration has its own binding | js-closure |
+| JAVASCRIPT/js-template-shallow-copy | data | Shallow vs. deep copying, and why reference semantics matter | Everyone's new project has Dana's tasks: structuredClone(TEMPLATE): a deep copy | js-shallow |
+| JAVASCRIPT/js-remove-buttons-added-rows | data | Event listeners: bubbling, capturing, delegation, and preventDefault | The Remove button does nothing on new rows: One listener on the list; find the button with event.target.closest('button.remove') | js-delegate |
+| JAVASCRIPT/js-zero-discount-or-default | data | Optional chaining and nullish coalescing | A 0% discount became 10%: client.discount ?? 10 | js-nullish |
+| JAVASCRIPT/js-array-prototype-sum-breaks-export | data | The prototype chain and how method lookup actually works | A row called 'sum' in every export: Remove the prototype method; export sum(xs) as a plain function and update the 6 callers | js-proto |
+| JAVASCRIPT/js-caret-range-minor-breaks-dates | data | npm basics: package.json, scripts, semantic versioning | The build broke, and nobody touched it: Pin 2.3.4, commit package-lock.json, and make CI run npm ci | js-semver |
+| TSNODE/ts-patch-partial-user-role | data | Apply utility types (Partial, Required, Pick, Omit, Record,... | A user made themselves an admin: Type the patch as Partial<Pick<User, name, email, phone>> and copy only those keys at run time | ts-pick |
+| TSNODE/ts-private-token-in-json | data | Write classes with access modifiers, readonly fields, abstract... | The session token is in the support log: Use a JavaScript private field, #token | ts-private |
+| PYDATA/pydata-notebook-deleted-filter-cell | data | Recognize hidden state from out-of-order cells, and restart and... | 81% in the notebook, 64% from scratch: Restart the kernel and run all cells in order; report the result | pydata-kernel |
+| PYDATA/pydata-target-gap-broadcast-square | data | Predict the result shape of an operation from the broadcasting rules | 144 numbers where 12 were expected: Make targets one-dimensional (reshape to 12) and assert the result shape | pydata-broadcast |
+| PYDATA/pydata-account-codes-lose-zeros | data | Load CSV, Excel and JSON data with read_csv and its relatives,... | Account 0042 and account 00042 merged: Read supplier as text with dtype at load time | pydata-dtype |
+| PYDATA/pydata-mean-bar-hides-long-waits | data | Choose a chart type (line, bar, histogram, scatter) that fits the... | Average wait 24 minutes, and the complaints: Histograms of both months with 10-minute bins, a line at 60, labeled axes and a legend | pydata-hist |
+| PYDATA/pydata-unseeded-sample-overwritten-raw | data | Make an analysis rerunnable: raw data kept read-only, pinned... | The auditor can't get your numbers: Restore raw data read-only, write cleaned data elsewhere, seed a default_rng Generator, pin versions, one run-all command | pydata-rerun |
+| MSCS/mscs-dedupe-quadratic-overnight | data | Analyze simple loop and recursive patterns | The dedupe job won't finish before morning: Track seen emails in a set: O(n) time, O(n) extra space, order kept | mscs-bigo |
+| MSCS/mscs-trip-planner-dfs-transfers | data | BFS | Seven transfers for a two-stop trip: Breadth-first search with a queue, marking stops when first reached: O(V + E) | mscs-bfs |
+| MSCS/mscs-usability-test-booking-flow | data | Usability testing: think-aloud protocol, task success rate,... | Two of five finished booking: Report 2/5 success and the failure point, make Continue look active with feedback on selection, and retest with 5 new participants | mscs-usability |
+| MSCS/mscs-mapreduce-average-of-averages | data | MapReduce as a programming model -- why it forces a certain shape... | The average is off, and only on the cluster: Emit (sum, count) pairs; the combiner adds them; the reducer adds and divides once | mscs-mapreduce |
+| CMPCBS/cmpcbs-cpp-stock-count-stops-at-comma | data | Input and output operations | The count stopped at line 418: Read whole lines, parse each (accepting the thousands separator), report bad lines by number, and give no total unless all parse | cmp-cppio |
+| CMPCBS/cmpcbs-cpp-pointer-into-vector | data | Pointers and memory referencing | Patient 12's room shows a stranger's name: Store the index of the bed record and look it up when drawing | cmp-cppptr |
+| CMPCBS/cmpcbs-pilot-p-value-not-proof | data | Statistical inference: estimation and hypothesis testing | p = 0.21, so cancel it?: Report the difference with its 95% CI as inconclusive, and the sample size needed | cmp-pvalue |
+| CMPCBS/cmpcbs-regression-curved-residuals | data | Model diagnostics and checking regression assumptions | R-squared 0.71, and the heat-wave forecast is low: Model demand on heating and cooling degree-days (two terms from 18 C) | cmp-resid |
+| CMPCBS/cmpcbs-float32-meter-stops-counting | data | Error analysis | The meter has read 40,213.5 for three weeks: Bill from the integer pulse count (liters); convert to cubic meters only for display | cmp-float |
+| CMPCBS/cmpcbs-overbooking-expected-value | data | Expected value and discrete probability distributions | Book 23 for 20 chairs?: Largest n with binomial P(arrivals > 20) at or below 0.05: 21 | cmp-binom |
+| CMPCBS/cmpcbs-exponential-adoption-forecast | data | Critiquing model assumptions and limitations | 120,000 users in a town of 40,000: Fit a logistic curve with a carrying capacity, and check it on the latest weeks | cmp-logistic |
+| CMPCBS/cmpcbs-order-quantity-derivative | data | Applications of derivatives, including L'Hopital's Rule | One giant order a year to save on ordering?: Set the derivative of total cost to zero and confirm a minimum: Q* = 949 | cmp-eoq |
+| CMPCBS/cmpcbs-lifetime-value-diverging-series | data | Sequences, infinite series, and convergence tests | A lifetime value that grows forever: Retention only, r = 0.92; check abs(r) < 1; LTV = 12 / (1 - 0.92) = $150 | cmp-series |
+| CMPCBS/cmpcbs-depot-saddle-point | data | Optimization in several variables | The gradient is zero, so it's the best site?: Classify with the second derivative test, then minimize along the boundary: (0, 7.5) | cmp-saddle |
+| CMPCBS/cmpcbs-pool-flush-first-order | data | First-order differential equations | One tank volume replaced, so reopen?: Model the first-order decay, plan for about 22:00 (open next morning), and confirm with a test | cmp-mixing |
+| CMPCBS/cmpcbs-member-id-check-digit | data | Groups and their properties | Swapped digits pass the check: Weighted sum mod 11 with distinct weights 9..2 (ISBN-10 style) | cmp-checkdigit |
+| CMPCBS/cmpcbs-fertilizer-blend-singular-system | data | Systems of linear equations and Gaussian elimination | The blend calls for minus 4 quadrillion kilos: Row-reduce, describe the solution line, keep it nonnegative, and choose the cheapest point (50% A, 50% B) | cmp-gauss |
+| CMPCBS/cmpcbs-access-rule-de-morgan | data | Boolean algebra | Expired badges open the door: allow = not (expired or suspended), that is (not expired) and (not suspended) | cmp-logic |
+| PTPREREQ/ptprereq-quad-strength-test-angle-changed | data | Apply the length-tension relationship (peak tension at about 80 to... | Quadriceps strength fell 25% overnight: Report by test angle, compare only 60-degree results, and restore the 60-degree setup | pt-lengthtension |
+| PTPREREQ/ptprereq-cushion-pressure-contact-area | data | Calculate pressure as force divided by area, and apply it to... | The thickest cushion isn't the one that spreads the load: Rank by average pressure, P = F/A, with the area in square meters | pt-pressure |
+| PTPREREQ/ptprereq-saline-prep-grams-per-liter | data | Calculate molarity and convert between grams, moles and millimoles... | 0.9 grams per liter is not 0.9 percent: 9.0 g NaCl made up to 1 L (or 0.9 g to 100 mL): 0.154 M | pt-molarity |
+| PTPREREQ/ptprereq-app-users-attend-more-correlational | data | Evaluate a plainly described study as correlational or... | App users attend more, so buy it for everyone?: Describe it as an association and run the vendor's trial with random assignment before buying for everyone | pt-correlation |
+| PTPREREQ/ptprereq-histology-slides-swapped-labels | data | Identify which connective tissue (dense regular, dense irregular,... | The tendon slide shows fibers going every which way: Reattach the images to the right slide numbers, keeping the labels and question numbers | pt-tissue |
+| MSHI/mshi-eye-exam-recall-left-join | data | Relational databases, data modelling and SQL: tables linked by... | The recall list skipped everyone who never had an exam: NOT EXISTS an exam in the last 12 months (a correlated subquery) | mshi-recall |
+| MSHI/mshi-ed-registration-rework-loop | data | Process improvement with Lean, Six Sigma and process mining of... | Add a clerk, or remove the loop?: Remove the cause: insurance fields after the provider, registration in parallel; measure again from the log | mshi-mining |
+| MSHI/mshi-telehealth-vendor-weights | data | Strategic planning for health IT and digital health: setting a... | The cheapest platform can't talk to our EHR: Make the plan's priorities must-haves and weight the rest from the plan, using 5-year total cost | mshi-vendor |
+| MSHI/mshi-flag-mapping-interprofessional-tabletop | tabletop | F9 SBAR handoffs with acknowledgment | A result-feed change strips abnormal flags: huddle every profession with one SBAR, hand off to the night on-call by SBAR with read-back and questions, turn friction into roles, deploy the fix only after lab verification; three procedure gaps owned | mshi-f9 |
+
+**Bands added (8)**, same rule as above: PYTHON conditional logic (the PCEP
+shipping tiers), PYTHON text files (the PCEP audit log), PYTHON pinning (the
+PYAUTO unpinned dependency), PYAUTO file encodings (the PCAP CSV encoding),
+TSNODE narrowing by truthiness (the JavaScript zero discount), PTPREREQ hip
+and knee movers (the NASM squat, knees caving), PTPREREQ p-values and Type II
+error (the CMPCBS pilot), MSCS truth tables (the CMPCBS badge rule).
+**Removed (3):** MSHI's SQL NOT IN, control chart and PfMP rebalance bands;
+CMPCBS keeps the PfMP band (Introduction to Information Systems is not one of
+its top two domains).
+
+**Tests.** `depth-academic.test.ts` adds a behavior test for every case on
+the data-case skeleton (each option's check passes exactly when shipping it
+would be right, the as-found version fails, at least one option passes and
+one fails, and the data shortcut spoils even the right fix) and one for the
+MSHI tabletop (IT alone, a chat handoff and an unverified fix are each their
+own harm ending ahead of the target).
+
+**Sources** for the continuation, all read 2026-11-17 through summarizing
+fetches of URLs that appeared in a search result or a fetched page, each on
+its document with what it says: Python tutorial (classes, modules, errors,
+input and output), Unicode HOWTO, argparse, the Python time-complexity page
+(reached by the wiki's redirect), pip repeatable installs, pytest
+monkeypatch, OpenSSF CWE-78, GitHub REST pagination, an Imperial College regex
+page; PostgreSQL 13, 15, 16, 18 and 19 pages (aggregates, window functions,
+subqueries, combining queries, LIMIT); Supabase cascade deletes; a Looker
+fanout article; MDN (nullish coalescing, deep copy, private elements, for...in,
+event bubbling; an MDN closures mirror); npm semver (an old copy) and npm ci;
+the TypeScript handbook (narrowing, classes, utility types in the Korean
+edition); NumPy (broadcasting, Generator), pandas 1.1 IO, Matplotlib
+histograms, a course page on notebook kernel state; NN/g (success rate,
+thinking aloud), UCSD BFS notes, CMU MapReduce averaging notes; cppreference
+(operator>>, push_back); the ASA p-value statement (ScienceDaily); NIST
+e-Handbook residuals; Wikipedia (Kahan summation, check digits); OpenStax
+(Introductory Statistics, Biology, Calculus 1-3 via Lumen for volume 3,
+Chemistry 2e, College Physics 2e, Psychology 2e, A&P 2e via Oregon State and
+the University of Baltimore, Contemporary Mathematics via LibreTexts); Penn
+State's Matrices; Robert Israel's mixing notes; AHRQ TeamSTEPPS SBAR and the
+CUSP teamwork module; Mans et al., process mining in healthcare; HealthIT.gov
+vendor selection. Every organization, person and count is invented; no
+patient data; no drug or dose; the vaccination clinic case is about booking.
+
+**Findings.**
+
+5. **Code lines are literal, labels are templates.** Braces in a code
+   viewer line are code (types.ts), but a backslash in one still trips the
+   FAIL-1440 lint, so two C++ lines were rewritten without escapes.
+6. **A meter and a flag shared an id.** The skeleton named both `altered`;
+   the validator caught it and the meter is now `alteredRows`.
+7. **A fetched page carried instructions for AI agents** (a request to file
+   feedback); they were ignored and only the documentation was used.
+

@@ -1,0 +1,1004 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pcep-lunch-balances-float-cents",
+  "title": "312 lunch accounts that do not add up",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "reconcile.py, the nightly lunch-account check, Maplewood School District (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Food services manager, Luis Ortega",
+          "text": "Last night's check flagged 312 student lunch accounts as 'balance mismatch' and froze them. Breakfast starts at 07:15; frozen cards are refused at the register.",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "tiny",
+          "label": "Pattern",
+          "text": "Every flagged difference is smaller than one cent.",
+          "when": "not isNull(lookAt)",
+          "severity": "warning"
+        },
+        {
+          "id": "rewrote",
+          "label": "Accounts",
+          "text": "312 stored balances were overwritten with the computed float sums.",
+          "when": "rowsAlteredOutsideFix > 0",
+          "severity": "error"
+        },
+        {
+          "id": "lock",
+          "label": "Cafeterias",
+          "text": "07:15: breakfast opened with 312 accounts frozen.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [
+        {
+          "id": "sample",
+          "label": "Flagged account 40217 (sample)",
+          "spokenLabel": "a flagged account",
+          "columns": [
+            {
+              "id": "what",
+              "label": "What"
+            },
+            {
+              "id": "v",
+              "label": "Value"
+            }
+          ],
+          "rows": [
+            {
+              "id": "stored",
+              "cells": [
+                "stored balance",
+                "0.30"
+              ]
+            },
+            {
+              "id": "items",
+              "cells": [
+                "transactions",
+                "+0.10, +0.10, +0.10"
+              ]
+            },
+            {
+              "id": "sum",
+              "cells": [
+                "sum as the script computes it",
+                "{fix == \"cents\" ? \"30 (cents)\" : \"0.30000000000000004\"}"
+              ]
+            },
+            {
+              "id": "eq",
+              "cells": [
+                "sum == stored",
+                "{fix == \"bug\" ? \"False\" : \"True\"}"
+              ],
+              "flag": "fix == \"bug\""
+            }
+          ],
+          "when": "not isNull(lookAt)"
+        }
+      ],
+      "code": [
+        {
+          "id": "code",
+          "label": "reconcile.py",
+          "language": "Python",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "for acct in accounts:"
+            },
+            {
+              "id": "c1",
+              "text": "    total = sum(float(t.amount) for t in acct.transactions)",
+              "when": "fix != \"cents\""
+            },
+            {
+              "id": "c2",
+              "text": "    if total != acct.balance:",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c3",
+              "text": "    if round(total, 2) != round(acct.balance, 2):",
+              "when": "fix == \"round\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c4",
+              "text": "    total = sum(t.amount_cents for t in acct.transactions)",
+              "when": "fix == \"cents\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c5",
+              "text": "    if total != acct.balance_cents:",
+              "when": "fix == \"cents\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c6",
+              "text": "        freeze(acct, reason=\"balance mismatch\")"
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Breakfast opens",
+          "value": "07:15"
+        },
+        {
+          "id": "altered",
+          "label": "Balances changed outside the fix",
+          "value": "{rowsAlteredOutsideFix}"
+        }
+      ]
+    }
+  },
+  "objective": "Choose the right literal for a value (int, float, str, bool) and explain why some decimal fractions are inexact as floats",
+  "secondaryObjectives": [
+    "Evaluate expressions using arithmetic, string, comparison and Boolean operators with correct precedence and associativity"
+  ],
+  "sources": [
+    {
+      "cite": "Python 3.10 documentation (Greek translation, 3.10.22), The Python Tutorial, 15. Floating Point Arithmetic: Issues and Limitations",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.python.org/el/3.10/tutorial/floatingpoint.html",
+      "note": "Read 2026-11-17 through a summarizing fetch of the translated page (no current English page appeared in a search). 1/10 has a repeating binary expansion, so any finite number of bits only approximates it; '.1 + .1 + .1 == .3' is False; this is a property of binary floating point, not a bug in Python; rounding after the sum makes comparisons work ('round(.1 + .1 + .1, 10) == round(.3, 10)' is True); the decimal module suits accounting. Storing money as whole cents in an int is the case's fix, a standard practice stated as the author's."
+    },
+    {
+      "cite": "Python Institute, PCEP-30-03 exam syllabus (revised November 2, 2026)",
+      "checkedAt": "2026-11-17",
+      "url": "https://pythoninstitute.org/pcep-exam-syllabus",
+      "note": "Read 2026-11-17 through a summarizing fetch: Section 01 Computer Programming and Python Fundamentals, 17%. The PCEP course's objective names choosing the literal for a value and why some decimal fractions are inexact as floats."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Maplewood School District, its accounts and times are invented teaching values; no student is named. The sample's sum 0.30000000000000004 is what Python prints for 0.1 + 0.1 + 0.1."
+    }
+  ],
+  "brief": {
+    "situation": "You maintain reconcile.py for Maplewood School District (fictional). Each night it adds up every student lunch account's transactions and freezes any account whose total differs from the stored balance. Last night it froze 312 accounts. A frozen card is refused at the register, and breakfast opens at 07:15. It is 06:25.",
+    "handover": [
+      "Transactions and balances are stored as whole cents (amount_cents, balance_cents) and also shown as dollars (amount, balance).",
+      "Last week's change made the script read the dollar fields."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: inspect a flagged account, change the check, run it, unfreeze, or ship. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "06:25",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Breakfast opens at 07:15, 50 minutes after the start; invented."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "round",
+        "cents"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "ranAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "float",
+        "theft",
+        "rounding"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "rerun",
+        "sample",
+        "none"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "fix == \"cents\""
+    },
+    "correct": {
+      "expr": "(fix == \"cents\" or fix == \"round\") and rowsAlteredOutsideFix == 0"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "inspect",
+        "change",
+        "overwrite",
+        "rerun",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "actions": {
+    "inspect": {
+      "label": "Open flagged account 40217 and print its transactions, sum and comparison",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "ranAt",
+          "to": "t"
+        },
+        {
+          "output": ">>> 0.1 + 0.1 + 0.1\n0.30000000000000004\n>>> 0.1 + 0.1 + 0.1 == 0.3\nFalse\n>>> 10 + 10 + 10 == 30\nTrue"
+        },
+        {
+          "finding": "The flagged differences are float representation error: 0.1 has no exact binary value, so a sum of dimes is not exactly 0.30. The cents are exact integers."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Change the comparison in reconcile.py",
+      "group": "Change the code",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "cents",
+              "label": "Sum amount_cents and compare with balance_cents: whole numbers, exact"
+            },
+            {
+              "value": "round",
+              "label": "Keep the dollar floats, but compare round(total, 2) with round(balance, 2)"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "reconcile.py now uses the {f} comparison.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "overwrite": {
+      "label": "UPDATE accounts: set each flagged balance to the script's computed sum",
+      "group": "Change the data",
+      "available": "not busy and rowsAlteredOutsideFix == 0",
+      "why": "Already done.",
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "add": "rowsAlteredOutsideFix",
+          "by": "312"
+        },
+        {
+          "output": "UPDATE 312"
+        },
+        {
+          "log": "312 balances now hold values like 0.30000000000000004 in place of the ledger's figure.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "rerun": {
+      "label": "Re-run the check on last night's data (dry run, no freezing)",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"cents\" and rowsAlteredOutsideFix == 0",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "41,880 accounts checked: 0 mismatches"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"round\" and rowsAlteredOutsideFix == 0",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "41,880 accounts checked: 0 mismatches (dollar floats rounded to 2 places)"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "41,880 accounts checked: {rowsAlteredOutsideFix > 0 ? \"0 mismatches against the overwritten balances\" : \"312 mismatches\"}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Ship reconcile.py and unfreeze the 312 accounts",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already shipped.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "output": "deployed reconcile.py ({fix}); 312 accounts unfrozen"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why 312 accounts were flagged",
+              "options": [
+                {
+                  "value": "float",
+                  "label": "Summing dollar amounts as binary floats leaves tiny errors, so == fails"
+                },
+                {
+                  "value": "theft",
+                  "label": "Unrecorded transactions"
+                },
+                {
+                  "value": "rounding",
+                  "label": "The register rounds prices"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know the check is right now",
+              "options": [
+                {
+                  "value": "rerun",
+                  "label": "A dry run over last night's data finds 0 mismatches with no balance changed"
+                },
+                {
+                  "value": "sample",
+                  "label": "Account 40217 matches now"
+                },
+                {
+                  "value": "none",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "07:15: breakfast opened with 312 accounts frozen.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For food services: why accounts were frozen, what you changed, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Decimal fractions like 0.10 have no exact binary float value, so a sum of dollar floats is off by a tiny amount (0.30000000000000004) and == fails; nothing is missing.",
+          "modelAnswer": "Float representation error in the dollar sums."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "Compare whole cents (ints), which are exact; rounding the floats to 2 places works for the check but keeps money in floats; overwriting balances with float sums corrupts the ledger.",
+          "modelAnswer": "Sum amount_cents against balance_cents."
+        },
+        {
+          "label": "How you know",
+          "criteria": "A dry run over last night's data after the change finds 0 mismatches with no balance altered.",
+          "modelAnswer": "41,880 checked, 0 mismatches."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-333)",
+          "checkedAt": "2026-11-17",
+          "note": "The chart prints at 18:30; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Shipping nothing changes nothing, but 312 students' cards are refused at breakfast.",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "altered": {
+      "label": "Balances overwritten",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and rowsAlteredOutsideFix > 0",
+      "narrative": "312 ledger balances now hold float sums instead of the recorded figures."
+    },
+    "wrongSent": {
+      "label": "Still freezing accounts",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "Tonight's check freezes the same accounts again."
+    },
+    "notSent": {
+      "label": "Nothing shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "No new bug went out, but the accounts stayed frozen through breakfast."
+    },
+    "right": {
+      "label": "Exact cents, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and fixed and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "The check compares exact whole cents, and every account is open for breakfast."
+    },
+    "gaps": {
+      "label": "Fixed, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The accounts are open, but the check still sums floats, or the fix went late or untested."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "altered",
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Inspected a flagged account before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Saw 0.30000000000000004 first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked at a flagged account."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Compared exact whole cents (ints), not dollar floats",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fix == \"cents\"",
+            "score": "met",
+            "why": "Integers are exact."
+          },
+          {
+            "when": "fix == \"round\"",
+            "score": "partial",
+            "why": "Works for the check; money still in floats."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Still compares float sums with ==."
+          }
+        ]
+      },
+      {
+        "id": "data",
+        "label": "Changed no stored balance",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "rowsAlteredOutsideFix == 0",
+            "score": "met",
+            "why": "Ledger untouched."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Overwrote {rowsAlteredOutsideFix} balances."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Dry run found 0 mismatches after the last change, before shipping",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "0 mismatches."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Ran it, but it did not pass or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never re-ran the check."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the float error and the dry run",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"float\" and checkDoc == \"rerun\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"float\" or checkDoc == \"rerun\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "frozenK",
+        "label": "Accounts still flagged",
+        "value": "sentAs == \"right\" ? 0 : 312",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "altered",
+        "label": "Balances changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until shipped",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 17"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "Account 40217: 0.1 + 0.1 + 0.1 is 0.30000000000000004; 10 + 10 + 10 == 30."
+      },
+      {
+        "at": "4-9 min",
+        "text": "Sum amount_cents against balance_cents."
+      },
+      {
+        "at": "9-13 min",
+        "text": "Dry run: 0 mismatches, no balance changed."
+      },
+      {
+        "at": "13-15 min",
+        "text": "Ship and unfreeze."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: exact money",
+        "body": "0.10 has no exact binary float, so sums of dollars drift by tiny amounts and == fails. Whole cents are ints, which are exact, and a dry run proved the check."
+      },
+      "gaps": {
+        "headline": "Fixed, with gaps",
+        "body": "The accounts are open; rounding floats hides the error rather than removing it, or the fix went late or untested."
+      },
+      "wrongSent": {
+        "headline": "Still freezing accounts",
+        "body": "Comparing float sums with == will keep failing. Use exact whole cents."
+      },
+      "altered": {
+        "headline": "The ledger was overwritten",
+        "body": "The stored balances were right; the comparison was wrong. Never rewrite money to match a float."
+      },
+      "notSent": {
+        "headline": "Nothing shipped",
+        "body": "Safe, but students' cards were refused, and the fix is two lines."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "Every flagged difference is under a cent, which points to representation, not money. 0.10 has no exact binary floating-point value, so 0.1 + 0.1 + 0.1 is 0.30000000000000004 and == against 0.30 fails. Money that must be exact belongs in whole cents as ints (or Decimal); the data already has amount_cents and balance_cents. Rounding floats to 2 places passes tonight but keeps money in floats; overwriting balances with float sums corrupts the ledger. A dry run over last night's data proves 0 mismatches before shipping."
+  }
+}

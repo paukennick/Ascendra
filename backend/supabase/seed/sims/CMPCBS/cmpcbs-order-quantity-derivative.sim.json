@@ -1,0 +1,906 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cmpcbs-order-quantity-derivative",
+  "title": "One giant order a year to save on ordering?",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "order_plan.xlsx, flour purchasing, Hearthside Bakery Cooperative (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Operations manager, Lena Fischer",
+          "text": "Each order costs us $150 in fees and handling, so I want one order of 12,000 bags a year. The supplier needs our order size by 12:00.",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "seen",
+          "label": "Pattern",
+          "text": "The plan minimizes one cost and ignores the other.",
+          "when": "not isNull(lookAt) and not fixed",
+          "severity": "warning"
+        },
+        {
+          "id": "lock",
+          "label": "Supplier",
+          "text": "12:00: the order size went to the supplier as it stood.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [],
+      "code": [
+        {
+          "id": "code",
+          "label": "order_plan.xlsx",
+          "language": "text",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "Q = 12,000 (one order: ordering cost 150)",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c1",
+              "text": "C'(Q) = -1,800,000 / Q^2 + 2 = 0  ->  Q* = sqrt(900,000) = 949; C''(Q) = 3,600,000 / Q^3 > 0 (a minimum)",
+              "when": "fix == \"deriv\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c2",
+              "text": "Try Q = 500, 1,000 and 2,000 in the sheet; pick the cheapest (1,000)",
+              "when": "fix == \"grid\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c3",
+              "text": "Q* = sqrt(D S / H) = sqrt(450,000) = 671",
+              "when": "fix == \"half\"",
+              "mark": "\"warning\""
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Supplier",
+          "value": "12:00"
+        }
+      ]
+    }
+  },
+  "objective": "Applications of derivatives, including L'Hopital's Rule",
+  "secondaryObjectives": [
+    "The derivative: formal definition and differentiation rules"
+  ],
+  "sources": [
+    {
+      "cite": "OpenStax, Calculus Volume 1, 4.7 Applied Optimization Problems",
+      "checkedAt": "2026-11-17",
+      "url": "https://openstax.org/books/calculus-volume-1/pages/4-7-applied-optimization-problems",
+      "note": "Read 2026-11-17 through a summarizing fetch. The strategy ends: 'Locate the maximum or minimum value of the function', which 'typically involves looking for critical points and evaluating a function at endpoints'; the examples compare the critical point's value with the endpoints. The order-quantity cost function and its derivative are the author's application."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Every organization, person, count and deadline is invented teaching data; tool output is an authored rendering in the tool style."
+    }
+  ],
+  "brief": {
+    "situation": "You help plan purchasing at Hearthside Bakery Cooperative (fictional). Annual demand is 12,000 bags of flour, each order costs $150, and holding a bag for a year costs $4. The manager proposes one order of 12,000 to cut ordering costs. The supplier needs the order size by 12:00. It is 11:05.",
+    "handover": [
+      "Total yearly cost C(Q) = 12,000 x 150 / Q + 4 Q / 2 for order size Q (bags)."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: look, change, check or ship. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "11:05",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "The deadline is an invented teaching value."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "deriv",
+        "grid",
+        "half"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "c0",
+        "c1",
+        "c2"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "k0",
+        "k1",
+        "k2"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "(fix == \"deriv\")"
+    },
+    "correct": {
+      "expr": "(fix == \"deriv\" or fix == \"grid\")"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "look",
+        "change",
+        "check",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "look": {
+      "label": "Compute total yearly cost for the proposal and a few other order sizes",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "output": "Q* = 949: ordering 1,897 + holding 1,897 = 3,795 a year"
+            }
+          ],
+          "else": [
+            {
+              "output": "Q = 12,000: ordering 150 + holding 24,000 = 24,150 a year\nQ = 1,000: 1,800 + 2,000 = 3,800"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "finding": "The total cost is at its minimum."
+            }
+          ],
+          "else": [
+            {
+              "finding": "Cutting the number of orders raises holding cost far more: the total is what matters, and it has a minimum where its derivative is zero."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Change how the order size is chosen",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "deriv",
+              "label": "Set the derivative of total cost to zero and confirm a minimum: Q* = 949"
+            },
+            {
+              "value": "grid",
+              "label": "Try a few sizes in the sheet and pick the cheapest tried (1,000)"
+            },
+            {
+              "value": "half",
+              "label": "Use sqrt(D S / H), dropping the factor 2"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: {f}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "check": {
+      "label": "Check C' = 0 at the answer, C'' > 0, and compare with the endpoints",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"deriv\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "C(949) = 3,795; C'' > 0; endpoints Q = 1 and Q = 12,000 both higher\n2 passed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"grid\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "C(1,000) = 3,800; not shown to be the minimum\n1 passed, 1 failed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"half\"",
+              "then": [
+                {
+                  "output": "C(671) = 4,025 vs 3,795\n1 failed"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "C(12,000) = 24,150; not a minimum\n1 failed"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Send the order size to the supplier",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "if": "correct",
+          "then": [
+            {
+              "output": "Sent: about 950 bags per order, about 13 orders a year."
+            }
+          ],
+          "else": [
+            {
+              "output": "Sent: an order size that costs more than it needs to."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why one big order was wrong",
+              "options": [
+                {
+                  "value": "c0",
+                  "label": "It minimized ordering cost alone; total cost has a minimum where its derivative is zero, near 949 bags"
+                },
+                {
+                  "value": "c1",
+                  "label": "The supplier's fee is wrong"
+                },
+                {
+                  "value": "c2",
+                  "label": "Flour prices change"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know 949 is best",
+              "options": [
+                {
+                  "value": "k0",
+                  "label": "C'(949) = 0, C'' > 0, and both endpoints cost more"
+                },
+                {
+                  "value": "k1",
+                  "label": "It is a round number"
+                },
+                {
+                  "value": "k2",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "12:00: the order size went to the supplier as it stood.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the manager: why one order was costly, what you chose, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Ordering cost falls as Q rises but holding cost rises; total cost C(Q) = DS/Q + HQ/2 has its minimum where C'(Q) = 0.",
+          "modelAnswer": "Two costs trade off."
+        },
+        {
+          "label": "What you chose",
+          "criteria": "Q* = sqrt(2DS/H) = 949 from C' = 0, confirmed by C'' > 0 and the endpoints; a grid of tries is close but unproven; dropping the 2 is a wrong derivative.",
+          "modelAnswer": "About 949 bags per order."
+        },
+        {
+          "label": "How you know",
+          "criteria": "C' = 0 there, C'' > 0, and the endpoints are higher.",
+          "modelAnswer": "Minimum confirmed: 3,795 a year."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-333)",
+          "checkedAt": "2026-11-17",
+          "note": "The case's deadline; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Shipping nothing ships nothing wrong, but the deadline passes without the fix.",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "wrongSent": {
+      "label": "Costly order size sent",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "The cooperative pays thousands more a year to store flour."
+    },
+    "notSent": {
+      "label": "Nothing shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "The supplier used last year's size."
+    },
+    "right": {
+      "label": "Right, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and fixed and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "The cooperative orders at the size that minimizes total cost."
+    },
+    "gaps": {
+      "label": "Right, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The result is right, but it went late, unchecked, before you looked, or with a weaker fix."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Compared total costs before choosing",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked before acting."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Found the minimum of total cost from its derivative",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed",
+            "score": "met",
+            "why": "Minimized total cost with the derivative and checked it."
+          },
+          {
+            "when": "fix == \"grid\"",
+            "score": "partial",
+            "why": "Close (3,800), but only as good as the values tried, with no reason to trust it."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{fix == \"half\" ? \"A wrong derivative gives a wrong optimum: 671 bags, $230 a year more.\" : \"The plan still minimizes ordering cost alone.\"}"
+          }
+        ]
+      },
+      {
+        "id": "shipped",
+        "label": "Shipped nothing wrong",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sentAs != \"wrong\"",
+            "score": "met",
+            "why": "Nothing wrong shipped."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Shipped a wrong result."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Derivative, second derivative and endpoints checked after the last change, before sending",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "Checked after the last change, before shipping."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Checked, but it failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"c0\" and checkDoc == \"k0\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"c0\" or checkDoc == \"k0\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rightK",
+        "label": "Right result shipped",
+        "value": "sentAs == \"right\" ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "altered",
+        "label": "Rows changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until shipped",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 14"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "12,000 costs 24,150 a year."
+      },
+      {
+        "at": "4-9 min",
+        "text": "C' = 0 at 949."
+      },
+      {
+        "at": "9-12 min",
+        "text": "C'' > 0; endpoints higher."
+      },
+      {
+        "at": "12-14 min",
+        "text": "Send."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: optimize the total",
+        "body": "Find where the derivative of the total is zero, then confirm it is a minimum."
+      },
+      "gaps": {
+        "headline": "Right, with gaps",
+        "body": "The result is right; it went late, unchecked, before you looked, or with a weaker fix than the cause called for."
+      },
+      "wrongSent": {
+        "headline": "Costly size",
+        "body": "A derivative off by a factor gives an optimum that isn't one."
+      },
+      "notSent": {
+        "headline": "Nothing shipped",
+        "body": "Safe, but the deadline passed without the fix."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "One big order minimizes ordering cost but holding 12,000 bags costs 24,000 a year. Total cost C(Q) = 1,800,000/Q + 2Q; C'(Q) = -1,800,000/Q^2 + 2 is zero at Q = 949, and C'' > 0 makes it a minimum, 3,795 a year, below both endpoints. Trying a few sizes gets close without proof; dropping the 2 gives 671 and costs more."
+  }
+}

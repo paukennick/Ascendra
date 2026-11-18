@@ -1,0 +1,937 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pyauto-api-first-page-only",
+  "title": "342 open tickets, and the report says 30",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "sla_report.py, the weekly overdue-ticket report, Kestrel Facilities (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Service manager, Leah Moss",
+          "text": "Your report says 30 tickets are open, every week. The helpdesk screen says 342. Which is it? The client review is at 16:00.",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "seen",
+          "label": "Pattern",
+          "text": "The count is always exactly 30.",
+          "when": "not isNull(lookAt) and not fixed",
+          "severity": "warning"
+        },
+        {
+          "id": "lock",
+          "label": "Client review",
+          "text": "16:00: the client review used the wrong count.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [],
+      "code": [
+        {
+          "id": "code",
+          "label": "sla_report.py",
+          "language": "Python",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "r = session.get(BASE + '/tickets', params=dict(status='open'), timeout=10)",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c1",
+              "text": "tickets = r.json()",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c2",
+              "text": "url = BASE + '/tickets?status=open&per_page=100'",
+              "when": "fix == \"follow\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c3",
+              "text": "while url:",
+              "when": "fix == \"follow\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c4",
+              "text": "    r = session.get(url, timeout=10); r.raise_for_status()",
+              "when": "fix == \"follow\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c5",
+              "text": "    tickets += r.json(); url = r.links.get('next', dict()).get('url')",
+              "when": "fix == \"follow\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c6",
+              "text": "r = session.get(BASE + '/tickets', params=dict(status='open', per_page=1000), timeout=10)",
+              "when": "fix == \"big\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c7",
+              "text": "tickets = r.json()",
+              "when": "fix == \"big\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c8",
+              "text": "for p in range(1, 13): tickets += session.get(BASE + f'/tickets?status=open&page=' + str(p)).json()",
+              "when": "fix == \"guess\"",
+              "mark": "\"warning\""
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Client review",
+          "value": "16:00"
+        }
+      ]
+    }
+  },
+  "objective": "Handle error status codes, rate limits and pagination",
+  "secondaryObjectives": [
+    "Call an HTTP API with urllib.request or Requests, setting headers, query parameters and a timeout"
+  ],
+  "sources": [
+    {
+      "cite": "GitHub Docs, Using pagination in the REST API",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.github.com/en/rest/using-the-rest-api/using-pagination-in-the-rest-api",
+      "note": "Read 2026-11-17 through a summarizing fetch. Large responses are paginated (an issues list 'will only return 30 issues'); 'the response headers will include a link header'; 'The URL for the next page is followed by rel=\"next\"'; the guide's script keeps requesting while a next link exists. The case's ticket API is fictional and follows the same convention."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Every organization, person, count and deadline is invented teaching data; tool output is an authored rendering in the tool style."
+    }
+  ],
+  "brief": {
+    "situation": "You maintain sla_report.py at Kestrel Facilities (fictional). It pulls open tickets from the helpdesk API and lists those past their SLA. It has reported exactly 30 open tickets for weeks; the helpdesk screen shows 342. The client review is at 16:00. It is 15:05.",
+    "handover": [
+      "The helpdesk API documents paginated lists with a Link header, rel=\"next\".",
+      "The API allows at most 100 items per page."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: look, change, check or ship. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "15:05",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "The deadline is an invented teaching value."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "follow",
+        "big",
+        "guess"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "c0",
+        "c1",
+        "c2"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "k0",
+        "k1",
+        "k2"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "(fix == \"follow\")"
+    },
+    "correct": {
+      "expr": "(fix == \"follow\" or fix == \"guess\")"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "look",
+        "change",
+        "check",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "look": {
+      "label": "Print the response's status, item count and Link header",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "output": "4 pages read, 342 items; no rel=\"next\" on the last"
+            }
+          ],
+          "else": [
+            {
+              "output": "200, 30 items\nLink: <.../tickets?status=open&page=2>; rel=\"next\", <.../tickets?status=open&page=12>; rel=\"last\""
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "finding": "Every page is read."
+            }
+          ],
+          "else": [
+            {
+              "finding": "The API paginates: the first response holds 30 tickets and a Link header to the next page, which the script never follows."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Change how the tickets are fetched",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "follow",
+              "label": "Request 100 per page and follow rel=\"next\" until there is none, raising on error statuses"
+            },
+            {
+              "value": "big",
+              "label": "Ask for per_page=1000 in one request"
+            },
+            {
+              "value": "guess",
+              "label": "Loop over pages 1 to 12 without checking the Link header or the status"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: {f}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "check": {
+      "label": "Compare the count with the helpdesk screen, and test against a mock with 3 pages and a 429 response",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"follow\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "342 tickets read across 4 pages; 57 past SLA\n2 passed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"big\"",
+              "then": [
+                {
+                  "output": "100 tickets (API caps per_page at 100)\n1 failed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"guess\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "342 tickets\n2 passed (fixed page count; status unchecked)"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "30 of 342\n1 failed"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Send the SLA report to the service manager",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "if": "correct",
+          "then": [
+            {
+              "output": "Sent: 342 open, 57 past SLA."
+            }
+          ],
+          "else": [
+            {
+              "output": "Sent with an undercount."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why the report always said 30",
+              "options": [
+                {
+                  "value": "c0",
+                  "label": "The API returns 30 per page with a Link to the next page, and the script read only the first"
+                },
+                {
+                  "value": "c1",
+                  "label": "The helpdesk screen double-counts"
+                },
+                {
+                  "value": "c2",
+                  "label": "Tickets were archived"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know it is complete",
+              "options": [
+                {
+                  "value": "k0",
+                  "label": "The count equals the helpdesk's 342 and paging tests pass"
+                },
+                {
+                  "value": "k1",
+                  "label": "The number went up"
+                },
+                {
+                  "value": "k2",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "16:00: the client review used the wrong count.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the service manager: why the report said 30, what you changed, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Paginated APIs return one page and a Link header with rel=next; reading one response gets one page.",
+          "modelAnswer": "First page only."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "Request the maximum page size the API allows and follow next links until none remain, raising on error status (and backing off on 429); a bigger per_page alone hits the cap; a fixed page loop breaks when the count changes.",
+          "modelAnswer": "Follow rel=next."
+        },
+        {
+          "label": "How you know",
+          "criteria": "The total equals the helpdesk's count, and a mocked 3-page and 429 test passes.",
+          "modelAnswer": "342 = 342."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-333)",
+          "checkedAt": "2026-11-17",
+          "note": "The case's deadline; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Shipping nothing ships nothing wrong, but the deadline passes without the fix.",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "wrongSent": {
+      "label": "Undercount sent",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "The client is told the backlog is a fraction of its real size."
+    },
+    "notSent": {
+      "label": "Nothing shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "No wrong figure, but the review used last week's report."
+    },
+    "right": {
+      "label": "Right, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and fixed and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "The client sees all 342 open tickets and the 57 past SLA."
+    },
+    "gaps": {
+      "label": "Right, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The result is right, but it went late, unchecked, before you looked, or with a weaker fix."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Read the response headers before changing code",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked before acting."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Followed the pagination links to the end",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed",
+            "score": "met",
+            "why": "Follows rel=next to the end, checking status."
+          },
+          {
+            "when": "fix == \"guess\"",
+            "score": "partial",
+            "why": "Right today; breaks as soon as the count changes or a page errors."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{fix == \"big\" ? \"The API caps pages at 100, so the report now stops at 100.\" : \"Only the first page is read.\"}"
+          }
+        ]
+      },
+      {
+        "id": "shipped",
+        "label": "Shipped nothing wrong",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sentAs != \"wrong\"",
+            "score": "met",
+            "why": "Nothing wrong shipped."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Shipped a wrong result."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Count matched the helpdesk and the mock tests passed after the last change",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "Checked after the last change, before shipping."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Checked, but it failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"c0\" and checkDoc == \"k0\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"c0\" or checkDoc == \"k0\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rightK",
+        "label": "Right result shipped",
+        "value": "sentAs == \"right\" ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "altered",
+        "label": "Rows changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until shipped",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 14"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "30 items and a Link header to page 2."
+      },
+      {
+        "at": "4-9 min",
+        "text": "Follow rel=next, 100 per page."
+      },
+      {
+        "at": "9-12 min",
+        "text": "342; mock tests pass."
+      },
+      {
+        "at": "12-14 min",
+        "text": "Send."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: read the Link header",
+        "body": "A count that never changes is a page size. Follow the API's next links until it says there are no more."
+      },
+      "gaps": {
+        "headline": "Right, with gaps",
+        "body": "The result is right; it went late, unchecked, before you looked, or with a weaker fix than the cause called for."
+      },
+      "wrongSent": {
+        "headline": "Undercount sent",
+        "body": "Page sizes are capped; guessing a page count hides the next change."
+      },
+      "notSent": {
+        "headline": "Nothing shipped",
+        "body": "Safe, but the deadline passed without the fix."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "A count of exactly 30 every week is a page size, not a backlog. The API returns one page and a Link header with rel=\"next\"; the script read one response. Request the largest page the API allows (100), follow next links until none remain, and raise on error statuses so a 429 or 500 cannot silently shorten the list. per_page=1000 is capped at 100; looping a fixed number of pages works only until the count changes."
+  }
+}

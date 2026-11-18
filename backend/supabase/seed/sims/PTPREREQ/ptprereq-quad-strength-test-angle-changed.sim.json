@@ -1,0 +1,904 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "ptprereq-quad-strength-test-angle-changed",
+  "title": "Quadriceps strength fell 25% overnight",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "outcomes dashboard, knee strength measures, Cedar Valley Outpatient Rehab (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Quality coordinator, Hannah Ruiz",
+          "text": "The dashboard shows average quadriceps strength at discharge down 25% this month. I'm sending the quality report at 16:00 with a note that our knee program is failing.",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "seen",
+          "label": "Pattern",
+          "text": "The drop started the week a new dynamometer protocol began.",
+          "when": "not isNull(lookAt) and not fixed",
+          "severity": "warning"
+        },
+        {
+          "id": "lock",
+          "label": "Quality report",
+          "text": "16:00: the quality report went out with the dashboard as it stood.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [],
+      "code": [
+        {
+          "id": "code",
+          "label": "dashboard query",
+          "language": "SQL",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "SELECT month, avg(quad_peak_nm) FROM discharge_tests GROUP BY month;",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c1",
+              "text": "SELECT month, test_angle_deg, avg(quad_peak_nm) FROM discharge_tests GROUP BY month, test_angle_deg;   -- and report only like-for-like angles",
+              "when": "fix == \"angle\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c2",
+              "text": "-- restore the 60-degree setup for all new tests from today",
+              "when": "fix == \"angle\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c3",
+              "text": "SELECT month, avg(quad_peak_nm) * 1.33 FROM discharge_tests GROUP BY month;   -- 'correct' this month by 33%",
+              "when": "fix == \"scale\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c4",
+              "text": "SELECT month, avg(quad_peak_nm) FROM discharge_tests GROUP BY month;   -- report the drop as program failure",
+              "when": "fix == \"report\"",
+              "mark": "\"warning\""
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Quality report",
+          "value": "16:00"
+        }
+      ]
+    }
+  },
+  "objective": "Apply the length-tension relationship (peak tension at about 80 to 120 percent of a sarcomere's resting length) to explain why a muscle is weaker when much shorter or much longer than that",
+  "secondaryObjectives": [
+    "Explain how endurance training, resistance training and disuse change muscle: mitochondria and capillaries, hypertrophy and atrophy"
+  ],
+  "sources": [
+    {
+      "cite": "OpenStax, Anatomy and Physiology 2e (Oregon State University edition), 10.4 Nervous System Control of Muscle Tension",
+      "checkedAt": "2026-11-17",
+      "url": "https://open.oregonstate.education/anatomy2e/chapter/nervous-system-muscle-tension/",
+      "note": "Read 2026-11-17 through a summarizing fetch. 'The ideal length of a sarcomere to produce maximal tension occurs at 80 percent to 120 percent of its resting length'; stretched beyond that the filaments do not fully overlap, and shortened below it the zone of overlap is reduced, so tension drops either way."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Every organization, person, count and deadline is invented teaching data; tool output is an authored rendering in the tool style."
+    }
+  ],
+  "brief": {
+    "situation": "You help maintain the outcomes dashboard at Cedar Valley Outpatient Rehab (fictional) as a rehab aide with data duties. Average quadriceps strength at discharge fell 25% this month. A new dynamometer setup began the same week. The quality report goes at 16:00. It is 15:05. All records are invented teaching data.",
+    "handover": [
+      "Old protocol: knee extension measured with the knee at 60 degrees of flexion.",
+      "New setup sheet: knee at 10 degrees of flexion, near full extension, where the quadriceps is short."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: look, change, check or ship. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "15:05",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "The deadline is an invented teaching value."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "angle",
+        "scale",
+        "report"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "c0",
+        "c1",
+        "c2"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "k0",
+        "k1",
+        "k2"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "(fix == \"angle\")"
+    },
+    "correct": {
+      "expr": "(fix == \"angle\")"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "look",
+        "change",
+        "check",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "look": {
+      "label": "Split this month's results by test angle, and compare patients tested at both angles",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "output": "60-degree results: 142 Nm this month vs 145 last month"
+            }
+          ],
+          "else": [
+            {
+              "output": "60 degrees: 142 Nm (n=18), like last month's 145\n10 degrees: 98 Nm (n=41)\n6 patients tested both ways: 31% lower at 10 degrees"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "finding": "Like-for-like results are stable."
+            }
+          ],
+          "else": [
+            {
+              "finding": "At 10 degrees the quadriceps is short, its sarcomeres well below their optimal length, so it produces less force. The drop is the test position, not the patients."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Change what the dashboard reports",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "angle",
+              "label": "Report by test angle, compare only 60-degree results, and restore the 60-degree setup"
+            },
+            {
+              "value": "scale",
+              "label": "Multiply this month's average by 1.33 to correct it"
+            },
+            {
+              "value": "report",
+              "label": "Report the drop as the knee program failing"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: {f}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "check": {
+      "label": "Check that the trend uses one test angle and that the setup sheet now says 60 degrees",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"angle\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "60-degree trend: 145 -> 142 Nm; protocol sheet restored\n2 passed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"scale\"",
+              "then": [
+                {
+                  "output": "corrected average 130 Nm; per-patient error up to 18%\n1 failed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"report\"",
+              "then": [
+                {
+                  "output": "report attributes a 25% drop to the program\n1 failed"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "trend mixes 60- and 10-degree tests\n1 failed"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Send the dashboard to the quality report",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "if": "correct",
+          "then": [
+            {
+              "output": "Sent: strength stable; a protocol change noted and reversed."
+            }
+          ],
+          "else": [
+            {
+              "output": "Sent: a decline caused by measurement."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why strength appeared to fall",
+              "options": [
+                {
+                  "value": "c0",
+                  "label": "Testing at 10 degrees measures the quadriceps at a short length, where sarcomere overlap is reduced and force is lower"
+                },
+                {
+                  "value": "c1",
+                  "label": "Patients are weaker this month"
+                },
+                {
+                  "value": "c2",
+                  "label": "The dynamometer is broken"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know",
+              "options": [
+                {
+                  "value": "k0",
+                  "label": "60-degree results match last month, and patients tested both ways are lower at 10 degrees"
+                },
+                {
+                  "value": "k1",
+                  "label": "The average went back up"
+                },
+                {
+                  "value": "k2",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "16:00: the quality report went out with the dashboard as it stood.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the coordinator: why strength appeared to fall, what you changed, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Force depends on muscle length: peak tension near 80 to 120% of resting sarcomere length. Near full knee extension the quadriceps is short, overlap is reduced, and peak torque is lower.",
+          "modelAnswer": "Shorter muscle, less tension."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "Compare only results at the same angle and restore the 60-degree setup; a scale factor or blaming the program misreads a measurement change.",
+          "modelAnswer": "Same angle, protocol restored."
+        },
+        {
+          "label": "How you know",
+          "criteria": "60-degree results match last month; paired tests show the angle effect.",
+          "modelAnswer": "142 vs 145 Nm at 60 degrees."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-333)",
+          "checkedAt": "2026-11-17",
+          "note": "The case's deadline; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Shipping nothing ships nothing wrong, but the deadline passes without the fix.",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "wrongSent": {
+      "label": "Wrong conclusion sent",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "The knee program is judged on a measurement artifact."
+    },
+    "notSent": {
+      "label": "Nothing shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "No wrong report, but it went out without the strength data."
+    },
+    "right": {
+      "label": "Right, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and fixed and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "The report shows stable strength and a corrected test protocol."
+    },
+    "gaps": {
+      "label": "Right, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The result is right, but it went late, unchecked, before you looked, or with a weaker fix."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Split results by test angle before drawing a conclusion",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked before acting."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Compared like with like and restored the test position",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed",
+            "score": "met",
+            "why": "Like-for-like comparison at one joint angle."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{fix == \"scale\" ? \"Mixes two positions with a made-up factor; the gap differs by person.\" : fix == \"report\" ? \"Blames the program for a measurement change.\" : \"The dashboard still mixes two test positions.\"}"
+          }
+        ]
+      },
+      {
+        "id": "shipped",
+        "label": "Shipped nothing wrong",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sentAs != \"wrong\"",
+            "score": "met",
+            "why": "Nothing wrong shipped."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Shipped a wrong result."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Trend was like-for-like after the last change, before the report",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "Checked after the last change, before shipping."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Checked, but it failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"c0\" and checkDoc == \"k0\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"c0\" or checkDoc == \"k0\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rightK",
+        "label": "Right result shipped",
+        "value": "sentAs == \"right\" ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "altered",
+        "label": "Rows changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until shipped",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 14"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "Split by angle: 60 degrees unchanged."
+      },
+      {
+        "at": "4-9 min",
+        "text": "Like-for-like; restore 60 degrees."
+      },
+      {
+        "at": "9-12 min",
+        "text": "Trend uses one angle."
+      },
+      {
+        "at": "12-14 min",
+        "text": "Send."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: muscle length changes force",
+        "body": "A strength number means little without the joint angle it was measured at."
+      },
+      "gaps": {
+        "headline": "Right, with gaps",
+        "body": "The result is right; it went late, unchecked, before you looked, or with a weaker fix than the cause called for."
+      },
+      "wrongSent": {
+        "headline": "Wrong conclusion",
+        "body": "A correction factor guesses; blaming the program ignores the protocol change."
+      },
+      "notSent": {
+        "headline": "Nothing shipped",
+        "body": "Safe, but the deadline passed without the fix."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "A drop that starts the week the test position changed points at the measurement. At 10 degrees of knee flexion the quadriceps is short, below the 80 to 120% range where sarcomere overlap gives peak tension, so it produces less force. Results at 60 degrees match last month, and patients tested both ways are lower at 10 degrees. Report like-for-like results and restore the 60-degree setup; a scale factor guesses, and blaming the program is wrong."
+  }
+}

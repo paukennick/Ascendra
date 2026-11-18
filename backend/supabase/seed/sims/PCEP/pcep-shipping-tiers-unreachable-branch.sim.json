@@ -1,0 +1,965 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pcep-shipping-tiers-unreachable-branch",
+  "title": "Nobody ever gets free shipping",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "shipping.py in the online shop of Fern & Kettle Teas (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Owner, Mei Lin",
+          "text": "Our promise is free shipping over $100. Customers with $140 baskets were charged $4.99. The weekend sale email goes at 11:00.",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "seen",
+          "label": "Pattern",
+          "text": "Every basket over $50 pays $4.99, even over $100.",
+          "when": "not isNull(lookAt) and not fixed",
+          "severity": "warning"
+        },
+        {
+          "id": "lock",
+          "label": "Marketing",
+          "text": "11:00: the sale email went out with the old shipping rule.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [],
+      "code": [
+        {
+          "id": "code",
+          "label": "shipping.py",
+          "language": "Python",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "def shipping(total):"
+            },
+            {
+              "id": "c1",
+              "text": "    if total > 50:",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c2",
+              "text": "        return 4.99",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c3",
+              "text": "    elif total > 100:",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c4",
+              "text": "        return 0.00",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c5",
+              "text": "    if total > 100:",
+              "when": "fix == \"order\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c6",
+              "text": "        return 0.00",
+              "when": "fix == \"order\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c7",
+              "text": "    elif total > 50:",
+              "when": "fix == \"order\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c8",
+              "text": "        return 4.99",
+              "when": "fix == \"order\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c9",
+              "text": "    if total >= 100:",
+              "when": "fix == \"gte\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c10",
+              "text": "        return 0.00",
+              "when": "fix == \"gte\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c11",
+              "text": "    elif total > 50:",
+              "when": "fix == \"gte\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c12",
+              "text": "        return 4.99",
+              "when": "fix == \"gte\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c13",
+              "text": "    if total > 50 and total <= 100:",
+              "when": "fix == \"and\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c14",
+              "text": "        return 4.99",
+              "when": "fix == \"and\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c15",
+              "text": "    return 7.99"
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Sale email",
+          "value": "11:00"
+        }
+      ]
+    }
+  },
+  "objective": "Trace which branch of an if, if-else or if-elif-else chain runs, and spot branches that can never be reached",
+  "secondaryObjectives": [
+    "Write combined and nested conditions so that every case in a stated rule takes the intended path"
+  ],
+  "sources": [
+    {
+      "cite": "Python Institute, PCEP-30-03 exam syllabus (revised November 2, 2026)",
+      "checkedAt": "2026-11-17",
+      "url": "https://pythoninstitute.org/pcep-exam-syllabus",
+      "note": "Read 2026-11-17 through a summarizing fetch. Section 02 Control Flow is 23% of the exam and Section 05 File Handling and Module Imports 14%. The PCEP course's objectives name the unreachable-branch and file-mode skills."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Every organization, person, count and deadline is invented teaching data; tool output is an authored rendering in the tool style."
+    }
+  ],
+  "brief": {
+    "situation": "You maintain shipping.py at Fern & Kettle Teas (fictional). The rule: baskets over $100 ship free, over $50 ship for $4.99, otherwise $7.99. Customers over $100 are being charged. The weekend sale email promising free shipping goes at 11:00. It is 10:10.",
+    "handover": [
+      "Refunds of the shipping charged so far are a separate task for accounts."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: look, change, check or ship. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "10:10",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "The deadline is an invented teaching value."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "order",
+        "gte",
+        "and"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "c0",
+        "c1",
+        "c2"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "k0",
+        "k1",
+        "k2"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "(fix == \"order\")"
+    },
+    "correct": {
+      "expr": "(fix == \"order\")"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "look",
+        "change",
+        "check",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "look": {
+      "label": "Trace shipping() for 30, 75, 100 and 140",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "output": "shipping(30) 7.99; 75 4.99; 100 4.99; 140 0.00"
+            }
+          ],
+          "else": [
+            {
+              "output": "shipping(30)  7.99\nshipping(75)  4.99\nshipping(100) 4.99\nshipping(140) 4.99   (expected 0.00)"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "finding": "Each tier takes its own path."
+            }
+          ],
+          "else": [
+            {
+              "finding": "Any total over 100 is also over 50, so the first branch always wins and the free-shipping branch can never run."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Change the condition chain",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "order",
+              "label": "Test the most specific case first: if total > 100 ... elif total > 50 ..."
+            },
+            {
+              "value": "gte",
+              "label": "Put the free tier first but as total >= 100"
+            },
+            {
+              "value": "and",
+              "label": "Keep the order but narrow the first branch to total > 50 and total <= 100, and drop the free tier"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: {f}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "check": {
+      "label": "pytest: the four tiers plus the boundaries 50, 50.01, 100 and 100.01",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"order\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "30 7.99, 75 4.99, 100 4.99, 100.01 0.00, 140 0.00\n5 passed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"gte\"",
+              "then": [
+                {
+                  "output": "100 expected 4.99, got 0.00\n1 failed, 4 passed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"and\"",
+              "then": [
+                {
+                  "output": "140 expected 0.00, got 7.99\n1 failed, 4 passed"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "140 expected 0.00, got 4.99\n100.01 expected 0.00, got 4.99\n2 failed"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Deploy shipping.py before the sale email",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "if": "correct",
+          "then": [
+            {
+              "output": "Deployed: over $100 ships free."
+            }
+          ],
+          "else": [
+            {
+              "output": "Deployed: the sale's shipping is still wrong."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why baskets over $100 paid shipping",
+              "options": [
+                {
+                  "value": "c0",
+                  "label": "The over-$50 branch came first and caught every larger total, so the free branch was unreachable"
+                },
+                {
+                  "value": "c1",
+                  "label": "Prices were stored as text"
+                },
+                {
+                  "value": "c2",
+                  "label": "The tax was added first"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know it is fixed",
+              "options": [
+                {
+                  "value": "k0",
+                  "label": "Tests at each tier and both boundaries pass"
+                },
+                {
+                  "value": "k1",
+                  "label": "A $140 basket looked right"
+                },
+                {
+                  "value": "k2",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "11:00: the sale email went out with the old shipping rule.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the owner: why baskets over $100 paid, what you changed, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "An if-elif chain runs the first true branch; total > 50 is true for every total over 100, so the elif total > 100 branch can never be reached.",
+          "modelAnswer": "The broader test came first."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "Order conditions from most to least specific (> 100, then > 50, else); keep the stated boundaries (100 is not free).",
+          "modelAnswer": "if > 100, elif > 50, else."
+        },
+        {
+          "label": "How you know",
+          "criteria": "Tests at each tier and at 50, 50.01, 100 and 100.01, after the last change.",
+          "modelAnswer": "All five pass."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-333)",
+          "checkedAt": "2026-11-17",
+          "note": "The case's deadline; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Shipping nothing ships nothing wrong, but the deadline passes without the fix.",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "wrongSent": {
+      "label": "Wrong shipping deployed",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "The sale goes out with a shipping rule the shop does not honor."
+    },
+    "notSent": {
+      "label": "Nothing shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "No new bug, but the sale email promised free shipping the site does not give."
+    },
+    "right": {
+      "label": "Right, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and fixed and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "Every basket pays what the rule says, at every boundary."
+    },
+    "gaps": {
+      "label": "Right, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The result is right, but it went late, unchecked, before you looked, or with a weaker fix."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Traced the chain on sample totals before changing code",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked before acting."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Ordered the branches so every tier is reachable",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed",
+            "score": "met",
+            "why": "Most specific condition first; every tier reachable."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{fix == \"gte\" ? \"A $100.00 basket now ships free, which the rule does not promise.\" : fix == \"and\" ? \"With the free tier dropped, baskets over $100 fall through to $7.99.\" : \"The free tier is still unreachable.\"}"
+          }
+        ]
+      },
+      {
+        "id": "shipped",
+        "label": "Shipped nothing wrong",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sentAs != \"wrong\"",
+            "score": "met",
+            "why": "Nothing wrong shipped."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Shipped a wrong result."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Boundary tests passed after the last change, before shipping",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "Checked after the last change, before shipping."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Checked, but it failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"c0\" and checkDoc == \"k0\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"c0\" or checkDoc == \"k0\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rightK",
+        "label": "Right result shipped",
+        "value": "sentAs == \"right\" ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "altered",
+        "label": "Rows changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until shipped",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 14"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "Trace 30, 75, 100, 140: 140 pays 4.99."
+      },
+      {
+        "at": "4-9 min",
+        "text": "Free tier first."
+      },
+      {
+        "at": "9-12 min",
+        "text": "Boundary tests pass."
+      },
+      {
+        "at": "12-14 min",
+        "text": "Deploy."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: specific first",
+        "body": "In an if-elif chain the first true branch wins. A broad condition placed first makes the narrower ones unreachable."
+      },
+      "gaps": {
+        "headline": "Right, with gaps",
+        "body": "The result is right; it went late, unchecked, before you looked, or with a weaker fix than the cause called for."
+      },
+      "wrongSent": {
+        "headline": "Still wrong",
+        "body": "Changing a boundary or dropping a tier changes the rule. Reorder the branches."
+      },
+      "notSent": {
+        "headline": "Nothing shipped",
+        "body": "Safe, but the deadline passed without the fix."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "An if-elif chain runs the first branch whose condition is true. total > 50 is true for every basket over $100, so elif total > 100 can never run. Put the most specific condition first: > 100 free, > 50 $4.99, else $7.99. Changing > to >= changes the promise at exactly $100, and dropping the free tier sends large baskets to $7.99. Test every tier and both boundaries."
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "band": "pyauto",
+  "label": "Python for Automation",
+  "base": {
+    "course": "TSNODE",
+    "slug": "node-env-file-silent-exit"
+  },
+  "slug": "node-env-file-silent-exit-pyauto",
+  "patch": {
+    "objective": "Map failures to exit codes and messages a person or a scheduler can act on",
+    "secondaryObjectives": [
+      "Configure a script from arguments, environment variables and a TOML file with a clear order of precedence"
+    ],
+    "sources": [
+      {
+        "cite": "8. Errors and Exceptions, The Python Tutorial, Python 3.15 documentation (3.15.2)",
+        "checkedAt": "2026-11-17",
+        "url": "https://docs.python.org/3/tutorial/errors.html",
+        "note": "Read 2026-11-17 through a summarizing fetch: SystemExit, 'raised by sys.exit()', is outside Exception because such exceptions 'are used to indicate that the program should terminate'. The case's service is a Node.js program run by systemd; the decision it teaches is the automation one, the same in a Python script: a missing setting must end the run with a non-zero exit status and a message, so the scheduler restarts or alerts instead of reporting success."
+      },
+      {
+        "cite": "Node.js v26.13.1 API, Command-line options: --env-file and --env-file-if-exists",
+        "checkedAt": "2026-11-14",
+        "url": "https://nodejs.org/api/cli.html",
+        "note": "Relevant text: --env-file 'Loads environment variables from a file ... making them available to applications on process.env'; 'If the same variable is defined in the environment and in the file, the value from the environment takes precedence'; 'An error is thrown if the file does not exist.' --env-file-if-exists: 'Behavior is the same as --env-file, but an error is not thrown if the file does not exist.' Both 'no longer experimental' since v24.10.0 and v22.21.0. Read through a summarizing fetch on 2026-11-14 (the first 100,000 characters, which held both sections)."
+      },
+      {
+        "cite": "Node.js v26.13.1 API, process: process.exit() and process.exitCode",
+        "checkedAt": "2026-11-14",
+        "url": "https://nodejs.org/api/process.html",
+        "note": "Relevant text: process.exit(): 'If code is omitted, exit uses either the 'success' code 0 or the value of process.exitCode if it has been set'; 'Rather than calling process.exit() directly, the code should set the process.exitCode and allow the process to exit naturally'; an uncaught exception exits 'with code 1' by default. Read through a summarizing fetch on 2026-11-14 (the first 100,000 characters; the Exit codes section was not reached)."
+      },
+      {
+        "cite": "systemd 262, systemd.service(5): Restart=",
+        "checkedAt": "2026-11-14",
+        "url": "https://www.freedesktop.org/software/systemd/man/latest/systemd.service.html",
+        "note": "Relevant text: 'If set to on-failure, the service will be restarted when the process exits with a non-zero exit code', is terminated by a signal, or times out; in the page's table a 'Clean exit code or signal' restarts only under always and on-success. Read through a summarizing fetch on 2026-11-14. Why a service that exits 0 on a missing setting is not restarted and is not reported as failed. The journal and systemctl output in the scenario are authored renderings in the tools' style."
+      }
+    ]
+  }
+}

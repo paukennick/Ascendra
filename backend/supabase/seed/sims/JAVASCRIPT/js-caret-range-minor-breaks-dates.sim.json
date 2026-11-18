@@ -1,0 +1,912 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "js-caret-range-minor-breaks-dates",
+  "title": "The build broke, and nobody touched it",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "package.json and the deploy pipeline, Copperline Events (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Release manager, Ade Okafor",
+          "text": "CI installs fresh on every deploy, and today's build shows every event a day early. The ticket sale opens at 12:00 and needs a deploy.",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "seen",
+          "label": "Pattern",
+          "text": "Dates are off by one only in builds made since this morning.",
+          "when": "not isNull(lookAt) and not fixed",
+          "severity": "warning"
+        },
+        {
+          "id": "lock",
+          "label": "Ticket sale",
+          "text": "12:00: the sale opened on the last good deploy, without today's change.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [],
+      "code": [
+        {
+          "id": "code",
+          "label": "package.json",
+          "language": "JSON",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "\"datekit\": \"^2.3.0\"",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c1",
+              "text": "\"datekit\": \"2.3.4\"   + package-lock.json committed; CI runs npm ci",
+              "when": "fix == \"lock\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c2",
+              "text": "\"datekit\": \"~2.3.0\"",
+              "when": "fix == \"tilde\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c3",
+              "text": "\"datekit\": \"latest\"",
+              "when": "fix == \"latest\"",
+              "mark": "\"warning\""
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Ticket sale",
+          "value": "12:00"
+        }
+      ]
+    }
+  },
+  "objective": "npm basics: package.json, scripts, semantic versioning",
+  "secondaryObjectives": [
+    "Writing unit tests with Jest: assertions, mocks, test structure"
+  ],
+  "sources": [
+    {
+      "cite": "npm documentation (npm 2.1.11 package files on unpkg), semver",
+      "checkedAt": "2026-11-17",
+      "url": "https://app.unpkg.com/npm@2.1.11/files/doc/misc/semver.md",
+      "note": "Read 2026-11-17 through a summarizing fetch. Caret ranges 'Allow changes that do not modify the left-most non-zero digit': ^1.2.3 := >=1.2.3 <2.0.0; tilde ranges allow patch-level changes: ~1.2.3 := >=1.2.3 <1.3.0. An old copy of the npm semver document; the range rules are unchanged in current npm (author's statement)."
+    },
+    {
+      "cite": "npm Docs, npm ci (CLI v11)",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.npmjs.com/cli/v11/commands/npm-ci",
+      "note": "Read 2026-11-17 through a summarizing fetch. npm ci is 'meant to be used in automated environments such as test platforms, continuous integration, and deployment'; the project must have a package-lock.json or npm-shrinkwrap.json; a mismatch with package.json is an error; it never writes package.json or the lock."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Every organization, person, count and deadline is invented teaching data; tool output is an authored rendering in the tool style."
+    }
+  ],
+  "brief": {
+    "situation": "You maintain the events site at Copperline Events (fictional). package.json lists the date library as ^2.3.0, and the repository has no lock file; CI runs npm install. This morning's build shows every event one day early. Today's change must deploy before the 12:00 ticket sale. It is 11:05.",
+    "handover": [
+      "Last week's build log shows the date library at 2.3.4."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: look, change, check or ship. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "11:05",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "The deadline is an invented teaching value."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "lock",
+        "tilde",
+        "latest"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "c0",
+        "c1",
+        "c2"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "k0",
+        "k1",
+        "k2"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "(fix == \"lock\")"
+    },
+    "correct": {
+      "expr": "(fix == \"lock\" or fix == \"tilde\")"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "look",
+        "change",
+        "check",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "look": {
+      "label": "Compare the installed datekit version in last week's build and today's",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "output": "datekit 2.3.4 from the lock file"
+            }
+          ],
+          "else": [
+            {
+              "output": "last week: datekit 2.3.4\ntoday: datekit 2.4.0 (published yesterday; parses date-only strings as UTC)"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "finding": "Every install gets the tested version."
+            }
+          ],
+          "else": [
+            {
+              "finding": "^2.3.0 allows any 2.x.y at or above 2.3.0, and with no lock file CI took 2.4.0, which changed date parsing."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Change the dependency setup",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "lock",
+              "label": "Pin 2.3.4, commit package-lock.json, and make CI run npm ci"
+            },
+            {
+              "value": "tilde",
+              "label": "Change the range to ~2.3.0"
+            },
+            {
+              "value": "latest",
+              "label": "Use latest so CI always matches the docs"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: {f}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "check": {
+      "label": "Run CI from scratch and the date tests (an event at 2026-11-20 in the Chicago time zone)",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"lock\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "CI installs 2.3.4 from the lock; date tests pass\n3 passed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"tilde\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "datekit 2.3.4; transitive deps unpinned\n3 passed (no lock file)"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"latest\"",
+              "then": [
+                {
+                  "output": "datekit 2.4.0; events one day early\n1 failed"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "event shows 2026-11-19\n1 failed"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Deploy before the ticket sale",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "if": "correct",
+          "then": [
+            {
+              "output": "Deployed: dates correct."
+            }
+          ],
+          "else": [
+            {
+              "output": "Deployed: dates a day early."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why the build broke with no code change",
+              "options": [
+                {
+                  "value": "c0",
+                  "label": "The caret range allowed a new minor version, and without a lock file CI installed it"
+                },
+                {
+                  "value": "c1",
+                  "label": "The server's clock changed"
+                },
+                {
+                  "value": "c2",
+                  "label": "A developer edited the dates"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know it is fixed",
+              "options": [
+                {
+                  "value": "k0",
+                  "label": "A clean CI run installs the locked version and the date tests pass"
+                },
+                {
+                  "value": "k1",
+                  "label": "The homepage looks right"
+                },
+                {
+                  "value": "k2",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "12:00: the sale opened on the last good deploy, without today's change.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the release manager: why the build broke, what you changed, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "^2.3.0 means at least 2.3.0 and below 3.0.0; with no lock file, CI installed the new 2.4.0, whose date parsing differs.",
+          "modelAnswer": "Caret plus no lock file."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "Pin the tested version, commit the lock file and use npm ci in CI; tilde narrows the range but locks nothing; latest is worse.",
+          "modelAnswer": "Lock file and npm ci."
+        },
+        {
+          "label": "How you know",
+          "criteria": "A clean CI run installs 2.3.4 and the date tests pass.",
+          "modelAnswer": "Clean run green."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-333)",
+          "checkedAt": "2026-11-17",
+          "note": "The case's deadline; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Shipping nothing ships nothing wrong, but the deadline passes without the fix.",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "wrongSent": {
+      "label": "Wrong dates deployed",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "Customers buy tickets for the wrong day."
+    },
+    "notSent": {
+      "label": "Nothing shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "No wrong dates, but today's change missed the sale."
+    },
+    "right": {
+      "label": "Right, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and fixed and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "Every build installs what was tested, and the dates are right."
+    },
+    "gaps": {
+      "label": "Right, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The result is right, but it went late, unchecked, before you looked, or with a weaker fix."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Compared installed versions before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked before acting."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Locked dependencies and installed with npm ci",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed",
+            "score": "met",
+            "why": "An exact version from a committed lock, installed with npm ci."
+          },
+          {
+            "when": "fix == \"tilde\"",
+            "score": "partial",
+            "why": "Blocks 2.4.0 but still floats patches and every transitive dependency, with no lock."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{fix == \"latest\" ? \"latest installs 2.4.0 now and 3.0 later.\" : \"The caret range still lets CI install 2.4.0.\"}"
+          }
+        ]
+      },
+      {
+        "id": "shipped",
+        "label": "Shipped nothing wrong",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sentAs != \"wrong\"",
+            "score": "met",
+            "why": "Nothing wrong shipped."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Shipped a wrong result."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "A clean CI run passed the date tests after the last change, before deploy",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "Checked after the last change, before shipping."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Checked, but it failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"c0\" and checkDoc == \"k0\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"c0\" or checkDoc == \"k0\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rightK",
+        "label": "Right result shipped",
+        "value": "sentAs == \"right\" ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "altered",
+        "label": "Rows changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until shipped",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 14"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "2.3.4 last week, 2.4.0 today."
+      },
+      {
+        "at": "4-9 min",
+        "text": "Pin, commit the lock, npm ci."
+      },
+      {
+        "at": "9-12 min",
+        "text": "Clean CI run green."
+      },
+      {
+        "at": "12-14 min",
+        "text": "Deploy."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: builds install what you tested",
+        "body": "A caret range is a promise you accept new minors. A committed lock file and npm ci make every install identical."
+      },
+      "gaps": {
+        "headline": "Right, with gaps",
+        "body": "The result is right; it went late, unchecked, before you looked, or with a weaker fix than the cause called for."
+      },
+      "wrongSent": {
+        "headline": "Wrong dates",
+        "body": "latest and wider ranges install whatever was published last night."
+      },
+      "notSent": {
+        "headline": "Nothing shipped",
+        "body": "Safe, but the deadline passed without the fix."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "A build that changed with no code change installed something different. ^2.3.0 allows any 2.x at or above 2.3.0, and with no lock file CI picked up 2.4.0, which parses date-only strings as UTC. Pin the tested version, commit package-lock.json and run npm ci, which installs exactly the lock. ~2.3.0 narrows the range but locks nothing else; latest makes it worse."
+  }
+}

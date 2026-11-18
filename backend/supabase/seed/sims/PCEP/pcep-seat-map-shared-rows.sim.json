@@ -1,0 +1,1025 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pcep-seat-map-shared-rows",
+  "title": "One booking, eight seats taken",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "seatmap.py, the box office script, Harborview Community Theater (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "House manager, Priya Nair",
+          "text": "Tonight's chart shows whole columns sold when we sold one seat. Online sales say 'sold out' at 74 tickets. Ushers print the chart at 18:30.",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "col",
+          "label": "Pattern",
+          "text": "Booking A5 marked seat 5 in all 8 rows.",
+          "when": "not isNull(lookAt)",
+          "severity": "warning"
+        },
+        {
+          "id": "wiped",
+          "label": "Box office",
+          "text": "74 real bookings were wiped by the reset; patrons hold tickets for seats now shown free.",
+          "when": "rowsAlteredOutsideFix > 0",
+          "severity": "error"
+        },
+        {
+          "id": "lock",
+          "label": "Front of house",
+          "text": "18:30: the chart printed from the old code.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [
+        {
+          "id": "map",
+          "label": "Seat map after booking A5 only (rows A-D shown, seats 4-6)",
+          "spokenLabel": "the seat map",
+          "columns": [
+            {
+              "id": "row",
+              "label": "Row"
+            },
+            {
+              "id": "s4",
+              "label": "4"
+            },
+            {
+              "id": "s5",
+              "label": "5"
+            },
+            {
+              "id": "s6",
+              "label": "6"
+            }
+          ],
+          "rows": [
+            {
+              "id": "ra",
+              "cells": [
+                "A",
+                "free",
+                "sold",
+                "free"
+              ]
+            },
+            {
+              "id": "rb",
+              "cells": [
+                "B",
+                "free",
+                "{fixed ? \"free\" : \"sold\"}",
+                "free"
+              ],
+              "flag": "not fixed"
+            },
+            {
+              "id": "rc",
+              "cells": [
+                "C",
+                "free",
+                "{fixed ? \"free\" : \"sold\"}",
+                "free"
+              ],
+              "flag": "not fixed"
+            },
+            {
+              "id": "rd",
+              "cells": [
+                "D",
+                "free",
+                "{fixed ? \"free\" : \"sold\"}",
+                "free"
+              ],
+              "flag": "not fixed"
+            }
+          ],
+          "when": "not isNull(lookAt)"
+        }
+      ],
+      "code": [
+        {
+          "id": "code",
+          "label": "seatmap.py",
+          "language": "Python",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "ROWS, SEATS = 8, 12"
+            },
+            {
+              "id": "c1",
+              "text": "seats = [[\"free\"] * SEATS] * ROWS",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c2",
+              "text": "seats = [[\"free\"] * SEATS for _ in range(ROWS)]",
+              "when": "fix == \"comp\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c3",
+              "text": "seats = list([[\"free\"] * SEATS] * ROWS)",
+              "when": "fix == \"copy\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c4",
+              "text": "row = [\"free\"] * SEATS",
+              "when": "fix == \"loop\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c5",
+              "text": "seats = [row for _ in range(ROWS)]",
+              "when": "fix == \"loop\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c6",
+              "text": "def book(r, s):"
+            },
+            {
+              "id": "c7",
+              "text": "    seats[r][s] = \"sold\""
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Chart prints",
+          "value": "18:30"
+        },
+        {
+          "id": "wipedM",
+          "label": "Bookings changed outside the fix",
+          "value": "{rowsAlteredOutsideFix}"
+        }
+      ]
+    }
+  },
+  "objective": "Create and update a matrix as a list of lists, and avoid the shared-row trap of multiplying a nested list",
+  "secondaryObjectives": [
+    "Build lists and read elements with positive and negative indexes and slices, including start, stop and step",
+    "Trace nested loops over grouped data and the order in which the inner and outer bodies run"
+  ],
+  "sources": [
+    {
+      "cite": "Python Institute, PCEP-30-03 exam syllabus (revised November 2, 2026)",
+      "checkedAt": "2026-11-17",
+      "url": "https://pythoninstitute.org/pcep-exam-syllabus",
+      "note": "Read 2026-11-17 through a summarizing fetch: Section 03 Data Collections (26%) covers lists, including list membership with in and not in. The PCEP course's own objective names the shared-row trap of multiplying a nested list."
+    },
+    {
+      "cite": "Python 3.15 documentation, Common Sequence Operations, note on s * n (not opened for this round)",
+      "checkedAt": "2026-11-17",
+      "note": "To verify: the standard library reference notes that items in s * n 'are not copied; they are referenced multiple times', with the [[]] * 3 example and the list comprehension fix. That page did not appear in a search for this round. Every behavior in the case follows from that rule: multiplying a list of one inner list repeats references to the same inner list."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Harborview Community Theater, its bookings and times are invented teaching values; run and test output are authored renderings."
+    }
+  ],
+  "brief": {
+    "situation": "You look after seatmap.py for Harborview Community Theater (fictional). Since this afternoon's change, booking one seat marks that seat number sold in every row, so tonight's show reads sold out after 74 tickets. The ushers print the seating chart at 18:30. It is 17:40.",
+    "handover": [
+      "The change replaced a nested loop that built the seat map with a one-line expression.",
+      "The 74 bookings are recorded in the ticket log as well as in the map."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: look at the map, change the code, run the tests, or ship the fix. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "17:40",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "The chart prints at 18:30, 50 minutes after the start; invented."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "comp",
+        "copy",
+        "loop"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "ranAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "shared",
+        "index",
+        "data"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "tests",
+        "looks",
+        "none"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "fix == \"comp\""
+    },
+    "correct": {
+      "expr": "fix == \"comp\" and rowsAlteredOutsideFix == 0"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "show",
+        "change",
+        "pytest",
+        "reset",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "actions": {
+    "change": {
+      "label": "Change how the seat map is built",
+      "group": "Change the code",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "comp",
+              "label": "A comprehension that builds a new row each time: [[\"free\"] * SEATS for _ in range(ROWS)]"
+            },
+            {
+              "value": "copy",
+              "label": "Copy the outer list: list([[\"free\"] * SEATS] * ROWS)"
+            },
+            {
+              "value": "loop",
+              "label": "Build one row, then repeat it: row = [\"free\"] * SEATS; [row for _ in range(ROWS)]"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "The seat map is now built with the {f} version.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "pytest": {
+      "label": "pytest tests/test_seatmap.py (book one seat; rows are distinct objects)",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"comp\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "tests/test_seatmap.py::test_one_booking_one_seat PASSED\ntests/test_seatmap.py::test_rows_are_distinct PASSED\n2 passed in 0.03s"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "tests/test_seatmap.py::test_one_booking_one_seat FAILED\nE   AssertionError: assert 8 == 1  (seats sold after booking A5)\ntests/test_seatmap.py::test_rows_are_distinct FAILED\nE   assert seats[0] is not seats[1]\n2 failed in 0.04s"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Ship seatmap.py and rebuild tonight's map from the ticket log",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already shipped.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "output": "deployed seatmap.py ({fix}); map rebuilt from the ticket log"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why one booking sold a whole column",
+              "options": [
+                {
+                  "value": "shared",
+                  "label": "[row] * 8 repeats a reference to one inner list, so all 8 rows are the same list"
+                },
+                {
+                  "value": "index",
+                  "label": "The row index was off by one"
+                },
+                {
+                  "value": "data",
+                  "label": "The booking data had duplicates"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know it is fixed",
+              "options": [
+                {
+                  "value": "tests",
+                  "label": "A test books one seat and checks the rows are distinct objects"
+                },
+                {
+                  "value": "looks",
+                  "label": "The printed map looked right"
+                },
+                {
+                  "value": "none",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    },
+    "show": {
+      "label": "In a fresh session, build the map, book A5 only, and print rows A-D",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "ranAt",
+          "to": "t"
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "output": "A  . . . sold . . .\nB  . . . free . . .\nC  . . . free . . .\nD  . . . free . . ."
+            }
+          ],
+          "else": [
+            {
+              "output": "A  . . . sold . . .\nB  . . . sold . . .\nC  . . . sold . . .\nD  . . . sold . . .\n>>> seats[0] is seats[1]\nTrue"
+            }
+          ]
+        },
+        {
+          "finding": "{fixed ? \"Only row A changed.\" : \"One assignment changed every row: seats[0] is seats[1] is True. The * repeated a reference to one inner list.\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "reset": {
+      "label": "Reset the whole map to free and re-sell from scratch",
+      "group": "Change the data",
+      "available": "not busy and rowsAlteredOutsideFix == 0",
+      "why": "Already done.",
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "add": "rowsAlteredOutsideFix",
+          "by": "74"
+        },
+        {
+          "output": "seat map reset: 96 seats free"
+        },
+        {
+          "log": "74 real bookings are no longer on the map; their seats can be sold twice.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "18:30: the chart printed from the old code.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the box office: why one booking sold a whole column, what you changed, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Multiplying a list does not copy its items: [[\"free\"] * 12] * 8 holds 8 references to one inner list, so seats[r][s] = \"sold\" changes what every row shows. Not an index or data error.",
+          "modelAnswer": "All eight rows were one list object."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "Build each row anew with a comprehension. Copying the outer list, or repeating one prebuilt row in a comprehension, keeps the rows shared. Resetting the map destroys real bookings.",
+          "modelAnswer": "[[\"free\"] * SEATS for _ in range(ROWS)]; the map rebuilt from the ticket log."
+        },
+        {
+          "label": "How you know",
+          "criteria": "After the last change, a test books one seat and finds one seat sold, and checks seats[0] is not seats[1].",
+          "modelAnswer": "Both tests pass."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-333)",
+          "checkedAt": "2026-11-17",
+          "note": "The chart prints at 18:30; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Shipping nothing changes nothing, but the ushers' chart and online sales stay wrong.",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "altered": {
+      "label": "Real bookings wiped",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and rowsAlteredOutsideFix > 0",
+      "narrative": "74 patrons hold tickets for seats the map now shows free."
+    },
+    "wrongSent": {
+      "label": "Still broken, shipped",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "The chart still sells whole columns, and the ushers seat patrons by it."
+    },
+    "notSent": {
+      "label": "Nothing shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "No new bug went out, but the chart printed from the old code."
+    },
+    "right": {
+      "label": "Fixed, tested, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "One booking sells one seat, and tonight's map matches the ticket log."
+    },
+    "gaps": {
+      "label": "Fixed, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The fix is right, but it went late, untested, or before you saw the pattern."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "altered",
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Reproduced it with one booking before changing code",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Saw the pattern first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never reproduced it."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Each row built as its own list",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fix == \"comp\"",
+            "score": "met",
+            "why": "A new inner list per row."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{fix == \"copy\" ? \"A new outer list holding the same shared row.\" : fix == \"loop\" ? \"The comprehension repeats the same prebuilt row.\" : \"The rows are still one list.\"}"
+          }
+        ]
+      },
+      {
+        "id": "data",
+        "label": "Kept the real bookings",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "rowsAlteredOutsideFix == 0",
+            "score": "met",
+            "why": "Bookings untouched; the map rebuilt from the log."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Wiped {rowsAlteredOutsideFix} bookings."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Tests passed after the last change, before shipping",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "Both tests pass."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Ran tests, but they failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never ran the tests."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the shared row and the test",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"shared\" and checkDoc == \"tests\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"shared\" or checkDoc == \"tests\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "seatsK",
+        "label": "Seats sold by one booking",
+        "value": "fixed ? 1 : 8",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "wipedK",
+        "label": "Bookings changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until shipped",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 11"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-3 min",
+        "text": "Book A5 in a fresh session: seat 5 sold in every row; seats[0] is seats[1]."
+      },
+      {
+        "at": "3-8 min",
+        "text": "Build each row anew with a comprehension."
+      },
+      {
+        "at": "8-11 min",
+        "text": "pytest: one booking, one seat; rows distinct."
+      },
+      {
+        "at": "11-13 min",
+        "text": "Ship and rebuild the map from the ticket log."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: eight rows, eight lists",
+        "body": "* repeats references, not copies. A comprehension evaluates its expression once per row, so each row is a new list, and the identity test proves it."
+      },
+      "gaps": {
+        "headline": "Fixed, with gaps",
+        "body": "The fix is right; it shipped late, untested, or before you reproduced it."
+      },
+      "wrongSent": {
+        "headline": "Still shared",
+        "body": "Copying the outer list copies the references; a comprehension that repeats one prebuilt row repeats the reference. The inner list must be created inside the comprehension."
+      },
+      "altered": {
+        "headline": "Real bookings wiped",
+        "body": "The map was wrong because of the code. Fix the code and rebuild from the ticket log; never reset the bookings."
+      },
+      "notSent": {
+        "headline": "Nothing shipped",
+        "body": "Safe, but the chart printed wrong, and the fix is one line."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "One booking marking a whole column means the rows are not separate. [[\"free\"] * 12] * 8 builds one inner list and 8 references to it, so seats[r][s] = \"sold\" shows in every row; seats[0] is seats[1] is True. list(...) copies only the outer list, and [row for _ in range(8)] repeats one prebuilt row. A comprehension that creates the inner list each time, [[\"free\"] * 12 for _ in range(8)], gives 8 lists. Test one booking and row identity, then rebuild tonight's map from the ticket log rather than resetting real bookings."
+  }
+}

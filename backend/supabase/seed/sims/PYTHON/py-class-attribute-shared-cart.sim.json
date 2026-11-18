@@ -1,0 +1,927 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "py-class-attribute-shared-cart",
+  "title": "Every new cart already has someone's items",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "cart.py in the click-and-collect service, Greenway Grocers (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Store manager, Paula Reyes",
+          "text": "Customers open a new cart and find other people's groceries in it. Saturday pickup orders lock at 10:00.",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "seen",
+          "label": "Pattern",
+          "text": "Every Cart object shows the same items list.",
+          "when": "not isNull(lookAt) and not fixed",
+          "severity": "warning"
+        },
+        {
+          "id": "lock",
+          "label": "Store",
+          "text": "10:00: Saturday's orders locked with the shared carts.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [],
+      "code": [
+        {
+          "id": "code",
+          "label": "cart.py",
+          "language": "Python",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "class Cart:"
+            },
+            {
+              "id": "c1",
+              "text": "    items = []",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c2",
+              "text": "    def __init__(self, owner):"
+            },
+            {
+              "id": "c3",
+              "text": "        self.owner = owner"
+            },
+            {
+              "id": "c4",
+              "text": "        self.items = []",
+              "when": "fix == \"inst\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c5",
+              "text": "        self.items = Cart.items.copy()",
+              "when": "fix == \"copy\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c6",
+              "text": "    def add(self, sku):"
+            },
+            {
+              "id": "c7",
+              "text": "        self.items.append(sku)"
+            },
+            {
+              "id": "c8",
+              "text": "        Cart.items = []",
+              "when": "fix == \"reset\"",
+              "mark": "\"warning\""
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Orders lock",
+          "value": "10:00"
+        }
+      ]
+    }
+  },
+  "objective": "__init__, self, and instance vs. class attributes",
+  "secondaryObjectives": [
+    "Classes, instances, attributes, and methods"
+  ],
+  "sources": [
+    {
+      "cite": "Python tutorial, 9. Classes: Class and Instance Variables (Mintlify mirror of the CPython tutorial)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.mintlify.com/python/cpython/tutorial/classes",
+      "note": "Read 2026-11-17 through a summarizing fetch. 'Class variables are shared by all instances'; a tricks = [] list at class level is a 'mistaken use of a class variable', 'unexpectedly shared'; self.tricks = [] in __init__ 'creates a new empty list for each dog'. A third-party mirror of the official tutorial; the official page did not appear in a search."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Every organization, person, count and deadline is invented teaching data; tool output is an authored rendering in the tool style."
+    }
+  ],
+  "brief": {
+    "situation": "You maintain cart.py at Greenway Grocers (fictional). Since Thursday's refactor, a new cart already holds items other customers added, and adding to one cart adds to all. Saturday's pickup orders lock at 10:00. It is 09:10.",
+    "handover": [
+      "Thursday's refactor moved the items list out of __init__ to 'tidy the class'.",
+      "The service runs as one long-lived process."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: look, change, check or ship. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "09:10",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "The deadline is an invented teaching value."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "inst",
+        "copy",
+        "reset"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "c0",
+        "c1",
+        "c2"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "k0",
+        "k1",
+        "k2"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "(fix == \"inst\")"
+    },
+    "correct": {
+      "expr": "(fix == \"inst\" or fix == \"copy\")"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "look",
+        "change",
+        "check",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "look": {
+      "label": "Make two carts in a fresh session, add to one, and compare a.items is b.items",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "output": ">>> a.add('milk'); b.items\n[]\n>>> a.items is b.items\nFalse"
+            }
+          ],
+          "else": [
+            {
+              "output": ">>> a, b = Cart('ana'), Cart('ben')\n>>> a.add('milk')\n>>> b.items\n['milk']\n>>> a.items is b.items\nTrue"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "finding": "Each cart has its own list."
+            }
+          ],
+          "else": [
+            {
+              "finding": "items is a class attribute: one list on the class, shared by every Cart, and append mutates it."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Change where the items list lives",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "inst",
+              "label": "Create it per object in __init__: self.items = []"
+            },
+            {
+              "value": "copy",
+              "label": "Keep the class list and copy it in __init__: self.items = Cart.items.copy()"
+            },
+            {
+              "value": "reset",
+              "label": "Empty the class list after each add: Cart.items = []"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: {f}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "check": {
+      "label": "pytest tests/test_cart.py (two carts independent; one cart keeps its items)",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"inst\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "test_carts_are_independent PASSED\ntest_add_one_item PASSED\n2 passed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"copy\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "test_carts_are_independent PASSED\ntest_add_one_item PASSED\n2 passed (Cart.items is still defined on the class)"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"reset\"",
+              "then": [
+                {
+                  "output": "test_carts_are_independent FAILED\ntest_add_one_item FAILED: cart lost its first item\n2 failed"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "test_carts_are_independent FAILED\nassert ['milk'] == []\n1 failed, 1 passed"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Deploy cart.py before orders lock",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "if": "correct",
+          "then": [
+            {
+              "output": "Deployed: each cart has its own items."
+            }
+          ],
+          "else": [
+            {
+              "output": "Deployed: carts still share or lose items."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why carts shared items",
+              "options": [
+                {
+                  "value": "c0",
+                  "label": "items was a class attribute: one list shared by every Cart"
+                },
+                {
+                  "value": "c1",
+                  "label": "The database duplicated rows"
+                },
+                {
+                  "value": "c2",
+                  "label": "Customers used each other's links"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know it is fixed",
+              "options": [
+                {
+                  "value": "k0",
+                  "label": "Tests show two carts are independent and keep their items"
+                },
+                {
+                  "value": "k1",
+                  "label": "It looked right in the browser"
+                },
+                {
+                  "value": "k2",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "10:00: Saturday's orders locked with the shared carts.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the team: why carts shared items, what you changed, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "A list assigned in the class body is a class attribute: one object shared by all instances; append mutates that one list.",
+          "modelAnswer": "items = [] on the class is shared by every Cart."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "Create the list per instance in __init__ (self.items = []). Copying a class list keeps a shared default around; resetting it loses items.",
+          "modelAnswer": "self.items = [] in __init__."
+        },
+        {
+          "label": "How you know",
+          "criteria": "Tests after the last change: two carts are independent (a.items is not b.items) and a cart keeps what it adds.",
+          "modelAnswer": "Both tests pass."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-333)",
+          "checkedAt": "2026-11-17",
+          "note": "The case's deadline; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Shipping nothing ships nothing wrong, but the deadline passes without the fix.",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "wrongSent": {
+      "label": "Carts still wrong",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "Saturday's orders mix customers' groceries."
+    },
+    "notSent": {
+      "label": "Nothing shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "No new bug went out, but Saturday's orders locked with shared carts."
+    },
+    "right": {
+      "label": "Right, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and fixed and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "Every customer's cart holds only their own items."
+    },
+    "gaps": {
+      "label": "Right, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The result is right, but it went late, unchecked, before you looked, or with a weaker fix."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Reproduced the shared list before changing code",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked before acting."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Made items an instance attribute",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed",
+            "score": "met",
+            "why": "An instance attribute per cart."
+          },
+          {
+            "when": "fix == \"copy\"",
+            "score": "partial",
+            "why": "Works only while the class list stays empty; it is still a shared default."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{fix == \"reset\" ? \"Resetting the shared list drops items from every cart.\" : \"Every cart still shares one list.\"}"
+          }
+        ]
+      },
+      {
+        "id": "shipped",
+        "label": "Shipped nothing wrong",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sentAs != \"wrong\"",
+            "score": "met",
+            "why": "Nothing wrong shipped."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Shipped a wrong result."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Tests passed after the last change, before shipping",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "Checked after the last change, before shipping."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Checked, but it failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"c0\" and checkDoc == \"k0\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"c0\" or checkDoc == \"k0\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rightK",
+        "label": "Right result shipped",
+        "value": "sentAs == \"right\" ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "altered",
+        "label": "Rows changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until shipped",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 14"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "Two carts, one add: b.items has milk; a.items is b.items."
+      },
+      {
+        "at": "4-9 min",
+        "text": "self.items = [] in __init__."
+      },
+      {
+        "at": "9-12 min",
+        "text": "Tests pass."
+      },
+      {
+        "at": "12-14 min",
+        "text": "Deploy."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: one list per cart",
+        "body": "Attributes set on the class are shared by every instance; per-object state belongs in __init__ on self."
+      },
+      "gaps": {
+        "headline": "Right, with gaps",
+        "body": "The result is right; it went late, unchecked, before you looked, or with a weaker fix than the cause called for."
+      },
+      "wrongSent": {
+        "headline": "Carts still wrong",
+        "body": "Resetting or copying a class-level list treats the symptom. Put the state on the instance."
+      },
+      "notSent": {
+        "headline": "Nothing shipped",
+        "body": "Safe, but the deadline passed without the fix."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "Items that appear in every cart point to shared state. items = [] in the class body is a class attribute: one list object shared by every Cart, and self.items.append() finds it through the instance and mutates it. Creating self.items = [] in __init__ gives each cart its own list; copying a class list keeps a shared default, and resetting the class list loses items. Prove it with tests for independence and persistence."
+  }
+}

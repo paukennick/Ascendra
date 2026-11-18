@@ -1,0 +1,668 @@
+{
+  "slug": "sql-slow-login-seq-scan-mscs",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "pg_stat_activity, the indexes, EXPLAIN ANALYZE shows a Seq Scan filtering on lower(email); CREATE INDEX CONCURRENTLY on lower(email); EXPLAIN and pg_stat_statements confirm",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "activity",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "describe",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "explainAnalyze",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 4,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "createConc",
+          "seq": 7,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 13,
+          "seq": 8,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "explain",
+          "seq": 9,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 14,
+          "seq": 10,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "verify",
+          "seq": 11,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 15,
+          "seq": 12,
+          "tick": 14
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 13,
+          "tick": 15
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 14,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "expression",
+            "prevent": "explainReview"
+          },
+          "seq": 15,
+          "tick": 15
+        }
+      ],
+      "expect": {
+        "ending": "fixed",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "readPlan": "met",
+          "noBlocking": "met",
+          "fixedFast": "met",
+          "lookedFirst": "met",
+          "verified": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToFix": 13,
+          "faultsK": 0,
+          "queriesK": 4
+        },
+        "stateHash": "9736dcb5bfe6f3d6"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "plainIndex",
+      "title": "Reads the plan, then builds the index without CONCURRENTLY: orders wait on the write lock for six minutes",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "explain",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "createPlain",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 7,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "verify",
+          "seq": 5,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 8,
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 7,
+          "tick": 8
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 8,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "expression",
+            "prevent": "biggerPool"
+          },
+          "seq": 9,
+          "tick": 8
+        }
+      ],
+      "expect": {
+        "ending": "fixedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 64,
+        "criteria": {
+          "readPlan": "met",
+          "noBlocking": "partial",
+          "fixedFast": "met",
+          "lookedFirst": "missed",
+          "verified": "met",
+          "record": "partial"
+        },
+        "kpis": {
+          "minToFix": 7,
+          "faultsK": 1,
+          "queriesK": 4
+        },
+        "stateHash": "abf2ab8a60ba6f1c"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "vacuumFull",
+      "title": "Blames bloat and runs VACUUM FULL: the whole table is locked during the sale, then builds the index",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "activity",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "vacuumFull",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 8,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "createConc",
+          "seq": 5,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 17,
+          "seq": 6,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 7,
+          "tick": 17
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 8,
+          "tick": 17
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "bloat",
+            "prevent": "nothing"
+          },
+          "seq": 9,
+          "tick": 17
+        }
+      ],
+      "expect": {
+        "ending": "readsLocked",
+        "class": "harm",
+        "rating": "bad",
+        "score": 29,
+        "criteria": {
+          "readPlan": "missed",
+          "noBlocking": "missed",
+          "fixedFast": "met",
+          "lookedFirst": "met",
+          "verified": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "minToFix": 17,
+          "faultsK": 1,
+          "queriesK": 4
+        },
+        "stateHash": "fce761d2b919201a"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "statsOnly",
+      "title": "Runs ANALYZE and turns enable_seqscan off in its own session, sees nothing change and closes with sign-in still slow",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "analyzeStats",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "seqOff",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "explain",
+          "seq": 5,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 4,
+          "seq": 6,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 7,
+          "tick": 4
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 8,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "stats",
+            "prevent": "nothing"
+          },
+          "seq": 9,
+          "tick": 4
+        }
+      ],
+      "expect": {
+        "ending": "stillSlow",
+        "class": "harm",
+        "rating": "bad",
+        "score": 21,
+        "criteria": {
+          "readPlan": "partial",
+          "noBlocking": "met",
+          "fixedFast": "missed",
+          "lookedFirst": "missed",
+          "verified": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "minToFix": -1,
+          "faultsK": 0,
+          "queriesK": 38
+        },
+        "stateHash": "578274f4a4442430"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "lateFix",
+      "title": "Looks around slowly; the sale email lands at 11:35 and exhausts the pool before the concurrent index is built",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "activity",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "describe",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 12,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 22,
+          "seq": 8,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 9,
+          "tick": 22
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 32,
+          "seq": 10,
+          "tick": 22
+        },
+        {
+          "type": "act",
+          "action": "explain",
+          "seq": 11,
+          "tick": 32
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 33,
+          "seq": 12,
+          "tick": 32
+        },
+        {
+          "type": "act",
+          "action": "createConc",
+          "seq": 13,
+          "tick": 33
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 42,
+          "seq": 14,
+          "tick": 33
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 42,
+          "seq": 15,
+          "tick": 35
+        },
+        {
+          "type": "act",
+          "action": "verify",
+          "seq": 16,
+          "tick": 42
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 43,
+          "seq": 17,
+          "tick": 42
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 18,
+          "tick": 43
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 19,
+          "tick": 43
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "expression",
+            "prevent": "explainReview"
+          },
+          "seq": 20,
+          "tick": 43
+        }
+      ],
+      "expect": {
+        "ending": "poolExhausted",
+        "class": "harm",
+        "rating": "bad",
+        "score": 86,
+        "criteria": {
+          "readPlan": "met",
+          "noBlocking": "met",
+          "fixedFast": "partial",
+          "lookedFirst": "met",
+          "verified": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToFix": 42,
+          "faultsK": 0,
+          "queriesK": 4
+        },
+        "stateHash": "44cc3d51a3162d15"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "guessed",
+      "title": "Guesses the expression index and builds it concurrently without reading the plan or checking it afterward",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "createConc",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 9,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 3,
+          "tick": 9
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 4,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "expression",
+            "prevent": "explainReview"
+          },
+          "seq": 5,
+          "tick": 9
+        }
+      ],
+      "expect": {
+        "ending": "fixedGaps",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "readPlan": "missed",
+          "noBlocking": "met",
+          "fixedFast": "met",
+          "lookedFirst": "missed",
+          "verified": "missed",
+          "record": "met"
+        },
+        "kpis": {
+          "minToFix": 9,
+          "faultsK": 0,
+          "queriesK": 4
+        },
+        "stateHash": "a01bc11d94bd0aee"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    }
+  ]
+}

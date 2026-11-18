@@ -1,0 +1,918 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "mscs-usability-test-booking-flow",
+  "title": "Two of five finished booking",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "Usability test results, the online appointment booking flow, Brookfield Dental Group (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Product owner, Lisa Tran",
+          "text": "Release is at 16:00. Testers said they liked it (average 4.1 out of 5). Two people got confused, but users will learn. Can we ship?",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "seen",
+          "label": "Pattern",
+          "text": "Every failed participant stopped at the same screen.",
+          "when": "not isNull(lookAt) and not fixed",
+          "severity": "warning"
+        },
+        {
+          "id": "lock",
+          "label": "Release",
+          "text": "16:00: the release window closed.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [],
+      "code": [
+        {
+          "id": "code",
+          "label": "test-plan.md",
+          "language": "text",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "Task: book a cleaning for next week. Measures: success, time on task, think-aloud notes."
+            },
+            {
+              "id": "c1",
+              "text": "Decision rule: ship if satisfaction >= 4",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c2",
+              "text": "Decision rule: report success rate and failure point; fix 'Continue' (it looks disabled); retest 5 new participants",
+              "when": "fix == \"fix\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c3",
+              "text": "Decision rule: add a help tooltip on the time screen and ship",
+              "when": "fix == \"tip\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c4",
+              "text": "Decision rule: ship and send users a how-to email",
+              "when": "fix == \"email\"",
+              "mark": "\"warning\""
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Release",
+          "value": "16:00"
+        }
+      ]
+    }
+  },
+  "objective": "Usability testing: think-aloud protocol, task success rate, time-on-task",
+  "secondaryObjectives": [
+    "Why 'the user is wrong' is almost never the right diagnosis",
+    "What 'empirical evaluation' means in HCI -- evidence over opinion"
+  ],
+  "sources": [
+    {
+      "cite": "Nielsen Norman Group, Success Rate: The Simplest Usability Metric",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.nngroup.com/alertbox/20010218.html",
+      "note": "Read 2026-11-17 through a summarizing fetch. Success rate, the share of users who complete a target task, is 'the bottom line of usability'; it is coarse and says nothing about why users fail; small qualitative tests give design insight, not tight intervals; partial success can be reported in labeled levels, not averaged as numbers."
+    },
+    {
+      "cite": "Nielsen Norman Group, Thinking Aloud: The #1 Usability Tool",
+      "checkedAt": "2026-11-17",
+      "url": "https://nngroup.com/articles/thinking-aloud-the-1-usability-tool/",
+      "note": "Read 2026-11-17 through a summarizing fetch. In a thinking-aloud test 'you ask test participants to use the system while continuously thinking out loud'; 'a handful of users' gives the most important insights; facilitator prompts can change behavior."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Every organization, person, count and deadline is invented teaching data; tool output is an authored rendering in the tool style."
+    }
+  ],
+  "brief": {
+    "situation": "You ran a think-aloud usability test of the new booking flow at Brookfield Dental Group (fictional) with five participants and one task: book a cleaning next week. The product owner reads the satisfaction scores as a pass. Release is at 16:00. It is 15:05. The test data uses invented participants and no patient records.",
+    "handover": [
+      "You have recordings, notes, completion and time for each participant.",
+      "A quick design fix and a 5-person retest fit in the hour."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: look, change, check or ship. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "15:05",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "The deadline is an invented teaching value."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "fix",
+        "tip",
+        "email"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "c0",
+        "c1",
+        "c2"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "k0",
+        "k1",
+        "k2"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "(fix == \"fix\")"
+    },
+    "correct": {
+      "expr": "(fix == \"fix\" or fix == \"tip\")"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "look",
+        "change",
+        "check",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "look": {
+      "label": "Tabulate success, time on task and the think-aloud notes per participant",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "output": "retest: success 5/5; median time 1:40"
+            }
+          ],
+          "else": [
+            {
+              "output": "success 2/5; median time 4:50 (target 2:00)\nP1, P3, P4: 'I picked a time... nothing happens?' stopped at the time screen; gray 'Continue' read as disabled\nsatisfaction 4.1 (P3: 'nice colors')"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "finding": "New participants complete the task in under two minutes."
+            }
+          ],
+          "else": [
+            {
+              "finding": "Three of five failed at the same point: the Continue button looks disabled after a time is picked. Ratings measured liking, not success."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Decide what to do with the findings",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "fix",
+              "label": "Report 2/5 success and the failure point, make Continue look active with feedback on selection, and retest with 5 new participants"
+            },
+            {
+              "value": "tip",
+              "label": "Add a help tooltip on the time screen and ship without retest"
+            },
+            {
+              "value": "email",
+              "label": "Ship, and email users instructions: they will learn"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: {f}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "check": {
+      "label": "Retest the flow with 5 new participants, same task, measuring success and time",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"fix\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "retest: 5/5 success; median 1:40\n2 passed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"tip\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "retest: 4/5 success; P8 never saw the tooltip\n1 passed, 1 failed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"email\"",
+              "then": [
+                {
+                  "output": "no change to the flow; success 2/5\n1 failed"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "success 2/5; same failure point\n1 failed"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Release the booking flow",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "if": "correct",
+          "then": [
+            {
+              "output": "Released: tested users book in under two minutes."
+            }
+          ],
+          "else": [
+            {
+              "output": "Released: most users will not finish booking."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why the flow failed",
+              "options": [
+                {
+                  "value": "c0",
+                  "label": "The Continue button looked disabled after a time was chosen, and 3 of 5 participants stopped there"
+                },
+                {
+                  "value": "c1",
+                  "label": "The participants were not tech-savvy"
+                },
+                {
+                  "value": "c2",
+                  "label": "Five people is too few to learn anything"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know it is fixed",
+              "options": [
+                {
+                  "value": "k0",
+                  "label": "Five new participants completed the task, median under two minutes"
+                },
+                {
+                  "value": "k1",
+                  "label": "Satisfaction stayed above 4"
+                },
+                {
+                  "value": "k2",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "16:00: the release window closed.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the product owner: what the test showed, what you changed, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "What it showed",
+          "criteria": "Success rate 2/5 and time on task well above target; think-aloud shows all failures at one point; ratings measure liking, not whether people complete the task.",
+          "modelAnswer": "2/5 success; all failures at Continue."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "Fix the design at the failure point and retest; 'users will learn' and instruction emails blame users; an untested tooltip is a guess.",
+          "modelAnswer": "Make Continue look active; retest."
+        },
+        {
+          "label": "How you know",
+          "criteria": "A retest with new participants on the same task: success and time.",
+          "modelAnswer": "5/5, median 1:40."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-333)",
+          "checkedAt": "2026-11-17",
+          "note": "The case's deadline; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Shipping nothing ships nothing wrong, but the deadline passes without the fix.",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "wrongSent": {
+      "label": "Unusable flow released",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "Patients abandon online booking and phone the front desk."
+    },
+    "notSent": {
+      "label": "Nothing shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "No bad release, but the new flow waits for the next window."
+    },
+    "right": {
+      "label": "Right, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and fixed and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "Patients can book online, and the evidence shows it."
+    },
+    "gaps": {
+      "label": "Right, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The result is right, but it went late, unchecked, before you looked, or with a weaker fix."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Read success, time and the think-aloud notes before deciding",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked before acting."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Fixed the observed failure point and retested",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed",
+            "score": "met",
+            "why": "Decided on observed success and failure, fixed, and retested."
+          },
+          {
+            "when": "fix == \"tip\"",
+            "score": "partial",
+            "why": "Targets the right screen, but patches the symptom and is unverified."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{fix == \"email\" ? \"Blames users for a design problem; 3 in 5 still fail.\" : \"The decision still rests on satisfaction ratings.\"}"
+          }
+        ]
+      },
+      {
+        "id": "shipped",
+        "label": "Shipped nothing wrong",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sentAs != \"wrong\"",
+            "score": "met",
+            "why": "Nothing wrong shipped."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Shipped a wrong result."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "A retest after the last change showed users complete the task",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "Checked after the last change, before shipping."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Checked, but it failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"c0\" and checkDoc == \"k0\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"c0\" or checkDoc == \"k0\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rightK",
+        "label": "Right result shipped",
+        "value": "sentAs == \"right\" ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "altered",
+        "label": "Rows changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until shipped",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 14"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "2/5 success; all failures at Continue."
+      },
+      {
+        "at": "4-9 min",
+        "text": "Fix the button state."
+      },
+      {
+        "at": "9-12 min",
+        "text": "Retest 5/5."
+      },
+      {
+        "at": "12-14 min",
+        "text": "Release."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: evidence over opinion",
+        "body": "What users do beats what they say. A shared failure point is a design problem; fix it and test again."
+      },
+      "gaps": {
+        "headline": "Right, with gaps",
+        "body": "The result is right; it went late, unchecked, before you looked, or with a weaker fix than the cause called for."
+      },
+      "wrongSent": {
+        "headline": "Unusable flow",
+        "body": "When most users fail the same way, the user is not wrong."
+      },
+      "notSent": {
+        "headline": "Nothing shipped",
+        "body": "Safe, but the deadline passed without the fix."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "Satisfaction of 4.1 measures liking; the task measure is success, and only 2 of 5 booked, at more than twice the target time. Think-aloud notes put every failure at one point: after picking a time, the gray Continue button looks disabled. That is a design problem, not a user problem. Make Continue look active with feedback on selection and retest with five new participants on the same task. A tooltip guesses; emailing instructions blames users."
+  }
+}

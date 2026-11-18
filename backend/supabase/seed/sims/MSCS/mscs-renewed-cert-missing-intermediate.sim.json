@@ -1,0 +1,990 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "mscs-renewed-cert-missing-intermediate",
+  "title": "Browsers are fine; the partner says our certificate is untrusted",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "ops@edge1:~$",
+      "lines": [
+        {
+          "id": "fail",
+          "text": "23:10 partner Northwind Pay: callbacks failing since 22:05: unable to get local issuer certificate",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "cut",
+          "text": "00:00 settlement cutoff: callbacks not delivered by midnight settle tomorrow",
+          "when": "not isNull(cutoffAt)",
+          "at": "not isNull(cutoffAt) ? timeAt(cutoffAt) : 0",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "partner: callbacks delivering again",
+          "when": "working",
+          "at": "not isNull(reloadAt) ? timeAt(reloadAt) : 0"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "edge",
+          "label": "edge1 (nginx, api.example.com)",
+          "spokenLabel": "the edge server",
+          "kind": "TLS endpoint",
+          "status": "{served == \"full\" ? \"Serving leaf + intermediate\" : served == \"leafroot\" ? \"Serving leaf + root\" : served == \"old\" ? \"Serving last year's certificate (expires in 2 days)\" : \"Serving the new leaf certificate only\"}",
+          "tone": "working ? \"up\" : \"degraded\""
+        },
+        {
+          "id": "partner",
+          "label": "Northwind Pay callback client",
+          "spokenLabel": "the partner's client",
+          "kind": "Java service, verifies the chain",
+          "status": "{insecure ? \"Verification switched off\" : working ? \"Chain verified\" : \"Cannot build a path to a trusted root\"}",
+          "tone": "insecure ? \"down\" : working ? \"up\" : \"down\""
+        },
+        {
+          "id": "browser",
+          "label": "Browsers",
+          "spokenLabel": "web browsers",
+          "kind": "Clients that fetch or cache intermediates",
+          "status": "Fine",
+          "tone": "\"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "pe",
+          "from": "partner",
+          "to": "edge",
+          "label": "TLS 1.3 callback connection",
+          "status": "{insecure ? \"Connects without checking who it talks to\" : working ? \"Handshake completes\" : \"Handshake aborted: bad certificate\"}",
+          "tone": "insecure ? \"down\" : working ? \"up\" : \"down\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "cutM",
+          "label": "Settlement cutoff",
+          "value": "00:00"
+        }
+      ]
+    }
+  },
+  "objective": "PKI: certificates, certificate authorities, chains of trust",
+  "secondaryObjectives": [
+    "What a TLS handshake establishes, step by step",
+    "Digital signatures and what they actually prove"
+  ],
+  "sources": [
+    {
+      "cite": "IETF RFC 9846, The Transport Layer Security (TLS) Protocol Version 1.3 (July 2026), section 4.5.1 Certificate",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.rfc-editor.org/rfc/rfc9846.txt",
+      "note": "Read 2026-11-17 through summarizing fetches: 'The sender's certificate MUST come in the first CertificateEntry in the list'; 'Each following certificate SHOULD directly certify the one immediately preceding it'; 'a certificate that specifies a trust anchor MAY be omitted from the chain'. So the server sends its leaf and the intermediate that signed it; the client already holds the root."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "The company, partner, times and cutoff are invented teaching values; api.example.com is a documentation domain. Command output is an authored rendering in openssl's style. That browsers often succeed anyway because they cache or fetch missing intermediates while many server-side clients do not is common behavior stated as the author's, not read on a page for this round."
+    }
+  ],
+  "brief": {
+    "situation": "You are on call for the API edge at a fictional payments marketplace. At 22:00 the team renewed the TLS certificate for api.example.com. Browsers are fine, but since 22:05 the partner Northwind Pay's callback client refuses to connect: 'unable to get local issuer certificate'. Callbacks not delivered by midnight settle a day late. It is 23:10.",
+    "handover": [
+      "The CA delivered three files: leaf.pem, intermediate.pem and fullchain.pem (leaf then intermediate).",
+      "The partner's engineer offers to switch certificate verification off on their side to get callbacks moving."
+    ],
+    "howItWorks": [
+      "Pick a command or a change from the action list. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The cutoff runs on the same clock.",
+      "When you close the incident you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "23:10",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {
+    "cutoff": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Midnight, 50 minutes after the start; invented."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "evidenceAt": {
+      "type": "time",
+      "init": null
+    },
+    "chainAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "staged": {
+      "type": "enum",
+      "values": [
+        "leaf",
+        "full",
+        "leafroot",
+        "old"
+      ],
+      "init": "leaf"
+    },
+    "served": {
+      "type": "enum",
+      "values": [
+        "leaf",
+        "full",
+        "leafroot",
+        "old"
+      ],
+      "init": "leaf"
+    },
+    "reloadAt": {
+      "type": "time",
+      "init": null
+    },
+    "verifyAt": {
+      "type": "time",
+      "init": null
+    },
+    "verifyOk": {
+      "type": "bool",
+      "init": false
+    },
+    "insecure": {
+      "type": "bool",
+      "init": false
+    },
+    "cutoffAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "chain",
+        "root",
+        "expired"
+      ],
+      "init": "unset"
+    },
+    "fixDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "fullchain",
+        "verifyOff",
+        "oldCert"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "working": {
+      "expr": "insecure or served == \"full\" or served == \"old\""
+    },
+    "faultsAdded": {
+      "expr": "insecure ? 1 : 0"
+    },
+    "fixedSec": {
+      "expr": "(served == \"full\" or served == \"old\") and not isNull(reloadAt) ? timeAt(reloadAt) : -1"
+    },
+    "evidenceFirst": {
+      "expr": "not isNull(chainAt) and (isNull(firstChangeAt) or timeAt(chainAt) <= timeAt(firstChangeAt))"
+    },
+    "testedFirst": {
+      "expr": "verifyOk and not isNull(verifyAt) and not isNull(reloadAt) and timeAt(verifyAt) >= timeAt(reloadAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Incident in progress",
+      "clock": "turns",
+      "actions": [
+        "sclient",
+        "partnerLog",
+        "conf",
+        "stage",
+        "reload",
+        "verify",
+        "verifyOff",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "sclient": {
+      "label": "openssl s_client -connect api.example.com:443 -showcerts (no browser cache)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(evidenceAt)",
+          "then": [
+            {
+              "set": "evidenceAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(chainAt)",
+          "then": [
+            {
+              "set": "chainAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "served == \"full\"",
+          "then": [
+            {
+              "output": "Certificate chain\n 0 s:CN=api.example.com  i:CN=Example Issuing CA R7\n 1 s:CN=Example Issuing CA R7  i:CN=Example Root CA X2\nVerify return code: 0 (ok)"
+            }
+          ],
+          "else": [
+            {
+              "if": "served == \"leafroot\"",
+              "then": [
+                {
+                  "output": "Certificate chain\n 0 s:CN=api.example.com  i:CN=Example Issuing CA R7\n 1 s:CN=Example Root CA X2  i:CN=Example Root CA X2\nVerify return code: 20 (unable to get local issuer certificate)"
+                }
+              ],
+              "else": [
+                {
+                  "output": "Certificate chain\n 0 s:CN=api.example.com  i:CN=Example Issuing CA R7\nVerify return code: 20 (unable to get local issuer certificate)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "finding": "{served == \"full\" ? \"The server sends the leaf and its issuer; the chain reaches the root the client trusts.\" : \"The leaf was signed by Example Issuing CA R7, but the server does not send that intermediate, so a client without it cannot build a path to its trusted root.\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "partnerLog": {
+      "label": "Read the partner's error detail",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(evidenceAt)",
+          "then": [
+            {
+              "set": "evidenceAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "PKIX path building failed: unable to find valid certification path to requested target"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "conf": {
+      "label": "grep ssl_certificate /etc/nginx/sites-enabled/api.conf",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(evidenceAt)",
+          "then": [
+            {
+              "set": "evidenceAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "ssl_certificate     /etc/ssl/api/{served == \"full\" ? \"fullchain.pem\" : served == \"leafroot\" ? \"leaf-root.pem\" : served == \"old\" ? \"2025/fullchain.pem\" : \"leaf.pem\"};\nssl_certificate_key /etc/ssl/api/privkey.pem;"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "stage": {
+      "label": "Point nginx at a certificate file",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "params": [
+        {
+          "id": "p",
+          "kind": "choice",
+          "label": "File",
+          "options": [
+            {
+              "value": "full",
+              "label": "fullchain.pem: the new leaf followed by the intermediate"
+            },
+            {
+              "value": "leafroot",
+              "label": "A new file: the leaf followed by the root"
+            },
+            {
+              "value": "old",
+              "label": "Last year's certificate chain (expires in 2 days)"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "staged",
+          "to": "p"
+        },
+        {
+          "set": "verifyOk",
+          "to": "false"
+        },
+        {
+          "log": "nginx config now points at the {p} chain (not yet reloaded).",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "reload": {
+      "label": "sudo nginx -t && sudo systemctl reload nginx",
+      "group": "Change",
+      "available": "not busy and staged != served",
+      "why": "Nothing new to load.",
+      "effects": [
+        {
+          "set": "served",
+          "to": "staged"
+        },
+        {
+          "set": "reloadAt",
+          "to": "t"
+        },
+        {
+          "set": "verifyOk",
+          "to": "false"
+        },
+        {
+          "output": "nginx: configuration file /etc/nginx/nginx.conf test is successful"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Check: openssl s_client with only the system trust store, and the partner's test callback",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "verifyAt",
+          "to": "t"
+        },
+        {
+          "if": "served == \"full\"",
+          "then": [
+            {
+              "set": "verifyOk",
+              "to": "true"
+            },
+            {
+              "output": "Verify return code: 0 (ok)\npartner test callback: 200 OK, chain verified"
+            }
+          ],
+          "else": [
+            {
+              "if": "served == \"old\"",
+              "then": [
+                {
+                  "output": "Verify return code: 0 (ok), notAfter in 2 days\npartner test callback: 200 OK"
+                }
+              ],
+              "else": [
+                {
+                  "output": "Verify return code: 20 (unable to get local issuer certificate)\npartner test callback: handshake failure"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "verifyOff": {
+      "label": "Accept the partner's offer: they switch certificate verification off",
+      "group": "Change",
+      "available": "not busy and not insecure",
+      "why": "Already off.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "insecure",
+          "to": "true"
+        },
+        {
+          "log": "The partner's client now sends payment callbacks to whoever answers for api.example.com.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Watch the callbacks (5 minutes)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch the queue for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the incident and write it up",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the incident and start the write-up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the fix",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why the partner could not verify us",
+              "options": [
+                {
+                  "value": "chain",
+                  "label": "The server sent only the leaf; the client had no intermediate to link it to its trusted root"
+                },
+                {
+                  "value": "root",
+                  "label": "The partner lacks our root CA"
+                },
+                {
+                  "value": "expired",
+                  "label": "The new certificate is not valid yet"
+                }
+              ]
+            },
+            {
+              "id": "fix",
+              "label": "What fixed it",
+              "options": [
+                {
+                  "value": "fullchain",
+                  "label": "Serving the leaf plus the intermediate (fullchain.pem)"
+                },
+                {
+                  "value": "verifyOff",
+                  "label": "The partner switched verification off"
+                },
+                {
+                  "value": "oldCert",
+                  "label": "Going back to last year's certificate"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "fixDoc",
+          "to": "fix"
+        },
+        {
+          "log": "Recorded: cause {cause}, fix {fix}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Command running",
+      "wait": {
+        "skipLabel": "Let the command finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "cutoffT",
+      "when": "isNull(cutoffAt) and t >= cutoff and phase == \"incident\" and not working",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "cutoffAt",
+          "to": "t"
+        },
+        {
+          "log": "00:00: the settlement cutoff passes with callbacks undelivered.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the incident review: why the partner could not verify us, what you changed, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Trust is a chain: the leaf is signed by an intermediate, which is signed by a root the client trusts. The server sent only the leaf; clients that do not fetch or cache intermediates cannot build the path. Not a missing root and not a bad certificate.",
+          "modelAnswer": "Depth 0 only: the intermediate was not sent."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "Serve the leaf followed by the intermediate (the root may be omitted). Leaf plus root still lacks the link; switching verification off removes authentication of the server, which is what the certificate is for; last year's certificate only buys two days.",
+          "modelAnswer": "ssl_certificate fullchain.pem; reload."
+        },
+        {
+          "label": "How you know",
+          "criteria": "After the reload, s_client with only the system trust store returns 0 and the partner's test callback verifies the chain.",
+          "modelAnswer": "Verify return code 0; partner 200 OK."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-333)",
+          "checkedAt": "2026-11-17",
+          "note": "Callbacks working by the midnight cutoff."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No damage left behind: verification never switched off."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not working",
+      "class": "harm",
+      "rationale": "Closing with the partner still unable to verify us leaves payment callbacks failing past the cutoff.",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "insecure": {
+      "label": "Verification switched off",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and insecure",
+      "narrative": "Payment callbacks now go to anyone who can answer for api.example.com; the partner no longer knows who it is talking to."
+    },
+    "stillFailing": {
+      "label": "Still untrusted",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not working",
+      "narrative": "The partner still cannot build a chain to our certificate, and the callbacks miss settlement."
+    },
+    "fixed": {
+      "label": "Full chain served, verified, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and served == \"full\" and testedFirst and evidenceFirst and fixedSec <= restoreWindow and faultsAdded <= newFaults",
+      "narrative": "The server now sends the intermediate, every client can verify the chain, and callbacks settle tonight."
+    },
+    "fixedGaps": {
+      "label": "Working, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Callbacks flow, but on a certificate that expires in two days, or the fix went in late, unverified or before the chain was looked at."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "insecure",
+    "stillFailing",
+    "fixed",
+    "fixedGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "evidence",
+        "label": "Looked at the chain the server sends before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "evidenceFirst",
+            "score": "met",
+            "why": "s_client showed depth 0 only."
+          },
+          {
+            "when": "not isNull(chainAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked at the chain."
+          }
+        ]
+      },
+      {
+        "id": "chain",
+        "label": "Served the leaf with its intermediate",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "served == \"full\"",
+            "score": "met",
+            "why": "fullchain.pem."
+          },
+          {
+            "when": "served == \"old\"",
+            "score": "partial",
+            "why": "Works for two days."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{served == \"leafroot\" ? \"The root is not the missing link; the intermediate is.\" : \"Still the leaf alone.\"}"
+          }
+        ]
+      },
+      {
+        "id": "trust",
+        "label": "Kept certificate verification on",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not insecure",
+            "score": "met",
+            "why": "The partner still authenticates us."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Verification switched off."
+          }
+        ]
+      },
+      {
+        "id": "tested",
+        "label": "Verified with a clean trust store and the partner after the reload",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "testedFirst",
+            "score": "met",
+            "why": "Return code 0; partner 200."
+          },
+          {
+            "when": "not isNull(verifyAt)",
+            "score": "partial",
+            "why": "Checked, but it failed or came before the reload."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never verified."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the missing intermediate and the full chain",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"chain\" and fixDoc == \"fullchain\"",
+            "score": "met",
+            "why": "Cause and fix both right."
+          },
+          {
+            "when": "causeDoc == \"chain\" or fixDoc == \"fullchain\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "depthK",
+        "label": "Certificates sent in the chain",
+        "value": "served == \"leaf\" ? 1 : 2",
+        "format": "number",
+        "expert": "2"
+      },
+      {
+        "id": "insecureK",
+        "label": "Clients with verification off",
+        "value": "insecure ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "fixedMin",
+        "label": "Minutes until callbacks verified",
+        "value": "fixedSec >= 0 ? fixedSec / 60 : 0",
+        "format": "number",
+        "expert": "about 8"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-2 min",
+        "text": "s_client: depth 0 only, verify error 20."
+      },
+      {
+        "at": "2-3 min",
+        "text": "nginx points at leaf.pem."
+      },
+      {
+        "at": "3-6 min",
+        "text": "Point it at fullchain.pem."
+      },
+      {
+        "at": "6-7 min",
+        "text": "Test and reload."
+      },
+      {
+        "at": "7-11 min",
+        "text": "Clean trust store: 0 (ok); partner callback verified."
+      }
+    ],
+    "debrief": {
+      "fixed": {
+        "headline": "Good: send the missing link",
+        "body": "A certificate proves a key belongs to a name only through a chain of signatures up to a root the client trusts. The server sent the leaf alone; browsers filled the gap, the partner could not. Sending the intermediate fixed every client, and verification stayed on."
+      },
+      "fixedGaps": {
+        "headline": "Working, with gaps",
+        "body": "Callbacks flow, but on a certificate two days from expiry, or the fix went in without looking at the chain or proving it with a clean trust store."
+      },
+      "stillFailing": {
+        "headline": "Still untrusted",
+        "body": "The root is not missing; the client already trusts it. The intermediate that links the leaf to the root is what the server must send."
+      },
+      "insecure": {
+        "headline": "Verification switched off",
+        "body": "Turning off verification removes the only proof the partner has that it is talking to you. Fix the chain instead."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "A TLS client trusts a server's certificate when it can follow signatures from the leaf up to a root it already trusts. The new leaf was issued by an intermediate, and nginx served leaf.pem alone; browsers cache or fetch intermediates, so they were fine, while the partner's Java client could not build the path (verify error 20). TLS 1.3 has the server send its own certificate first, each next certificate certifying the one before, and lets it omit the root. Serve fullchain.pem (leaf then intermediate), reload, and prove it with a clean trust store and the partner's test call. Switching the partner's verification off defeats the purpose of the certificate; last year's chain only buys two days."
+  }
+}

@@ -1,0 +1,677 @@
+{
+  "slug": "js-shift-signup-foreach-async",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Reproduces with mocked rejections, for...of with per-save try/catch, tests pass, deploys",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "repro",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 4,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "change",
+          "params": {
+            "f": "forof"
+          },
+          "seq": 3,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 9,
+          "seq": 4,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "test",
+          "seq": 5,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 12,
+          "seq": 6,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "ship",
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 14,
+          "seq": 8,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 9,
+          "tick": 14
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 10,
+          "tick": 14
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "forEach",
+            "check": "mocked"
+          },
+          "seq": 11,
+          "tick": 14
+        }
+      ],
+      "expect": {
+        "ending": "right",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "looked": "met",
+          "fixed": "met",
+          "shipped": "met",
+          "checked": "met",
+          "note": "met"
+        },
+        "kpis": {
+          "namedK": 2,
+          "uncaughtK": 0,
+          "sentAtMin": 12
+        },
+        "stateHash": "f1489bda6d93d2e6"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "tryWrap",
+      "title": "Wraps the forEach in try/catch and deploys untested",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "change",
+          "params": {
+            "f": "trywrap"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 5,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "ship",
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 7,
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 5,
+          "tick": 7
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "server",
+            "check": "none"
+          },
+          "seq": 7,
+          "tick": 7
+        }
+      ],
+      "expect": {
+        "ending": "wrongSent",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "looked": "missed",
+          "fixed": "missed",
+          "shipped": "missed",
+          "checked": "missed",
+          "note": "missed"
+        },
+        "kpis": {
+          "namedK": 0,
+          "uncaughtK": 2,
+          "sentAtMin": 5
+        },
+        "stateHash": "f1fa51f8ff488b6d"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "swallow",
+      "title": "Reproduces, silences each rejection, sees no console errors and deploys",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "repro",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 4,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "change",
+          "params": {
+            "f": "swallow"
+          },
+          "seq": 3,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 9,
+          "seq": 4,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "repro",
+          "seq": 5,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 13,
+          "seq": 6,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "ship",
+          "seq": 7,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 15,
+          "seq": 8,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 9,
+          "tick": 15
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 10,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "forEach",
+            "check": "noErrors"
+          },
+          "seq": 11,
+          "tick": 15
+        }
+      ],
+      "expect": {
+        "ending": "wrongSent",
+        "class": "harm",
+        "rating": "bad",
+        "score": 25,
+        "criteria": {
+          "looked": "met",
+          "fixed": "missed",
+          "shipped": "missed",
+          "checked": "missed",
+          "note": "partial"
+        },
+        "kpis": {
+          "namedK": 0,
+          "uncaughtK": 0,
+          "sentAtMin": 13
+        },
+        "stateHash": "b4280b327ab5b7cf"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "promiseAll",
+      "title": "Reproduces, Promise.all with a general error, a test fails on naming, deploys anyway",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "repro",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 4,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "change",
+          "params": {
+            "f": "all"
+          },
+          "seq": 3,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 9,
+          "seq": 4,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "test",
+          "seq": 5,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 12,
+          "seq": 6,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "ship",
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 14,
+          "seq": 8,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 9,
+          "tick": 14
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 10,
+          "tick": 14
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "forEach",
+            "check": "mocked"
+          },
+          "seq": 11,
+          "tick": 14
+        }
+      ],
+      "expect": {
+        "ending": "gaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "looked": "met",
+          "fixed": "partial",
+          "shipped": "met",
+          "checked": "partial",
+          "note": "met"
+        },
+        "kpis": {
+          "namedK": 0,
+          "uncaughtK": 0,
+          "sentAtMin": 12
+        },
+        "stateHash": "780e9cdb5258f813"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "hold",
+      "title": "Reproduces and holds the release",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "repro",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 4,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 3,
+          "tick": 4
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 4,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "forEach",
+            "check": "none"
+          },
+          "seq": 5,
+          "tick": 4
+        }
+      ],
+      "expect": {
+        "ending": "notSent",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "looked": "met",
+          "fixed": "missed",
+          "shipped": "met",
+          "checked": "missed",
+          "note": "partial"
+        },
+        "kpis": {
+          "namedK": 0,
+          "uncaughtK": 2,
+          "sentAtMin": 0
+        },
+        "stateHash": "70b51fdc0291798d"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "late",
+      "title": "Changes first, reproduces after, tests, waits, deploys after 17:00",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "change",
+          "params": {
+            "f": "forof"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 5,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "repro",
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 9,
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "test",
+          "seq": 5,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 12,
+          "seq": 6,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 22,
+          "seq": 8,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 9,
+          "tick": 22
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 32,
+          "seq": 10,
+          "tick": 22
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 11,
+          "tick": 32
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 42,
+          "seq": 12,
+          "tick": 32
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 13,
+          "tick": 42
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 52,
+          "seq": 14,
+          "tick": 42
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 15,
+          "tick": 52
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 62,
+          "seq": 16,
+          "tick": 52
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 62,
+          "seq": 17,
+          "tick": 55
+        },
+        {
+          "type": "act",
+          "action": "ship",
+          "seq": 18,
+          "tick": 62
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 64,
+          "seq": 19,
+          "tick": 62
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 20,
+          "tick": 64
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 21,
+          "tick": 64
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "forEach",
+            "check": "mocked"
+          },
+          "seq": 22,
+          "tick": 64
+        }
+      ],
+      "expect": {
+        "ending": "gaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 92,
+        "criteria": {
+          "looked": "partial",
+          "fixed": "met",
+          "shipped": "met",
+          "checked": "met",
+          "note": "met"
+        },
+        "kpis": {
+          "namedK": 2,
+          "uncaughtK": 0,
+          "sentAtMin": 62
+        },
+        "stateHash": "a64a5e7c4a46da9f"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    }
+  ]
+}

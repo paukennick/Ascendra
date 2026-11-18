@@ -1,0 +1,568 @@
+{
+  "schemaVersion": 1,
+  "engine": { "major": 1, "minor": 2 },
+  "slug": "mshi-misdirected-email-breach-notice",
+  "title": "A spreadsheet to the wrong address, a laptop from a car",
+  "screen": {
+    "type": "governance-board",
+    "level": 1,
+    "governance": {
+      "risks": [
+        {
+          "id": "rEmail",
+          "label": "Spreadsheet of 1,240 patients emailed to an outside address",
+          "spokenLabel": "Misdirected email",
+          "owner": "\"Privacy officer\"",
+          "rating": "emailCall == \"unset\" or emailCall == \"wait\" ? \"high\" : noticesOnTime ? \"medium\" : \"high\"",
+          "appetite": "noticesOnTime ? \"within\" : \"above\"",
+          "status": "{emailCall == \"unset\" ? \"Reported on day 0; not yet decided\" : emailCall == \"notify\" ? (noticesOnTime ? \"Breach: patients, media and HHS notified\" : \"Breach: notices under way\") : emailCall == \"annual\" ? \"Letters only; HHS left for the annual log\" : emailCall == \"none\" ? \"Called low risk; no notice\" : \"Decision held for the forensic review\"}"
+        },
+        {
+          "id": "rLaptop",
+          "label": "Care coordinator's laptop stolen from a car (2,100 patients' records cached)",
+          "spokenLabel": "Stolen laptop",
+          "owner": "\"Privacy officer\"",
+          "rating": "laptopCall == \"unset\" ? \"high\" : \"low\"",
+          "appetite": "laptopCall == \"unset\" ? \"above\" : \"within\"",
+          "status": "{laptopCall == \"unset\" ? (isNull(verifyAt) ? \"Reported on day 0; encryption not checked\" : \"Encryption confirmed; not yet documented\") : laptopCall == \"noNotice\" ? (isNull(verifyAt) ? \"Closed as encrypted, unchecked\" : \"Encrypted: not unsecured PHI; documented, no notice\") : \"All 2,100 patients sent letters\"}"
+        },
+        {
+          "id": "rRoot",
+          "label": "Mail client autocompletes outside addresses for files with patient data",
+          "spokenLabel": "Autocomplete to outside addresses",
+          "owner": "\"IT security\"",
+          "rating": "isNull(dlpAt) ? \"high\" : \"low\"",
+          "appetite": "isNull(dlpAt) ? \"above\" : \"within\"",
+          "status": "{isNull(dlpAt) ? \"No control yet\" : \"Outside autocomplete blocked; outbound rule for patient data\"}"
+        }
+      ],
+      "stakeholders": [
+        { "id": "sCoo", "label": "Chief operating officer", "spokenLabel": "The COO's support", "value": "coo", "max": 10, "bands": [4, 6, 8], "words": ["opposed", "unconvinced", "supportive", "championing"] },
+        { "id": "sComm", "label": "Compliance committee", "spokenLabel": "The compliance committee's support", "value": "committee", "max": 10, "bands": [4, 6, 8], "words": ["opposed", "unconvinced", "supportive", "championing"] }
+      ],
+      "docket": [
+        { "id": "dLimit", "kind": "Deadline", "label": "Day 60: outer limit for notice of a breach discovered on day 0", "status": "{noticesOnTime ? \"Met\" : t >= notifyLimit ? \"Passed\" : \"Running\"}", "when": "true", "flag": "not noticesOnTime and t >= notifyLimit - 14 * 86400" },
+        { "id": "dCoo", "kind": "Executive request", "label": "COO: 'No press. Under 500 per state, so it goes on the year-end log, right?'", "status": "{isNull(briefAt) ? \"Waiting for your answer\" : \"Briefed on the rule\"}", "when": "true" },
+        { "id": "dAssess", "kind": "Risk assessment", "label": "Four-factor assessment of the email", "status": "Done with the privacy officer", "when": "not isNull(assessAt)" },
+        { "id": "dAttest", "kind": "Mitigation", "label": "Recipient's written attestation that the file is deleted", "status": "Received", "when": "not isNull(attestAt)" },
+        { "id": "dLetters", "kind": "Notice", "label": "Letters to the 1,240 patients, with a toll-free line", "status": "Mailed on day {timeAt(lettersAt) / 86400 + 10|0dp}", "when": "not isNull(lettersAt)" },
+        { "id": "dMedia", "kind": "Notice", "label": "Media notice in our state (910 residents affected)", "status": "Issued on day {timeAt(mediaAt) / 86400|0dp}", "when": "not isNull(mediaAt)" },
+        { "id": "dHhs", "kind": "Notice", "label": "Breach report to HHS (500 or more individuals)", "status": "Submitted on day {timeAt(hhsAt) / 86400|0dp}", "when": "not isNull(hhsAt)" },
+        { "id": "dLaptopAll", "kind": "Notice", "label": "Letters to the laptop's 2,100 patients", "status": "Mailed", "when": "laptopCall == \"notifyAll\"" }
+      ],
+      "budget": { "label": "Incident response budget committed", "spent": "spent", "total": "budget", "unit": "thousand dollars" },
+      "meters": [
+        { "id": "mDay", "label": "Days since discovery", "value": "{t / 86400|0dp}" },
+        { "id": "mFactors", "label": "Four factors", "value": "{isNull(assessAt) ? \"not assessed\" : isNull(attestAt) ? \"sensitive data; an unrelated outsider; opened and read; no attestation yet\" : \"sensitive data; an unrelated outsider; opened and read; deletion attested\"}" }
+      ]
+    }
+  },
+  "objective": "The HIPAA breach notification rule as strengthened by HITECH: what counts as a breach, how risk is assessed and who must be notified",
+  "secondaryObjectives": [
+    "The HIPAA Privacy Rule: who it covers (covered entities and business associates), what protected health information is, and which uses and disclosures it allows",
+    "Legal and regulatory frameworks as forces that shape health information behavior"
+  ],
+  "sources": [
+    {
+      "cite": "HHS Office for Civil Rights, Breach Notification Rule (hhs.gov, HIPAA for Professionals)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.hhs.gov/hipaa/for-professionals/breach-notification/index.html",
+      "note": "Read 2026-11-17 through a summarizing fetch. An impermissible use or disclosure 'is presumed to be a breach' unless a risk assessment shows a low probability of compromise from four factors: 'The nature and extent of the protected health information involved'; 'The unauthorized person who used the protected health information or to whom the disclosure was made'; 'Whether the protected health information was actually acquired or viewed'; 'The extent to which the risk to the protected health information has been mitigated'. Notification applies only to unsecured PHI; HHS guidance 'specifies encryption and destruction' as the methods that secure it. Individuals: 'without unreasonable delay and in no case later than 60 days following the discovery of a breach'. Media: a breach 'affecting more than 500 residents of a State or jurisdiction'. HHS: 500 or more individuals within 60 days; fewer than 500 within 60 days after the end of the calendar year. Covered entities have 'the burden of demonstrating that all required notifications have been provided' or that no breach occurred."
+    },
+    {
+      "cite": "HHS Office for Civil Rights, Submitting Notice of a Breach to the Secretary",
+      "checkedAt": "2026-11-17",
+      "url": "https://hhs.gov/hipaa/for-professionals/breach-notification/breach-reporting",
+      "note": "Read 2026-11-17 through a summarizing fetch: 500 or more individuals, 'No later than 60 calendar days from the discovery of the breach'; fewer than 500, 'Within 60 days after the end of the calendar year in which the breach was discovered'; 'a separate notice for each breach incident'."
+    },
+    {
+      "cite": "AMIA Accreditation Committee, foundational domains for master's-level health informatics education (CAHIIM HI master's curriculum requirements PDF)",
+      "checkedAt": "2026-11-17",
+      "url": "https://cahiim.org/wp-content/uploads/2024/08/hi-ms-curriculum.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch. F3 (Social and Behavioral Science) includes legal and regulatory frameworks; the MSHI course places the breach notification rule under F3 and cites 45 CFR Part 164 Subpart D."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Lakeview Health (fictional), its people, counts, costs and days are invented teaching values. The case works at the level of policy: no patient, record or message content appears. 'Without unreasonable delay' is a duty of its own; the case scores the 60-day outer limit and notes the duty in the debrief, and is not legal advice."
+    }
+  ],
+  "brief": {
+    "situation": "You are the health informatics lead on the privacy and security team at Lakeview Health (fictional). Monday morning, day 0, two reports arrive. A billing specialist emailed a spreadsheet of 1,240 patients (names, addresses, dates of service and diagnosis codes) to an outside address that autocompleted from a similar name; the recipient, at an unrelated company, replied that she opened it. And a care coordinator's laptop with about 2,100 patients' records cached was stolen from her car overnight. Of the 1,240 patients, 910 live in this state and 330 in the neighboring state.",
+    "handover": [
+      "Lakeview is a covered entity. You work with the privacy officer and counsel; the privacy officer signs the breach decisions you prepare.",
+      "Your incident response budget is 60 thousand dollars. Letters with a toll-free line for 1,240 patients cost about 18 thousand; for 2,100 patients, about 30 thousand."
+    ],
+    "howItWorks": [
+      "The clock runs in days: each task takes days. Choose it, then let it finish, which moves the calendar on.",
+      "The board shows the risk register against the appetite, each stakeholder's support in words, the budget committed and the docket, including the notice deadline.",
+      "When you close the case you write the breach record and explain your reasoning."
+    ]
+  },
+  "clock": { "start": "2027-03-01T09:00", "tick": "1d", "maxDuration": "100d", "calendar": "week" },
+  "params": {
+    "budget": { "value": 60, "source": { "cite": "Author's scenario (REQ-333)", "checkedAt": "2026-11-17", "note": "The incident response budget, thousand dollars; invented." } },
+    "notifyLimit": { "value": 5184000, "unit": "s", "source": { "cite": "HHS Office for Civil Rights, Breach Notification Rule", "checkedAt": "2026-11-17", "url": "https://www.hhs.gov/hipaa/for-professionals/breach-notification/index.html", "note": "60 days after discovery, the outer limit for individual, media and (500 or more) HHS notice." } },
+    "forensicDay": { "value": 6480000, "unit": "s", "source": { "cite": "Author's scenario (REQ-333)", "checkedAt": "2026-11-17", "note": "An outside forensic review would finish on day 75; invented." } },
+    "closeDay": { "value": 7776000, "unit": "s", "source": { "cite": "Author's scenario (REQ-333)", "checkedAt": "2026-11-17", "note": "The case closes on day 90." } }
+  },
+  "state": {
+    "busy": { "type": "bool", "init": false },
+    "documented": { "type": "bool", "init": false },
+    "closedAt": { "type": "time", "init": null },
+    "assessAt": { "type": "time", "init": null },
+    "attestAt": { "type": "time", "init": null },
+    "verifyAt": { "type": "time", "init": null },
+    "laptopCall": { "type": "enum", "values": ["unset", "noNotice", "notifyAll"], "init": "unset" },
+    "laptopCallAt": { "type": "time", "init": null },
+    "emailCall": { "type": "enum", "values": ["unset", "notify", "annual", "none", "wait"], "init": "unset" },
+    "emailCallAt": { "type": "time", "init": null },
+    "forensicAt": { "type": "time", "init": null },
+    "limitAt": { "type": "time", "init": null },
+    "briefAt": { "type": "time", "init": null },
+    "lettersAt": { "type": "time", "init": null },
+    "mediaAt": { "type": "time", "init": null },
+    "hhsAt": { "type": "time", "init": null },
+    "dlpAt": { "type": "time", "init": null },
+    "coo": { "type": "number", "init": 4, "min": 0, "max": 10 },
+    "committee": { "type": "number", "init": 5, "min": 0, "max": 10 },
+    "basisDoc": { "type": "enum", "values": ["unset", "fourFactor", "perState", "deleted"], "init": "unset" },
+    "laptopDoc": { "type": "enum", "values": ["unset", "encrypted", "notified", "unchecked"], "init": "unset" }
+  },
+  "derived": {
+    "lettersOk": { "expr": "not isNull(lettersAt) and timeAt(lettersAt) + 864000 <= notifyLimit" },
+    "mediaOk": { "expr": "not isNull(mediaAt) and timeAt(mediaAt) <= notifyLimit" },
+    "hhsOk": { "expr": "not isNull(hhsAt) and timeAt(hhsAt) <= notifyLimit" },
+    "noticesOnTime": { "expr": "lettersOk and mediaOk and hhsOk" },
+    "spent": { "expr": "(isNull(lettersAt) ? 0 : 18) + (laptopCall == \"notifyAll\" ? 30 : 0) + (isNull(dlpAt) ? 0 : 6)" },
+    "spendPct": { "expr": "spent / budget * 100" },
+    "aboveCount": { "expr": "(noticesOnTime ? 0 : 1) + (laptopCall == \"unset\" ? 1 : 0) + (isNull(dlpAt) ? 1 : 0)" },
+    "assessedFirst": { "expr": "not isNull(assessAt) and not isNull(emailCallAt) and timeAt(assessAt) <= timeAt(emailCallAt)" },
+    "harborProven": { "expr": "laptopCall == \"noNotice\" and not isNull(verifyAt) and timeAt(verifyAt) <= timeAt(laptopCallAt)" },
+    "minSupport": { "expr": "min(coo, committee)" }
+  },
+  "processes": [],
+  "phases": {
+    "incident": { "label": "The incidents", "clock": "turns", "actions": ["assess", "attest", "verify", "laptop", "decide", "brief", "letters", "media", "hhs", "dlp", "watch", "closeCase"] },
+    "report": { "label": "Breach record", "clock": "stopped", "actions": ["document"] }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "assess": {
+      "label": "Run the four-factor risk assessment of the email with the privacy officer (3 days)",
+      "group": "Assess",
+      "available": "not busy and isNull(assessAt)",
+      "why": "Done, or finish the task in progress first.",
+      "effects": [
+        { "set": "assessAt", "to": "t" },
+        { "add": "committee", "by": "1" },
+        { "log": "Four factors: diagnosis codes with names and addresses (sensitive); an employee of an unrelated company, not a covered entity; she opened and read it; mitigation so far: none. A low probability of compromise cannot be shown, so it is presumed a breach.", "kind": "act" },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "3d" }
+      ]
+    },
+    "attest": {
+      "label": "Ask the recipient for a written attestation that she deleted the file and kept no copy (2 days)",
+      "group": "Assess",
+      "available": "not busy and isNull(attestAt)",
+      "why": "Done, or finish the task in progress first.",
+      "effects": [
+        { "set": "attestAt", "to": "t" },
+        { "add": "committee", "by": "1" },
+        { "log": "Signed attestation received: file deleted, no copies, not forwarded. It mitigates; it does not undo that she read it.", "kind": "good" },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "2d" }
+      ]
+    },
+    "verify": {
+      "label": "Check device management: was the stolen laptop's full-disk encryption on, with the key off the device? (1 day)",
+      "group": "Assess",
+      "available": "not busy and isNull(verifyAt)",
+      "why": "Done, or finish the task in progress first.",
+      "effects": [
+        { "set": "verifyAt", "to": "t" },
+        { "add": "committee", "by": "1" },
+        { "log": "Device record: full-disk AES-256 encryption on since enrollment, recovery key held in device management, last check-in Sunday 18:40 powered off. The data is encrypted as HHS guidance describes.", "kind": "good" },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "1d" }
+      ]
+    },
+    "laptop": {
+      "label": "Decide the stolen laptop",
+      "group": "Decide",
+      "available": "not busy and laptopCall == \"unset\"",
+      "why": "Decided, or finish the task in progress first.",
+      "params": [
+        {
+          "id": "l",
+          "kind": "choice",
+          "label": "Laptop",
+          "options": [
+            { "value": "noNotice", "label": "Encrypted, so not unsecured PHI: document the evidence and the reasoning; no notification" },
+            { "value": "notifyAll", "label": "Notify all 2,100 patients to be safe" }
+          ]
+        }
+      ],
+      "effects": [
+        { "set": "laptopCall", "to": "l" },
+        { "set": "laptopCallAt", "to": "t" },
+        { "if": "l == \"notifyAll\"", "then": [{ "log": "Letters go to 2,100 patients about a laptop whose data was encrypted. The call line fills with worried patients.", "kind": "bad" }, { "add": "coo", "by": "-1" }], "else": [{ "log": "{isNull(verifyAt) ? \"Closed as encrypted without checking the device record.\" : \"Documented: encrypted per HHS guidance, so no breach of unsecured PHI.\"}", "kind": "act" }] },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "1d" }
+      ]
+    },
+    "decide": {
+      "label": "Decide the misdirected email",
+      "group": "Decide",
+      "available": "not busy and (emailCall == \"unset\" or (emailCall == \"wait\" and not isNull(forensicAt)))",
+      "why": "Decided, or finish the task in progress first.",
+      "params": [
+        {
+          "id": "e",
+          "kind": "choice",
+          "label": "Email",
+          "options": [
+            { "value": "notify", "label": "A breach of 1,240: letters to every patient, notice to media in our state (910 residents), and a report to HHS, all within 60 days" },
+            { "value": "annual", "label": "Letters to the patients; no state matters for media, and HHS gets it on the year-end log" },
+            { "value": "none", "label": "Low risk: she deleted it. No notification" },
+            { "value": "wait", "label": "Hold the decision until the outside forensic review finishes (about day 75)" }
+          ]
+        }
+      ],
+      "effects": [
+        { "set": "emailCall", "to": "e" },
+        { "set": "emailCallAt", "to": "t" },
+        { "cases": [
+          { "when": "e == \"notify\"", "then": [{ "log": "Decided: breach notification to patients, media in our state and HHS.", "kind": "act" }] },
+          { "when": "e == \"annual\" or e == \"none\"", "then": [{ "add": "committee", "by": "-2" }, { "add": "coo", "by": "2" }, { "log": "The compliance committee asks how the call squares with the rule.", "kind": "bad" }] },
+          { "when": "e == \"wait\"", "then": [{ "log": "The decision waits for the forensic review.", "kind": "act" }] }
+        ] },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "1d" }
+      ]
+    },
+    "brief": {
+      "label": "Brief the COO: 500 or more in all means HHS within 60 days; more than 500 residents of one state means media (1 day)",
+      "group": "Stakeholders",
+      "available": "not busy and isNull(briefAt)",
+      "why": "Done, or finish the task in progress first.",
+      "effects": [
+        { "set": "briefAt", "to": "t" },
+        { "add": "coo", "by": "3" },
+        { "log": "The COO accepts the media notice once he sees it is the rule, not a choice, and asks to see the statement first.", "kind": "good" },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "1d" }
+      ]
+    },
+    "letters": {
+      "label": "Prepare and mail the letters with a toll-free line: what happened, what information, steps to take, what we are doing, how to reach us (10 days)",
+      "group": "Notify",
+      "available": "not busy and isNull(lettersAt) and (emailCall == \"notify\" or emailCall == \"annual\")",
+      "why": "Mailed, not decided, or finish the task in progress first.",
+      "effects": [
+        { "set": "lettersAt", "to": "t" },
+        { "log": "Letters drafted with counsel; they mail when this task finishes.", "kind": "act" },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "10d" }
+      ]
+    },
+    "media": {
+      "label": "Issue notice to prominent media outlets in our state (2 days)",
+      "group": "Notify",
+      "available": "not busy and isNull(mediaAt) and emailCall == \"notify\"",
+      "why": "Issued, not decided, or finish the task in progress first.",
+      "effects": [
+        { "set": "mediaAt", "to": "t" },
+        { "add": "coo", "by": "-1" },
+        { "log": "Media notice issued in our state.", "kind": "act" },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "2d" }
+      ]
+    },
+    "hhs": {
+      "label": "Submit the breach report to HHS (1 day)",
+      "group": "Notify",
+      "available": "not busy and isNull(hhsAt) and emailCall == \"notify\"",
+      "why": "Submitted, not decided, or finish the task in progress first.",
+      "effects": [
+        { "set": "hhsAt", "to": "t" },
+        { "log": "Breach report submitted to HHS.", "kind": "act" },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "1d" }
+      ]
+    },
+    "dlp": {
+      "label": "Treat the cause: block autocomplete to outside addresses and add an outbound rule for files with patient data (5 days)",
+      "group": "Treat",
+      "available": "not busy and isNull(dlpAt)",
+      "why": "Done, or finish the task in progress first.",
+      "effects": [
+        { "set": "dlpAt", "to": "t" },
+        { "log": "Autocomplete to outside addresses is off, and outbound mail with patient data is held for review.", "kind": "good" },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "5d" }
+      ]
+    },
+    "watch": {
+      "label": "Let the week pass (7 days)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        { "log": "A week passes.", "kind": "act" },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "7d" }
+      ]
+    },
+    "closeCase": {
+      "label": "Close the case and write the breach record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        { "cancel": "work" },
+        { "set": "busy", "to": "false" },
+        { "set": "closedAt", "to": "t" },
+        { "log": "You close the case and write the record.", "kind": "act" },
+        { "phase": "report" }
+      ]
+    },
+    "document": {
+      "label": "Write the breach record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "basis",
+              "label": "Why the email was or was not a reportable breach",
+              "options": [
+                { "value": "fourFactor", "label": "Presumed a breach; the four factors did not show a low probability of compromise" },
+                { "value": "perState", "label": "Under 500 in each state, so a small breach" },
+                { "value": "deleted", "label": "The recipient deleted it, so no breach" }
+              ]
+            },
+            {
+              "id": "laptop",
+              "label": "Why the laptop was or was not notified",
+              "options": [
+                { "value": "encrypted", "label": "Encrypted as HHS guidance describes, shown by the device record: not unsecured PHI" },
+                { "value": "notified", "label": "Notified to be safe" },
+                { "value": "unchecked", "label": "Assumed encrypted" }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        { "set": "basisDoc", "to": "basis" },
+        { "set": "laptopDoc", "to": "laptop" },
+        { "log": "Recorded: basis {basis}, laptop {laptop}.", "kind": "act" },
+        { "set": "documented", "to": "true" }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Work in progress",
+      "wait": { "skipLabel": "Let the work finish" },
+      "instances": "one",
+      "source": { "cite": "Author's scenario (REQ-333)", "checkedAt": "2026-11-17", "note": "How many days each task takes is an invented teaching value." },
+      "effects": [{ "set": "busy", "to": "false" }]
+    }
+  },
+  "triggers": [
+    {
+      "id": "limit",
+      "when": "isNull(limitAt) and t >= notifyLimit and not noticesOnTime and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        { "set": "limitAt", "to": "t" },
+        { "log": "Day 60: the outer limit for notice of the email breach has passed without every required notice.", "kind": "alarm" }
+      ]
+    },
+    {
+      "id": "forensic",
+      "when": "isNull(forensicAt) and t >= forensicDay and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        { "set": "forensicAt", "to": "t" },
+        { "log": "Day 75: the forensic review confirms the file was opened and is now deleted. Nothing in it changes the four factors.", "kind": "act" }
+      ]
+    },
+    {
+      "id": "caseEnd",
+      "when": "t >= closeDay and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        { "cancel": "work" },
+        { "set": "busy", "to": "false" },
+        { "set": "closedAt", "to": "t" },
+        { "log": "Day 90: the case closes. Write the breach record.", "kind": "alarm" },
+        { "phase": "report" }
+      ]
+    },
+    { "id": "writeUp", "when": "phase == \"report\"", "mode": "once", "effects": [{ "reason": "writeup" }] }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the compliance committee: was each incident a reportable breach, who had to be told and by when, and what will stop it happening again?",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "The email",
+          "criteria": "An impermissible disclosure is presumed a breach unless the four factors show a low probability of compromise: diagnosis codes with identifiers, an unrelated outside recipient, actually opened and read; the attestation mitigates but does not show a low probability. Deleting the file is not the test.",
+          "modelAnswer": "Presumed a breach; sensitive data, read by an outsider, so notify."
+        },
+        {
+          "label": "Who and when",
+          "criteria": "Each of the 1,240 patients without unreasonable delay and within 60 days; media in our state because more than 500 residents (910) are affected; HHS within 60 days because 500 or more in all. The neighboring state's 330 need letters but no media notice there. Per-state counts do not move HHS to the annual log.",
+          "modelAnswer": "Letters to 1,240, media in this state, HHS now: all by day 60."
+        },
+        {
+          "label": "The laptop and the cause",
+          "criteria": "Encrypted data per HHS guidance is not unsecured PHI, so no notice, but the burden of proof means documenting the evidence (the device record). The cause is fixed: outside autocomplete blocked and an outbound rule.",
+          "modelAnswer": "Device record shows encryption with the key off the device: documented, no notice. Autocomplete off, outbound rule on."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "governance",
+    "thresholds": {
+      "budgetCap": { "value": 100, "source": { "cite": "Governance outcome profile (docs/sims.md 9.2, 22.26)", "checkedAt": "2026-11-17", "note": "Committed spend within the incident response budget." } },
+      "aboveAppetite": { "value": 0, "source": { "cite": "Governance outcome profile (docs/sims.md 9.2, 22.26)", "checkedAt": "2026-11-17", "note": "No risk left above appetite at the close: notices done, the laptop decided, the cause treated." } },
+      "supportTarget": { "value": 6, "source": { "cite": "Governance outcome profile (docs/sims.md 9.2, 22.26)", "checkedAt": "2026-11-17", "note": "The COO and the compliance committee at 6 of 10 or more at the close." } }
+    },
+    "noProgress": {
+      "when": "documented and emailCall == \"unset\"",
+      "class": "harm",
+      "rationale": "A presumed breach with no decision means no notice goes to the patients, the media or HHS within 60 days: outside the rule, not a safe pause.",
+      "source": { "cite": "HHS Office for Civil Rights, Breach Notification Rule", "checkedAt": "2026-11-17", "url": "https://www.hhs.gov/hipaa/for-professionals/breach-notification/index.html", "note": "The 60-day outer limit for individual, media and HHS notice." }
+    }
+  },
+  "endings": {
+    "outsideLaw": {
+      "label": "Required notices missing or late",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not noticesOnTime",
+      "narrative": "Patients, the media or HHS did not get a notice the rule requires within 60 days of discovery."
+    },
+    "compliant": {
+      "label": "Assessed, notified on time, the laptop proven out, the cause treated",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and assessedFirst and noticesOnTime and harborProven and aboveCount <= aboveAppetite and spendPct <= budgetCap and minSupport >= supportTarget",
+      "narrative": "Every required notice went out inside 60 days, the encrypted laptop is documented with its evidence, and outside autocomplete is closed."
+    },
+    "costly": {
+      "label": "Within the rule, at a cost",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The required notices went out on time, but the process skipped a step, over-notified, or left a stakeholder or a cause behind."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no breach record."
+    }
+  },
+  "endingOrder": ["outsideLaw", "compliant", "costly"],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "assessed",
+        "label": "Assessed the email on the four factors before deciding it",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          { "when": "assessedFirst", "score": "met", "why": "Four factors first, then the decision." },
+          { "when": "not isNull(assessAt)", "score": "partial", "why": "Assessed only after deciding." },
+          { "when": "true", "score": "missed", "why": "Decided without a risk assessment." }
+        ]
+      },
+      {
+        "id": "notified",
+        "label": "Patients, media in our state and HHS each notified within 60 days",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          { "when": "noticesOnTime", "score": "met", "why": "All three by day {max(timeAt(lettersAt) / 86400 + 10, max(timeAt(mediaAt), timeAt(hhsAt)) / 86400)|0dp}." },
+          { "when": "lettersOk", "score": "partial", "why": "Letters on time; media or HHS missing or late." },
+          { "when": "true", "score": "missed", "why": "{emailCall == \"none\" ? \"No notice at all.\" : emailCall == \"wait\" ? \"Held past the limit.\" : \"Required notices missing or late.\"}" }
+        ]
+      },
+      {
+        "id": "harbor",
+        "label": "The laptop: encryption checked, then documented as not unsecured PHI",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          { "when": "harborProven", "score": "met", "why": "Device record first, then the documented call." },
+          { "when": "laptopCall == \"notifyAll\" and not isNull(verifyAt)", "score": "partial", "why": "Checked, then notified 2,100 patients anyway." },
+          { "when": "true", "score": "missed", "why": "{laptopCall == \"noNotice\" ? \"Closed as encrypted with no evidence on file.\" : laptopCall == \"notifyAll\" ? \"Notified 2,100 patients without checking the device.\" : \"Never decided.\"}" }
+        ]
+      },
+      {
+        "id": "cause",
+        "label": "Treated the cause: outside autocomplete and outbound mail",
+        "weight": 1,
+        "rows": [
+          { "when": "not isNull(dlpAt)", "score": "met", "why": "Control in place." },
+          { "when": "true", "score": "missed", "why": "The same mistake can happen tomorrow." }
+        ]
+      },
+      {
+        "id": "coo",
+        "label": "Answered the COO with the rule",
+        "weight": 1,
+        "rows": [
+          { "when": "not isNull(briefAt)", "score": "met", "why": "Briefed." },
+          { "when": "true", "score": "missed", "why": "The COO's question went unanswered." }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record states the basis for each call",
+        "weight": 1,
+        "rows": [
+          { "when": "basisDoc == \"fourFactor\" and laptopDoc == \"encrypted\"", "score": "met", "why": "Both bases right." },
+          { "when": "basisDoc == \"fourFactor\" or laptopDoc == \"encrypted\"", "score": "partial", "why": "One basis right." },
+          { "when": "true", "score": "missed", "why": "Neither basis is right." }
+        ]
+      }
+    ],
+    "reasoningCriteria": [{ "moment": "writeup", "label": "Written explanation", "weight": 1 }],
+    "kpis": [
+      { "id": "lettersDay", "label": "Day the letters mailed", "value": "isNull(lettersAt) ? 0 : timeAt(lettersAt) / 86400 + 10", "format": "number", "expert": "about 19" },
+      { "id": "extra", "label": "Patients notified about the encrypted laptop", "value": "laptopCall == \"notifyAll\" ? 2100 : 0", "format": "number", "expert": "0" },
+      { "id": "spentK", "label": "Spent, thousand dollars", "value": "spent", "format": "number", "expert": "24" }
+    ],
+    "expertPath": [
+      { "at": "Day 0-2", "text": "Check the laptop's device record: encrypted, key off the device. Document it: not unsecured PHI, no notice." },
+      { "at": "Day 2-7", "text": "Four factors on the email with the privacy officer; ask for the recipient's attestation. Still presumed a breach." },
+      { "at": "Day 7-8", "text": "Decide: letters to 1,240, media in this state (910 residents), HHS (500 or more)." },
+      { "at": "Day 8-9", "text": "Brief the COO on the thresholds." },
+      { "at": "Day 9-22", "text": "Letters out by day 19; media and HHS notices." },
+      { "at": "Day 22-27", "text": "Block outside autocomplete; outbound rule for patient data." }
+    ],
+    "debrief": {
+      "compliant": { "headline": "Good: presumed, assessed, notified, proven", "body": "The email was presumed a breach and the four factors did not rebut it, so 1,240 letters, media in the state with more than 500 residents, and HHS went out well inside 60 days. The laptop's encryption was shown before it was closed, which is the burden of proof the rule puts on you." },
+      "costly": { "headline": "Within the rule, at a cost", "body": "Every required notice went out on time. Something else slipped: the assessment came after the decision, the laptop's patients were notified without need, the COO was left unconvinced, or the cause is still open. 'Without unreasonable delay' is its own duty, too: 60 days is the outer limit, not the target." },
+      "outsideLaw": { "headline": "A required notice was missed", "body": "Deletion by the recipient does not end the presumption; per-state counts decide media notice but not HHS timing, which turns on 500 or more in all; and waiting for a review does not stop the 60-day clock from discovery." },
+      "time_up": { "headline": "Time up", "body": "No breach record was written before the case's limit." }
+    },
+    "modelReasoning": "An impermissible disclosure of PHI is presumed a breach unless a documented four-factor assessment shows a low probability of compromise. Diagnosis codes with names and addresses, sent to an unrelated outsider who read them, cannot show that, even with a deletion attestation. So notify each of the 1,240 patients without unreasonable delay and within 60 days; notify media in this state because 910 of its residents are affected (more than 500); and report to HHS within 60 days because 500 or more are affected in all. The laptop's data was encrypted with the key off the device, which makes it secured PHI and outside the rule, but the covered entity carries the burden of proof, so check the device record and file it. Then close the cause: outside autocomplete and an outbound rule for patient data."
+  }
+}

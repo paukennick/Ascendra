@@ -1,0 +1,792 @@
+{
+  "slug": "mscs-freezer-bytes-little-endian",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Raw bytes, frame notes, '<h', re-run, handheld check (F3 really warm), send",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "xxd",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "notes",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 5,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "decoder",
+          "params": {
+            "f": "leS"
+          },
+          "seq": 5,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 9,
+          "seq": 6,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "rerun",
+          "seq": 7,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 14,
+          "seq": 8,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "handheld",
+          "seq": 9,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 18,
+          "seq": 10,
+          "tick": 14
+        },
+        {
+          "type": "act",
+          "action": "send",
+          "seq": 11,
+          "tick": 18
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 19,
+          "seq": 12,
+          "tick": 18
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 13,
+          "tick": 19
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 14,
+          "tick": 19
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "order",
+            "check": "handheld"
+          },
+          "seq": 15,
+          "tick": 19
+        }
+      ],
+      "expect": {
+        "ending": "right",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "looked": "met",
+          "decoded": "met",
+          "data": "met",
+          "checked": "met",
+          "note": "met"
+        },
+        "kpis": {
+          "f3k": 1,
+          "altered": 0,
+          "sentAtMin": 18
+        },
+        "stateHash": "cfe0ad238b5bef9b"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "filterFaults",
+      "title": "Calls the sensors faulty, drops readings above 100 °C and sends: F3 is hidden",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "filter",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "rerun",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 8,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "send",
+          "seq": 5,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 9,
+          "seq": 6,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 7,
+          "tick": 9
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 8,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "sensor",
+            "check": "none"
+          },
+          "seq": 9,
+          "tick": 9
+        }
+      ],
+      "expect": {
+        "ending": "wrongSent",
+        "class": "harm",
+        "rating": "bad",
+        "score": 17,
+        "criteria": {
+          "looked": "missed",
+          "decoded": "missed",
+          "data": "met",
+          "checked": "missed",
+          "note": "missed"
+        },
+        "kpis": {
+          "f3k": 0,
+          "altered": 0,
+          "sentAtMin": 8
+        },
+        "stateHash": "e976bcd257ad939a"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "swapOnly",
+      "title": "Looks at the bytes, swaps the byte order but keeps unsigned, sees 636 °C and holds the answer",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "xxd",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "decoder",
+          "params": {
+            "f": "leU"
+          },
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 7,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "rerun",
+          "seq": 5,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 12,
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "handheld",
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 16,
+          "seq": 8,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 9,
+          "tick": 16
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 10,
+          "tick": 16
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "order",
+            "check": "none"
+          },
+          "seq": 11,
+          "tick": 16
+        }
+      ],
+      "expect": {
+        "ending": "notSent",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "looked": "partial",
+          "decoded": "missed",
+          "data": "met",
+          "checked": "partial",
+          "note": "partial"
+        },
+        "kpis": {
+          "f3k": 0,
+          "altered": 0,
+          "sentAtMin": 0
+        },
+        "stateHash": "3f1015d1c638e93f"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "overwrite",
+      "title": "Rewrites the stored readings by a guess, then finds the right format and sends",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "overwrite",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "notes",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 5,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "decoder",
+          "params": {
+            "f": "leS"
+          },
+          "seq": 5,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 9,
+          "seq": 6,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "handheld",
+          "seq": 7,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 13,
+          "seq": 8,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "send",
+          "seq": 9,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 14,
+          "seq": 10,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 11,
+          "tick": 14
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 12,
+          "tick": 14
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "order",
+            "check": "handheld"
+          },
+          "seq": 13,
+          "tick": 14
+        }
+      ],
+      "expect": {
+        "ending": "altered",
+        "class": "harm",
+        "rating": "bad",
+        "score": 58,
+        "criteria": {
+          "looked": "partial",
+          "decoded": "met",
+          "data": "missed",
+          "checked": "met",
+          "note": "met"
+        },
+        "kpis": {
+          "f3k": 1,
+          "altered": 3420,
+          "sentAtMin": 13
+        },
+        "stateHash": "ed1458646fdf28dd"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "unchecked",
+      "title": "Reads the notes, '<h', sends without the handheld check",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "notes",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "xxd",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 5,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "decoder",
+          "params": {
+            "f": "leS"
+          },
+          "seq": 5,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 9,
+          "seq": 6,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "send",
+          "seq": 7,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 10,
+          "seq": 8,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 9,
+          "tick": 10
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 10,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "order",
+            "check": "plausible"
+          },
+          "seq": 11,
+          "tick": 10
+        }
+      ],
+      "expect": {
+        "ending": "gaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 67,
+        "criteria": {
+          "looked": "met",
+          "decoded": "met",
+          "data": "met",
+          "checked": "missed",
+          "note": "partial"
+        },
+        "kpis": {
+          "f3k": 1,
+          "altered": 0,
+          "sentAtMin": 9
+        },
+        "stateHash": "ea90b4f7fb065214"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "lateChecked",
+      "title": "Tries signed big-endian first, then '<h', checks, waits, and sends after 10:00",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "decoder",
+          "params": {
+            "f": "beS"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 4,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "xxd",
+          "seq": 3,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 7,
+          "seq": 4,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "notes",
+          "seq": 5,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 9,
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "decoder",
+          "params": {
+            "f": "leS"
+          },
+          "seq": 7,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 13,
+          "seq": 8,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "handheld",
+          "seq": 9,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 17,
+          "seq": 10,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 11,
+          "tick": 17
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 27,
+          "seq": 12,
+          "tick": 17
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 13,
+          "tick": 27
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 37,
+          "seq": 14,
+          "tick": 27
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 15,
+          "tick": 37
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 47,
+          "seq": 16,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 17,
+          "tick": 47
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 57,
+          "seq": 18,
+          "tick": 47
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 57,
+          "seq": 19,
+          "tick": 55
+        },
+        {
+          "type": "act",
+          "action": "send",
+          "seq": 20,
+          "tick": 57
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 58,
+          "seq": 21,
+          "tick": 57
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 22,
+          "tick": 58
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 23,
+          "tick": 58
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "order",
+            "check": "handheld"
+          },
+          "seq": 24,
+          "tick": 58
+        }
+      ],
+      "expect": {
+        "ending": "gaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 92,
+        "criteria": {
+          "looked": "partial",
+          "decoded": "met",
+          "data": "met",
+          "checked": "met",
+          "note": "met"
+        },
+        "kpis": {
+          "f3k": 1,
+          "altered": 0,
+          "sentAtMin": 57
+        },
+        "stateHash": "15110b3b84914103"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    }
+  ]
+}

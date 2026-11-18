@@ -1,0 +1,439 @@
+{
+  "schemaVersion": 1,
+  "engine": { "major": 1, "minor": 2 },
+  "slug": "mscs-transfer-workers-deadlock",
+  "title": "Every transfer worker waiting, nothing moving",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "ops@ledger1:~$",
+      "lines": [
+        { "id": "stall", "text": "16:40 monitoring: transfer queue 1,180 pending and rising; completed in the last 5 min: 0", "when": "true", "at": "0", "error": "true" },
+        { "id": "again", "text": "monitoring: transfers stalled again; completed in the last 5 min: 0", "when": "not isNull(recurAt)", "at": "not isNull(recurAt) ? timeAt(recurAt) : 0", "error": "true" },
+        { "id": "cut", "text": "17:30 same-day cutoff: transfers still queued roll to tomorrow", "when": "not isNull(cutoffAt)", "at": "not isNull(cutoffAt) ? timeAt(cutoffAt) : 0", "error": "true" },
+        { "id": "clear", "text": "monitoring: transfer queue drained; workers completing normally", "when": "cleared", "at": "clearedSec > 0 ? clearedSec : 0" }
+      ],
+      "nodes": [
+        { "id": "workers", "label": "ledgerd (8 worker threads)", "spokenLabel": "the transfer workers", "kind": "Python service on ledger1", "status": "{stuck ? \"All 8 threads blocked waiting for account locks\" : deployedFix == \"global\" ? \"Running one transfer at a time\" : \"Completing transfers\"}", "tone": "stuck ? \"down\" : deployedFix == \"global\" ? \"degraded\" : \"up\"" },
+        { "id": "queue", "label": "transfer queue", "spokenLabel": "the transfer queue", "kind": "Message queue", "status": "{dropped ? \"1,180 transfers purged\" : cleared ? \"Drained\" : stuck ? \"Backing up\" : \"Draining\"}", "tone": "dropped ? \"out\" : cleared ? \"up\" : stuck ? \"degraded\" : \"degraded\"" },
+        { "id": "db", "label": "accounts database", "spokenLabel": "the accounts database", "kind": "PostgreSQL", "status": "Healthy; no lock waits on its side", "tone": "\"up\"" }
+      ],
+      "links": [
+        { "id": "qw", "from": "queue", "to": "workers", "label": "workers take transfers from the queue", "status": "{stuck ? \"No transfer taken for minutes\" : \"Flowing\"}", "tone": "stuck ? \"down\" : \"up\"" }
+      ],
+      "meters": [
+        { "id": "cutoff", "label": "Same-day cutoff", "value": "17:30" },
+        { "id": "restarts", "label": "Service restarts", "value": "{restarts}" }
+      ]
+    }
+  },
+  "objective": "Deadlocks and the four necessary conditions",
+  "secondaryObjectives": ["Locks and mutexes", "Threads", "Race conditions"],
+  "sources": [
+    {
+      "cite": "ACM/IEEE-CS/AAAI, Computer Science Curricula 2023 (CS2023), knowledge areas (OS: Operating Systems, OS-Concurrency; PDC: Parallel and Distributed Computing, PDC-Coordination)",
+      "checkedAt": "2026-11-17",
+      "url": "https://csed.acm.org/wp-content/uploads/2025/11/CS2023-Report.htm",
+      "note": "Read 2026-11-17 through a summarizing fetch of the report's first part: the OS knowledge area lists OS-Concurrency and the PDC area lists PDC-Coordination as knowledge units; the fetch did not reach their topic lists. The MSCS course cites CS2023 by knowledge unit."
+    },
+    {
+      "cite": "Arpaci-Dusseau, Operating Systems: Three Easy Pieces, version 1.10, chapter 32 (Common Concurrency Problems)",
+      "checkedAt": "2026-11-11",
+      "url": "https://pages.cs.wisc.edu/~remzi/OSTEP/",
+      "note": "Not re-read for this round: the MSCS course's dated unit source (REQ-245, read 2026-11-11) records 'deadlock needs all four conditions at once: mutual exclusion, hold-and-wait, no preemption, circular wait; preventing any one prevents deadlock'. The case's fix, acquiring locks in one global order, prevents circular wait; a lock with a timeout and back-off gives up hold-and-wait at a cost in retries."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Harbor Mutual Bank (fictional), its service, queue sizes, timings and cutoff are invented teaching values. Thread dumps and test output are authored renderings in each tool's style; the facts they carry are the source's."
+    }
+  ],
+  "brief": {
+    "situation": "You are the on-call engineer for ledgerd at Harbor Mutual Bank (fictional), the Python service whose 8 worker threads move money between accounts. Each transfer locks the source account, then the destination, then writes both balances. Since 16:35 no transfer has completed and the queue is growing. Transfers not completed by the 17:30 same-day cutoff roll to tomorrow. It is 16:40.",
+    "handover": [
+      "Customers often send money back and forth between their own accounts at month-end.",
+      "The database reports no lock waits of its own: the locks are the service's in-memory account locks."
+    ],
+    "howItWorks": [
+      "Pick a command or a change from the action list. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The cutoff runs on the same clock.",
+      "The screen shows the alert lines, the services and the link between them, and the result of each step.",
+      "When you close the incident you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": { "start": "16:40", "tick": "1min", "maxDuration": "150min", "calendar": "clock" },
+  "params": {
+    "cutoff": { "value": 3000, "unit": "s", "source": { "cite": "Author's scenario (REQ-333)", "checkedAt": "2026-11-17", "note": "The 17:30 cutoff, 50 minutes after the start; invented." } }
+  },
+  "state": {
+    "busy": { "type": "bool", "init": false },
+    "documented": { "type": "bool", "init": false },
+    "closedAt": { "type": "time", "init": null },
+    "evidenceAt": { "type": "time", "init": null },
+    "dumpAt": { "type": "time", "init": null },
+    "firstChangeAt": { "type": "time", "init": null },
+    "stuck": { "type": "bool", "init": true },
+    "restarts": { "type": "number", "init": 0, "min": 0, "max": 50 },
+    "recurAt": { "type": "time", "init": null },
+    "patch": { "type": "enum", "values": ["none", "order", "timeout", "global", "threads"], "init": "none" },
+    "patchAt": { "type": "time", "init": null },
+    "testAt": { "type": "time", "init": null },
+    "testPassed": { "type": "bool", "init": false },
+    "deployedFix": { "type": "enum", "values": ["none", "order", "timeout", "global", "threads"], "init": "none" },
+    "deployedAt": { "type": "time", "init": null },
+    "dropped": { "type": "bool", "init": false },
+    "cutoffAt": { "type": "time", "init": null },
+    "causeDoc": { "type": "enum", "values": ["unset", "circular", "database", "load"], "init": "unset" },
+    "fixDoc": { "type": "enum", "values": ["unset", "order", "restart", "threads"], "init": "unset" }
+  },
+  "derived": {
+    "fixedDeploy": { "expr": "deployedFix == \"order\" or deployedFix == \"timeout\" or deployedFix == \"global\"" },
+    "clearedSec": { "expr": "fixedDeploy and not dropped and not isNull(deployedAt) ? timeAt(deployedAt) + (deployedFix == \"global\" ? 1800 : deployedFix == \"timeout\" ? 600 : 300) : -1" },
+    "cleared": { "expr": "clearedSec >= 0 and t >= clearedSec" },
+    "faultsAdded": { "expr": "dropped ? 1 : 0" },
+    "evidenceFirst": { "expr": "not isNull(dumpAt) and (isNull(firstChangeAt) or timeAt(dumpAt) <= timeAt(firstChangeAt))" },
+    "testedFirst": { "expr": "testPassed and not isNull(testAt) and not isNull(deployedAt) and timeAt(testAt) <= timeAt(deployedAt) and timeAt(testAt) >= timeAt(patchAt)" }
+  },
+  "processes": [],
+  "phases": {
+    "incident": { "label": "Incident in progress", "clock": "turns", "actions": ["queue", "psThreads", "dump", "restart", "drop", "write", "test", "deploy", "watch", "closeOutage"] },
+    "report": { "label": "Write-up", "clock": "stopped", "actions": ["document"] }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "queue": {
+      "label": "ledgerctl queue stats",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        { "if": "isNull(evidenceAt)", "then": [{ "set": "evidenceAt", "to": "t" }] },
+        { "output": "ops@ledger1:~$ ledgerctl queue stats\npending: {stuck ? \"1,240\" : \"draining\"}   in progress: {stuck ? \"8 (oldest 6m12s)\" : \"8\"}   completed last 5m: {stuck ? \"0\" : \"2,310\"}" },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "1min" }
+      ]
+    },
+    "psThreads": {
+      "label": "ps -L -o tid,stat,pcpu,wchan -p $(pgrep ledgerd)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        { "if": "isNull(evidenceAt)", "then": [{ "set": "evidenceAt", "to": "t" }] },
+        { "output": "  TID STAT %CPU WCHAN\n 4101 Sl    0.0 futex_wait_queue\n 4102 Sl    0.0 futex_wait_queue\n ... (8 workers, all 0.0% CPU, all sleeping on a futex)" },
+        { "finding": "{stuck ? \"Every worker is asleep at 0% CPU waiting on a lock: blocked, not overloaded.\" : \"Workers are running.\"}" },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "1min" }
+      ]
+    },
+    "dump": {
+      "label": "py-spy dump --pid $(pgrep ledgerd)  (each thread's stack and the lock it waits for)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        { "if": "isNull(evidenceAt)", "then": [{ "set": "evidenceAt", "to": "t" }] },
+        { "if": "isNull(dumpAt)", "then": [{ "set": "dumpAt", "to": "t" }] },
+        { "output": "Thread 4101 (worker-1): transfer(src=1042, dst=2210)\n    holds lock account:1042\n    waiting  lock account:2210   (held by worker-2)\nThread 4102 (worker-2): transfer(src=2210, dst=1042)\n    holds lock account:2210\n    waiting  lock account:1042   (held by worker-1)\n... workers 3-8 waiting for account:1042 or account:2210" },
+        { "finding": "worker-1 holds 1042 and waits for 2210; worker-2 holds 2210 and waits for 1042: a cycle. Locks are exclusive, held while waiting, never taken away, and the wait is circular: all four deadlock conditions hold." },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "2min" }
+      ]
+    },
+    "restart": {
+      "label": "sudo systemctl restart ledgerd",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        { "if": "isNull(firstChangeAt)", "then": [{ "set": "firstChangeAt", "to": "t" }] },
+        { "add": "restarts", "by": "1" },
+        { "set": "stuck", "to": "false" },
+        { "output": "ops@ledger1:~$ sudo systemctl restart ledgerd\n(in-progress transfers return to the queue and are retried)" },
+        { "log": "ledgerd restarts; transfers flow again.", "kind": "act" },
+        { "if": "not fixedDeploy", "then": [{ "schedule": "recur", "after": "6min" }] },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "2min" }
+      ]
+    },
+    "drop": {
+      "label": "ledgerctl queue purge --stuck, then restart (clear the blocked transfers)",
+      "group": "Change",
+      "available": "not busy and not dropped",
+      "why": "Already purged.",
+      "effects": [
+        { "if": "isNull(firstChangeAt)", "then": [{ "set": "firstChangeAt", "to": "t" }] },
+        { "set": "dropped", "to": "true" },
+        { "set": "stuck", "to": "false" },
+        { "add": "restarts", "by": "1" },
+        { "output": "purged 1,240 transfers" },
+        { "log": "1,240 customer transfers are gone from the queue; nobody's money moved.", "kind": "bad" },
+        { "if": "not fixedDeploy", "then": [{ "schedule": "recur", "after": "6min" }] },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "2min" }
+      ]
+    },
+    "write": {
+      "label": "Write a patch to transfer()",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "params": [
+        { "id": "p", "kind": "choice", "label": "Patch", "options": [
+          { "value": "order", "label": "Lock the two accounts in a global order: the lower account number first, whatever the direction" },
+          { "value": "timeout", "label": "Try the second lock with a timeout; on timeout release the first, back off and retry" },
+          { "value": "global", "label": "One global lock around every transfer" },
+          { "value": "threads", "label": "Raise the worker threads from 8 to 32" }
+        ] }
+      ],
+      "effects": [
+        { "if": "isNull(firstChangeAt)", "then": [{ "set": "firstChangeAt", "to": "t" }] },
+        { "set": "patch", "to": "p" },
+        { "set": "patchAt", "to": "t" },
+        { "set": "testPassed", "to": "false" },
+        { "log": "Patch written: {p}.", "kind": "act" },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "8min" }
+      ]
+    },
+    "test": {
+      "label": "Run the concurrency test: 10,000 opposite-direction transfer pairs on 8 threads",
+      "group": "Check",
+      "available": "not busy and patch != \"none\"",
+      "why": "Write a patch first.",
+      "effects": [
+        { "set": "testAt", "to": "t" },
+        { "cases": [
+          { "when": "patch == \"order\"", "then": [{ "set": "testPassed", "to": "true" }, { "output": "10000 pairs, 8 threads: completed in 41 s, 0 deadlocks, balances sum unchanged" }] },
+          { "when": "patch == \"timeout\"", "then": [{ "set": "testPassed", "to": "true" }, { "output": "10000 pairs, 8 threads: completed in 2 m 37 s, 0 deadlocks, 18,904 lock timeouts retried, balances sum unchanged" }] },
+          { "when": "patch == \"global\"", "then": [{ "set": "testPassed", "to": "true" }, { "output": "10000 pairs, 8 threads: completed in 4 m 55 s, 0 deadlocks (one transfer at a time), balances sum unchanged" }] },
+          { "when": "patch == \"threads\"", "then": [{ "output": "10000 pairs, 32 threads: HUNG after 212 pairs (test killed at 120 s): 32 threads waiting on account locks" }] }
+        ] },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "4min" }
+      ]
+    },
+    "deploy": {
+      "label": "Deploy the patch (rolling restart of ledgerd)",
+      "group": "Change",
+      "available": "not busy and patch != \"none\" and deployedFix != patch",
+      "why": "Write a patch first, or it is already deployed.",
+      "effects": [
+        { "set": "deployedFix", "to": "patch" },
+        { "set": "deployedAt", "to": "t" },
+        { "set": "stuck", "to": "false" },
+        { "add": "restarts", "by": "1" },
+        { "output": "ops@ledger1:~$ ledgerctl deploy --rolling\nledgerd {patch} patch live on 8 workers" },
+        { "if": "patch == \"threads\"", "then": [{ "schedule": "recur", "after": "3min" }] },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "3min" }
+      ]
+    },
+    "watch": {
+      "label": "Watch the queue (5 minutes)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        { "log": "You watch the queue for 5 minutes.", "kind": "act" },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "5min" }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the incident and write it up",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        { "cancel": "work" },
+        { "set": "busy", "to": "false" },
+        { "set": "closedAt", "to": "t" },
+        { "log": "You close the incident and start the write-up.", "kind": "act" },
+        { "phase": "report" }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the fix",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        { "id": "record", "kind": "form", "label": "Record", "fields": [
+          { "id": "cause", "label": "Why transfers stopped", "options": [
+            { "value": "circular", "label": "Opposite-direction transfers each held one account lock and waited for the other: a circular wait" },
+            { "value": "database", "label": "Database lock contention" },
+            { "value": "load", "label": "Too much month-end load for 8 workers" }
+          ] },
+          { "id": "fix", "label": "What stops it happening again", "options": [
+            { "value": "order", "label": "A global lock order, so a cycle of waits cannot form" },
+            { "value": "restart", "label": "Restarting the service" },
+            { "value": "threads", "label": "More worker threads" }
+          ] }
+        ] }
+      ],
+      "effects": [
+        { "set": "causeDoc", "to": "cause" },
+        { "set": "fixDoc", "to": "fix" },
+        { "log": "Recorded: cause {cause}, fix {fix}.", "kind": "act" },
+        { "set": "documented", "to": "true" }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Command running",
+      "wait": { "skipLabel": "Let the command finish" },
+      "instances": "one",
+      "source": { "cite": "Author's scenario (REQ-333)", "checkedAt": "2026-11-17", "note": "Working minutes per step are invented teaching values." },
+      "effects": [{ "set": "busy", "to": "false" }]
+    },
+    "recur": {
+      "label": "Opposite-direction transfers meet again",
+      "instances": "one",
+      "source": { "cite": "Author's scenario (REQ-333)", "checkedAt": "2026-11-17", "note": "At month-end volume two opposite transfers meet within minutes; invented." },
+      "effects": [
+        { "if": "not fixedDeploy or deployedFix == \"threads\"", "then": [
+          { "set": "stuck", "to": "true" },
+          { "set": "recurAt", "to": "t" },
+          { "log": "Two opposite transfers meet again: every worker is blocked.", "kind": "alarm" }
+        ] }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "cutoffT",
+      "when": "isNull(cutoffAt) and t >= cutoff and phase == \"incident\" and not cleared",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        { "set": "cutoffAt", "to": "t" },
+        { "log": "17:30: the same-day cutoff passes with transfers still queued.", "kind": "alarm" }
+      ]
+    },
+    { "id": "writeUp", "when": "phase == \"report\"", "mode": "once", "effects": [{ "reason": "writeup" }] }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the incident review: why transfers stopped, which condition your fix removes, and how you know it holds.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why they stopped",
+          "criteria": "A deadlock, shown by the thread dump: worker-1 holds account 1042 and waits for 2210 while worker-2 holds 2210 and waits for 1042. All four conditions hold: mutual exclusion, hold-and-wait, no preemption, circular wait. Not load (0% CPU) and not the database.",
+          "modelAnswer": "Opposite transfers took the same two locks in opposite orders, so they waited on each other forever."
+        },
+        {
+          "label": "Which condition the fix removes",
+          "criteria": "A global lock order (lower account first) makes a circular wait impossible; a timeout with back-off removes hold-and-wait at the cost of retries; one global lock removes concurrency and misses the cutoff; more threads or restarts remove nothing.",
+          "modelAnswer": "Lock order by account number: every thread acquires in the same order, so no cycle can form."
+        },
+        {
+          "label": "How you know",
+          "criteria": "A concurrency test that reproduces the cycle (opposite pairs on many threads) passes on the patched code before deploying, with balances unchanged; then the queue drains.",
+          "modelAnswer": "10,000 opposite pairs on 8 threads: 0 deadlocks, totals unchanged; queue drained by 17:08."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": { "value": 3000, "source": { "cite": "Author's scenario (REQ-333)", "checkedAt": "2026-11-17", "note": "The queue drained by the 17:30 cutoff, 50 minutes after the start." } },
+      "newFaults": { "value": 0, "source": { "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)", "checkedAt": "2026-11-17", "note": "No damage left behind: no transfer purged." } }
+    },
+    "noProgress": {
+      "when": "documented and not cleared",
+      "class": "harm",
+      "rationale": "Closing while the workers can still deadlock leaves customers' transfers stuck past the cutoff; never a safe outcome.",
+      "source": { "cite": "Author's scenario (REQ-333)", "checkedAt": "2026-11-17", "note": "An invented teaching scenario." }
+    }
+  },
+  "endings": {
+    "lost": { "label": "Transfers purged", "class": "harm", "terminal": true, "when": "documented and dropped", "narrative": "1,240 customers' transfers were thrown away to unblock the service; every one must be found and re-sent by hand." },
+    "stillStuck": { "label": "Still deadlocking", "class": "harm", "terminal": true, "when": "documented and not cleared", "narrative": "The incident was closed with nothing to stop the next pair of opposite transfers locking the service again." },
+    "fixed": { "label": "Cycle removed, tested, on time", "class": "target", "terminal": true, "when": "documented and deployedFix == \"order\" and testedFirst and evidenceFirst and clearedSec <= restoreWindow and faultsAdded <= newFaults", "narrative": "A global lock order, proved by a concurrency test, drained the queue well before the cutoff." },
+    "fixedGaps": { "label": "Fixed, with gaps", "class": "recovered", "terminal": true, "when": "documented", "narrative": "Transfers flow again, but the fix cost retries or throughput, missed the cutoff, or went out untested or before the cause was seen." },
+    "time_up": { "label": "Time up", "class": "harm", "terminal": true, "narrative": "The case reached its time limit with nothing recorded." }
+  },
+  "endingOrder": ["lost", "stillStuck", "fixed", "fixedGaps"],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "evidence",
+        "label": "Read the threads' lock waits before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          { "when": "evidenceFirst", "score": "met", "why": "The dump showed the cycle first." },
+          { "when": "not isNull(dumpAt)", "score": "partial", "why": "Looked only after a change." },
+          { "when": "true", "score": "missed", "why": "Never looked at what the threads were waiting for." }
+        ]
+      },
+      {
+        "id": "cycle",
+        "label": "Removed a deadlock condition: a global lock order",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          { "when": "deployedFix == \"order\"", "score": "met", "why": "No circular wait can form." },
+          { "when": "deployedFix == \"timeout\" or deployedFix == \"global\"", "score": "partial", "why": "{deployedFix == \"timeout\" ? \"Breaks hold-and-wait, at the cost of thousands of retries.\" : \"No deadlock, and no concurrency either.\"}" },
+          { "when": "true", "score": "missed", "why": "{deployedFix == \"threads\" ? \"More threads only make the cycle more likely.\" : \"Nothing stops the next cycle.\"}" }
+        ]
+      },
+      {
+        "id": "data",
+        "label": "Lost no transfer",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          { "when": "not dropped", "score": "met", "why": "Blocked transfers were retried, not purged." },
+          { "when": "true", "score": "missed", "why": "1,240 transfers purged." }
+        ]
+      },
+      {
+        "id": "tested",
+        "label": "Reproduced the cycle in a concurrency test and passed it before deploying",
+        "weight": 1,
+        "rows": [
+          { "when": "testedFirst", "score": "met", "why": "Tested on the deployed patch." },
+          { "when": "not isNull(testAt)", "score": "partial", "why": "Tested, but it failed or came after the deploy." },
+          { "when": "true", "score": "missed", "why": "Deployed untested." }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cycle and the lock order",
+        "weight": 1,
+        "rows": [
+          { "when": "causeDoc == \"circular\" and fixDoc == \"order\"", "score": "met", "why": "Cause and fix both right." },
+          { "when": "causeDoc == \"circular\" or fixDoc == \"order\"", "score": "partial", "why": "Half right." },
+          { "when": "true", "score": "missed", "why": "Neither is recorded right." }
+        ]
+      }
+    ],
+    "reasoningCriteria": [{ "moment": "writeup", "label": "Written explanation", "weight": 1 }],
+    "kpis": [
+      { "id": "clearedMin", "label": "Minutes until the queue drained", "value": "clearedSec >= 0 ? clearedSec / 60 : 0", "format": "number", "expert": "about 23" },
+      { "id": "restartsK", "label": "Service restarts", "value": "restarts", "format": "number", "expert": "1 (the deploy)" },
+      { "id": "purged", "label": "Transfers purged", "value": "dropped ? 1240 : 0", "format": "number", "expert": "0" }
+    ],
+    "expertPath": [
+      { "at": "0-1 min", "text": "Queue stats: 0 completed, 8 in progress for 6 minutes." },
+      { "at": "1-3 min", "text": "Thread dump: worker-1 holds 1042 and waits for 2210; worker-2 the reverse. A cycle." },
+      { "at": "3-11 min", "text": "Patch: lock the lower account number first." },
+      { "at": "11-15 min", "text": "Concurrency test: 10,000 opposite pairs, 0 deadlocks, totals unchanged." },
+      { "at": "15-23 min", "text": "Rolling deploy; the queue drains." }
+    ],
+    "debrief": {
+      "fixed": { "headline": "Good: the cycle cannot form", "body": "Zero CPU and threads asleep on locks meant blocked, not busy. The dump showed two locks taken in opposite orders. A global lock order removes the circular wait, the one condition you can cheaply break, and the test proved it before it shipped." },
+      "fixedGaps": { "headline": "Fixed, with gaps", "body": "Transfers flow, but the fix traded something: retries from a timeout, all concurrency from a global lock, a missed cutoff, or a deploy before the cause was seen or the test passed." },
+      "stillStuck": { "headline": "Still deadlocking", "body": "A restart clears the waiters, and the next pair of opposite transfers makes the same cycle within minutes. More threads add more chances to meet. Only removing a necessary condition stops it." },
+      "lost": { "headline": "Customer transfers thrown away", "body": "The blocked transfers were valid work waiting on a bug. Fix the locking and let them retry." },
+      "time_up": { "headline": "Time up", "body": "Nothing was recorded before the case's limit." }
+    },
+    "modelReasoning": "Eight threads asleep at 0% CPU with the queue growing means blocked, not overloaded. The thread dump shows worker-1 holding account 1042 and waiting for 2210 while worker-2 holds 2210 and waits for 1042: a deadlock, because all four conditions hold at once (mutual exclusion, hold-and-wait, no preemption, circular wait). Restarting clears it only until two opposite transfers meet again, and more threads make that sooner. Acquire both locks in a global order (lower account number first) so a circular wait cannot form; a timeout with back-off also works but trades deadlock for retries, and one global lock trades it for all concurrency. Prove it with a concurrency test of opposite pairs before deploying, and never purge the blocked transfers."
+  }
+}
