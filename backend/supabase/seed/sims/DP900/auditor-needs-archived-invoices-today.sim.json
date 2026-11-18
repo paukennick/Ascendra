@@ -1,0 +1,875 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "auditor-needs-archived-invoices-today",
+  "title": "Audit: the invoices the auditor needs by 15:00 are in the Archive tier",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "analyst@cloudshell:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "12:30 auditor: 'We need the 120 invoices on list A-17 by 15:00'; download attempt: 'This operation is not permitted on an archived blob'",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "15:00: audit finding escalated",
+          "when": "not isNull(missAt)",
+          "at": "timeAt(missAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "15:00: invoices delivered",
+          "when": "not isNull(okAt)",
+          "at": "timeAt(okAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "arch",
+          "label": "invoices/2024/ (Archive tier)",
+          "spokenLabel": "the archived invoices",
+          "kind": "40,000 PDFs",
+          "status": "{harmed ? \"public container\" : fixed ? \"offline (originals kept)\" : \"offline\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "hot",
+          "label": "audit-a17/ (Hot tier)",
+          "spokenLabel": "the audit copy",
+          "kind": "120 PDFs",
+          "status": "{fixed and not harmed ? \"rehydrated at high priority\" : \"not created\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "aud",
+          "label": "External auditor",
+          "spokenLabel": "the auditor",
+          "kind": "download link",
+          "status": "{fixed and not harmed ? \"time-limited link to audit-a17\" : \"waiting\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "arch",
+          "to": "hot",
+          "label": "copy and rehydrate",
+          "status": "{fixed and not harmed ? \"done\" : \"none\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Features of Azure Blob storage",
+  "secondaryObjectives": [
+    "Identifying Azure datastores for common use cases"
+  ],
+  "sources": [
+    {
+      "cite": "Microsoft Learn, Study guide for Exam DP-900: Microsoft Azure Data Fundamentals (skills as of July 21, 2026; page last updated 2026-06-23): core data concepts 25-30%, relational data 20-25%, non-relational data 15-20%, analytics workload 25-30%",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/dp-900",
+      "note": "Read through a summarizing fetch on 2026-11-17. Bullets quoted there under 'Describe data visualization in Microsoft Power BI': 'Identify the capabilities of Power BI', 'Describe features of data models in Power BI', 'Identify appropriate visualizations for data'. The objective wording is the course seed's. (read for this round by an earlier pass on 2026-11-17) (read for this round by an earlier pass on 2026-11-17) (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "Microsoft Learn, Blob rehydration from the archive tier",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/azure/storage/blobs/storage-blob-rehydration",
+      "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: rehydrate by copying to an online tier (the source stays in archive, no early deletion fee) or by Set Blob Tier; standard priority 'might take up to 15 hours to complete for objects under 10 GB', high priority 'might complete in less than one hour for objects under 10 GB' (costs more, for emergencies); a pending standard request can be raised to high; archive blobs should stay 180 days or pay early deletion; a 10 GiB per hour per account rehydration limit. Sharing with a time-limited SAS and container public access are from memory of the Blob storage security pages (to verify)."
+    }
+  ],
+  "brief": {
+    "situation": "You are a data analyst at Corvin Garden Supply. The external auditor needs 120 supplier invoices from 2024 (PDFs, 1.8 GB in total) by 15:00 today, or the audit finding escalates to the board. The invoices are in the storage account cgsdocs, container invoices, which a lifecycle rule moved to the Archive tier after 180 days.",
+    "handover": [
+      "The auditor can download from a link you send; they have no account in your tenant.",
+      "Company policy: invoices are confidential; no public access on any container."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the archived invoices, the online copy you make and how the auditor gets them.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "12:30",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineAt": {
+      "value": 9000,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "The auditor needs the files by 15:00, 150 minutes after the request; high priority rehydration can finish in under an hour for small objects, standard can take up to 15 hours."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "harmed": {
+      "type": "bool",
+      "init": false
+    },
+    "tried": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "tierAt": {
+      "type": "time",
+      "init": null
+    },
+    "sizeAt": {
+      "type": "time",
+      "init": null
+    },
+    "policyAt": {
+      "type": "time",
+      "init": null
+    },
+    "ageAt": {
+      "type": "time",
+      "init": null
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "missAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "archive",
+        "perm",
+        "deleted"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "tier",
+        "size",
+        "policy",
+        "age",
+        "copyhigh",
+        "share",
+        "public",
+        "standard",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "tier": {
+      "label": "az storage blob show: tier of one requested invoice",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(tierAt)",
+          "then": [
+            {
+              "set": "tierAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "analyst@cloudshell:~$ az storage blob show --account-name cgsdocs -c invoices -n 2024/INV-24-0412.pdf --query \"properties.blobTier\" -o tsv\n{fixed and not harmed ? \"Archive  (copy in audit-a17: Hot)\" : \"Archive\"}"
+        },
+        {
+          "finding": "The invoices are in Archive: offline until rehydrated."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "size": {
+      "label": "Size of the 120 requested invoices",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(sizeAt)",
+          "then": [
+            {
+              "set": "sizeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "analyst@cloudshell:~$ az storage blob list --account-name cgsdocs -c invoices --prefix 2024/ --query \"[?contains('$(cat a17.txt)', name)].properties.contentLength\" -o tsv | paste -sd+ | bc\n1932735283  (1.8 GB, 120 blobs, each under 40 MB)"
+        },
+        {
+          "finding": "Small objects, well under 10 GB: high priority rehydration can finish in under an hour; standard can take up to 15 hours."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "policy": {
+      "label": "Lifecycle rule and container access",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(policyAt)",
+          "then": [
+            {
+              "set": "policyAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "analyst@cloudshell:~$ az storage account management-policy show --account-name cgsdocs --query policy.rules[0].definition.actions.baseBlob\ntierToArchive: daysAfterModificationGreaterThan 180\nanalyst@cloudshell:~$ az storage container show --account-name cgsdocs -n invoices --query properties.publicAccess\n{harmed ? \"blob\" : fixed ? \"null\" : \"null\"}"
+        },
+        {
+          "finding": "The lifecycle rule archived them on schedule; the container is private, as policy requires."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "age": {
+      "label": "When were they archived?",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(ageAt)",
+          "then": [
+            {
+              "set": "ageAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "analyst@cloudshell:~$ az storage blob show ... --query properties.archiveStatus, properties.blobTierChangeTime\n2025-06-30 (archived 505 days ago)"
+        },
+        {
+          "finding": "They have been in Archive for more than 180 days: no early deletion fee either way, but copying keeps the archive original untouched."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "copyhigh": {
+      "label": "Copy the 120 invoices to a new container audit-a17 in the Hot tier with rehydrate priority High, and wait for them",
+      "group": "Fix",
+      "available": "not busy and (not fixed and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "fixed",
+          "to": "true"
+        },
+        {
+          "output": "analyst@cloudshell:~$ while read b; do az storage blob copy start --account-name cgsdocs --destination-container audit-a17 --destination-blob \"$b\" --source-container invoices --source-blob \"2024/$b\" --tier Hot --rehydrate-priority High; done < a17.txt\n(120 copies started; status: rehydrate-pending-to-hot)"
+        },
+        {
+          "log": "The originals stay in Archive; 120 small copies rehydrate at high priority, which can finish in under an hour, in time to send by 15:00. (The copies take about 50 minutes to come online.)",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "50min"
+        }
+      ]
+    },
+    "share": {
+      "label": "When the copies are Hot, send the auditor a read-only SAS for audit-a17 expiring in 7 days; delete audit-a17 after the audit",
+      "group": "Fix",
+      "available": "not busy and (not planned and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "analyst@cloudshell:~$ az storage container generate-sas --account-name cgsdocs -n audit-a17 --permissions rl --expiry 2026-11-24 --https-only --as-user --auth-mode login\n(link sent to the auditor; reminder set: delete audit-a17 on 2026-11-25)"
+        },
+        {
+          "log": "The auditor gets exactly the 120 files, read-only, for a week, over HTTPS; nothing else in the account is exposed.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "public": {
+      "label": "Set the invoices container to public blob access so the auditor can download directly",
+      "group": "Fix",
+      "available": "not busy and (not harmed)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "harmed",
+          "to": "true"
+        },
+        {
+          "output": "analyst@cloudshell:~$ az storage container set-permission --account-name cgsdocs -n invoices --public-access blob\n(updated)"
+        },
+        {
+          "log": "Every invoice in the container is now readable by anyone with its URL, against company policy, and the archived ones still cannot be downloaded.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "standard": {
+      "label": "Change the 120 invoices' tier to Hot with standard priority",
+      "group": "Fix",
+      "available": "not busy and (not harmed and not tried)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tried",
+          "to": "true"
+        },
+        {
+          "output": "analyst@cloudshell:~$ while read b; do az storage blob set-tier --account-name cgsdocs -c invoices -n \"2024/$b\" --tier Hot; done < a17.txt\n(120 requests: rehydrate-pending-to-hot, standard priority)"
+        },
+        {
+          "log": "Standard priority can take up to 15 hours: the files will not be back by 15:00.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Check the copies' status and test the link",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "analyst@cloudshell:~$ az storage blob list --account-name cgsdocs -c audit-a17 --query \"[].properties.blobTier\" -o tsv | sort | uniq -c; curl -sI \"<sas link>/INV-24-0412.pdf\" | head -1\n{harmed ? \" 120 Archive (public)\nHTTP/1.1 409 BlobArchived\" : fixed ? \" 120 Hot\nHTTP/1.1 200 OK\" : \" (none, or 120 Archive pending standard rehydration)\nHTTP/1.1 409 BlobArchived\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "archive",
+                  "label": "The invoices were in the Archive tier, which is offline until rehydrated"
+                },
+                {
+                  "value": "perm",
+                  "label": "The auditor lacked permissions"
+                },
+                {
+                  "value": "deleted",
+                  "label": "The invoices were deleted"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-335)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "15:00: the auditor has all 120 invoices.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "missAt",
+              "to": "t"
+            },
+            {
+              "log": "15:00: no invoices; the audit finding goes to the board.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why the invoices could not be downloaded, how you got them out in time, and how you shared them.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Knows what Archive means.",
+          "modelAnswer": "A lifecycle rule moved the 2024 invoices to Archive after 180 days; archived blobs are offline and must be rehydrated before they can be read."
+        },
+        {
+          "label": "In time",
+          "criteria": "Picks the right rehydration.",
+          "modelAnswer": "Copied the 120 invoices (1.8 GB, each small) to a Hot container with high priority, which can finish in under an hour; standard priority can take up to 15 hours. Copying left the archived originals untouched."
+        },
+        {
+          "label": "Shared",
+          "criteria": "Narrow and temporary.",
+          "modelAnswer": "A read-only SAS on the audit container, HTTPS only, for seven days, and the container deleted after the audit. Making the invoices container public would have exposed everything."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The auditor needs the files by 15:00, 150 minutes after the request; high priority rehydration can finish in under an hour for small objects, standard can take up to 15 hours."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: The confidential invoices container was made public."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed and not harmed",
+      "class": "harm",
+      "rationale": "Closing without rehydrating the invoices leaves the auditor without them at 15:00.",
+      "source": {
+        "cite": "Microsoft Learn, Blob rehydration from the archive tier",
+        "checkedAt": "2026-11-17",
+        "url": "https://learn.microsoft.com/azure/storage/blobs/storage-blob-rehydration",
+        "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: rehydrate by copying to an online tier (the source stays in archive, no early deletion fee) or by Set Blob Tier; standard priority 'might take up to 15 hours to complete for objects under 10 GB', high priority 'might complete in less than one hour for objects under 10 GB' (costs more, for emergencies); a pending standard request can be raised to high; archive blobs should stay 180 days or pay early deletion; a 10 GiB per hour per account rehydration limit. Sharing with a time-limited SAS and container public access are from memory of the Blob storage security pages (to verify)."
+      }
+    }
+  },
+  "endings": {
+    "publicContainer": {
+      "label": "Invoices container made public",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and harmed",
+      "narrative": "Public access exposed every invoice and still did not deliver the archived ones."
+    },
+    "auditEscalated": {
+      "label": "Audit finding escalated",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(missAt)",
+      "narrative": "At 15:00 the invoices were still offline."
+    },
+    "delivered": {
+      "label": "High-priority copies shared by SAS",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(tierAt) and not isNull(sizeAt) and not isNull(verifiedAt) and causeDoc == \"archive\"",
+      "narrative": "120 copies rehydrated at high priority and shared read-only for a week; the originals stayed archived and private."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The auditor got the files, but the expiry, the cleanup, the check or the record was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "publicContainer",
+    "auditEscalated",
+    "delivered",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Read the tier and the size of what was needed",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(tierAt) and not isNull(sizeAt)",
+            "score": "met",
+            "why": "The key evidence, read before changing anything."
+          },
+          {
+            "when": "not isNull(tierAt) or not isNull(sizeAt) or not isNull(policyAt) or not isNull(ageAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Invoices delivered by 15:00, nothing made public",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and not harmed and isNull(missAt)",
+            "score": "met",
+            "why": "The right change, in time, without harm."
+          },
+          {
+            "when": "fixed or harmed",
+            "score": "partial",
+            "why": "{harmed ? \"The confidential invoices container was made public.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never removed."
+          }
+        ]
+      },
+      {
+        "id": "lasting",
+        "label": "Shared by expiring SAS with cleanup; copies checked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The lasting step taken and the result checked."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"archive\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record names the wrong cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes that caused harm",
+        "value": "harmed ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "12:30-12:34",
+        "text": "Tier Archive; 120 files, 1.8 GB; lifecycle archived them, container private; archived over 180 days ago."
+      },
+      {
+        "at": "12:34-12:40",
+        "text": "Copy to audit-a17 Hot at high priority; plan the SAS and cleanup."
+      },
+      {
+        "at": "12:40-13:40",
+        "text": "Copies Hot; link tested; SAS sent."
+      }
+    ],
+    "debrief": {
+      "publicContainer": {
+        "headline": "Access and tier are different problems",
+        "body": "The files were offline because of their tier, not their permissions. Rehydrate a copy, then share only those files with a time-limited SAS."
+      },
+      "auditEscalated": {
+        "headline": "Archive is offline storage",
+        "body": "Archived blobs cannot be read until rehydrated. For an urgent need on small objects, use high priority; standard can take up to 15 hours."
+      },
+      "delivered": {
+        "headline": "Good: knew the tiers",
+        "body": "You saw the files were archived and small, copied just those at high priority instead of waiting on standard, checked them, and shared them narrowly with an expiry."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the evidence before the change, the lasting step, the check, or the cause in the record."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The invoices are in the Archive tier, which is offline; they need rehydrating, and they are small. Copy just the 120 to a new Hot container with high priority, which can finish in under an hour, leaving the originals archived. Standard priority can take up to 15 hours. Share the copies with a read-only, expiring SAS; making the container public would expose every invoice and would not even bring the archived files back."
+  }
+}
