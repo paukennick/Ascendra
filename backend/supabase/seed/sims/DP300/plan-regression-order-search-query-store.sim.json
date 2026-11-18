@@ -1,0 +1,868 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "plan-regression-order-search-query-store",
+  "title": "Peak hour: the order search query flips to a bad plan",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "dba@cloudshell:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "10:20 portal: order search p95 6.1 s (was 40 ms); CPU 95%; carriers' bulk check at 11:00",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "11:00: bulk check, portal timing out",
+          "when": "not isNull(missAt)",
+          "at": "timeAt(missAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "11:00: bulk check, portal fast",
+          "when": "not isNull(okAt)",
+          "at": "timeAt(okAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "q",
+          "label": "Query 4127 (order search)",
+          "spokenLabel": "the order search",
+          "kind": "parameterized by customer",
+          "status": "{harmed ? \"every plan in the database recompiling\" : fixed ? \"plan 31 forced: index seek\" : \"plan 88: index scan\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "db",
+          "label": "Azure SQL DB haldane-ops",
+          "spokenLabel": "the database",
+          "kind": "8 vCores",
+          "status": "{harmed ? \"CPU 100%, compiling\" : fixed ? \"CPU 31%\" : \"CPU 95%\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "q",
+          "to": "db",
+          "label": "executions",
+          "status": "{fixed and not harmed ? \"40 ms each\" : \"6 s each\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Monitoring using Query Store",
+  "secondaryObjectives": [
+    "Reviewing execution plans",
+    "Configuring database automatic tuning"
+  ],
+  "sources": [
+    {
+      "cite": "Microsoft Learn, Study guide for Exam DP-300: Administering Microsoft Azure SQL Solutions (skills as of October 27, 2026; page last updated 2026-10-30): data platform resources 15-20%, secure environment 20-25%, monitor, configure and optimize 20-25%, automation 15-20%, HA/DR 20-25%",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/dp-300",
+      "note": "Read through a summarizing fetch on 2026-11-17. Bullets quoted there: 'Identify and resolve session blocking'; 'Monitor by using Extended Events'; 'Identify performance issues using dynamic management views (DMVs)'. The objective wording is the course seed's. (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "Microsoft Learn, SQL Server and Azure SQL: Automatic tuning",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/en-us/sql/relational-databases/automatic-tuning",
+      "note": "Read through a summarizing fetch on 2026-11-17. Quoted: plan choice regression, where 'the new plan might cause a performance regression, such as a parameter sensitivity or parameter sniffing related issue'; 'you should find a previous good plan and force it ... by using the sp_query_store_force_plan procedure' (EXEC sp_query_store_force_plan 12, 17: query_id, plan_id); 'force the last known good plan because older plans might be invalid'; manually forced plans 'should not be forced forever'; ALTER DATABASE ... SET AUTOMATIC_TUNING (FORCE_LAST_GOOD_PLAN = ON), which depends on Query Store; sys.dm_db_tuning_recommendations shows detected regressions. The ALTER DATABASE SCOPED CONFIGURATION reference (read 2026-11-18): CLEAR PROCEDURE_CACHE 'Clears the procedure (plan) cache for the database'; a plan handle limits it to one plan."
+    }
+  ],
+  "brief": {
+    "situation": "You are the database administrator at Haldane Freight. Since 10:05 the customer portal's order search has gone from 40 ms to 6 seconds and the database's CPU is at 95%. Last night's maintenance updated statistics on dbo.Shipments. At 11:00 the carriers' bulk status check starts, which runs the same search 30,000 times.",
+    "handover": [
+      "Query Store is on (READ_WRITE) for the database; automatic tuning is off.",
+      "The database is Azure SQL Database, Business Critical, 8 vCores; no schema changes were deployed."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the order search query, its plans in Query Store and the database's CPU.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "10:20",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineAt": {
+      "value": 2400,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "The carriers' bulk status check starts at 11:00, 40 minutes after the page."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "harmed": {
+      "type": "bool",
+      "init": false
+    },
+    "tried": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "topAt": {
+      "type": "time",
+      "init": null
+    },
+    "plansAt": {
+      "type": "time",
+      "init": null
+    },
+    "showplanAt": {
+      "type": "time",
+      "init": null
+    },
+    "recoAt": {
+      "type": "time",
+      "init": null
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "missAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "plan",
+        "index",
+        "capacity"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "top",
+        "plans",
+        "showplan",
+        "reco",
+        "force",
+        "tuning",
+        "flush",
+        "rebuild",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "top": {
+      "label": "Query Store: top queries by CPU, last hour",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(topAt)",
+          "then": [
+            {
+              "set": "topAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dba@cloudshell:~$ sqlcmd -Q \"SELECT TOP 3 q.query_id, SUM(rs.avg_cpu_time*rs.count_executions)/1000 AS cpu_ms FROM sys.query_store_runtime_stats rs JOIN sys.query_store_plan p ON p.plan_id=rs.plan_id JOIN sys.query_store_query q ON q.query_id=p.query_id WHERE rs.last_execution_time > DATEADD(hour,-1,SYSUTCDATETIME()) GROUP BY q.query_id ORDER BY 2 DESC\"\n{harmed ? \" 4127  1,880,000\n (compiles dominate)\" : fixed ? \" 4127   41,200\n 3990    9,800\" : \" 4127  2,914,600\n 3990      9,700\"}"
+        },
+        {
+          "finding": "One query, the order search, uses almost all of the CPU."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "plans": {
+      "label": "Query Store: plans of query 4127 with average duration",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(plansAt)",
+          "then": [
+            {
+              "set": "plansAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dba@cloudshell:~$ sqlcmd -Q \"SELECT p.plan_id, p.is_forced_plan, MIN(rs.first_execution_time) first_seen, AVG(rs.avg_duration)/1000 avg_ms FROM sys.query_store_plan p JOIN sys.query_store_runtime_stats rs ON rs.plan_id=p.plan_id WHERE p.query_id=4127 GROUP BY p.plan_id, p.is_forced_plan\"\n{fixed and not harmed ? \" 31  1  2026-10-02  38\n 88  0  2026-11-17 02:14  6,040\" : \" 31  0  2026-10-02  38\n 88  0  2026-11-17 02:14  6,040\"}"
+        },
+        {
+          "finding": "Plan 31 ran at about 40 ms for six weeks; plan 88 appeared at 02:14, right after the statistics update, and takes 6 seconds."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "showplan": {
+      "label": "Compare the two plans' operators",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(showplanAt)",
+          "then": [
+            {
+              "set": "showplanAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dba@cloudshell:~$ SELECT query_plan FROM sys.query_store_plan WHERE plan_id IN (31, 88)  (summarized)\nplan 31: Index Seek IX_Shipments_Customer + Key Lookup (est. 12 rows)\nplan 88: Clustered Index Scan Shipments (est. 410,000 rows; compiled for customer 'C-0001', the largest)"
+        },
+        {
+          "finding": "Plan 88 was compiled for the largest customer and scans 41 million rows for everyone else: a parameter-sensitive plan choice."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "reco": {
+      "label": "sys.dm_db_tuning_recommendations",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(recoAt)",
+          "then": [
+            {
+              "set": "recoAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dba@cloudshell:~$ SELECT reason, JSON_VALUE(details,'$.implementationDetails.script') FROM sys.dm_db_tuning_recommendations\nAverage query CPU time changed from 0.9ms to 5,980ms   exec sp_query_store_force_plan @query_id = 4127, @plan_id = 31"
+        },
+        {
+          "finding": "The engine has detected the same regression and recommends forcing plan 31."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "force": {
+      "label": "EXEC sp_query_store_force_plan @query_id = 4127, @plan_id = 31",
+      "group": "Fix",
+      "available": "not busy and (not fixed and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "fixed",
+          "to": "true"
+        },
+        {
+          "output": "dba@cloudshell:~$ sqlcmd -Q \"EXEC sp_query_store_force_plan @query_id = 4127, @plan_id = 31\"\n(Commands completed successfully.)"
+        },
+        {
+          "log": "The last known good plan is used again for the order search; only this query is affected, and nothing else recompiles.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "tuning": {
+      "label": "Turn on automatic tuning FORCE_LAST_GOOD_PLAN, and open a ticket to fix the query's parameter sensitivity so the forced plan can be removed",
+      "group": "Fix",
+      "available": "not busy and (not planned and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "dba@cloudshell:~$ sqlcmd -Q \"ALTER DATABASE CURRENT SET AUTOMATIC_TUNING (FORCE_LAST_GOOD_PLAN = ON)\"\n(Commands completed successfully.)\n(ticket DBA-412: order search parameter sensitivity; review forced plan 31 in 30 days)"
+        },
+        {
+          "log": "The next regression of this kind is corrected and verified by the engine, and the forced plan is a bridge, not a permanent pin.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "flush": {
+      "label": "ALTER DATABASE SCOPED CONFIGURATION CLEAR PROCEDURE_CACHE",
+      "group": "Fix",
+      "available": "not busy and (not harmed)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "harmed",
+          "to": "true"
+        },
+        {
+          "output": "dba@cloudshell:~$ sqlcmd -Q \"ALTER DATABASE SCOPED CONFIGURATION CLEAR PROCEDURE_CACHE\"\n(Commands completed successfully.)"
+        },
+        {
+          "log": "Every query in the database recompiles at peak, CPU goes to 100% compiling, and the order search may get the same bad plan again.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "rebuild": {
+      "label": "Rebuild IX_Shipments_Customer online",
+      "group": "Fix",
+      "available": "not busy and (not harmed and not tried)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tried",
+          "to": "true"
+        },
+        {
+          "output": "dba@cloudshell:~$ sqlcmd -Q \"ALTER INDEX IX_Shipments_Customer ON dbo.Shipments REBUILD WITH (ONLINE = ON)\"\n(Commands completed successfully. 14 min)"
+        },
+        {
+          "log": "The index was never the problem: the optimizer still chooses plan 88's scan.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Check query 4127's duration and the CPU after the change",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dba@cloudshell:~$ Query Store, last 5 min: query 4127 avg duration; sys.dm_db_resource_stats avg_cpu_percent\n{harmed ? \"4127: 5,900 ms (plan 88 recompiled)\nCPU: 100%\" : fixed ? \"4127: 39 ms (plan 31, forced)\nCPU: 31%\" : \"4127: 6,020 ms (plan 88)\nCPU: 95%\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "plan",
+                  "label": "After the statistics update the search got a parameter-sensitive scan plan (88) instead of plan 31"
+                },
+                {
+                  "value": "index",
+                  "label": "A fragmented index"
+                },
+                {
+                  "value": "capacity",
+                  "label": "The database needs more vCores"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-335)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "11:00: the bulk check runs at 40 ms a search.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "missAt",
+              "to": "t"
+            },
+            {
+              "log": "11:00: the bulk check piles on; the portal times out for everyone.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why the search slowed, what you forced and why that plan, and what keeps it from recurring.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Uses Query Store's plan history.",
+          "modelAnswer": "Query 4127 took 95% of CPU. It had run plan 31 (index seek, about 40 ms) for six weeks; at 02:14, after the statistics update, it compiled plan 88, a scan sized for the largest customer, about 6 seconds for everyone."
+        },
+        {
+          "label": "Forced",
+          "criteria": "Last known good, one query only.",
+          "modelAnswer": "sp_query_store_force_plan for query 4127 and plan 31, the last known good plan; the engine's own recommendation agreed. Clearing the plan cache would have recompiled everything at peak."
+        },
+        {
+          "label": "Recurrence",
+          "criteria": "Automates the guard and fixes the cause.",
+          "modelAnswer": "FORCE_LAST_GOOD_PLAN is on, and a ticket addresses the query's parameter sensitivity so the forced plan can be removed after review."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 2400,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The carriers' bulk status check starts at 11:00, 40 minutes after the page."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: The whole plan cache was cleared at peak."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed and not harmed",
+      "class": "harm",
+      "rationale": "Closing with plan 88 still in use leaves the portal to fail under the bulk check.",
+      "source": {
+        "cite": "Microsoft Learn, SQL Server and Azure SQL: Automatic tuning",
+        "checkedAt": "2026-11-17",
+        "url": "https://learn.microsoft.com/en-us/sql/relational-databases/automatic-tuning",
+        "note": "Read through a summarizing fetch on 2026-11-17. Quoted: plan choice regression, where 'the new plan might cause a performance regression, such as a parameter sensitivity or parameter sniffing related issue'; 'you should find a previous good plan and force it ... by using the sp_query_store_force_plan procedure' (EXEC sp_query_store_force_plan 12, 17: query_id, plan_id); 'force the last known good plan because older plans might be invalid'; manually forced plans 'should not be forced forever'; ALTER DATABASE ... SET AUTOMATIC_TUNING (FORCE_LAST_GOOD_PLAN = ON), which depends on Query Store; sys.dm_db_tuning_recommendations shows detected regressions. The ALTER DATABASE SCOPED CONFIGURATION reference (read 2026-11-18): CLEAR PROCEDURE_CACHE 'Clears the procedure (plan) cache for the database'; a plan handle limits it to one plan."
+      }
+    }
+  },
+  "endings": {
+    "recompileStorm": {
+      "label": "Recompile storm at peak",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and harmed",
+      "narrative": "Clearing the plan cache made every query recompile under load, and the search compiled the same bad plan."
+    },
+    "portalDown": {
+      "label": "Portal timing out under the bulk check",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(missAt)",
+      "narrative": "At 11:00 the search still ran plan 88 and the carriers' 30,000 searches piled on."
+    },
+    "forced": {
+      "label": "Good plan forced, automatic tuning on, root cause ticketed",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(topAt) and not isNull(plansAt) and not isNull(verifiedAt) and causeDoc == \"plan\"",
+      "narrative": "The order search runs plan 31 again, CPU is normal, and the engine will catch the next regression."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The search is fast, but automatic tuning, the ticket, the check or the record was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "recompileStorm",
+    "portalDown",
+    "forced",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Found the regressed query and its plan history",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(topAt) and not isNull(plansAt)",
+            "score": "met",
+            "why": "The key evidence, read before changing anything."
+          },
+          {
+            "when": "not isNull(topAt) or not isNull(plansAt) or not isNull(showplanAt) or not isNull(recoAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Search fast by 11:00 without a cache flush",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and not harmed and isNull(missAt)",
+            "score": "met",
+            "why": "The right change, in time, without harm."
+          },
+          {
+            "when": "fixed or harmed",
+            "score": "partial",
+            "why": "{harmed ? \"The whole plan cache was cleared at peak.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never removed."
+          }
+        ]
+      },
+      {
+        "id": "lasting",
+        "label": "Automatic tuning on and root cause ticketed; result checked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The lasting step taken and the result checked."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"plan\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record names the wrong cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes that caused harm",
+        "value": "harmed ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "10:20-10:24",
+        "text": "Query 4127 dominates CPU; plan 31 good for weeks, plan 88 since 02:14; scan compiled for the largest customer; recommendation to force 31."
+      },
+      {
+        "at": "10:24-10:28",
+        "text": "Force plan 31; automatic tuning on; ticket for parameter sensitivity."
+      },
+      {
+        "at": "10:28-10:30",
+        "text": "39 ms; CPU 31%."
+      }
+    ],
+    "debrief": {
+      "recompileStorm": {
+        "headline": "A cache flush is a shotgun",
+        "body": "Query Store already showed which query regressed and which plan was good. Force that plan for that query; do not make the whole database recompile at peak."
+      },
+      "portalDown": {
+        "headline": "The good plan was in Query Store",
+        "body": "When a plan regresses, Query Store keeps the history: find the last good plan and force it with sp_query_store_force_plan."
+      },
+      "forced": {
+        "headline": "Good: Query Store used as intended",
+        "body": "You found the query and its two plans, saw the regression after the statistics update, forced the last good plan, checked it, and set up automatic correction while the parameter sensitivity is fixed."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the evidence before the change, the lasting step, the check, or the cause in the record."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Query Store shows one query using the CPU and two plans for it: the seek plan that ran for weeks and a scan plan compiled after last night's statistics update, sized for the largest customer. Force the last known good plan for that query only, then check. Clearing the plan cache recompiles everything at peak and may produce the same plan; rebuilding the index changes nothing. Turn on FORCE_LAST_GOOD_PLAN and fix the parameter sensitivity so the forced plan can be removed."
+  }
+}

@@ -1,0 +1,876 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "folder-policy-deny-blocks-app-to-db",
+  "title": "Outage: a new folder firewall policy cuts the orders app off from its database",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "neteng@cloudshell:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "15:05 orders app: 'connection to 10.30.0.12:5432 timed out' since 14:50; peak at 16:00",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "16:00: peak, orders failing",
+          "when": "not isNull(missAt)",
+          "at": "timeAt(missAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "16:00: peak, orders writing",
+          "when": "not isNull(okAt)",
+          "at": "timeAt(okAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "fold",
+          "label": "Folder prod: policy sec-baseline",
+          "spokenLabel": "the folder policy",
+          "kind": "evaluated before VPC rules",
+          "status": "{harmed ? \"detached from the folder\" : fixed ? \"rule 900 goto_next 10.20.0.0/16 to 10.30.0.0/24:5432\" : \"rule 1000 deny tcp:5432 from 0.0.0.0/0\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "vpc",
+          "label": "VPC rule allow-app-db",
+          "spokenLabel": "the VPC rule",
+          "kind": "priority 1000",
+          "status": "{fixed and not harmed ? \"allows app to db\" : \"never reached\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "db",
+          "label": "PostgreSQL VMs 10.30.0.0/24",
+          "spokenLabel": "the database VMs",
+          "kind": "tcp:5432",
+          "status": "{fixed and not harmed ? \"reachable\" : \"unreachable\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "fold",
+          "to": "db",
+          "label": "ingress tcp:5432",
+          "status": "{fixed and not harmed ? \"passed to VPC rules\" : \"denied\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Using Connectivity Tests to diagnose route and firewall misconfigurations",
+  "secondaryObjectives": [
+    "Understanding effective policy rules in hierarchical firewall situations",
+    "Creating and troubleshooting VPC firewall rules and Cloud NGFW regional/global/hierarchical policies"
+  ],
+  "sources": [
+    {
+      "cite": "Google Cloud, Professional Cloud Network Engineer certification exam guide (April 2026): designing and planning a VPC network ~21%, VPC network implementation ~20%, managed network services ~16%, hybrid and multicloud interconnectivity ~16%, network operations ~14%, cloud network security ~13%",
+      "checkedAt": "2026-11-17",
+      "url": "https://services.google.com/fh/files/misc/042426_professional_cloud_network_engineer_exam_guide_english.pdf",
+      "note": "Read through a summarizing fetch on 2026-11-17. Bullet quoted there under 1.1: 'Planning for Google Kubernetes Engine (GKE) networking (e.g., secondary ranges, scale potential based on IP address space'. The objective wording is the course seed's. (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "Google Cloud documentation, Connectivity Tests: Reasons for dropped test packets",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.cloud.google.com/network-intelligence-center/docs/connectivity-tests/states/reasons-dropped-packets",
+      "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: 'Dropped due to a firewall rule': a test packet can be denied by a blocking VPC firewall rule or firewall policy rule; a higher-priority deny is a possible cause; the result is a configuration analysis ('the actual data plane might allow the packet through due to connection tracking'). The evaluation order page (read 2026-11-18): Cloud NGFW 'always evaluates rules in hierarchical firewall policies and regional system firewall policies before it evaluates any other firewall rules'; goto_next passes evaluation to the next policy or step. The Connectivity Tests result's naming of the policy and priority is an authored rendering."
+    }
+  ],
+  "brief": {
+    "situation": "You are the network engineer at Fennick Outdoor. Since 14:50 the orders app (VMs in 10.20.0.0/16) cannot connect to its PostgreSQL VMs (10.30.0.0/24) in the same VPC. Nothing changed in the project. At 14:45 the security team attached a new hierarchical firewall policy, sec-baseline, to the 'prod' folder. The evening order peak starts at 16:00.",
+    "handover": [
+      "The project's VPC rule allow-app-db (priority 1000) allows 10.20.0.0/16 to 10.30.0.0/24 on tcp:5432.",
+      "sec-baseline is owned by the security team; their on-call is reachable."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the folder's hierarchical policy, the VPC's own rules and the app-to-database path they both evaluate.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "15:05",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineAt": {
+      "value": 3300,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "The evening order peak starts at 16:00, 55 minutes after the page."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "harmed": {
+      "type": "bool",
+      "init": false
+    },
+    "tried": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "ctAt": {
+      "type": "time",
+      "init": null
+    },
+    "polAt": {
+      "type": "time",
+      "init": null
+    },
+    "effAt": {
+      "type": "time",
+      "init": null
+    },
+    "intentAt": {
+      "type": "time",
+      "init": null
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "missAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "hierarchy",
+        "route",
+        "db"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "ct",
+        "pol",
+        "eff",
+        "intent",
+        "goto",
+        "preflight",
+        "detach",
+        "vpcprio",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "ct": {
+      "label": "Connectivity Test: orders-app-1 to 10.30.0.12:5432",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(ctAt)",
+          "then": [
+            {
+              "set": "ctAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@cloudshell:~$ gcloud network-management connectivity-tests create app-db --source-instance=orders-app-1 --destination-ip-address=10.30.0.12 --destination-port=5432 --protocol=TCP; describe app-db\n{harmed ? \"Reachable: VPC firewall rule allow-app-db: ALLOW (no hierarchical policy)\" : fixed ? \"Reachable: firewall policy sec-baseline rule 900 goto_next; VPC firewall rule allow-app-db: ALLOW; delivered to db-1\" : \"Unreachable: Dropped due to a firewall rule\n  firewall policy: sec-baseline (folder prod), rule priority 1000, action deny, tcp:5432 from 0.0.0.0/0\"}"
+        },
+        {
+          "finding": "The packet is dropped by the folder's policy, before the project's allow rule is ever considered."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "pol": {
+      "label": "gcloud compute firewall-policies rules list sec-baseline",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(polAt)",
+          "then": [
+            {
+              "set": "polAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@cloudshell:~$ gcloud compute firewall-policies rules list --firewall-policy sec-baseline --organization 1234 --format='table(priority,action,direction,match.srcIpRanges,match.layer4Configs)'\n{fixed and not harmed ? \"900   goto_next  INGRESS  10.20.0.0/16  tcp:5432 (dest 10.30.0.0/24)\n1000  deny       INGRESS  0.0.0.0/0     tcp:5432,tcp:3306,tcp:1433\" : \"1000  deny  INGRESS  0.0.0.0/0  tcp:5432,tcp:3306,tcp:1433\"}"
+        },
+        {
+          "finding": "The baseline denies database ports from everywhere, including internal ranges, with no exception for app tiers."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "eff": {
+      "label": "Effective firewalls on db-1",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(effAt)",
+          "then": [
+            {
+              "set": "effAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@cloudshell:~$ gcloud compute instances network-interfaces get-effective-firewalls db-1 --zone us-east1-b\nfirewallPolicys: sec-baseline (HIERARCHY)  1000 deny tcp:5432\nfirewalls: allow-app-db (1000) allow tcp:5432 from 10.20.0.0/16"
+        },
+        {
+          "finding": "Both rules apply; the hierarchical one is evaluated first and its deny ends the evaluation."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "intent": {
+      "label": "Ask the security on-call what the rule was for",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(intentAt)",
+          "then": [
+            {
+              "set": "intentAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@cloudshell:~$ (security on-call: 'sec-baseline 1000 is meant to stop database ports from the internet and from other teams' projects; we missed internal app tiers')"
+        },
+        {
+          "finding": "The intent is a guardrail against outside access, not a block on the app."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "goto": {
+      "label": "With the security on-call: add rule 900 to sec-baseline, goto_next for 10.20.0.0/16 to 10.30.0.0/24 on tcp:5432",
+      "group": "Fix",
+      "available": "not busy and (not fixed and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "fixed",
+          "to": "true"
+        },
+        {
+          "output": "neteng@cloudshell:~$ gcloud compute firewall-policies rules create 900 --firewall-policy sec-baseline --organization 1234 --direction INGRESS --action goto_next --src-ip-ranges 10.20.0.0/16 --dest-ip-ranges 10.30.0.0/24 --layer4-configs tcp:5432 --description 'orders app to db: defer to VPC rules (SEC-1290)'\nCreated rule 900."
+        },
+        {
+          "log": "For exactly this path the folder policy hands evaluation to the project's own rules, where allow-app-db permits it; the baseline still denies database ports from everywhere else.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "preflight": {
+      "label": "Ask security to run Connectivity Tests for known app paths before attaching folder policies",
+      "group": "Fix",
+      "available": "not busy and (not planned and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "neteng@cloudshell:~$ (security change template: Connectivity Tests for the app-to-db paths in each project under the folder, run before attach)\nneteng@cloudshell:~$ gcloud network-management connectivity-tests create ... (saved tests for 12 app paths, re-run nightly)"
+        },
+        {
+          "log": "The next baseline change is checked against the real paths first, and saved tests re-run nightly catch regressions.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "detach": {
+      "label": "Detach sec-baseline from the prod folder",
+      "group": "Fix",
+      "available": "not busy and (not harmed)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "harmed",
+          "to": "true"
+        },
+        {
+          "output": "neteng@cloudshell:~$ gcloud compute firewall-policies associations delete --firewall-policy sec-baseline --name prod-folder --organization 1234\nDeleted association."
+        },
+        {
+          "log": "The app connects, and every project in the folder loses the baseline guardrail, against the security team's control.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "vpcprio": {
+      "label": "Raise allow-app-db's priority to 0",
+      "group": "Fix",
+      "available": "not busy and (not harmed and not tried)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tried",
+          "to": "true"
+        },
+        {
+          "output": "neteng@cloudshell:~$ gcloud compute firewall-rules update allow-app-db --priority 0\nUpdated."
+        },
+        {
+          "log": "VPC rule priority only orders VPC rules; the hierarchical policy is evaluated first and its deny still ends evaluation.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Re-run the Connectivity Test and check the app's database pool",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@cloudshell:~$ gcloud network-management connectivity-tests rerun app-db; orders-app health\n{harmed ? \"Reachable (no hierarchical policy on folder prod)\ndb pool: 40/40\" : fixed ? \"Reachable\ndb pool: 40/40 connected\" : \"Unreachable: firewall policy sec-baseline rule 1000\ndb pool: 0/40\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "hierarchy",
+                  "label": "A new folder firewall policy denied tcp:5432 before the VPC's allow rule was evaluated"
+                },
+                {
+                  "value": "route",
+                  "label": "A missing route to the database subnet"
+                },
+                {
+                  "value": "db",
+                  "label": "PostgreSQL crashed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-335)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "16:00: the peak runs with the app connected.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "missAt",
+              "to": "t"
+            },
+            {
+              "log": "16:00: the peak hits an app that cannot write orders.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: what dropped the traffic, how you fixed it without losing the baseline, and how the next policy change is checked.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "What",
+          "criteria": "Names the rule.",
+          "modelAnswer": "The Connectivity Test reported 'Dropped due to a firewall rule': sec-baseline on folder prod, priority 1000, deny tcp:5432 from 0.0.0.0/0. Hierarchical policies are evaluated before VPC rules, so allow-app-db was never reached."
+        },
+        {
+          "label": "Fix",
+          "criteria": "A narrow exception with the owner.",
+          "modelAnswer": "With the security on-call, rule 900 goto_next for 10.20.0.0/16 to 10.30.0.0/24:5432 hands this path to the VPC rules. Detaching the policy would have removed the guardrail from every project; raising the VPC rule's priority changes nothing."
+        },
+        {
+          "label": "Next change",
+          "criteria": "Tests before attach.",
+          "modelAnswer": "Security now runs saved Connectivity Tests for app paths before attaching folder policies, and the tests re-run nightly."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3300,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The evening order peak starts at 16:00, 55 minutes after the page."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: The folder's security baseline was removed."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed and not harmed",
+      "class": "harm",
+      "rationale": "Closing with the folder deny in place leaves the order peak without a database.",
+      "source": {
+        "cite": "Google Cloud documentation, Connectivity Tests: Reasons for dropped test packets",
+        "checkedAt": "2026-11-17",
+        "url": "https://docs.cloud.google.com/network-intelligence-center/docs/connectivity-tests/states/reasons-dropped-packets",
+        "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: 'Dropped due to a firewall rule': a test packet can be denied by a blocking VPC firewall rule or firewall policy rule; a higher-priority deny is a possible cause; the result is a configuration analysis ('the actual data plane might allow the packet through due to connection tracking'). The evaluation order page (read 2026-11-18): Cloud NGFW 'always evaluates rules in hierarchical firewall policies and regional system firewall policies before it evaluates any other firewall rules'; goto_next passes evaluation to the next policy or step. The Connectivity Tests result's naming of the policy and priority is an authored rendering."
+      }
+    }
+  },
+  "endings": {
+    "baselineDetached": {
+      "label": "Folder baseline removed",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and harmed",
+      "narrative": "Detaching the policy restored the app and removed the guardrail from every project in the folder."
+    },
+    "peakFailed": {
+      "label": "Order peak with no database",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(missAt)",
+      "narrative": "At 16:00 the folder policy still denied the app's database traffic."
+    },
+    "deferred": {
+      "label": "Narrow goto_next, tests added",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(ctAt) and not isNull(polAt) and not isNull(verifiedAt) and causeDoc == \"hierarchy\"",
+      "narrative": "The app path defers to the VPC's allow rule; the baseline stays; saved tests now guard the paths."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The app is back, but the preflight tests, the check or the record was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "baselineDetached",
+    "peakFailed",
+    "deferred",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Used a Connectivity Test and read the effective firewalls",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(ctAt) and not isNull(polAt)",
+            "score": "met",
+            "why": "The key evidence, read before changing anything."
+          },
+          {
+            "when": "not isNull(ctAt) or not isNull(polAt) or not isNull(effAt) or not isNull(intentAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "App connected by 16:00 with the baseline in force",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and not harmed and isNull(missAt)",
+            "score": "met",
+            "why": "The right change, in time, without harm."
+          },
+          {
+            "when": "fixed or harmed",
+            "score": "partial",
+            "why": "{harmed ? \"The folder's security baseline was removed.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never removed."
+          }
+        ]
+      },
+      {
+        "id": "lasting",
+        "label": "Preflight and nightly tests set; app checked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The lasting step taken and the result checked."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"hierarchy\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record names the wrong cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes that caused harm",
+        "value": "harmed ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "15:05-15:09",
+        "text": "Connectivity Test: dropped by sec-baseline rule 1000; policy has no internal exception; effective firewalls; security's intent."
+      },
+      {
+        "at": "15:09-15:16",
+        "text": "Rule 900 goto_next with security; preflight and nightly tests."
+      },
+      {
+        "at": "15:16-15:18",
+        "text": "Test reachable; pool 40/40."
+      }
+    ],
+    "debrief": {
+      "baselineDetached": {
+        "headline": "An exception, not a removal",
+        "body": "The policy was right for outside access and wrong for one internal path. A goto_next rule for that path, agreed with the policy's owner, keeps the guardrail."
+      },
+      "peakFailed": {
+        "headline": "Hierarchical rules come first",
+        "body": "A deny in a folder or organization policy ends evaluation before VPC rules. Find it with a Connectivity Test and fix it in that policy."
+      },
+      "deferred": {
+        "headline": "Good: diagnosed with the tool, fixed with the owner",
+        "body": "You let a Connectivity Test name the dropping rule, read the effective firewalls, asked the owner what the rule was for, added a narrow goto_next, verified, and set up preflight tests."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the evidence before the change, the lasting step, the check, or the cause in the record."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A Connectivity Test names the drop: the new folder policy denies tcp:5432 from everywhere, and hierarchical policies are evaluated before the VPC's allow rule. With the policy's owner, add a narrow goto_next rule for the app-to-database path so the VPC rules decide it, and leave the baseline in place. Detaching the policy removes the guardrail; VPC rule priority cannot outrank a hierarchical deny. Test before future attachments."
+  }
+}

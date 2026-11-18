@@ -1,0 +1,876 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "hana-log-writes-slow-no-write-accelerator",
+  "title": "Month-end: HANA commits crawl on the new M-series VM",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "basis@cloudshell:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "16:00 HANA alert 'average log write wait time 9.6 ms'; month-end close at 18:00",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "18:00: month-end close crawling",
+          "when": "not isNull(missAt)",
+          "at": "timeAt(missAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "18:00: month-end close running normally",
+          "when": "not isNull(okAt)",
+          "at": "timeAt(okAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "vm",
+          "label": "hana-prd-1 (M64s)",
+          "spokenLabel": "the HANA VM",
+          "kind": "8 Write Accelerator disks max",
+          "status": "{harmed ? \"Write Accelerator IOPS saturated\" : fixed ? \"log waits normal\" : \"log waits high\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "log",
+          "label": "/hana/log: 2 x P20, striped",
+          "spokenLabel": "the log disks",
+          "kind": "Premium SSD",
+          "status": "{fixed and not harmed ? \"caching None, Write Accelerator on\" : \"caching ReadWrite, Write Accelerator off\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "data",
+          "label": "/hana/data: 4 x P30, striped",
+          "spokenLabel": "the data disks",
+          "kind": "Premium SSD",
+          "status": "{harmed ? \"Write Accelerator on (not for data)\" : fixed ? \"caching ReadOnly\" : \"caching ReadOnly\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "vm",
+          "to": "log",
+          "label": "log writes",
+          "status": "{fixed and not harmed ? \"under 1 ms\" : \"9.6 ms\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Configuring Write Accelerator",
+  "secondaryObjectives": [
+    "Designing and implementing caching for disks",
+    "Choosing a storage type"
+  ],
+  "sources": [
+    {
+      "cite": "Microsoft Learn, Study guide for Exam AZ-120: Planning and Administering Azure for SAP Workloads (page last updated 2026-02-22; skills as of April 17, 2026): migrate 25-30%, design and implement infrastructure 25-30%, high availability and disaster recovery 20-25%, maintain 20-25%",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/credentials/certifications/resources/study-guides/az-120",
+      "note": "Read through a summarizing fetch on 2026-11-17. Bullets quoted there under 'Design and implement networking for SAP on Azure virtual machines': 'Implement Accelerated Networking for Azure virtual machines', 'Design and configure proximity placement groups', 'Design networking to meet SAP workload latency requirements'. The two top domains are tied; this case is on the infrastructure domain. (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "Microsoft Learn training, 'Explore Write Accelerator' (module Explore Azure storage for SAP workloads)",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/en-us/training/modules/explore-azure-storage/8-explore-write-accelerator",
+      "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: Write Accelerator is a disk capability for M-Series VMs with Premium managed disks that improves write latency, for the volumes that hold the DBMS transaction log; it 'isn't recommended for data volumes'; disk caching must be None or Read Only; only I/Os of 512 KiB or smaller are accelerated; per-VM limits, M64s: 8 Write Accelerator disks and 10,000 Write Accelerator IOPS shared by all of them. The 'Enable Write Accelerator' page (read 2026-11-18) shows az vm update --write-accelerator <lun>=true for an existing disk, limits it to M-series VMs on Premium SSD, and says to use it for transaction or redo log volumes, not data volumes. HANA's sub-millisecond log write expectation is SAP's guidance, not on that page (to verify against the SAP HANA storage page)."
+    }
+  ],
+  "brief": {
+    "situation": "You are the Azure engineer for Pell & Hart's SAP landscape, migrated to Azure last weekend. Production HANA runs on hana-prd-1 (M64s) with /hana/log on two striped Premium SSD disks. Since this morning, finance reports postings taking seconds instead of milliseconds. Month-end closing jobs start at 18:00.",
+    "handover": [
+      "The VMs were built from the wave-3 Bicep template; the template's disk section was copied from the application server template.",
+      "HANA's own alert: 'log write wait time high' since 08:40."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the HANA VM, its log and data disks, their caching and Write Accelerator settings.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "16:00",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineAt": {
+      "value": 7200,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "Month-end closing jobs start at 18:00, 120 minutes after the alert; the change needs a short HANA stop, agreed with finance."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "harmed": {
+      "type": "bool",
+      "init": false
+    },
+    "tried": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "disksAt": {
+      "type": "time",
+      "init": null
+    },
+    "hanaAt": {
+      "type": "time",
+      "init": null
+    },
+    "iostatAt": {
+      "type": "time",
+      "init": null
+    },
+    "tmplAt": {
+      "type": "time",
+      "init": null
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "missAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "wa",
+        "network",
+        "size"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "disks",
+        "hana",
+        "iostat",
+        "tmpl",
+        "enable",
+        "template",
+        "allwa",
+        "accnet",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "disks": {
+      "label": "az vm show: data disks, caching and writeAcceleratorEnabled",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(disksAt)",
+          "then": [
+            {
+              "set": "disksAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "basis@cloudshell:~$ az vm show -g rg-sap-prd -n hana-prd-1 --query \"storageProfile.dataDisks[].[lun,name,caching,writeAcceleratorEnabled]\" -o tsv\n{harmed ? \"0 hana-data-0 ReadOnly True\n1 hana-data-1 ReadOnly True\n2 hana-data-2 ReadOnly True\n3 hana-data-3 ReadOnly True\n4 hana-log-0 None True\n5 hana-log-1 None True\" : fixed ? \"0 hana-data-0 ReadOnly False\n1 hana-data-1 ReadOnly False\n2 hana-data-2 ReadOnly False\n3 hana-data-3 ReadOnly False\n4 hana-log-0 None True\n5 hana-log-1 None True\" : \"0 hana-data-0 ReadOnly False\n1 hana-data-1 ReadOnly False\n2 hana-data-2 ReadOnly False\n3 hana-data-3 ReadOnly False\n4 hana-log-0 ReadWrite False\n5 hana-log-1 ReadWrite False\"}"
+        },
+        {
+          "finding": "The log disks have ReadWrite caching and no Write Accelerator: the template copied the application server's disk settings."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "hana": {
+      "label": "HANA: M_VOLUME_IO_TOTAL_STATISTICS for the log volume",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(hanaAt)",
+          "then": [
+            {
+              "set": "hanaAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "basis@cloudshell:~$ hdbsql -U SYSTEM \"SELECT TYPE, ROUND(TOTAL_WRITE_TIME/WRITE_COUNT/1000,2) AS AVG_WRITE_MS FROM M_VOLUME_IO_TOTAL_STATISTICS WHERE TYPE='LOG'\"\n{harmed ? \"LOG  3.80\" : fixed ? \"LOG  0.44\" : \"LOG  9.61\"}"
+        },
+        {
+          "finding": "Log writes average 9.6 ms; a commit waits for its log write, so every posting waits."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "iostat": {
+      "label": "iostat -x on the log stripe (1 minute)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(iostatAt)",
+          "then": [
+            {
+              "set": "iostatAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "basis@cloudshell:~$ iostat -xm /dev/md1 60 1 | tail -2\n{harmed ? \"md1  w/s 2100  wMB/s 26  w_await 3.9\" : fixed ? \"md1  w/s 3410  wMB/s 41  w_await 0.4\" : \"md1  w/s 3380  wMB/s 40  w_await 9.7\"}"
+        },
+        {
+          "finding": "The operating system sees the same write latency: it is the disk path, not HANA."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "tmpl": {
+      "label": "grep the Bicep template's disk section",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(tmplAt)",
+          "then": [
+            {
+              "set": "tmplAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "basis@cloudshell:~$ grep -n -A3 'hana-log' bicep/wave3-hana.bicep | head -4\n41:  name: 'hana-log-${{i}}'\n42:  caching: 'ReadWrite'   // copied from app server template\n43:  writeAcceleratorEnabled: false"
+        },
+        {
+          "finding": "The template set the wrong caching and left Write Accelerator off."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "enable": {
+      "label": "In a 10-minute HANA stop agreed with finance: set the two log disks to caching None and enable Write Accelerator on them",
+      "group": "Fix",
+      "available": "not busy and (not fixed and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "fixed",
+          "to": "true"
+        },
+        {
+          "output": "basis@cloudshell:~$ sapcontrol -nr 00 -function StopSystem HDB\nbasis@cloudshell:~$ az vm update -g rg-sap-prd -n hana-prd-1 --set storageProfile.dataDisks[4].caching=None storageProfile.dataDisks[5].caching=None --write-accelerator 4=true 5=true\nprovisioningState: Succeeded\nbasis@cloudshell:~$ sapcontrol -nr 00 -function StartSystem HDB"
+        },
+        {
+          "log": "The log disks now take the accelerated write path (it requires caching None or ReadOnly), and only the log volume uses it, which is what the feature is for.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "12min"
+        }
+      ]
+    },
+    "template": {
+      "label": "Fix the Bicep template for the log disks and run a disk-settings check after every deployment",
+      "group": "Fix",
+      "available": "not busy and (not planned and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "basis@cloudshell:~$ git diff bicep/wave3-hana.bicep\n-  caching: 'ReadWrite'\n-  writeAcceleratorEnabled: false\n+  caching: 'None'\n+  writeAcceleratorEnabled: true\nbasis@cloudshell:~$ echo './check-hana-disks --role log --expect caching=None,wa=true' >> pipelines/post-deploy.sh"
+        },
+        {
+          "log": "The next HANA VM is built right, and a post-deployment check catches a wrong log disk before HANA goes live.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "allwa": {
+      "label": "Enable Write Accelerator on all six disks, data and log",
+      "group": "Fix",
+      "available": "not busy and (not harmed)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "harmed",
+          "to": "true"
+        },
+        {
+          "output": "basis@cloudshell:~$ az vm update -g rg-sap-prd -n hana-prd-1 --write-accelerator 0=true 1=true 2=true 3=true 4=true 5=true\nprovisioningState: Succeeded"
+        },
+        {
+          "log": "Write Accelerator is for log volumes, and its IOPS limit is shared by every accelerated disk: the data disks' writes now compete with the log for it, and the savepoints slow the commits.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "accnet": {
+      "label": "Turn on Accelerated Networking on hana-prd-1",
+      "group": "Fix",
+      "available": "not busy and (not harmed and not tried)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tried",
+          "to": "true"
+        },
+        {
+          "output": "basis@cloudshell:~$ az network nic update -g rg-sap-prd -n hana-prd-1-nic --accelerated-networking true\n(already enabled)"
+        },
+        {
+          "log": "The network is not on this path: the wait is the log disk's write latency.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Re-check HANA log write time and a test posting",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "basis@cloudshell:~$ hdbsql ... AVG_WRITE_MS for LOG; FB50 test posting\n{harmed ? \"LOG 3.80 ms under savepoints; test posting 1.6 s\" : fixed ? \"LOG 0.44 ms; test posting 120 ms\" : \"LOG 9.61 ms; test posting 3.4 s\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "wa",
+                  "label": "The log disks had ReadWrite caching and no Write Accelerator (copied template)"
+                },
+                {
+                  "value": "network",
+                  "label": "Network latency between the app servers and HANA"
+                },
+                {
+                  "value": "size",
+                  "label": "The VM was too small"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-335)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "18:00: closing jobs run with normal commit times.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "missAt",
+              "to": "t"
+            },
+            {
+              "log": "18:00: closing jobs crawl; the close runs into the next day.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why commits were slow, what you changed and on which disks, and how the next VM is built right.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Connects log latency to disk settings.",
+          "modelAnswer": "HANA's log writes averaged 9.6 ms and iostat agreed. The log disks had ReadWrite caching and Write Accelerator off, copied from the application server template; a commit waits for its log write."
+        },
+        {
+          "label": "Change",
+          "criteria": "Uses the feature where it belongs.",
+          "modelAnswer": "In an agreed short stop, set the two log disks to caching None and enabled Write Accelerator on them only; the feature needs caching None or ReadOnly, and it is meant for log volumes, its IOPS limit shared per VM."
+        },
+        {
+          "label": "Next VM",
+          "criteria": "Fixes the source.",
+          "modelAnswer": "The Bicep template now sets the log disks correctly, and a post-deployment check verifies them."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "Month-end closing jobs start at 18:00, 120 minutes after the alert; the change needs a short HANA stop, agreed with finance."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: Write Accelerator was enabled on the data disks too."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed and not harmed",
+      "class": "harm",
+      "rationale": "Closing with the log disks unchanged leaves the month-end close crawling.",
+      "source": {
+        "cite": "Microsoft Learn training, 'Explore Write Accelerator' (module Explore Azure storage for SAP workloads)",
+        "checkedAt": "2026-11-17",
+        "url": "https://learn.microsoft.com/en-us/training/modules/explore-azure-storage/8-explore-write-accelerator",
+        "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: Write Accelerator is a disk capability for M-Series VMs with Premium managed disks that improves write latency, for the volumes that hold the DBMS transaction log; it 'isn't recommended for data volumes'; disk caching must be None or Read Only; only I/Os of 512 KiB or smaller are accelerated; per-VM limits, M64s: 8 Write Accelerator disks and 10,000 Write Accelerator IOPS shared by all of them. The 'Enable Write Accelerator' page (read 2026-11-18) shows az vm update --write-accelerator <lun>=true for an existing disk, limits it to M-series VMs on Premium SSD, and says to use it for transaction or redo log volumes, not data volumes. HANA's sub-millisecond log write expectation is SAP's guidance, not on that page (to verify against the SAP HANA storage page)."
+      }
+    }
+  },
+  "endings": {
+    "sharedLimit": {
+      "label": "Data disks share the log's accelerator",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and harmed",
+      "narrative": "With all six disks accelerated, data writes compete with the log for the VM's Write Accelerator IOPS."
+    },
+    "closeSlow": {
+      "label": "Month-end close crawling",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(missAt)",
+      "narrative": "At 18:00 the log disks still had ReadWrite caching and no Write Accelerator."
+    },
+    "accelerated": {
+      "label": "Log disks accelerated, template fixed",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(disksAt) and not isNull(hanaAt) and not isNull(verifiedAt) and causeDoc == \"wa\"",
+      "narrative": "The log disks have caching None and Write Accelerator; commits are back to normal and the template is fixed."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Commits recovered, but the template, the post-deployment check, the verification or the record was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "sharedLimit",
+    "closeSlow",
+    "accelerated",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Read the disk settings and HANA's log write time",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(disksAt) and not isNull(hanaAt)",
+            "score": "met",
+            "why": "The key evidence, read before changing anything."
+          },
+          {
+            "when": "not isNull(disksAt) or not isNull(hanaAt) or not isNull(iostatAt) or not isNull(tmplAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Log disks accelerated before 18:00, data disks untouched",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and not harmed and isNull(missAt)",
+            "score": "met",
+            "why": "The right change, in time, without harm."
+          },
+          {
+            "when": "fixed or harmed",
+            "score": "partial",
+            "why": "{harmed ? \"Write Accelerator was enabled on the data disks too.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never removed."
+          }
+        ]
+      },
+      {
+        "id": "lasting",
+        "label": "Template fixed and a check added; latency verified",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The lasting step taken and the result checked."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"wa\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record names the wrong cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes that caused harm",
+        "value": "harmed ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "16:00-16:04",
+        "text": "Disks: log ReadWrite, Write Accelerator off; HANA log write 9.6 ms; iostat agrees; template copied."
+      },
+      {
+        "at": "16:04-16:20",
+        "text": "Short stop: log disks caching None, Write Accelerator on; template fixed, check added."
+      },
+      {
+        "at": "16:20-16:22",
+        "text": "Log writes 0.44 ms; test posting 120 ms."
+      }
+    ],
+    "debrief": {
+      "sharedLimit": {
+        "headline": "An accelerator for the log only",
+        "body": "Write Accelerator is for the transaction log, and its IOPS limit is per VM. Put it on the log disks only, with caching None."
+      },
+      "closeSlow": {
+        "headline": "Every commit waits for the log",
+        "body": "On M-series, HANA's log volume needs Write Accelerator and caching None. The template's copied settings were the cause."
+      },
+      "accelerated": {
+        "headline": "Good: the log volume, configured as designed",
+        "body": "You compared the disk settings with HANA's log write time, changed only the log disks in an agreed window, checked the latency, and fixed the template that caused it."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the evidence before the change, the lasting step, the check, or the cause in the record."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Commits wait for log writes, and HANA and iostat both show about 10 ms on the log stripe. The log disks have ReadWrite caching and no Write Accelerator because the template was copied from an application server. On M-series, the log volume should use Write Accelerator with caching None; change only the log disks in an agreed window, check the latency, and fix the template. Accelerating the data disks too shares the per-VM limit with the log; the network is not involved."
+  }
+}

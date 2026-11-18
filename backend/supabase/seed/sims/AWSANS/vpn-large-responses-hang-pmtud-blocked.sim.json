@@ -1,0 +1,892 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "vpn-large-responses-hang-pmtud-blocked",
+  "title": "Cutover: small queries work over the VPN, but every large report hangs",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "neteng@bastion:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "09:10 finance: reports hang after the first rows; logins fine; close review at 10:30",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "10:30: close review without reports",
+          "when": "not isNull(missAt)",
+          "at": "timeAt(missAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "10:30: close review with reports",
+          "when": "not isNull(okAt)",
+          "at": "timeAt(okAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "office",
+          "label": "Head office (on-premises)",
+          "spokenLabel": "the head office",
+          "kind": "clients",
+          "status": "{fixed and not harmed ? \"reports complete\" : \"large reports hang\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "vpn",
+          "label": "Site-to-Site VPN",
+          "spokenLabel": "the VPN",
+          "kind": "1500 MTU path",
+          "status": "{fixed and not harmed ? \"big packets fragmented by the sender\" : \"big packets dropped\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "nacl",
+          "label": "Reporting subnet network ACL",
+          "spokenLabel": "the subnet's network ACL",
+          "kind": "allow list",
+          "status": "{harmed ? \"allows all traffic\" : fixed ? \"allows ICMP type 3 code 4\" : \"drops ICMP fragmentation-needed\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "srv",
+          "label": "Reporting servers (MTU 9001)",
+          "spokenLabel": "the reporting servers",
+          "kind": "send 9001-byte packets",
+          "status": "{fixed and not harmed ? \"learn 1500 from ICMP\" : \"never learn the path MTU\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "office",
+          "to": "vpn",
+          "label": "queries",
+          "status": "{fixed and not harmed ? \"all ok\" : \"small ok, large stall\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "l2",
+          "from": "vpn",
+          "to": "srv",
+          "label": "responses",
+          "status": "{fixed and not harmed ? \"sized to fit\" : \"oversize dropped\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Network performance metrics and reachability constraints, including routing and packet size",
+  "secondaryObjectives": [
+    "Troubleshooting packet size mismatches inside a VPC",
+    "Collecting and analyzing logs and metrics with CloudWatch, VPC flow logs, and VPC Traffic Mirroring"
+  ],
+  "sources": [
+    {
+      "cite": "AWS Certified Advanced Networking - Specialty (ANS-C01) exam guide: Network Design 30%, Network Implementation 26%, Network Management and Operation 20%, Network Security, Compliance, and Governance 24%",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.aws.amazon.com/aws-certification/latest/userguide/advanced-networking-specialty-01-domain1.html",
+      "note": "Domain 1 page read through a summarizing fetch on 2026-11-17: 'This domain accounts for 30% of the exam content'; Task 1.3 skill 'Integrating load balancers with existing application deployments'; knowledge of 'Configuration options for load balancer target groups'. The other domains' weights and wording are the course seed's (backend/supabase/seed/tracks/aws.ts); their pages were not re-read. (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "AWS documentation (Amazon EC2 User Guide), Network maximum transmission unit (MTU) for your EC2 instance",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.amazonaws.cn/en_us/AWSEC2/latest/UserGuide/network_mtu.html",
+      "note": "Read through a summarizing fetch on 2026-11-17 (the AWS China mirror of the user guide page). Relevant text: traffic over VPN connections and through an internet gateway is limited to 1500 bytes; inter-Region VPC peering supports 8500; for IPv4 a device that drops an oversized packet returns 'Destination Unreachable: Fragmentation Needed and Don't Fragment was Set' (Type 3, Code 4) and the sender retransmits smaller; PMTUD responses reach the instance if the security group allows inbound ICMP or the connection is tracked, and 'ICMP can still be blocked by a network ACL that denies ICMP to the subnet'. The companion page 'Set the MTU for your Amazon EC2 instances' (read 2026-11-18) says all current-generation instance types support 9001-byte jumbo frames, and shows tracepath reporting a path MTU that drops to 1500 and ip link show/set for the interface MTU; the case's servers are configured for 9001."
+    }
+  ],
+  "brief": {
+    "situation": "You are the network engineer at Brightwell Insurance. Last night the claims reporting servers moved to a VPC subnet reached from the head office over AWS Site-to-Site VPN. This morning logins and small queries work, but any report larger than a page hangs until it times out. The finance close review uses those reports at 10:30.",
+    "handover": [
+      "The reporting instances are current-generation types; nobody changed their network settings.",
+      "Last week a hardening ticket replaced the subnet's network ACL with an explicit allow list."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the head office, the VPN, the reporting subnet's network ACL and the reporting servers.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "09:10",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineAt": {
+      "value": 4800,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "The finance close review starts at 10:30, 80 minutes after the report."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "harmed": {
+      "type": "bool",
+      "init": false
+    },
+    "tried": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "mtuAt": {
+      "type": "time",
+      "init": null
+    },
+    "aclAt": {
+      "type": "time",
+      "init": null
+    },
+    "flowAt": {
+      "type": "time",
+      "init": null
+    },
+    "sgAt": {
+      "type": "time",
+      "init": null
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "missAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "pmtud",
+        "bw",
+        "cpu"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "mtu",
+        "acl",
+        "flow",
+        "sg",
+        "allowicmp",
+        "record",
+        "openall",
+        "resize",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "mtu": {
+      "label": "On a reporting server: interface MTU and the path to the office",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(mtuAt)",
+          "then": [
+            {
+              "set": "mtuAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@bastion:~$ ip link show ens5 | grep -o 'mtu [0-9]*'; tracepath -n 10.20.0.15\n{fixed and not harmed ? \"mtu 9001\n 1?: [LOCALHOST] pmtu 9001\n 1:  10.20.0.15  pmtu 1500  reached\" : \"mtu 9001\n 1?: [LOCALHOST] pmtu 9001\n 1:  no reply\n 2:  no reply\n     Too many hops: pmtu 9001\"}"
+        },
+        {
+          "finding": "The servers send 9001-byte packets, and the path never reports back a smaller MTU."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "acl": {
+      "label": "Describe the reporting subnet's network ACL (inbound rules)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(aclAt)",
+          "then": [
+            {
+              "set": "aclAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@bastion:~$ aws ec2 describe-network-acls --network-acl-ids acl-0c3d --query 'NetworkAcls[0].Entries[?Egress==`false`].[RuleNumber,Protocol,PortRange.From,CidrBlock,RuleAction]' --output text\n{harmed ? \"100 -1    -    0.0.0.0/0     allow\" : fixed ? \"90  1     -    10.20.0.0/16  allow (ICMP type 3 code 4)\n100 6     443  10.20.0.0/16  allow\n110 6     1024 10.20.0.0/16  allow\n*   -1    -    0.0.0.0/0     deny\" : \"100 6     443  10.20.0.0/16  allow\n110 6     1024 10.20.0.0/16  allow\n*   -1    -    0.0.0.0/0     deny\"}"
+        },
+        {
+          "finding": "Only TCP is allowed in: the ICMP 'fragmentation needed' messages from the VPN path are dropped at the subnet."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "flow": {
+      "label": "VPC flow logs for the reporting subnet: rejected traffic from the VPN side",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(flowAt)",
+          "then": [
+            {
+              "set": "flowAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@bastion:~$ CloudWatch Logs Insights: filter action='REJECT' and srcaddr like '169.254.' or protocol=1 | stats count() by srcaddr, protocol\n169.254.44.1  protocol 1 (ICMP)  2,412 rejected since 08:00"
+        },
+        {
+          "finding": "The VPN endpoint's ICMP messages are being rejected, thousands of them since the morning."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "sg": {
+      "label": "The reporting servers' security group (inbound)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(sgAt)",
+          "then": [
+            {
+              "set": "sgAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@bastion:~$ aws ec2 describe-security-groups --group-ids sg-0rpt --query 'SecurityGroups[0].IpPermissions[].[IpProtocol,FromPort]' --output text\ntcp 443\nicmp -1"
+        },
+        {
+          "finding": "The security group allows ICMP; the network ACL is the layer that drops it."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "allowicmp": {
+      "label": "Add a network ACL inbound rule allowing ICMP type 3 code 4 from the office range, ahead of the deny",
+      "group": "Fix",
+      "available": "not busy and (not fixed and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "fixed",
+          "to": "true"
+        },
+        {
+          "output": "neteng@bastion:~$ aws ec2 create-network-acl-entry --network-acl-id acl-0c3d --ingress --rule-number 90 --protocol 1 --icmp-type-code Code=4,Type=3 --cidr-block 10.20.0.0/16 --rule-action allow"
+        },
+        {
+          "log": "The servers now receive 'fragmentation needed' from the 1500-byte VPN path, cache the smaller path MTU, and resend; large reports complete. Only the one ICMP message type is opened.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "record": {
+      "label": "Add the PMTUD rule to the hardened network ACL template, and alarm on rejected ICMP from the VPN in flow logs",
+      "group": "Fix",
+      "available": "not busy and (not planned and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "neteng@bastion:~$ (network-acl template: rule 90 ICMP 3/4 allowed from on-premises ranges, with the reason)\nneteng@bastion:~$ aws cloudwatch put-metric-alarm --alarm-name rpt-icmp-rejects --metric-name IcmpRejects --namespace Net/FlowLogs --threshold 10 ..."
+        },
+        {
+          "log": "The next hardening pass keeps the rule PMTUD needs, and dropped ICMP on the VPN path alarms.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "openall": {
+      "label": "Replace the network ACL rules with one 'allow all traffic from 0.0.0.0/0' rule",
+      "group": "Fix",
+      "available": "not busy and (not harmed)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "harmed",
+          "to": "true"
+        },
+        {
+          "output": "neteng@bastion:~$ aws ec2 replace-network-acl-entry --network-acl-id acl-0c3d --ingress --rule-number 100 --protocol -1 --cidr-block 0.0.0.0/0 --rule-action allow\n(and rules 110 and up deleted)"
+        },
+        {
+          "log": "Reports work, and the claims subnet's network ACL now admits any traffic from anywhere: the hardening control is gone.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "resize": {
+      "label": "Move the reporting servers to a larger instance type",
+      "group": "Fix",
+      "available": "not busy and (not harmed and not tried)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tried",
+          "to": "true"
+        },
+        {
+          "output": "neteng@bastion:~$ aws ec2 modify-instance-attribute ... --instance-type r7i.4xlarge (after stop/start)\n(running)"
+        },
+        {
+          "log": "More CPU and bandwidth do not change the MTU or the dropped ICMP: large reports still hang.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Run the largest report and re-check the path MTU",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@bastion:~$ tracepath -n 10.20.0.15 | tail -1; time ./run-report claims-q4-full\n{harmed ? \"pmtu 1500 reached\nreport: 18,402 rows in 6.1 s\" : fixed ? \"pmtu 1500 reached\nreport: 18,402 rows in 6.2 s\" : \"Too many hops: pmtu 9001\nreport: timed out after 120 s\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "pmtud",
+                  "label": "A network ACL dropped ICMP fragmentation-needed, so 9001-byte packets died on the 1500-byte VPN path"
+                },
+                {
+                  "value": "bw",
+                  "label": "The VPN tunnel ran out of bandwidth"
+                },
+                {
+                  "value": "cpu",
+                  "label": "The reporting servers were too small"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-335)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "10:30: the close review runs on complete reports.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "missAt",
+              "to": "t"
+            },
+            {
+              "log": "10:30: the close review starts without its reports.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why only large reports hung, what you changed, and how the hardened ACL keeps working.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Packet size and ICMP.",
+          "modelAnswer": "The servers use a 9001 MTU and the VPN path carries 1500; the hardened network ACL allowed only TCP, so the ICMP type 3 code 4 replies that tell the sender to shrink packets were dropped, and only large responses failed."
+        },
+        {
+          "label": "Changed",
+          "criteria": "One ICMP rule.",
+          "modelAnswer": "Added an inbound ACL rule for ICMP type 3 code 4 from the office range; the path MTU now shows 1500 and the full report runs in seconds. An allow-all ACL would have dropped the hardening; a larger instance changes nothing."
+        },
+        {
+          "label": "Keeps working",
+          "criteria": "Template and alarm.",
+          "modelAnswer": "The ACL template carries the PMTUD rule with its reason, and rejected ICMP from the VPN in flow logs alarms."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The finance close review starts at 10:30, 80 minutes after the report."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: An allow-all network ACL removed the subnet's hardening to fix one ICMP rule."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed and not harmed",
+      "class": "harm",
+      "rationale": "Closing with ICMP still dropped leaves the close review without reports.",
+      "source": {
+        "cite": "AWS documentation (Amazon EC2 User Guide), Network maximum transmission unit (MTU) for your EC2 instance",
+        "checkedAt": "2026-11-17",
+        "url": "https://docs.amazonaws.cn/en_us/AWSEC2/latest/UserGuide/network_mtu.html",
+        "note": "Read through a summarizing fetch on 2026-11-17 (the AWS China mirror of the user guide page). Relevant text: traffic over VPN connections and through an internet gateway is limited to 1500 bytes; inter-Region VPC peering supports 8500; for IPv4 a device that drops an oversized packet returns 'Destination Unreachable: Fragmentation Needed and Don't Fragment was Set' (Type 3, Code 4) and the sender retransmits smaller; PMTUD responses reach the instance if the security group allows inbound ICMP or the connection is tracked, and 'ICMP can still be blocked by a network ACL that denies ICMP to the subnet'. The companion page 'Set the MTU for your Amazon EC2 instances' (read 2026-11-18) says all current-generation instance types support 9001-byte jumbo frames, and shows tracepath reporting a path MTU that drops to 1500 and ip link show/set for the interface MTU; the case's servers are configured for 9001."
+      }
+    }
+  },
+  "endings": {
+    "aclOpened": {
+      "label": "Network ACL opened to everything",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and harmed",
+      "narrative": "Reports work, but the claims subnet now accepts any traffic from anywhere."
+    },
+    "reviewBlind": {
+      "label": "Close review without reports",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(missAt)",
+      "narrative": "At 10:30 large reports still hung over the VPN."
+    },
+    "pmtudFixed": {
+      "label": "PMTUD restored, hardening kept",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(mtuAt) and not isNull(aclAt) and not isNull(verifiedAt) and causeDoc == \"pmtud\"",
+      "narrative": "One ICMP rule lets the servers learn the VPN path MTU; reports complete and the template keeps the rule."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Reports complete, but the template, the alarm, the check or the record was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "aclOpened",
+    "reviewBlind",
+    "pmtudFixed",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Read the path MTU and the network ACL",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(mtuAt) and not isNull(aclAt)",
+            "score": "met",
+            "why": "The key evidence, read before changing anything."
+          },
+          {
+            "when": "not isNull(mtuAt) or not isNull(aclAt) or not isNull(flowAt) or not isNull(sgAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Large reports by 10:30 with the ACL still restrictive",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and not harmed and isNull(missAt)",
+            "score": "met",
+            "why": "The right change, in time, without harm."
+          },
+          {
+            "when": "fixed or harmed",
+            "score": "partial",
+            "why": "{harmed ? \"An allow-all network ACL removed the subnet's hardening to fix one ICMP rule.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never removed."
+          }
+        ]
+      },
+      {
+        "id": "lasting",
+        "label": "Template rule and ICMP alarm; large report checked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The lasting step taken and the result checked."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"pmtud\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record names the wrong cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes that caused harm",
+        "value": "harmed ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "09:10-09:14",
+        "text": "MTU 9001, path MTU never learned; ACL allows only TCP; flow logs reject VPN ICMP; SG allows ICMP."
+      },
+      {
+        "at": "09:14-09:17",
+        "text": "ACL rule for ICMP 3/4; template and alarm."
+      },
+      {
+        "at": "09:17-09:19",
+        "text": "pmtu 1500; full report in 6 s."
+      }
+    ],
+    "debrief": {
+      "aclOpened": {
+        "headline": "Open the one message PMTUD needs",
+        "body": "Path MTU discovery needs ICMP type 3 code 4 to reach the sender. Allowing that message keeps the rest of the allow list."
+      },
+      "reviewBlind": {
+        "headline": "Small works, large hangs: think packet size",
+        "body": "When handshakes and small replies work but large ones stall, check MTU along the path and whether ICMP fragmentation-needed messages are dropped."
+      },
+      "pmtudFixed": {
+        "headline": "Good: a packet-size fault found and fixed narrowly",
+        "body": "You compared the interface MTU with the path, found the network ACL dropping fragmentation-needed messages, allowed only that ICMP type, verified a large report, and fixed the template."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the evidence before the change, the lasting step, the check, or the cause in the record."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Small replies work and large ones hang, so suspect packet size. The servers send 9001-byte packets, the VPN path carries 1500, and the hardened network ACL drops the ICMP fragmentation-needed messages that would tell them to shrink. Allow ICMP type 3 code 4 from the office range and check a large report. An allow-all ACL removes the hardening; a bigger instance changes nothing. Then keep the rule in the template and alarm on rejected ICMP."
+  }
+}

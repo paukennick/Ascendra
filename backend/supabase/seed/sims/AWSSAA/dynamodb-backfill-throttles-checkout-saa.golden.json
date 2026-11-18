@@ -1,0 +1,1336 @@
+{
+  "slug": "dynamodb-backfill-throttles-checkout-saa",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Capacity, backfill, contributors, app; cap; schedule; verify",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "cw",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "bfstat",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "contrib",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 3,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "app",
+          "seq": 7,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 4,
+          "seq": 8,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "cap",
+          "seq": 9,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 7,
+          "seq": 10,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "tonight",
+          "seq": 11,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 9,
+          "seq": 12,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "verify",
+          "seq": 13,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 11,
+          "seq": 14,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 15,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 16,
+          "seq": 16,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 17,
+          "tick": 16
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 21,
+          "seq": 18,
+          "tick": 16
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 19,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 26,
+          "seq": 20,
+          "tick": 21
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 21,
+          "tick": 26
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 31,
+          "seq": 22,
+          "tick": 26
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 23,
+          "tick": 31
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 12,
+          "to": 36,
+          "seq": 24,
+          "tick": 31
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 25,
+          "tick": 36
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 13,
+          "to": 41,
+          "seq": 26,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 27,
+          "tick": 41
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 14,
+          "to": 46,
+          "seq": 28,
+          "tick": 41
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 14,
+          "to": 46,
+          "seq": 29,
+          "tick": 45
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 30,
+          "tick": 46
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 31,
+          "tick": 46
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "backfill"
+          },
+          "seq": 32,
+          "tick": 46
+        }
+      ],
+      "expect": {
+        "ending": "shared",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "diagnose": "met",
+          "fix": "met",
+          "lasting": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "faults": 0
+        },
+        "stateHash": "87dc5c2aeaf8a4c9"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "harm",
+      "title": "Raises the backfill to 128 workers",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "cw",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "more",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 4,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "verify",
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 6,
+          "seq": 6,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 7,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 11,
+          "seq": 8,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 9,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 16,
+          "seq": 10,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 11,
+          "tick": 16
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 21,
+          "seq": 12,
+          "tick": 16
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 13,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 26,
+          "seq": 14,
+          "tick": 21
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 15,
+          "tick": 26
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 31,
+          "seq": 16,
+          "tick": 26
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 17,
+          "tick": 31
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 36,
+          "seq": 18,
+          "tick": 31
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 19,
+          "tick": 36
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 41,
+          "seq": 20,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 21,
+          "tick": 41
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 46,
+          "seq": 22,
+          "tick": 41
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 46,
+          "seq": 23,
+          "tick": 45
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 24,
+          "tick": 46
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 25,
+          "tick": 46
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "backfill"
+          },
+          "seq": 26,
+          "tick": 46
+        }
+      ],
+      "expect": {
+        "ending": "throttledHarder",
+        "class": "harm",
+        "rating": "bad",
+        "score": 40,
+        "criteria": {
+          "diagnose": "partial",
+          "fix": "partial",
+          "lasting": "missed",
+          "record": "met"
+        },
+        "kpis": {
+          "faults": 1
+        },
+        "stateHash": "8d4a7b27f00a4ec6"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "noop",
+      "title": "Raises the Lambda's memory",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "cw",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "memory",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 4,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "verify",
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 6,
+          "seq": 6,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 7,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 11,
+          "seq": 8,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 9,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 16,
+          "seq": 10,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 11,
+          "tick": 16
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 21,
+          "seq": 12,
+          "tick": 16
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 13,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 26,
+          "seq": 14,
+          "tick": 21
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 15,
+          "tick": 26
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 31,
+          "seq": 16,
+          "tick": 26
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 17,
+          "tick": 31
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 36,
+          "seq": 18,
+          "tick": 31
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 19,
+          "tick": 36
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 41,
+          "seq": 20,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 21,
+          "tick": 41
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 46,
+          "seq": 22,
+          "tick": 41
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 46,
+          "seq": 23,
+          "tick": 45
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 24,
+          "tick": 46
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 25,
+          "tick": 46
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "backfill"
+          },
+          "seq": 26,
+          "tick": 46
+        }
+      ],
+      "expect": {
+        "ending": "lunchFailed",
+        "class": "harm",
+        "rating": "bad",
+        "score": 40,
+        "criteria": {
+          "diagnose": "partial",
+          "fix": "missed",
+          "lasting": "missed",
+          "record": "met"
+        },
+        "kpis": {
+          "faults": 0
+        },
+        "stateHash": "bce01ce4b0824ae9"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "fixOnly",
+      "title": "Reads capacity and backfill, caps it, verifies; nothing scheduled",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "cw",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "bfstat",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "cap",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 5,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "verify",
+          "seq": 7,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 7,
+          "seq": 8,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 9,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 12,
+          "seq": 10,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 11,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 17,
+          "seq": 12,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 13,
+          "tick": 17
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 22,
+          "seq": 14,
+          "tick": 17
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 15,
+          "tick": 22
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 27,
+          "seq": 16,
+          "tick": 22
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 17,
+          "tick": 27
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 32,
+          "seq": 18,
+          "tick": 27
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 19,
+          "tick": 32
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 37,
+          "seq": 20,
+          "tick": 32
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 21,
+          "tick": 37
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 42,
+          "seq": 22,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 23,
+          "tick": 42
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 12,
+          "to": 47,
+          "seq": 24,
+          "tick": 42
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 12,
+          "to": 47,
+          "seq": 25,
+          "tick": 45
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 26,
+          "tick": 47
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 27,
+          "tick": 47
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "backfill"
+          },
+          "seq": 28,
+          "tick": 47
+        }
+      ],
+      "expect": {
+        "ending": "gaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 80,
+        "criteria": {
+          "diagnose": "met",
+          "fix": "met",
+          "lasting": "partial",
+          "record": "met"
+        },
+        "kpis": {
+          "faults": 0
+        },
+        "stateHash": "39baa84ad748ee1c"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "late",
+      "title": "Waits, caps after 12:00",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "cw",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 6,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 5,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 11,
+          "seq": 6,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 7,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 16,
+          "seq": 8,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 9,
+          "tick": 16
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 21,
+          "seq": 10,
+          "tick": 16
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 11,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 26,
+          "seq": 12,
+          "tick": 21
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 13,
+          "tick": 26
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 31,
+          "seq": 14,
+          "tick": 26
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 15,
+          "tick": 31
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 36,
+          "seq": 16,
+          "tick": 31
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 17,
+          "tick": 36
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 41,
+          "seq": 18,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 19,
+          "tick": 41
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 46,
+          "seq": 20,
+          "tick": 41
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 46,
+          "seq": 21,
+          "tick": 45
+        },
+        {
+          "type": "act",
+          "action": "cap",
+          "seq": 22,
+          "tick": 46
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 49,
+          "seq": 23,
+          "tick": 46
+        },
+        {
+          "type": "act",
+          "action": "verify",
+          "seq": 24,
+          "tick": 49
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 12,
+          "to": 51,
+          "seq": 25,
+          "tick": 49
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 26,
+          "tick": 51
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 13,
+          "to": 56,
+          "seq": 27,
+          "tick": 51
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 28,
+          "tick": 56
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 29,
+          "tick": 56
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "backfill"
+          },
+          "seq": 30,
+          "tick": 56
+        }
+      ],
+      "expect": {
+        "ending": "lunchFailed",
+        "class": "harm",
+        "rating": "bad",
+        "score": 60,
+        "criteria": {
+          "diagnose": "partial",
+          "fix": "partial",
+          "lasting": "partial",
+          "record": "met"
+        },
+        "kpis": {
+          "faults": 0
+        },
+        "stateHash": "573c6e3b5d536bcf"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "blind",
+      "title": "Caps without looking and blames a hot key",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "cap",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 8,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 5,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 13,
+          "seq": 6,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 7,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 18,
+          "seq": 8,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 9,
+          "tick": 18
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 23,
+          "seq": 10,
+          "tick": 18
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 11,
+          "tick": 23
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 28,
+          "seq": 12,
+          "tick": 23
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 13,
+          "tick": 28
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 33,
+          "seq": 14,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 15,
+          "tick": 33
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 38,
+          "seq": 16,
+          "tick": 33
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 17,
+          "tick": 38
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 43,
+          "seq": 18,
+          "tick": 38
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 19,
+          "tick": 43
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 48,
+          "seq": 20,
+          "tick": 43
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 48,
+          "seq": 21,
+          "tick": 45
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 22,
+          "tick": 48
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 23,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "hotkey"
+          },
+          "seq": 24,
+          "tick": 48
+        }
+      ],
+      "expect": {
+        "ending": "gaps",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 20,
+        "criteria": {
+          "diagnose": "missed",
+          "fix": "met",
+          "lasting": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "faults": 0
+        },
+        "stateHash": "b5ff6d368aa05ecb"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    }
+  ]
+}

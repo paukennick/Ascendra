@@ -1,0 +1,876 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "retrain-pipeline-trains-on-broken-feed",
+  "title": "Continuous training: tonight's retrain is about to deploy a model trained on a broken feed",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "mle@cloudshell:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "04:40 data alert: sales_daily for 2026-11-16, quantity NULL in 38% of rows (140 stores); retrain run demand-20261117 in progress, deploy at 05:30",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "05:30: broken model deployed",
+          "when": "not isNull(missAt)",
+          "at": "timeAt(missAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "05:30: deploy skipped, good model serving",
+          "when": "not isNull(okAt)",
+          "at": "timeAt(okAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "feed",
+          "label": "sales_daily (2026-11-16)",
+          "spokenLabel": "yesterday's sales feed",
+          "kind": "BigQuery",
+          "status": "{fixed and not harmed ? \"quarantined; reload requested\" : \"quantity empty for 140 stores\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "pipe",
+          "label": "Pipeline run demand-20261117",
+          "spokenLabel": "tonight's retrain",
+          "kind": "extract, train, evaluate, deploy",
+          "status": "{harmed ? \"deploy approved\" : fixed ? \"stopped before deploy\" : \"training on the broken feed\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "ep",
+          "label": "Endpoint demand-ep",
+          "spokenLabel": "the serving endpoint",
+          "kind": "stores order at 06:00",
+          "status": "{harmed ? \"serving the broken model\" : fixed ? \"serving last night's model\" : \"serving last night's model\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "pipe",
+          "to": "ep",
+          "label": "deploy at 05:30",
+          "status": "{fixed and not harmed ? \"cancelled\" : \"scheduled\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Validating data and models as part of a pipeline",
+  "secondaryObjectives": [
+    "Determining an appropriate model retraining policy",
+    "Deploying models in continuous integration, continuous delivery, and continuous training (CI/CD/CT) pipelines"
+  ],
+  "sources": [
+    {
+      "cite": "Google Cloud, Professional Machine Learning Engineer certification exam guide (as of June 1, 2026): low-code AI ~13%, collaborating on data and models ~16%, scaling prototypes into ML models ~21%, serving and scaling ~20%, automating pipelines ~18%, monitoring ~13%",
+      "checkedAt": "2026-11-17",
+      "url": "https://services.google.com/fh/files/misc/professional_machine_learning_engineer_exam_guide_english_new.pdf",
+      "note": "Read through a summarizing fetch on 2026-11-17. Bullets quoted there under section 3: 'Troubleshooting ML model training failures', 'Evaluation of compute and accelerator options (e.g., CPU, GPU, and TPU)'. The guide names 'Agent Platform' (Gemini Enterprise Agent Platform), not Vertex AI; the gcloud ai commands in the scenario are authored renderings.. (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "TensorFlow, 'Get started with TensorFlow Data Validation'",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.tensorflow.org/tfx/data_validation/get_started",
+      "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: validate_statistics 'matches the statistics of the dataset against the schema and marks any discrepancies'; a feature's presence is set by presence.min_fraction; out-of-domain values are anomalies; if it is a real data error 'the underlying data should be fixed before using it for training'; drift between training days is checked with drift_comparator and previous_statistics (Jensen-Shannon divergence covers numeric features). The pipeline's components and commands are authored renderings on Agent Platform Pipelines."
+    }
+  ],
+  "brief": {
+    "situation": "You are the on-call ML engineer at Larkin Grocers, a fictional chain. A nightly pipeline retrains the demand forecast on yesterday's sales and deploys the new model at 05:30 automatically, before stores order stock at 06:00. Its evaluation step only checks that the run finished. Tonight a data alert says yesterday's sales feed from 140 stores arrived with the quantity column empty.",
+    "handover": [
+      "The pipeline: extract, train, evaluate (runs-to-completion only), deploy at 05:30.",
+      "Last night's model is serving and was fine."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the pipeline's steps, the broken sales feed and the model that deploys at 05:30.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "04:40",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineAt": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "The pipeline deploys the new model at 05:30, 50 minutes after the alert; stores order at 06:00."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "harmed": {
+      "type": "bool",
+      "init": false
+    },
+    "tried": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "statsAt": {
+      "type": "time",
+      "init": null
+    },
+    "runAt": {
+      "type": "time",
+      "init": null
+    },
+    "evalAt": {
+      "type": "time",
+      "init": null
+    },
+    "servingAt": {
+      "type": "time",
+      "init": null
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "missAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "data",
+        "model",
+        "infra"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "stats",
+        "run",
+        "eval",
+        "serving",
+        "stop",
+        "gates",
+        "approve",
+        "bigger",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "stats": {
+      "label": "Data validation: today's statistics against the schema",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(statsAt)",
+          "then": [
+            {
+              "set": "statsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "mle@cloudshell:~$ python validate.py --stats gs://larkin-ml/stats/sales_daily/2026-11-16 --schema schema.pbtxt\n{fixed and not harmed ? \"quantity  presence 0.62 below min_fraction 1.0  (feed quarantined; retrain skipped)\" : \"quantity  Column dropped / presence 0.62 below min_fraction 1.0\nstore_id  OK\nprice     OK\"}"
+        },
+        {
+          "finding": "The quantity feature, the label, is missing in 38% of yesterday's rows: training on it teaches the model those stores sold nothing."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "run": {
+      "label": "gcloud ai pipelines runs describe demand-20261117 (tasks)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(runAt)",
+          "then": [
+            {
+              "set": "runAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "mle@cloudshell:~$ gcloud ai ... pipeline-jobs describe demand-20261117 --format='table(taskDetails.taskName,taskDetails.state)'\n{harmed ? \"extract SUCCEEDED\ntrain SUCCEEDED\nevaluate SUCCEEDED\ndeploy SUCCEEDED\" : fixed ? \"extract SUCCEEDED\ntrain SUCCEEDED\nevaluate SUCCEEDED\ndeploy CANCELLED\" : \"extract SUCCEEDED\ntrain RUNNING\nevaluate PENDING\ndeploy PENDING (scheduled 05:30)\"}"
+        },
+        {
+          "finding": "The run is training now and will deploy on its own: nothing in it would stop on bad data."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "eval": {
+      "label": "Read the evaluate step's code",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(evalAt)",
+          "then": [
+            {
+              "set": "evalAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "mle@cloudshell:~$ grep -n 'def evaluate' -A4 pipeline/components.py\n  def evaluate(model):\n      assert model.training_status == 'done'\n      return True   # TODO compare to current model"
+        },
+        {
+          "finding": "The evaluation never compares the new model with the current one: a model that predicts zeros would pass."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "serving": {
+      "label": "What is serving now?",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(servingAt)",
+          "then": [
+            {
+              "set": "servingAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "mle@cloudshell:~$ gcloud ai endpoints describe demand-ep --format='value(deployedModels[0].model)'\ndemand-20261116 (trained on 2026-11-15 data; MAPE 11.2%)"
+        },
+        {
+          "finding": "Last night's model is good and can keep serving for another day."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "stop": {
+      "label": "Cancel tonight's run before deploy, keep demand-20261116 serving, quarantine the 2026-11-16 partition and ask for a reload",
+      "group": "Fix",
+      "available": "not busy and (not fixed and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "fixed",
+          "to": "true"
+        },
+        {
+          "output": "mle@cloudshell:~$ gcloud ai ... pipeline-jobs cancel demand-20261117\nCancelled.\nmle@cloudshell:~$ bq update --label quarantine:true larkin:sales.sales_daily$20261116\n(ticket DATA-933 to the POS team: reload quantity for 140 stores)"
+        },
+        {
+          "log": "The broken data never reaches a model in production; stores order on last night's forecast, which is a day older but right.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "gates": {
+      "label": "Add a data validation step (schema and drift checks) and a model comparison gate before deploy",
+      "group": "Fix",
+      "available": "not busy and (not planned and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "mle@cloudshell:~$ git diff pipeline/pipeline.py\n+  validate = validate_data(stats, schema, previous_stats)   # fail on anomalies\n+  gate = compare_to_serving(new_model, current_model, metric='MAPE', max_regression=0.05)\n+  deploy.after(gate)"
+        },
+        {
+          "log": "A bad feed stops the pipeline before training, and a model worse than the serving one cannot deploy, whatever time it is.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "approve": {
+      "label": "Let the run finish and deploy on schedule; fix the data tomorrow",
+      "group": "Fix",
+      "available": "not busy and (not harmed)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "harmed",
+          "to": "true"
+        },
+        {
+          "output": "mle@cloudshell:~$ (no action: deploy proceeds at 05:30)\ngcloud ai ... pipeline-jobs describe demand-20261117 ... deploy: SUCCEEDED (05:30)"
+        },
+        {
+          "log": "The model trained on empty quantities deploys: 140 stores get forecasts near zero and under-order fresh food.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "bigger": {
+      "label": "Re-run training on a larger machine type to finish sooner",
+      "group": "Fix",
+      "available": "not busy and (not harmed and not tried)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tried",
+          "to": "true"
+        },
+        {
+          "output": "mle@cloudshell:~$ gcloud ai ... pipeline-jobs create ... --parameter machine_type=n2-highmem-32\n(new run started; same data)"
+        },
+        {
+          "log": "A faster run on the same broken data produces the same broken model, sooner.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Check what is serving and that tonight's run did not deploy",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "mle@cloudshell:~$ gcloud ai endpoints describe demand-ep ... ; forecast sample for store 211\n{harmed ? \"demand-20261117 serving\nstore 211 milk forecast: 3 units\" : fixed ? \"demand-20261116 serving\nstore 211 milk forecast: 412 units\" : \"deploy pending at 05:30 (demand-20261117)\nstore 211 milk forecast: 412 units (until 05:30)\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "data",
+                  "label": "Yesterday's sales feed lost the quantity column for 140 stores, and the pipeline has no data validation"
+                },
+                {
+                  "value": "model",
+                  "label": "The model architecture is unstable"
+                },
+                {
+                  "value": "infra",
+                  "label": "Training hardware failed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-335)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "05:30: nothing deploys; stores order at 06:00 on last night's good model.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "missAt",
+              "to": "t"
+            },
+            {
+              "log": "05:30: the model trained on the broken feed deploys; stores' forecasts for 140 stores drop to near zero.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why tonight's retrain was dangerous, what you did, and what the pipeline now checks.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Connects the feed to the label.",
+          "modelAnswer": "quantity, the label, was empty for 38% of yesterday's rows (140 stores). Training on it teaches the model those stores sold nothing, and the pipeline's evaluation only checked that training finished, so it would deploy at 05:30."
+        },
+        {
+          "label": "Did",
+          "criteria": "Keeps the good model.",
+          "modelAnswer": "Cancelled the run before deploy, left last night's model serving, quarantined the partition and asked the POS team to reload."
+        },
+        {
+          "label": "Checks",
+          "criteria": "Validation and a comparison gate.",
+          "modelAnswer": "A data validation step (schema presence and drift against the previous day) fails the run on anomalies, and a gate refuses to deploy a model worse than the serving one."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The pipeline deploys the new model at 05:30, 50 minutes after the alert; stores order at 06:00."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: The model trained on the broken feed was deployed."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed and not harmed",
+      "class": "harm",
+      "rationale": "Closing with the run still scheduled to deploy lets the broken model reach the stores.",
+      "source": {
+        "cite": "TensorFlow, 'Get started with TensorFlow Data Validation'",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.tensorflow.org/tfx/data_validation/get_started",
+        "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: validate_statistics 'matches the statistics of the dataset against the schema and marks any discrepancies'; a feature's presence is set by presence.min_fraction; out-of-domain values are anomalies; if it is a real data error 'the underlying data should be fixed before using it for training'; drift between training days is checked with drift_comparator and previous_statistics (Jensen-Shannon divergence covers numeric features). The pipeline's components and commands are authored renderings on Agent Platform Pipelines."
+      }
+    }
+  },
+  "endings": {
+    "zeroForecasts": {
+      "label": "Broken model forecasts near zero",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and harmed",
+      "narrative": "The pipeline deployed a model that learned 140 stores sold nothing."
+    },
+    "deployedAnyway": {
+      "label": "Broken model deployed at 05:30",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(missAt)",
+      "narrative": "At 05:30 nothing had stopped the run."
+    },
+    "held": {
+      "label": "Run stopped, good model kept, gates added",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(statsAt) and not isNull(runAt) and not isNull(verifiedAt) and causeDoc == \"data\"",
+      "narrative": "The broken feed never reached production, stores ordered on last night's model, and the pipeline now validates data and compares models."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The bad model never deployed, but the gates, the check or the record was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "zeroForecasts",
+    "deployedAnyway",
+    "held",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Read the data anomalies and the run's state",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(statsAt) and not isNull(runAt)",
+            "score": "met",
+            "why": "The key evidence, read before changing anything."
+          },
+          {
+            "when": "not isNull(statsAt) or not isNull(runAt) or not isNull(evalAt) or not isNull(servingAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Nothing deployed from the broken feed by 05:30",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and not harmed and isNull(missAt)",
+            "score": "met",
+            "why": "The right change, in time, without harm."
+          },
+          {
+            "when": "fixed or harmed",
+            "score": "partial",
+            "why": "{harmed ? \"The model trained on the broken feed was deployed.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never removed."
+          }
+        ]
+      },
+      {
+        "id": "lasting",
+        "label": "Validation and comparison gates added; serving model checked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The lasting step taken and the result checked."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"data\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record names the wrong cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes that caused harm",
+        "value": "harmed ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "04:40-04:44",
+        "text": "quantity presence 0.62; run training, deploy at 05:30; evaluate only checks completion; last night's model fine."
+      },
+      {
+        "at": "04:44-04:48",
+        "text": "Cancel the run, keep serving, quarantine and request reload; add validation and comparison gates."
+      },
+      {
+        "at": "04:48-04:50",
+        "text": "demand-20261116 serving; forecasts normal."
+      }
+    ],
+    "debrief": {
+      "zeroForecasts": {
+        "headline": "A pipeline with no gates deploys whatever it trains",
+        "body": "Retraining on bad data is worse than not retraining. Stop the run, keep the good model, and add data validation and a comparison gate."
+      },
+      "deployedAnyway": {
+        "headline": "Yesterday's model was the safe choice",
+        "body": "When the training data is broken, serving the last good model for another day costs little; deploying a model trained on it costs a day of wrong orders."
+      },
+      "held": {
+        "headline": "Good: validation as a pipeline step",
+        "body": "You read the data's anomalies and the run's state, stopped the deploy, kept the good model, quarantined the partition, and added the validation and comparison gates that would have done it for you."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the evidence before the change, the lasting step, the check, or the cause in the record."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Yesterday's feed lost the label for 140 stores, and tonight's run will train on it and deploy at 05:30 because its evaluation only checks completion. Stop the run, keep last night's good model, quarantine the partition and get it reloaded. Then put data validation and a comparison against the serving model in front of deploy. Letting it deploy ships zero forecasts; a bigger machine just ships them sooner."
+  }
+}

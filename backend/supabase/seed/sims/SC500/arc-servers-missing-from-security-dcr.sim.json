@@ -1,0 +1,876 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "arc-servers-missing-from-security-dcr",
+  "title": "Blind spot: the brute-force rule is silent while new servers take password spraying",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "secops@cloudshell:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "10:15 help desk: 37 lockouts on FS-ARC-01..12 since 08:40; Sentinel: no incidents; firewall window closes 11:30",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "11:30: spraying continues",
+          "when": "not isNull(missAt)",
+          "at": "timeAt(missAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "11:30: sources blocked",
+          "when": "not isNull(okAt)",
+          "at": "timeAt(okAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "arc",
+          "label": "FS-ARC-01..12 (Azure Arc)",
+          "spokenLabel": "the new file servers",
+          "kind": "agent installed",
+          "status": "{fixed and not harmed ? \"events collected\" : \"events not collected\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "dcr",
+          "label": "DCR dcr-winsec",
+          "spokenLabel": "the data collection rule",
+          "kind": "event set Common",
+          "status": "{harmed ? \"event set All on every machine\" : fixed ? \"applies to the 12 Arc servers too\" : \"applies to 40 Azure VMs only\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "rule",
+          "label": "Analytics rule: brute force",
+          "spokenLabel": "the brute-force rule",
+          "kind": "reads failed sign-ins",
+          "status": "{fixed and not harmed ? \"incident raised\" : \"sees nothing from FS-ARC\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "arc",
+          "to": "dcr",
+          "label": "association",
+          "status": "{fixed and not harmed ? \"associated\" : \"none\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Collecting syslog, CEF and Windows Security events with data collection rules",
+  "secondaryObjectives": [
+    "Installing content hub solutions and connecting Azure data connectors",
+    "Automating incident handling with automation rules and playbooks"
+  ],
+  "sources": [
+    {
+      "cite": "Microsoft Learn, Study guide for Exam SC-500: Implementing End-to-End Security Controls for Cloud and AI Workloads (page last updated 2026-05-13): identity, access and governance 20-25%, storage, databases and networking 25-30%, compute 20-25%, security posture 20-25%",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/sc-500",
+      "note": "Read through a summarizing fetch on 2026-11-17. Bullets quoted: 'Configure Azure private endpoints to secure access to Azure platform as a service (PaaS) resources'; 'Implement and configure Azure Firewall'; 'Implement and configure security controls by using Azure Policy, including built-in and custom policy definitions'; 'Implement and configure managed identities for Azure resources'. The objective wording is the course seed's. (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "Microsoft Learn (training), Connect using the Windows Security Events via AMA connector",
+      "checkedAt": "2026-11-18",
+      "url": "https://learn.microsoft.com/en-us/training/modules/connect-windows-hosts-to-azure-sentinel/2a-configure-data-collection-rules",
+      "note": "Read through a summarizing fetch on 2026-11-18. The connector 'uses Data Collection Rules (DCRs) to define the data to collect from each agent'; 'In the Resources tab, select +Add resource(s) to add machines to which the Data Collection Rule will apply'; Azure VMs and Azure Arc-enabled servers are listed; the Azure Monitor Agent is installed on selected machines; event levels All, Common, Minimal or Custom (XPath). The event-set reference page (learn.microsoft.com/da-dk/azure/sentinel/windows-security-event-id-reference, read the same day) says Minimal 'contains successful and failed user logons (event IDs 4624, 4625)'. The SecurityEvent table name is from memory of the Sentinel schema (to verify)."
+    }
+  ],
+  "brief": {
+    "situation": "You are the security engineer at Wexley Logistics. Microsoft Sentinel's brute-force analytics rule alerts on repeated failed Windows sign-ins. Last week twelve on-premises file servers were onboarded to Azure Arc. This morning the help desk reports lockouts on those servers, yet Sentinel shows no failed sign-ins from them and no incident. The firewall team will only block a source if Sentinel shows it; their change window closes at 11:30.",
+    "handover": [
+      "Security events come in through the Windows Security Events via AMA connector and its data collection rule dcr-winsec (event set: Common).",
+      "The Arc onboarding script installed the Azure Monitor Agent."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the new Arc servers, the data collection rule, the workspace and the analytics rule that reads it.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "10:15",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineAt": {
+      "value": 4500,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "The firewall team's change window closes at 11:30, 75 minutes after the report; they block only on Sentinel evidence."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "harmed": {
+      "type": "bool",
+      "init": false
+    },
+    "tried": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "eventsAt": {
+      "type": "time",
+      "init": null
+    },
+    "assocAt": {
+      "type": "time",
+      "init": null
+    },
+    "agentAt": {
+      "type": "time",
+      "init": null
+    },
+    "heartbeatAt": {
+      "type": "time",
+      "init": null
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "missAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "assoc",
+        "agent",
+        "rule"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "events",
+        "assoc",
+        "agent",
+        "heartbeat",
+        "associate",
+        "guard",
+        "all",
+        "threshold",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "events": {
+      "label": "Failed sign-ins by computer in the last 2 hours",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(eventsAt)",
+          "then": [
+            {
+              "set": "eventsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "secops@cloudshell:~$ az monitor log-analytics query -w law-sec --analytics-query 'SecurityEvent | where TimeGenerated > ago(2h) and EventID == 4625 | summarize count() by Computer' -o tsv\n{fixed and not harmed ? \"FS-ARC-03 418\nFS-ARC-07 391\n... 12 FS-ARC servers\nVM-APP-02 3\" : \"VM-APP-02 3\nVM-SQL-01 1\n(no FS-ARC servers)\"}"
+        },
+        {
+          "finding": "No security events at all from the Arc servers."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "assoc": {
+      "label": "Which machines dcr-winsec applies to",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(assocAt)",
+          "then": [
+            {
+              "set": "assocAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "secops@cloudshell:~$ az monitor data-collection rule association list --rule-name dcr-winsec -g rg-sec --query '[].name' | wc -l; (Resources tab)\n{fixed and not harmed ? \"52 associations (40 Azure VMs, 12 Arc servers)\" : \"40 associations (Azure VMs only)\"}"
+        },
+        {
+          "finding": "The rule was never applied to the twelve Arc servers."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "agent": {
+      "label": "Is the Azure Monitor Agent running on FS-ARC-03?",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(agentAt)",
+          "then": [
+            {
+              "set": "agentAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "secops@cloudshell:~$ az connectedmachine extension list --machine-name FS-ARC-03 -g rg-arc --query '[].[name,provisioningState]' -o tsv\nAzureMonitorWindowsAgent Succeeded"
+        },
+        {
+          "finding": "The agent is installed and healthy; it just has no rule telling it what to send."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "heartbeat": {
+      "label": "Heartbeats from the Arc servers",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(heartbeatAt)",
+          "then": [
+            {
+              "set": "heartbeatAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "secops@cloudshell:~$ az monitor log-analytics query -w law-sec --analytics-query 'Heartbeat | where Computer startswith \"FS-ARC\" | summarize max(TimeGenerated) by Computer' -o tsv\nFS-ARC-01 10:14 ... FS-ARC-12 10:14"
+        },
+        {
+          "finding": "The servers reach the workspace; only security events are missing."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "associate": {
+      "label": "Add the twelve Arc servers to dcr-winsec's resources",
+      "group": "Fix",
+      "available": "not busy and (not fixed and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "fixed",
+          "to": "true"
+        },
+        {
+          "output": "secops@cloudshell:~$ for m in $(az connectedmachine list -g rg-arc --query \"[?starts_with(name,'FS-ARC')].id\" -o tsv); do az monitor data-collection rule association create --name winsec-$(basename $m) --rule-id $DCR_ID --resource $m; done\n(12 associations created)"
+        },
+        {
+          "log": "The agents on the Arc servers receive the rule and start sending security events; the brute-force rule sees the failed sign-ins on its next run.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "15min"
+        }
+      ]
+    },
+    "guard": {
+      "label": "Associate the DCR in the Arc onboarding script, and add a workbook alert for servers with heartbeats but no security events",
+      "group": "Fix",
+      "available": "not busy and (not planned and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "secops@cloudshell:~$ git diff onboarding/arc-onboard.ps1\n+ New-AzDataCollectionRuleAssociation -RuleId $dcr -ResourceUri $machine.Id\nsecops@cloudshell:~$ az monitor scheduled-query create -n heartbeat-no-secevents ... (Heartbeat present, SecurityEvent absent for 30 min)"
+        },
+        {
+          "log": "Every newly onboarded server gets the rule, and any machine that reports in but sends no security events alerts.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "all": {
+      "label": "Switch dcr-winsec to 'All security events' on every machine to be sure",
+      "group": "Fix",
+      "available": "not busy and (not harmed)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "harmed",
+          "to": "true"
+        },
+        {
+          "output": "secops@cloudshell:~$ az monitor data-collection rule update -n dcr-winsec ... event set: All\n(updated; still 40 associations)"
+        },
+        {
+          "log": "The Arc servers are still not associated, and 40 servers now send every security event: ingestion jumps eightfold and the workspace's daily cap hits by noon, blinding all detections.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "threshold": {
+      "label": "Lower the brute-force rule's threshold from 20 to 5 failures",
+      "group": "Fix",
+      "available": "not busy and (not harmed and not tried)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tried",
+          "to": "true"
+        },
+        {
+          "output": "secops@cloudshell:~$ az sentinel alert-rule update ... threshold 5\n(updated)"
+        },
+        {
+          "log": "No events from the Arc servers reach the rule, so any threshold sees zero.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Check failed sign-ins from the Arc servers and the incident",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "secops@cloudshell:~$ SecurityEvent | where EventID == 4625 and Computer startswith 'FS-ARC' (last 15 min); SecurityIncident (last 15 min)\n{harmed ? \"(no rows from FS-ARC)\nWorkspace ingestion 7.6x normal\" : fixed ? \"FS-ARC-03 46, FS-ARC-07 39, ...\nIncident 2291: brute force from 203.0.113.0/26\" : \"(no rows)\n(no incident)\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "assoc",
+                  "label": "The data collection rule was not associated with the new Arc servers, so their agents sent no security events"
+                },
+                {
+                  "value": "agent",
+                  "label": "The agents were not installed"
+                },
+                {
+                  "value": "rule",
+                  "label": "The analytics rule threshold was too high"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-335)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "11:30: the spraying sources are blocked in the window.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "missAt",
+              "to": "t"
+            },
+            {
+              "log": "11:30: the window closes; the spraying continues until tomorrow's window.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why Sentinel missed the spraying, what you changed, and how new servers are covered from now on.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Reads the associations.",
+          "modelAnswer": "dcr-winsec applied to the 40 Azure VMs only; the twelve Arc servers had healthy agents and heartbeats but no rule association, so no security events left them."
+        },
+        {
+          "label": "Changed",
+          "criteria": "Associate the rule.",
+          "modelAnswer": "Associated dcr-winsec with the twelve Arc servers; failed sign-ins arrived and the brute-force incident fired. Switching to all events floods the workspace without fixing the gap; lowering the threshold has no data to act on."
+        },
+        {
+          "label": "From now on",
+          "criteria": "Onboarding and alert.",
+          "modelAnswer": "The onboarding script associates the rule, and an alert fires for machines with heartbeats but no security events."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The firewall team's change window closes at 11:30, 75 minutes after the report; they block only on Sentinel evidence."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: Collecting every event on every machine flooded the workspace without fixing the gap."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed and not harmed",
+      "class": "harm",
+      "rationale": "Closing with the Arc servers unassociated lets the spraying continue.",
+      "source": {
+        "cite": "Microsoft Learn (training), Connect using the Windows Security Events via AMA connector",
+        "checkedAt": "2026-11-18",
+        "url": "https://learn.microsoft.com/en-us/training/modules/connect-windows-hosts-to-azure-sentinel/2a-configure-data-collection-rules",
+        "note": "Read through a summarizing fetch on 2026-11-18. The connector 'uses Data Collection Rules (DCRs) to define the data to collect from each agent'; 'In the Resources tab, select +Add resource(s) to add machines to which the Data Collection Rule will apply'; Azure VMs and Azure Arc-enabled servers are listed; the Azure Monitor Agent is installed on selected machines; event levels All, Common, Minimal or Custom (XPath). The event-set reference page (learn.microsoft.com/da-dk/azure/sentinel/windows-security-event-id-reference, read the same day) says Minimal 'contains successful and failed user logons (event IDs 4624, 4625)'. The SecurityEvent table name is from memory of the Sentinel schema (to verify)."
+      }
+    }
+  },
+  "endings": {
+    "flooded": {
+      "label": "Workspace flooded, gap unfixed",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and harmed",
+      "narrative": "The Arc servers still sent nothing, and the eightfold volume headed for the daily cap."
+    },
+    "sprayContinues": {
+      "label": "Spraying continues past the window",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(missAt)",
+      "narrative": "At 11:30 Sentinel still had no evidence from the Arc servers."
+    },
+    "collected": {
+      "label": "Events collected, sources blocked",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(eventsAt) and not isNull(assocAt) and not isNull(verifiedAt) and causeDoc == \"assoc\"",
+      "narrative": "The Arc servers send security events, the brute-force incident fired, the firewall team blocked the sources, and onboarding now associates the rule."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Events flow, but the onboarding change, the alert, the check or the record was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "flooded",
+    "sprayContinues",
+    "collected",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Read events by computer and the rule's associations",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(eventsAt) and not isNull(assocAt)",
+            "score": "met",
+            "why": "The key evidence, read before changing anything."
+          },
+          {
+            "when": "not isNull(eventsAt) or not isNull(assocAt) or not isNull(agentAt) or not isNull(heartbeatAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Arc servers' events in Sentinel by 11:30, volume unchanged elsewhere",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and not harmed and isNull(missAt)",
+            "score": "met",
+            "why": "The right change, in time, without harm."
+          },
+          {
+            "when": "fixed or harmed",
+            "score": "partial",
+            "why": "{harmed ? \"Collecting every event on every machine flooded the workspace without fixing the gap.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never removed."
+          }
+        ]
+      },
+      {
+        "id": "lasting",
+        "label": "Onboarding associates the rule, silent-server alert; incident checked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The lasting step taken and the result checked."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"assoc\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record names the wrong cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes that caused harm",
+        "value": "harmed ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "10:15-10:19",
+        "text": "No 4625 events from FS-ARC; DCR on 40 Azure VMs only; agents healthy; heartbeats present."
+      },
+      {
+        "at": "10:19-10:37",
+        "text": "Associate the 12 Arc servers; onboarding script and silent-server alert."
+      },
+      {
+        "at": "10:37-10:39",
+        "text": "Failed sign-ins from FS-ARC; incident 2291."
+      }
+    ],
+    "debrief": {
+      "flooded": {
+        "headline": "Associate the rule; do not widen it",
+        "body": "The rule was fine for the machines it applied to. The new servers simply were not associated. Widening the event set multiplies cost and risks the cap."
+      },
+      "sprayContinues": {
+        "headline": "No association, no events",
+        "body": "A data collection rule collects only from the machines it is applied to; onboarding an agent is not enough."
+      },
+      "collected": {
+        "headline": "Good: close the collection gap",
+        "body": "You compared events by computer with the rule's associations, confirmed agents and heartbeats, associated the rule with the new servers, saw the incident fire, and made association part of onboarding with an alert for silent servers."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the evidence before the change, the lasting step, the check, or the cause in the record."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Lockouts with no events from those servers is a collection gap. The agents and heartbeats are fine, but dcr-winsec applies only to the 40 Azure VMs: the Arc servers were never added to its resources. Associate the rule with them, then check failed sign-ins arrive and the incident fires. Switching every machine to all events floods the workspace and still misses them; a lower threshold has no data. Then associate the rule in onboarding and alert on silent servers."
+  }
+}

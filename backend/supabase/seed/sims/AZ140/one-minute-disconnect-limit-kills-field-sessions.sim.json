@@ -1,0 +1,875 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "one-minute-disconnect-limit-kills-field-sessions",
+  "title": "Storm response: field adjusters lose their work every time the signal drops",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "vdiadmin@cloudshell:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "09:40 service desk: 23 adjusters 'lost my session after a network blip' since 07:30; storm surge at 10:30",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "10:30: storm surge, sessions lost on every drop",
+          "when": "not isNull(missAt)",
+          "at": "timeAt(missAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "10:30: storm surge, sessions survive drops",
+          "when": "not isNull(okAt)",
+          "at": "timeAt(okAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "intune",
+          "label": "Intune profile 'Win11 L2 hardening'",
+          "spokenLabel": "the hardening profile",
+          "kind": "AVD-Hosts group",
+          "status": "{harmed ? \"unassigned\" : fixed ? \"AVD override: disconnected 4 hours, idle 2 hours\" : \"disconnected session limit 1 minute\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "hosts",
+          "label": "hp-field session hosts (20)",
+          "spokenLabel": "the field session hosts",
+          "kind": "pooled",
+          "status": "{harmed ? \"no hardening at all\" : fixed ? \"keep disconnected sessions 4 hours\" : \"end disconnected sessions after 1 minute\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "users",
+          "label": "Field adjusters (cellular)",
+          "spokenLabel": "the adjusters",
+          "kind": "tablets",
+          "status": "{fixed and not harmed ? \"reconnecting to their sessions\" : \"losing sessions on every drop\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "intune",
+          "to": "hosts",
+          "label": "policy",
+          "status": "{fixed and not harmed ? \"AVD limits\" : \"1-minute limit\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Configuring session timeout properties",
+  "secondaryObjectives": [
+    "Configuring user settings through Microsoft Intune policies or Group Policy"
+  ],
+  "sources": [
+    {
+      "cite": "Microsoft Learn, Study guide for Exam AZ-140: Configuring and Operating Microsoft Azure Virtual Desktop (page last updated 2026-06-19; skills as of July 20, 2026): plan and implement an Azure Virtual Desktop infrastructure 40-45%, identity and security 15-20%, user environments and apps 20-25%, monitor and maintain 10-15%",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/credentials/certifications/resources/study-guides/az-140",
+      "note": "Read through a summarizing fetch on 2026-11-17. Bullets quoted there under 'Plan and implement storage for Azure Virtual Desktop user data': 'Implement storage for FSLogix components', 'Implement storage accounts for Azure Virtual Desktop', 'Implement file shares for Azure Virtual Desktop'. (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "Microsoft Learn training, 'Configure session timeout properties' (AZ-140 path)",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/en-us/training/modules/configure-user-experience-settings/6-configure-session-timeout-properties",
+      "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: the Session Time Limits policies 'Set time limit for disconnected sessions', 'Set time limit for active but idle Remote Desktop Services sessions', 'Set time limit for active Remote Desktop Services sessions' and 'End Session when time limits are reached', under Computer Configuration > Administrative Templates > Windows Components > Remote Desktop Services > Remote Desktop Session Host > Session Time Limits. The page does not cover Intune or what happens at the limit. The Windows Server policy reference for Session Time Limits (read 2026-11-18): 'If you enable this policy setting, disconnected sessions are deleted from the server after the specified amount of time'; ending a session ends its programs, so unsaved work is lost (the author's inference; the page does not say so). CIS Level 2 benchmarks recommend 'Enabled: 1 minute' for this setting (audit item titles seen in tenable.com search results; item numbers differ by benchmark, and the benchmark itself was not read)."
+    }
+  ],
+  "brief": {
+    "situation": "You are the AVD administrator at Merrow Insurance. Field adjusters use the host pool hp-field from tablets on cellular networks. Yesterday the security team assigned a hardening baseline to all AVD session hosts through Intune. Since this morning adjusters say that whenever the signal drops for a moment, they reconnect to a fresh desktop and the claim they were writing is gone. A hail storm surge starts at 10:30, when 120 adjusters go out.",
+    "handover": [
+      "The baseline profile is 'Win11 L2 hardening', owned by the security team, assigned to the AVD-Hosts device group.",
+      "Before yesterday, hp-field hosts had no session time limits set."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the Intune baseline, the session hosts' time limits and the adjusters' sessions.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "09:40",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineAt": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "The storm surge sends 120 adjusters out at 10:30, 50 minutes after the report."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "harmed": {
+      "type": "bool",
+      "init": false
+    },
+    "tried": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "eventsAt": {
+      "type": "time",
+      "init": null
+    },
+    "rsopAt": {
+      "type": "time",
+      "init": null
+    },
+    "profileAt": {
+      "type": "time",
+      "init": null
+    },
+    "netAt": {
+      "type": "time",
+      "init": null
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "missAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "limit",
+        "network",
+        "fslogix"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "events",
+        "rsop",
+        "profile",
+        "net",
+        "override",
+        "doc",
+        "unassign",
+        "shortpath",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "events": {
+      "label": "Session host events: why sessions ended (one host, today)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(eventsAt)",
+          "then": [
+            {
+              "set": "eventsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ Get-WinEvent -ComputerName field-3 -LogName 'Microsoft-Windows-TerminalServices-LocalSessionManager/Operational' -MaxEvents 3 | ft TimeCreated, Id, Message\n{fixed and not harmed ? \"10:0x  24  Session 4 has been disconnected\n10:0x  25  Session 4 reconnection succeeded\" : \"09:12  24  Session 4 has been disconnected\n09:13  23  Session 4 logoff succeeded (time limit for disconnected sessions)\n09:14  21  Session 6 logon succeeded\"}"
+        },
+        {
+          "finding": "A disconnected session is logged off one minute later: the reconnect lands in a new session."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "rsop": {
+      "label": "On field-3: the applied session time limit settings",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(rsopAt)",
+          "then": [
+            {
+              "set": "rsopAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ Get-ItemPropertyValue -Path 'HKLM:/SOFTWARE/Policies/Microsoft/Windows NT/Terminal Services' -Name MaxDisconnectionTime\n{fixed and not harmed ? \"MaxDisconnectionTime  REG_DWORD  0xdbba00  (4 hours)\" : \"MaxDisconnectionTime  REG_DWORD  0xea60  (1 minute)\"}"
+        },
+        {
+          "finding": "The host has a one-minute limit for disconnected sessions, applied by policy."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "profile": {
+      "label": "Intune: which profile sets it, and since when",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(profileAt)",
+          "then": [
+            {
+              "set": "profileAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ Graph: deviceManagement/configurationPolicies?$filter=name eq 'Win11 L2 hardening' -> settings (session time limits)\nSet time limit for disconnected sessions: Enabled, 1 minute (benchmark 18.10.58.3.10.2)\nAssigned: AVD-Hosts, 2026-11-16 17:05"
+        },
+        {
+          "finding": "Yesterday's hardening profile set it, from a desktop benchmark item meant for single-user machines."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "net": {
+      "label": "AVD Insights: hp-field disconnections by client network type (today)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(netAt)",
+          "then": [
+            {
+              "set": "netAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ WVDConnections | where State == 'Completed' ... summarize by ClientType, NetworkType\ncellular  611 disconnects (median gap 18 s)\nwifi      42 disconnects"
+        },
+        {
+          "finding": "Cellular clients drop for seconds at a time; a one-minute limit turns each drop into a lost session."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "override": {
+      "label": "With the security team: an AVD-specific Intune setting for hp-field hosts, disconnected limit 4 hours, idle limit 2 hours, taking precedence over the baseline item",
+      "group": "Fix",
+      "available": "not busy and (not fixed and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "fixed",
+          "to": "true"
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ Graph: create configurationPolicy 'AVD session limits' (assigned AVD-Hosts, settings: disconnected 4 h, idle 2 h, End session when limit reached: enabled); baseline item excluded for AVD-Hosts (security approval SEC-881)\nvdiadmin@cloudshell:~$ (Intune: Sync requested for the 20 hp-field hosts from the portal; settings applied by 10:0x)"
+        },
+        {
+          "log": "Sessions now survive a drop for hours and still end in a bounded time; the rest of the baseline stays in force, and security approved the AVD-specific limits.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "doc": {
+      "label": "Record the AVD exception in the baseline's documentation and add a session-limit check to the host pool's monitoring",
+      "group": "Fix",
+      "available": "not busy and (not planned and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ (baseline 'Win11 L2 hardening' notes: item 18.10.58.3.10.2 excluded for AVD-Hosts; AVD limits per policy 'AVD session limits')\nvdiadmin@cloudshell:~$ az monitor scheduled-query create -n hp-field-disconnect-logoffs --condition 'count > 20' --query \"WVDConnections | where ... logoff within 2 min of disconnect\""
+        },
+        {
+          "log": "The exception is part of the baseline's record, and a spike of logoffs right after disconnects raises an alert.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "unassign": {
+      "label": "Unassign the whole 'Win11 L2 hardening' profile from AVD-Hosts",
+      "group": "Fix",
+      "available": "not busy and (not harmed)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "harmed",
+          "to": "true"
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ Graph: delete assignment AVD-Hosts from 'Win11 L2 hardening'\n(204 No Content)"
+        },
+        {
+          "log": "Sessions survive drops, and every other hardening setting on the hosts is gone too, without the security team.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "shortpath": {
+      "label": "Enable RDP Shortpath for public networks on hp-field",
+      "group": "Fix",
+      "available": "not busy and (not harmed and not tried)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tried",
+          "to": "true"
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ az desktopvirtualization hostpool update ... --custom-rdp-property 'use udp:i:1;...'\n(updated)"
+        },
+        {
+          "log": "A different transport does not stop the session host logging off a disconnected session after one minute.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Test: disconnect a session for 3 minutes, reconnect, check it is the same session",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ test-adjuster: disconnect 3 min, reconnect; LocalSessionManager events on its host\n{harmed ? \"Session 9 reconnection succeeded (baseline unassigned)\" : fixed ? \"Session 9 reconnection succeeded (same session, open claim intact)\" : \"Session 9 logoff succeeded (time limit); new session 12 created\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "limit",
+                  "label": "The hardening baseline set a 1-minute disconnected-session limit on the AVD hosts"
+                },
+                {
+                  "value": "network",
+                  "label": "The cellular networks were too unstable"
+                },
+                {
+                  "value": "fslogix",
+                  "label": "FSLogix profiles failed to load"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-335)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "10:30: adjusters drop and reconnect to their own sessions all day.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "missAt",
+              "to": "t"
+            },
+            {
+              "log": "10:30: 120 adjusters on cellular lose their work at every drop.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why adjusters lost their sessions, what you changed with whom, and how it stays right.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Connects the logoffs to the limit.",
+          "modelAnswer": "Events showed each disconnected session logged off a minute later. The hosts had MaxDisconnectionTime of one minute from yesterday's Intune hardening profile (a desktop benchmark item), and cellular clients drop for seconds many times a day."
+        },
+        {
+          "label": "Change",
+          "criteria": "Overrides one setting, with the owner.",
+          "modelAnswer": "With the security team's approval: an AVD policy with a 4-hour disconnected limit and a 2-hour idle limit, and the baseline item excluded for AVD hosts. Unassigning the profile would have removed all the hardening."
+        },
+        {
+          "label": "Stays right",
+          "criteria": "Records and watches.",
+          "modelAnswer": "The exception is in the baseline's notes and an alert fires on logoffs shortly after disconnects."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The storm surge sends 120 adjusters out at 10:30, 50 minutes after the report."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: The whole hardening baseline was removed from the session hosts."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed and not harmed",
+      "class": "harm",
+      "rationale": "Closing with the one-minute limit in place leaves the storm surge losing work.",
+      "source": {
+        "cite": "Microsoft Learn training, 'Configure session timeout properties' (AZ-140 path)",
+        "checkedAt": "2026-11-17",
+        "url": "https://learn.microsoft.com/en-us/training/modules/configure-user-experience-settings/6-configure-session-timeout-properties",
+        "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: the Session Time Limits policies 'Set time limit for disconnected sessions', 'Set time limit for active but idle Remote Desktop Services sessions', 'Set time limit for active Remote Desktop Services sessions' and 'End Session when time limits are reached', under Computer Configuration > Administrative Templates > Windows Components > Remote Desktop Services > Remote Desktop Session Host > Session Time Limits. The page does not cover Intune or what happens at the limit. The Windows Server policy reference for Session Time Limits (read 2026-11-18): 'If you enable this policy setting, disconnected sessions are deleted from the server after the specified amount of time'; ending a session ends its programs, so unsaved work is lost (the author's inference; the page does not say so). CIS Level 2 benchmarks recommend 'Enabled: 1 minute' for this setting (audit item titles seen in tenable.com search results; item numbers differ by benchmark, and the benchmark itself was not read)."
+      }
+    }
+  },
+  "endings": {
+    "unhardened": {
+      "label": "Hosts lost their hardening baseline",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and harmed",
+      "narrative": "Unassigning the profile fixed the drops and removed every other hardening setting from the AVD hosts."
+    },
+    "surgeLost": {
+      "label": "Storm surge losing sessions",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(missAt)",
+      "narrative": "At 10:30 the one-minute limit still ended every briefly disconnected session."
+    },
+    "limitsSet": {
+      "label": "AVD limits set, baseline kept, agreed",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(eventsAt) and not isNull(rsopAt) and not isNull(verifiedAt) and causeDoc == \"limit\"",
+      "narrative": "Adjusters reconnect to their own sessions; the baseline still applies except the one item, with security's approval."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Adjusters reconnect, but the record, the alert, the test or the cause was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "unhardened",
+    "surgeLost",
+    "limitsSet",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Read why sessions ended and the applied limit",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(eventsAt) and not isNull(rsopAt)",
+            "score": "met",
+            "why": "The key evidence, read before changing anything."
+          },
+          {
+            "when": "not isNull(eventsAt) or not isNull(rsopAt) or not isNull(profileAt) or not isNull(netAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Sessions survive drops by 10:30, baseline otherwise intact",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and not harmed and isNull(missAt)",
+            "score": "met",
+            "why": "The right change, in time, without harm."
+          },
+          {
+            "when": "fixed or harmed",
+            "score": "partial",
+            "why": "{harmed ? \"The whole hardening baseline was removed from the session hosts.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never removed."
+          }
+        ]
+      },
+      {
+        "id": "lasting",
+        "label": "Exception recorded and monitored; reconnect tested",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The lasting step taken and the result checked."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"limit\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record names the wrong cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes that caused harm",
+        "value": "harmed ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "09:40-09:44",
+        "text": "Logoff one minute after disconnect; MaxDisconnectionTime 1 minute; set by yesterday's hardening profile; cellular drops."
+      },
+      {
+        "at": "09:44-09:51",
+        "text": "AVD session limits with security approval; baseline item excluded for AVD hosts; exception recorded, alert set."
+      },
+      {
+        "at": "09:51-09:53",
+        "text": "Three-minute disconnect reconnects to the same session."
+      }
+    ],
+    "debrief": {
+      "unhardened": {
+        "headline": "One setting, not the baseline",
+        "body": "Only the disconnected-session limit was wrong for AVD. Override that one setting for the AVD hosts with the security team; keep the rest."
+      },
+      "surgeLost": {
+        "headline": "A desktop benchmark item on a remote desktop",
+        "body": "On a session host, the disconnected-session limit decides whether a user who drops can come back. One minute is shorter than a cellular blip lasts."
+      },
+      "limitsSet": {
+        "headline": "Good: session limits that fit the users",
+        "body": "You read why sessions ended, traced the setting to the baseline, set AVD-appropriate limits for the hosts with the security team, tested a reconnect, and recorded the exception."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the evidence before the change, the lasting step, the check, or the cause in the record."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Each disconnected session is logged off a minute later because yesterday's hardening profile set a one-minute disconnected-session limit, and cellular clients drop briefly all the time. Agree AVD-appropriate limits with the security team, override just that item for the AVD hosts, and test a reconnect. Unassigning the whole profile removes all hardening; a different transport does not change the limit. Record the exception and watch for the pattern."
+  }
+}

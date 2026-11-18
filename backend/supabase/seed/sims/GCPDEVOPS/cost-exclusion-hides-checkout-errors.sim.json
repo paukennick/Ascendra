@@ -1,0 +1,876 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cost-exclusion-hides-checkout-errors",
+  "title": "Blind spot: a cost-saving log exclusion hides checkout's payment errors",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "sre@cloudshell:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "15:20 support: 140 failed card payments since 14:00; Logs Explorer: no checkout entries since yesterday 17:05; promotion at 16:30",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "16:30: promotion, payments failing blind",
+          "when": "not isNull(missAt)",
+          "at": "timeAt(missAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "16:30: promotion, payments healthy",
+          "when": "not isNull(okAt)",
+          "at": "timeAt(okAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "app",
+          "label": "checkout (GKE namespace checkout)",
+          "spokenLabel": "the checkout service",
+          "kind": "structured logs",
+          "status": "{fixed and not harmed ? \"errors visible\" : \"logging errors (unseen)\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "sink",
+          "label": "_Default sink",
+          "spokenLabel": "the default log sink",
+          "kind": "exclusion exclude-checkout-noise",
+          "status": "{harmed ? \"disabled: no logs stored for the project\" : fixed ? \"drops only DEBUG and INFO\" : \"drops all checkout entries\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "tools",
+          "label": "Logs Explorer, Error Reporting",
+          "spokenLabel": "the log tools",
+          "kind": "read stored logs",
+          "status": "{fixed and not harmed ? \"show checkout errors\" : \"empty for checkout\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "app",
+          "to": "sink",
+          "label": "all severities",
+          "status": "{fixed and not harmed ? \"WARNING and above kept\" : \"100% excluded\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Optimizing logs: filtering, sampling, exclusions, cost management, source considerations",
+  "secondaryObjectives": [
+    "Troubleshooting observability issues themselves",
+    "Analyzing logs with the Logs Explorer, including AI-assisted analysis"
+  ],
+  "sources": [
+    {
+      "cite": "Google Cloud, Professional Cloud DevOps Engineer exam guide (new version, live November 23): foundational infrastructure and governance ~18%, CI/CD pipelines ~30%, SRE practices ~18%, observability and troubleshooting ~22%, performance and cost optimization ~12%",
+      "checkedAt": "2026-11-17",
+      "url": "https://services.google.com/fh/files/misc/112326_professional_cloud_devops_engineer_exam_guide_english.pdf",
+      "note": "Read through a summarizing fetch of the PDF on 2026-11-17. Quoted: 2.2 'Deployment strategies (e.g., canary, blue/green, rolling, traffic splitting, feature flags)' 'and defining success metrics based on application or ML pipeline telemetry'; 5.2 'Optimizing resource usage for cost and efficiency'. The year of 'November 23' is not printed; read as 2026. (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "Google Cloud documentation (GKE), Control log ingestion",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.cloud.google.com/kubernetes-engine/docs/how-to/exclude-logs",
+      "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: exclusion filters stop matching log entries from being ingested or routed to a sink's destination; the example adds a filter to the _Default sink; 'Excluded log entries aren't available in the Logs Explorer or in Error Reporting'; excluded entries still count toward the entries.write quota; the page's examples exclude DEFAULT, DEBUG, INFO and NOTICE severities. The 'Route log entries' page (read 2026-11-18) says every entry is routed by the _Required or _Default sink and that the _Default sink can be disabled, so with it disabled only the _Required audit logs are stored; exclusion filters stop entries from being routed. Whether log-based metrics still count excluded entries is not stated there and does not change the case's decision."
+    }
+  ],
+  "brief": {
+    "situation": "You are the SRE on call at Larkin Grocers. Support reports a rising number of failed card payments since about 14:00, but Logs Explorer shows nothing from the checkout service since yesterday, and Error Reporting is empty. Yesterday a cost review added an exclusion to the _Default sink for checkout's noisy logs. The weekend promotion starts at 16:30 and the payment team needs the errors to find the cause.",
+    "handover": [
+      "The cost review's goal was to stop paying for checkout's DEBUG and INFO volume (90% of its logs).",
+      "Checkout logs structured JSON with a severity field."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows checkout's logs, the _Default sink and its exclusion filter, and the tools that read the stored logs.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "15:20",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineAt": {
+      "value": 4200,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "The promotion starts at 16:30, 70 minutes after the report; the payment team needs the error details to fix the cause before then."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "harmed": {
+      "type": "bool",
+      "init": false
+    },
+    "tried": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "exclAt": {
+      "type": "time",
+      "init": null
+    },
+    "srcAt": {
+      "type": "time",
+      "init": null
+    },
+    "volAt": {
+      "type": "time",
+      "init": null
+    },
+    "changeAt": {
+      "type": "time",
+      "init": null
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "missAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "exclusion",
+        "agent",
+        "app"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "excl",
+        "src",
+        "vol",
+        "change",
+        "narrow",
+        "review",
+        "disable",
+        "widen",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "excl": {
+      "label": "gcloud logging sinks describe _Default (exclusions)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(exclAt)",
+          "then": [
+            {
+              "set": "exclAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "sre@cloudshell:~$ gcloud logging sinks describe _Default --format='yaml(exclusions)'\n{harmed ? \"(sink disabled)\" : fixed ? \"exclusions:\n- name: exclude-checkout-noise\n  filter: resource.type=k8s_container AND resource.labels.namespace_name=checkout AND severity<=INFO\" : \"exclusions:\n- name: exclude-checkout-noise\n  filter: resource.type=k8s_container AND resource.labels.namespace_name=checkout\"}"
+        },
+        {
+          "finding": "The exclusion matches every checkout entry, errors included: it has no severity condition."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "src": {
+      "label": "Is checkout still writing errors? (pod stdout, last 5 minutes)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(srcAt)",
+          "then": [
+            {
+              "set": "srcAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "sre@cloudshell:~$ kubectl -n checkout logs deploy/checkout --since=5m | grep -c '\"severity\":\"ERROR\"'\n37\nsre@cloudshell:~$ kubectl -n checkout logs deploy/checkout --since=5m | grep ERROR | head -1\n{{\"severity\":\"ERROR\",\"msg\":\"payment declined: issuer timeout\",\"psp\":\"cardco\",\"latency_ms\":30012}}"
+        },
+        {
+          "finding": "Checkout is writing errors; Cloud Logging drops them before storage."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "vol": {
+      "label": "Ingested volume by severity before the exclusion (last week)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(volAt)",
+          "then": [
+            {
+              "set": "volAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "sre@cloudshell:~$ Metrics Explorer: logging.googleapis.com/byte_count, checkout, by severity\nDEBUG 61%  INFO 30%  WARNING 6%  ERROR 3%"
+        },
+        {
+          "finding": "Excluding DEBUG and INFO alone saves 91% of the volume; the errors are a tiny share."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Audit log: who added the exclusion",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(changeAt)",
+          "then": [
+            {
+              "set": "changeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "sre@cloudshell:~$ gcloud logging read 'protoPayload.methodName=\"google.logging.v2.ConfigServiceV2.UpdateSink\"' --freshness 2d --limit 1 --format='value(timestamp,protoPayload.authenticationInfo.principalEmail)'\n2026-11-16T17:05Z  finops-bot@larkin..."
+        },
+        {
+          "finding": "The cost review's automation added it at 17:05 yesterday."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "narrow": {
+      "label": "Change the exclusion's filter to add severity<=INFO, keeping WARNING and above",
+      "group": "Fix",
+      "available": "not busy and (not fixed and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "fixed",
+          "to": "true"
+        },
+        {
+          "output": "sre@cloudshell:~$ gcloud logging sinks update _Default --update-exclusion=name=exclude-checkout-noise,filter='resource.type=k8s_container AND resource.labels.namespace_name=checkout AND severity<=INFO'\nUpdated [_Default]."
+        },
+        {
+          "log": "New checkout warnings and errors are stored again, visible in Logs Explorer and Error Reporting; the cost saving keeps 91% of its effect. Errors from before the change were never stored and cannot be recovered.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "review": {
+      "label": "Add an alert on 'checkout ERROR entries ingested = 0 for 30 min while traffic flows', and require a severity clause in cost exclusions",
+      "group": "Fix",
+      "available": "not busy and (not planned and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "sre@cloudshell:~$ gcloud alpha monitoring policies create --policy-from-file=checkout-logs-absent.yaml\n(cost review runbook: exclusions on application logs must keep WARNING and above; reviewed by SRE)"
+        },
+        {
+          "log": "Silence where there should be errors now alerts, and the next cost exclusion cannot drop severities that incidents need.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "disable": {
+      "label": "Disable the _Default sink to 'reset' logging",
+      "group": "Fix",
+      "available": "not busy and (not harmed)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "harmed",
+          "to": "true"
+        },
+        {
+          "output": "sre@cloudshell:~$ gcloud logging sinks update _Default --disabled\nUpdated [_Default]."
+        },
+        {
+          "log": "Now no logs at all are stored for the project: every service goes dark, not only checkout.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "widen": {
+      "label": "Search Logs Explorer over the last 7 days instead of 1 day",
+      "group": "Fix",
+      "available": "not busy and (not harmed and not tried)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tried",
+          "to": "true"
+        },
+        {
+          "output": "sre@cloudshell:~$ gcloud logging read 'resource.labels.namespace_name=\"checkout\" AND severity>=ERROR' --freshness 7d --limit 5\n(only entries before 2026-11-16 17:05)"
+        },
+        {
+          "log": "Excluded entries were never stored: a wider search finds nothing newer.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Check new checkout errors in Logs Explorer and Error Reporting",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "sre@cloudshell:~$ gcloud logging read 'resource.labels.namespace_name=\"checkout\" AND severity>=ERROR' --freshness 10m --limit 2 --format='value(jsonPayload.msg)'\n{harmed ? \"(no entries: _Default sink disabled)\" : fixed ? \"payment declined: issuer timeout (psp=cardco, 30012 ms)\npayment declined: issuer timeout (psp=cardco, 30004 ms)\" : \"(no entries)\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "exclusion",
+                  "label": "A cost exclusion on the _Default sink dropped every checkout entry, errors included"
+                },
+                {
+                  "value": "agent",
+                  "label": "The logging agent on the nodes failed"
+                },
+                {
+                  "value": "app",
+                  "label": "Checkout stopped logging"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-335)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "16:30: the payment team found and fixed the cause from the errors; the promotion runs.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "missAt",
+              "to": "t"
+            },
+            {
+              "log": "16:30: the promotion starts with payments failing and no logs to say why.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why checkout's errors were invisible, what you changed, and how cost and visibility are balanced now.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Reads the filter.",
+          "modelAnswer": "Yesterday's exclusion on the _Default sink matched every checkout entry, with no severity clause, so errors were dropped before storage; the pods were still writing them."
+        },
+        {
+          "label": "Changed",
+          "criteria": "Narrows the filter.",
+          "modelAnswer": "Added severity<=INFO to the exclusion: warnings and errors are stored again, and the saving keeps 91% of its effect. Disabling the sink would have dropped every log in the project; earlier errors were never stored and are gone."
+        },
+        {
+          "label": "Balance",
+          "criteria": "Cost with guardrails.",
+          "modelAnswer": "An alert fires if checkout ingests no errors while serving traffic, and cost exclusions on application logs must keep WARNING and above."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The promotion starts at 16:30, 70 minutes after the report; the payment team needs the error details to fix the cause before then."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: Disabling the _Default sink stopped storing the whole project's logs."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed and not harmed",
+      "class": "harm",
+      "rationale": "Closing with the exclusion unchanged leaves the promotion to fail without logs.",
+      "source": {
+        "cite": "Google Cloud documentation (GKE), Control log ingestion",
+        "checkedAt": "2026-11-17",
+        "url": "https://docs.cloud.google.com/kubernetes-engine/docs/how-to/exclude-logs",
+        "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: exclusion filters stop matching log entries from being ingested or routed to a sink's destination; the example adds a filter to the _Default sink; 'Excluded log entries aren't available in the Logs Explorer or in Error Reporting'; excluded entries still count toward the entries.write quota; the page's examples exclude DEFAULT, DEBUG, INFO and NOTICE severities. The 'Route log entries' page (read 2026-11-18) says every entry is routed by the _Required or _Default sink and that the _Default sink can be disabled, so with it disabled only the _Required audit logs are stored; exclusion filters stop entries from being routed. Whether log-based metrics still count excluded entries is not stated there and does not change the case's decision."
+      }
+    }
+  },
+  "endings": {
+    "allDark": {
+      "label": "All project logs dropped",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and harmed",
+      "narrative": "Disabling the _Default sink turned one blind spot into a project-wide one."
+    },
+    "promoBlind": {
+      "label": "Promotion with failing payments and no logs",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(missAt)",
+      "narrative": "At 16:30 checkout's errors were still excluded and the cause unknown."
+    },
+    "visible": {
+      "label": "Errors visible, savings kept, guarded",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(exclAt) and not isNull(srcAt) and not isNull(verifiedAt) and causeDoc == \"exclusion\"",
+      "narrative": "Checkout's warnings and errors are stored again, the payment team found the issuer timeouts, and most of the saving remains."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Errors are visible, but the absence alert, the runbook, the check or the record was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "allDark",
+    "promoBlind",
+    "visible",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Read the exclusion filter and the source logs",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(exclAt) and not isNull(srcAt)",
+            "score": "met",
+            "why": "The key evidence, read before changing anything."
+          },
+          {
+            "when": "not isNull(exclAt) or not isNull(srcAt) or not isNull(volAt) or not isNull(changeAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Errors stored again by 16:30 with the sink on",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and not harmed and isNull(missAt)",
+            "score": "met",
+            "why": "The right change, in time, without harm."
+          },
+          {
+            "when": "fixed or harmed",
+            "score": "partial",
+            "why": "{harmed ? \"Disabling the _Default sink stopped storing the whole project's logs.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never removed."
+          }
+        ]
+      },
+      {
+        "id": "lasting",
+        "label": "Absence alert and runbook rule; errors checked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The lasting step taken and the result checked."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"exclusion\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record names the wrong cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes that caused harm",
+        "value": "harmed ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "15:20-15:24",
+        "text": "Exclusion has no severity clause; pods log 37 errors in 5 min; DEBUG+INFO are 91%; added by finops-bot yesterday."
+      },
+      {
+        "at": "15:24-15:27",
+        "text": "Narrow the exclusion to severity<=INFO; absence alert; runbook."
+      },
+      {
+        "at": "15:27-15:29",
+        "text": "Issuer timeout errors visible."
+      }
+    ],
+    "debrief": {
+      "allDark": {
+        "headline": "Fix the filter, not the router",
+        "body": "The exclusion was too broad. Narrow its filter to the severities it was meant to drop; the sink that stores everything else must stay on."
+      },
+      "promoBlind": {
+        "headline": "Excluded logs never arrive",
+        "body": "Exclusion filters drop entries before storage; Logs Explorer and Error Reporting cannot show them. Narrow the filter so errors are kept."
+      },
+      "visible": {
+        "headline": "Good: cost and observability both",
+        "body": "You read the exclusion and the source logs, saw errors were being dropped, narrowed the filter by severity, checked the errors arrive, and guarded against silent services."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the evidence before the change, the lasting step, the check, or the cause in the record."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Checkout is writing errors, but the exclusion on the _Default sink matches every checkout entry, so they are dropped before storage and no tool can show them. Narrow the exclusion to DEBUG and INFO, which still saves most of the volume, and check that errors arrive. Disabling the sink drops all logs; a wider search finds nothing because excluded entries are never stored. Then alert on silence and require a severity clause in cost exclusions."
+  }
+}

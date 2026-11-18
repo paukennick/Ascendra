@@ -1,0 +1,876 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "appgw-502-after-login-on-root",
+  "title": "Enrollment opens at 09:00: every request through Application Gateway returns 502",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "neteng@cloudshell:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "08:10 portal: 502 Bad Gateway for all users since 07:55; enrollment opens 09:00",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "09:00: enrollment fails",
+          "when": "not isNull(missAt)",
+          "at": "timeAt(missAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "09:00: enrollment open",
+          "when": "not isNull(okAt)",
+          "at": "timeAt(okAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "agw",
+          "label": "Application Gateway agw-portal",
+          "spokenLabel": "the application gateway",
+          "kind": "listener 443",
+          "status": "{harmed ? \"listener public, backend NSG opened\" : fixed ? \"serving the portal\" : \"502 for every request\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "probe",
+          "label": "Health probe",
+          "spokenLabel": "the health probe",
+          "kind": "default: GET /",
+          "status": "{fixed and not harmed ? \"custom: GET /healthz, healthy\" : \"401 on /, all backends unhealthy\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "pool",
+          "label": "Backend pool (3 VMs)",
+          "spokenLabel": "the portal VMs",
+          "kind": "/ needs sign-in; /healthz public",
+          "status": "{fixed and not harmed ? \"3 of 3 healthy\" : \"marked unhealthy\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "agw",
+          "to": "pool",
+          "label": "requests",
+          "status": "{fixed and not harmed ? \"load balanced\" : \"none sent (all unhealthy)\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Configuring health probes",
+  "secondaryObjectives": [
+    "Configuring HTTP settings",
+    "Creating a backend pool"
+  ],
+  "sources": [
+    {
+      "cite": "Microsoft Learn, Study guide for Exam AZ-700: Designing and Implementing Microsoft Azure Networking Solutions (page last updated 2026-06-29): core networking infrastructure 25-30%, connectivity services 20-25%, application delivery 15-20%, private access 10-15%, network security 15-20%",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-700",
+      "note": "Read through a summarizing fetch on 2026-11-17. Bullets quoted there (read by the first pass of this round): 'Design and implement user-defined routes (UDRs)', 'Associate a route table with a subnet', 'Diagnose and resolve routing issues', 'Monitor and troubleshoot network health by using Azure Network Watcher'. The objective wording is the course seed's. (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "Microsoft Learn, Application Gateway health monitoring overview (health probes)",
+      "checkedAt": "2026-11-18",
+      "url": "https://learn.microsoft.com/azure/application-gateway/application-gateway-probe-overview",
+      "note": "Read through a summarizing fetch on 2026-11-18. The default probe sends an HTTP GET to <protocol>://127.0.0.1:<port>/ every 30 seconds with an unhealthy threshold of 3; 'By default, an HTTP(S) response with status code between 200 and 399 is considered healthy'; custom probes set the host, path, interval, timeout and threshold and can match status codes or body text; unhealthy servers stop receiving traffic; a misconfigured probe path is linked to 502 Bad Gateway errors. That a backend returning 401 on / is marked unhealthy follows from the 200-399 default, stated as the author's."
+    }
+  ],
+  "brief": {
+    "situation": "You are the network engineer at Brookfield College. The student portal runs on three VMs behind Application Gateway agw-portal (v2) with the default health probe. Last night's release put the whole site behind sign-in: / now returns 401 unless a user is signed in, and a new /healthz page returns 200. Since 07:55 every request through the gateway gets 502 Bad Gateway. Course enrollment opens at 09:00.",
+    "handover": [
+      "The VMs answer normally when reached directly from the jump box.",
+      "The release notes mention /healthz 'for the load balancer'; nobody changed the gateway."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the gateway's listener, its health probe, the backend pool of three VMs and the pages they serve.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "08:10",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineAt": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "Course enrollment opens at 09:00, 50 minutes after the page."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "harmed": {
+      "type": "bool",
+      "init": false
+    },
+    "tried": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "healthAt": {
+      "type": "time",
+      "init": null
+    },
+    "probecfgAt": {
+      "type": "time",
+      "init": null
+    },
+    "directAt": {
+      "type": "time",
+      "init": null
+    },
+    "nsgAt": {
+      "type": "time",
+      "init": null
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "missAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "probe",
+        "nsg",
+        "vms"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "health",
+        "probecfg",
+        "direct",
+        "nsg",
+        "probe",
+        "record",
+        "anyone",
+        "scale",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "health": {
+      "label": "Backend health for the pool",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(healthAt)",
+          "then": [
+            {
+              "set": "healthAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@cloudshell:~$ az network application-gateway show-backend-health -g rg-portal -n agw-portal --query 'backendAddressPools[].backendHttpSettingsCollection[].servers[].[address,health,healthProbeLog]' -o tsv\n{fixed and not harmed ? \"10.4.1.10 Healthy  Success. Received 200 status code\n10.4.1.11 Healthy  Success. Received 200 status code\n10.4.1.12 Healthy  Success. Received 200 status code\" : \"10.4.1.10 Unhealthy  Received invalid status code: 401 in the backend server's HTTP response\n10.4.1.11 Unhealthy  (same)\n10.4.1.12 Unhealthy  (same)\"}"
+        },
+        {
+          "finding": "All three backends are marked unhealthy because the probe gets 401."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "probecfg": {
+      "label": "Which probe the HTTP settings use",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(probecfgAt)",
+          "then": [
+            {
+              "set": "probecfgAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@cloudshell:~$ az network application-gateway http-settings show -g rg-portal --gateway-name agw-portal -n https-portal --query '[probe,pickHostNameFromBackendAddress]'\n{fixed and not harmed ? \"probe-healthz\nfalse\" : \"null (default probe: GET / on each backend)\nfalse\"}"
+        },
+        {
+          "finding": "No custom probe: the default probe requests / and accepts only 200-399."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "direct": {
+      "label": "From the jump box: / and /healthz on one VM",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(directAt)",
+          "then": [
+            {
+              "set": "directAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@cloudshell:~$ curl -s -o /dev/null -w '%{{http_code}} ' https://10.4.1.10/ -k; curl -s -o /dev/null -w '%{{http_code}}' https://10.4.1.10/healthz -k\n401 200"
+        },
+        {
+          "finding": "The app is up: / requires sign-in, /healthz answers 200."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "nsg": {
+      "label": "NSG on the backend subnet",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(nsgAt)",
+          "then": [
+            {
+              "set": "nsgAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@cloudshell:~$ az network nsg rule list -g rg-portal --nsg-name nsg-portal-be -o table\nAllow 443 from GatewaySubnet 10.4.0.0/24; Allow 65200-65535 from GatewayManager"
+        },
+        {
+          "finding": "The network path is open; this is not a firewall problem."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "probe": {
+      "label": "Create a custom probe for /healthz (200-399) and attach it to the portal's HTTP settings",
+      "group": "Fix",
+      "available": "not busy and (not fixed and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "fixed",
+          "to": "true"
+        },
+        {
+          "output": "neteng@cloudshell:~$ az network application-gateway probe create -g rg-portal --gateway-name agw-portal -n probe-healthz --protocol Https --path /healthz --host-name-from-http-settings true --interval 30 --threshold 3 --match-status-codes 200-399\nneteng@cloudshell:~$ az network application-gateway http-settings update -g rg-portal --gateway-name agw-portal -n https-portal --probe probe-healthz"
+        },
+        {
+          "log": "The gateway now probes the public health page; the backends turn healthy within a probe cycle and requests flow again.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "record": {
+      "label": "Add the probe to the gateway's Bicep template, and alert when healthy hosts drop below 2",
+      "group": "Fix",
+      "available": "not busy and (not planned and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "neteng@cloudshell:~$ git diff infra/agw-portal.bicep\n+  probes: [ probe-healthz (/healthz, 200-399) ]\nneteng@cloudshell:~$ az monitor metrics alert create -n agw-healthy-hosts --condition 'min HealthyHostCount < 2' ..."
+        },
+        {
+          "log": "The next redeploy keeps the probe, and losing backends alerts before users see 502.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "anyone": {
+      "label": "Make / public again by turning off sign-in on the portal",
+      "group": "Fix",
+      "available": "not busy and (not harmed)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "harmed",
+          "to": "true"
+        },
+        {
+          "output": "neteng@cloudshell:~$ az webapp auth update ... / app setting REQUIRE_LOGIN=false on all three VMs\n(restarted)"
+        },
+        {
+          "log": "The probe passes, and every student record page is now reachable without signing in.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "scale": {
+      "label": "Scale the gateway to 6 instances",
+      "group": "Fix",
+      "available": "not busy and (not harmed and not tried)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tried",
+          "to": "true"
+        },
+        {
+          "output": "neteng@cloudshell:~$ az network application-gateway update -g rg-portal -n agw-portal --min-capacity 6\n(updated)"
+        },
+        {
+          "log": "More gateway instances probe the same / and get the same 401; still 502.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Check backend health and load the portal through the gateway",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@cloudshell:~$ backend health; curl -s -o /dev/null -w code https://portal.brookfield.example/\n{harmed ? \"3 of 3 Healthy\n200 (student records shown without sign-in)\" : fixed ? \"3 of 3 Healthy\n200 (sign-in page)\" : \"0 of 3 Healthy\n502\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "probe",
+                  "label": "The default probe requested / and got 401 after the release, so every backend was marked unhealthy"
+                },
+                {
+                  "value": "nsg",
+                  "label": "An NSG blocked the gateway"
+                },
+                {
+                  "value": "vms",
+                  "label": "The portal VMs were down"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-335)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "09:00: enrollment opens; students register through the gateway.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "missAt",
+              "to": "t"
+            },
+            {
+              "log": "09:00: enrollment opens to a 502 page.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why the gateway returned 502, what you changed, and how it stays fixed.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Reads backend health.",
+          "modelAnswer": "The release put / behind sign-in; the default probe requests / and accepts 200-399, got 401 from all three VMs, marked them unhealthy, and the gateway had nowhere to send requests."
+        },
+        {
+          "label": "Changed",
+          "criteria": "Custom probe.",
+          "modelAnswer": "A custom probe for /healthz with 200-399, attached to the HTTP settings; the backends turned healthy. Turning off sign-in would have exposed student records; scaling the gateway changes nothing."
+        },
+        {
+          "label": "Stays fixed",
+          "criteria": "Template and alert.",
+          "modelAnswer": "The probe is in the Bicep template and an alert fires when healthy hosts drop below two."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "Course enrollment opens at 09:00, 50 minutes after the page."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: Turning off sign-in exposed student records to make the probe pass."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed and not harmed",
+      "class": "harm",
+      "rationale": "Closing with the default probe still in place opens enrollment on 502.",
+      "source": {
+        "cite": "Microsoft Learn, Application Gateway health monitoring overview (health probes)",
+        "checkedAt": "2026-11-18",
+        "url": "https://learn.microsoft.com/azure/application-gateway/application-gateway-probe-overview",
+        "note": "Read through a summarizing fetch on 2026-11-18. The default probe sends an HTTP GET to <protocol>://127.0.0.1:<port>/ every 30 seconds with an unhealthy threshold of 3; 'By default, an HTTP(S) response with status code between 200 and 399 is considered healthy'; custom probes set the host, path, interval, timeout and threshold and can match status codes or body text; unhealthy servers stop receiving traffic; a misconfigured probe path is linked to 502 Bad Gateway errors. That a backend returning 401 on / is marked unhealthy follows from the 200-399 default, stated as the author's."
+      }
+    }
+  },
+  "endings": {
+    "portalOpen": {
+      "label": "Student records public",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and harmed",
+      "narrative": "The portal works, and student records are readable without signing in."
+    },
+    "enrollFailed": {
+      "label": "Enrollment opened on 502",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(missAt)",
+      "narrative": "At 09:00 every backend was still marked unhealthy."
+    },
+    "probed": {
+      "label": "Custom probe, portal up, alerting",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(healthAt) and not isNull(probecfgAt) and not isNull(verifiedAt) and causeDoc == \"probe\"",
+      "narrative": "The gateway probes /healthz, all backends are healthy, and the template and alert keep it that way."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The portal works, but the template, the alert, the check or the record was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "portalOpen",
+    "enrollFailed",
+    "probed",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Read backend health and the probe in use",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(healthAt) and not isNull(probecfgAt)",
+            "score": "met",
+            "why": "The key evidence, read before changing anything."
+          },
+          {
+            "when": "not isNull(healthAt) or not isNull(probecfgAt) or not isNull(directAt) or not isNull(nsgAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Portal up by 09:00 with sign-in intact",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and not harmed and isNull(missAt)",
+            "score": "met",
+            "why": "The right change, in time, without harm."
+          },
+          {
+            "when": "fixed or harmed",
+            "score": "partial",
+            "why": "{harmed ? \"Turning off sign-in exposed student records to make the probe pass.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never removed."
+          }
+        ]
+      },
+      {
+        "id": "lasting",
+        "label": "Probe in the template and an alert; portal checked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The lasting step taken and the result checked."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"probe\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record names the wrong cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes that caused harm",
+        "value": "harmed ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "08:10-08:14",
+        "text": "All backends unhealthy on 401; default probe on /; app up, /healthz 200; NSG open."
+      },
+      {
+        "at": "08:14-08:22",
+        "text": "Custom /healthz probe; template and alert."
+      },
+      {
+        "at": "08:22-08:24",
+        "text": "3 of 3 healthy; portal 200."
+      }
+    ],
+    "debrief": {
+      "portalOpen": {
+        "headline": "Probe a health page, not the app's front door",
+        "body": "When the site requires sign-in, give the probe a public health path and matching status codes. Removing authentication to satisfy a probe exposes the data."
+      },
+      "enrollFailed": {
+        "headline": "Default probes expect 200-399 on /",
+        "body": "When / starts returning 401, the default probe marks every backend down and the gateway answers 502."
+      },
+      "probed": {
+        "headline": "Good: the probe matches the application",
+        "body": "You read backend health and the probe settings, confirmed the app was up, pointed a custom probe at /healthz, checked the portal, and put the probe in code with an alert."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the evidence before the change, the lasting step, the check, or the cause in the record."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A 502 for everyone with healthy VMs points at the probe. Backend health shows 401 from every server: the default probe requests /, which now needs sign-in, and only 200-399 count as healthy. Create a custom probe for /healthz with 200-399, attach it to the HTTP settings, and check health and the portal. Turning off sign-in exposes records; scaling the gateway probes the same path."
+  }
+}

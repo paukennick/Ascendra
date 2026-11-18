@@ -1,0 +1,917 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "guardrail-blocks-payroll-questions",
+  "title": "Help desk: the guardrail blocks every question about pay",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "Employee help assistant guardrail (Amazon Bedrock Guardrails), Lakeshore Utilities (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "HR operations, Priya Nair",
+          "text": "Since this morning the help assistant answers every pay question with 'Sorry, I can't help with that request.' Open enrollment questions peak after the 13:00 all-hands.",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "seen",
+          "label": "Pattern",
+          "text": "Ordinary pay questions are blocked as investment advice.",
+          "when": "not isNull(lookAt) and not fixed",
+          "severity": "warning"
+        },
+        {
+          "id": "lock",
+          "label": "All-hands",
+          "text": "13:00: the all-hands sent staff to an assistant that refuses pay questions.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [],
+      "code": [
+        {
+          "id": "code",
+          "label": "Guardrail: denied topic Investment",
+          "language": "Guardrail configuration",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "name: Investment; definition: Anything about money, pay, salary, retirement or investing. Block all of it.",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c1",
+              "text": "name: Investment Advice; definition: Recommendations about which funds, stocks or assets to buy, sell or hold, or how to allocate money to earn returns.",
+              "when": "fix == \"precise\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c2",
+              "text": "name: Investment; definition: All money topics except payroll and benefits administration.",
+              "when": "fix == \"except\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c3",
+              "text": "guardrail: detached from the assistant",
+              "when": "fix == \"off\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c4",
+              "text": "inputAction: BLOCK; blockedInputMessaging: Sorry, I can't help with that request."
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "All-hands",
+          "value": "13:00"
+        }
+      ]
+    }
+  },
+  "objective": "Using Amazon Bedrock Guardrails to enforce responsible-AI features",
+  "secondaryObjectives": [
+    "Features of responsible AI: bias, fairness, inclusivity, robustness, safety, veracity"
+  ],
+  "sources": [
+    {
+      "cite": "AWS Certified AI Practitioner (AIF-C01) exam guide: Fundamentals of AI and ML 20%, Fundamentals of Generative AI 24%, Applications of Foundation Models 28%, Guidelines for Responsible AI 14%, Security, Compliance, and Governance for AI Solutions 14%",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.aws.amazon.com/aws-certification/latest/examguides/ai-practitioner-01-domain3.html",
+      "note": "On 2026-11-17 a summarizing fetch of the AWS domain 3 page returned only page metadata, so the official text was not read. A third-party study guide (dennisk.neocities.org/aws_ai/domain3-study-guide.html, read the same day) gives Domain 3 as 28% and lists under Task 3.2 prompt injection or hijacking, jailbreaking, prompt poisoning and data exposure. The domain weights and objective wording are the course seed's (backend/supabase/seed/tracks/aws.ts). To verify against the AWS page. (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "AWS documentation, Amazon Bedrock User Guide, Block denied topics to help remove harmful content",
+      "checkedAt": "2026-11-18",
+      "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-denied-topics.html",
+      "note": "Read through a summarizing fetch on 2026-11-18. A denied topic has a name, a definition of 'Up to 200 characters' and up to five sample phrases; best practices: 'Define the topic in a crisp and precise manner', 'Don't include examples or instructions in the topic definition', 'Don't define negative topics or exceptions'; on a match the guardrail 'returns a blocked message' set by blockedInputMessaging."
+    },
+    {
+      "cite": "Author's scenario (REQ-335)",
+      "checkedAt": "2026-11-18",
+      "note": "Every organization, person, count and deadline is invented teaching data; tool output is an authored rendering in the tool style."
+    }
+  ],
+  "brief": {
+    "situation": "You own the employee help assistant at Lakeshore Utilities (fictional). Legal asked that it never give investment advice, so a denied topic was added this morning. Since then, questions like 'when is payday' and 'how do I change my 401(k) contribution percentage' are blocked. Open enrollment questions peak after the 13:00 all-hands. It is 12:05.",
+    "handover": [
+      "The guardrail has one denied topic, added this morning by a contractor.",
+      "Legal's requirement: no recommendations on what to invest in."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: look, change, check or ship. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "12:05",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-335)",
+        "checkedAt": "2026-11-18",
+        "note": "The deadline is an invented teaching value."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "precise",
+        "except",
+        "off"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "c0",
+        "c1",
+        "c2"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "k0",
+        "k1",
+        "k2"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "(fix == \"precise\")"
+    },
+    "correct": {
+      "expr": "(fix == \"precise\" or fix == \"except\")"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "look",
+        "change",
+        "check",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "look": {
+      "label": "Run the 40-question test set (20 payroll and benefits, 20 investment-advice) through the guardrail",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "output": "Payroll and benefits: 0 of 20 blocked\nInvestment advice: 19 of 20 blocked"
+            }
+          ],
+          "else": [
+            {
+              "output": "Payroll and benefits: 20 of 20 blocked\nInvestment advice: 20 of 20 blocked"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "finding": "Only recommendations about what to invest in match the topic."
+            }
+          ],
+          "else": [
+            {
+              "finding": "The definition covers anything about money and is written as an instruction, so every pay question matches."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Change the denied topic",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "precise",
+              "label": "Rename it Investment Advice and define it precisely as recommendations on what to buy, sell, hold or how to allocate money"
+            },
+            {
+              "value": "except",
+              "label": "Keep a broad money topic and add an exception for payroll and benefits"
+            },
+            {
+              "value": "off",
+              "label": "Detach the guardrail until after open enrollment"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: {f}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "check": {
+      "label": "Run the 40-question test set and legal's ten red-team prompts",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"precise\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "Payroll and benefits: 0 of 20 blocked\nInvestment advice: 19 of 20 blocked\nLegal's ten red-team prompts: 10 of 10 blocked"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"except\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "Payroll and benefits: 6 of 20 blocked\nInvestment advice: 20 of 20 blocked"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"off\"",
+              "then": [
+                {
+                  "output": "Payroll and benefits: 0 of 20 blocked\nInvestment advice: 0 of 20 blocked\nLegal's red-team prompts: 0 of 10 blocked"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "Payroll and benefits: 20 of 20 blocked\nInvestment advice: 20 of 20 blocked"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Publish the guardrail version to the assistant",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "if": "correct",
+          "then": [
+            {
+              "output": "Live: pay questions answered; investment advice still refused."
+            }
+          ],
+          "else": [
+            {
+              "output": "Live with a guardrail that blocks the wrong things or nothing."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why pay questions were blocked",
+              "options": [
+                {
+                  "value": "c0",
+                  "label": "The denied topic was defined as anything about money, written as an instruction"
+                },
+                {
+                  "value": "c1",
+                  "label": "Bedrock was down"
+                },
+                {
+                  "value": "c2",
+                  "label": "Staff asked in the wrong language"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know it is right",
+              "options": [
+                {
+                  "value": "k0",
+                  "label": "Pay questions pass and investment advice and red-team prompts are blocked"
+                },
+                {
+                  "value": "k1",
+                  "label": "Two questions worked"
+                },
+                {
+                  "value": "k2",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-335)",
+        "checkedAt": "2026-11-18",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "13:00: the all-hands sent staff to an assistant that refuses pay questions.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For HR and legal: why pay questions were blocked, what you changed, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "The denied topic was defined as anything about money and phrased as an instruction, so every pay and benefits question matched.",
+          "modelAnswer": "Broad, instruction-style definition."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "A precise definition of investment advice (recommendations on what to buy, sell, hold or how to allocate), per the guidance to define topics crisply without instructions or exceptions; an exception clause is unreliable; detaching the guardrail breaks legal's requirement.",
+          "modelAnswer": "Investment Advice, precisely defined."
+        },
+        {
+          "label": "How you know",
+          "criteria": "Pay questions pass, and investment advice and legal's red-team prompts are blocked.",
+          "modelAnswer": "0 of 20; 19 of 20; 10 of 10."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-335)",
+          "checkedAt": "2026-11-18",
+          "note": "The case's deadline; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Shipping nothing ships nothing wrong, but the deadline passes without the fix.",
+      "source": {
+        "cite": "Author's scenario (REQ-335)",
+        "checkedAt": "2026-11-18",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "wrongSent": {
+      "label": "Guardrail wrong after the all-hands",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "After the all-hands the assistant either refuses pay questions or gives investment advice."
+    },
+    "notSent": {
+      "label": "Nothing shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "Nothing wrong went live, but staff met a refusing assistant after the all-hands."
+    },
+    "right": {
+      "label": "Right, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and fixed and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "Staff get pay answers, and the assistant still declines to recommend investments."
+    },
+    "gaps": {
+      "label": "Right, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The result is right, but it went late, unchecked, before you looked, or with a weaker fix."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Measured what the guardrail blocks before changing it",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked before acting."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Defined the denied topic precisely",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed",
+            "score": "met",
+            "why": "A precise definition of investment advice."
+          },
+          {
+            "when": "fix == \"except\"",
+            "score": "partial",
+            "why": "Exceptions inside a definition are unreliable: some benefits questions are still blocked."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{fix == \"off\" ? \"Without the guardrail the assistant gives investment advice, which legal forbade.\" : \"The broad definition still blocks every pay question.\"}"
+          }
+        ]
+      },
+      {
+        "id": "shipped",
+        "label": "Shipped nothing wrong",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sentAs != \"wrong\"",
+            "score": "met",
+            "why": "Nothing wrong shipped."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Shipped a wrong result."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Both sets checked after the last change, before going live",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "Checked after the last change, before shipping."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Checked, but it failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"c0\" and checkDoc == \"k0\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"c0\" or checkDoc == \"k0\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rightK",
+        "label": "Right result shipped",
+        "value": "sentAs == \"right\" ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "altered",
+        "label": "Rows changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until shipped",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 14"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "All 40 test questions blocked."
+      },
+      {
+        "at": "4-9 min",
+        "text": "Precise Investment Advice definition."
+      },
+      {
+        "at": "9-12 min",
+        "text": "Pay passes; advice and red-team blocked."
+      },
+      {
+        "at": "12-14 min",
+        "text": "Publish."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: block what you mean",
+        "body": "A denied topic is matched by meaning. Define it crisply, without instructions or exceptions, and test both what must pass and what must not."
+      },
+      "gaps": {
+        "headline": "Right, with gaps",
+        "body": "The result is right; it went late, unchecked, before you looked, or with a weaker fix than the cause called for."
+      },
+      "wrongSent": {
+        "headline": "Wrong guardrail live",
+        "body": "Turning a guardrail off to stop false positives removes the protection legal asked for."
+      },
+      "notSent": {
+        "headline": "Nothing shipped",
+        "body": "Safe, but the deadline passed without the fix."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "Every pay question is blocked, so read the denied topic: it is defined as anything about money and written as an instruction. Define the topic precisely as investment advice, recommendations on what to buy, sell or hold or how to allocate money, and test both sides: pay questions must pass, investment advice and legal's red-team prompts must be blocked. An exception clause is unreliable; detaching the guardrail gives investment advice."
+  }
+}

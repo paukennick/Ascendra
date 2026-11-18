@@ -1,0 +1,883 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "dynamodb-backfill-throttles-checkout",
+  "title": "Outage: a history backfill starves the live loyalty table",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "data@cloudshell:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "11:15 checkout: 'points not added' 7% of baskets; DynamoDB WriteThrottleEvents high on members",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "12:00: lunch peak, checkout points failing",
+          "when": "not isNull(missAt)",
+          "at": "timeAt(missAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "12:00: lunch peak, no throttling",
+          "when": "not isNull(okAt)",
+          "at": "timeAt(okAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "bf",
+          "label": "Backfill (64 workers)",
+          "spokenLabel": "the backfill",
+          "kind": "Step Functions Map + Lambda",
+          "status": "{harmed ? \"128 workers\" : fixed ? \"8 workers, backoff, rate cap 1,500 WCU\" : \"64 workers, instant retries\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "ddb",
+          "label": "DynamoDB members",
+          "spokenLabel": "the members table",
+          "kind": "4,000 WCU provisioned",
+          "status": "{harmed ? \"throttling everything\" : fixed ? \"about 2,600 of 4,000 consumed\" : \"100% consumed, throttling\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "app",
+          "label": "Checkout app",
+          "spokenLabel": "the checkout app",
+          "kind": "PutItem per basket",
+          "status": "{harmed ? \"31% throttled\" : fixed ? \"no throttling\" : \"7% throttled\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "bf",
+          "to": "ddb",
+          "label": "BatchWriteItem",
+          "status": "{fixed and not harmed ? \"capped\" : \"saturating\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "l2",
+          "from": "app",
+          "to": "ddb",
+          "label": "PutItem",
+          "status": "{fixed and not harmed ? \"healthy\" : \"throttled\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Throttling and rate limits in DynamoDB, Amazon RDS, and Kinesis, and how to work within them",
+  "secondaryObjectives": [
+    "Configuring Lambda functions for the concurrency and performance a pipeline needs"
+  ],
+  "sources": [
+    {
+      "cite": "AWS Certification, AWS Certified Data Engineer - Associate (DEA-C01) exam guide: Data Ingestion and Transformation 34%, Data Store Management 26%, Data Operations and Support 22%, Data Security and Governance 18%",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.aws.amazon.com/id_id/aws-certification/latest/data-engineer-associate-01/data-engineer-associate-01.md",
+      "note": "Read directly on 2026-11-17 (the page text was English). Domain 1's task statements are on a linked page not read in this round; the objective wording is the course seed's. (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "Amazon DynamoDB Developer Guide, Error handling with DynamoDB",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Programming.Errors.md",
+      "note": "Read directly on 2026-11-17. Relevant text: ProvisionedThroughputExceededException, 'Your request rate is too high ... Reduce the frequency of requests using Error retries and exponential backoff', OK to retry; for BatchWriteItem, failed puts come back in UnprocessedItems, 'The most likely cause of a failed read or a failed write is throttling', 'If you retry the batch operation immediately, the underlying read or write requests can still fail due to throttling ... we strongly recommend that you use an exponential backoff algorithm'."
+    }
+  ],
+  "brief": {
+    "situation": "You are the data engineer at Brightmoor Markets, a fictional grocer. At 10:30 you started a backfill that copies five years of loyalty history into the DynamoDB table members (provisioned, 4,000 write capacity units). The checkout app writes points to the same table. Since 10:50 some checkouts fail to add points, and lunch traffic doubles at 12:00.",
+    "handover": [
+      "The backfill is a Lambda, member-backfill, fanned out by a Step Functions Map state with 64 parallel workers; each worker re-sends UnprocessedItems at once, in a loop.",
+      "Auto scaling on members tops out at 4,000 write units by design (the budget owner's cap)."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the backfill workers, the checkout app and the table's write capacity.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "11:15",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineAt": {
+      "value": 2700,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "Lunch traffic doubles at 12:00, 45 minutes after the page."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "harmed": {
+      "type": "bool",
+      "init": false
+    },
+    "tried": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "cwAt": {
+      "type": "time",
+      "init": null
+    },
+    "bfstatAt": {
+      "type": "time",
+      "init": null
+    },
+    "contribAt": {
+      "type": "time",
+      "init": null
+    },
+    "appAt": {
+      "type": "time",
+      "init": null
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "missAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "backfill",
+        "hotkey",
+        "lambda"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "cw",
+        "bfstat",
+        "contrib",
+        "app",
+        "cap",
+        "tonight",
+        "more",
+        "memory",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "cw": {
+      "label": "CloudWatch: members ConsumedWriteCapacityUnits and WriteThrottleEvents (last 30 min)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(cwAt)",
+          "then": [
+            {
+              "set": "cwAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "data@cloudshell:~$ aws cloudwatch get-metric-data ... members ConsumedWriteCapacityUnits, WriteThrottleEvents (1-minute sums)\n{harmed ? \"Consumed: 4,000 of 4,000 per second\nWriteThrottleEvents: 61,000 per minute\" : fixed ? \"Consumed: about 2,600 of 4,000 per second\nWriteThrottleEvents: 0 in the last 5 minutes\" : \"Consumed: 4,000 of 4,000 per second since 10:47\nWriteThrottleEvents: 18,400 per minute\"}"
+        },
+        {
+          "finding": "The table's whole write capacity is in use, and throttling started when the backfill ramped up."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "bfstat": {
+      "label": "aws stepfunctions describe-map-run (backfill) and the worker log",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(bfstatAt)",
+          "then": [
+            {
+              "set": "bfstatAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "data@cloudshell:~$ aws stepfunctions describe-map-run --map-run-arn ...:member-backfill ...\nmaxConcurrency: {harmed ? \"128\" : fixed ? \"8\" : \"64\"}\ndata@cloudshell:~$ aws logs tail /aws/lambda/member-backfill --since 5m | head -3\nBatchWriteItem: 25 sent, UnprocessedItems 19 -> resend now\nBatchWriteItem: 19 sent, UnprocessedItems 17 -> resend now\nBatchWriteItem: 17 sent, UnprocessedItems 15 -> resend now"
+        },
+        {
+          "finding": "Sixty-four workers re-send unprocessed items immediately: the retries themselves keep the table saturated."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "contrib": {
+      "label": "CloudWatch Contributor Insights: top writers to members",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(contribAt)",
+          "then": [
+            {
+              "set": "contribAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "data@cloudshell:~$ aws cloudwatch get-insight-rule-report --rule-name DynamoDBContributorInsights-PKC-members ...\n{fixed and not harmed ? \"checkout-app 61%   member-backfill 39%\" : \"member-backfill 88%   checkout-app 12%\"}"
+        },
+        {
+          "finding": "Most of the writes are the backfill, not checkout."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "app": {
+      "label": "Checkout app: error log sample",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(appAt)",
+          "then": [
+            {
+              "set": "appAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "data@cloudshell:~$ aws logs tail /ecs/checkout --since 5m --filter-pattern ProvisionedThroughputExceededException | wc -l\n{harmed ? \"1806\" : fixed ? \"0\" : \"412\"}"
+        },
+        {
+          "finding": "The app's PutItems are refused with ProvisionedThroughputExceededException once its own retries run out."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "cap": {
+      "label": "Restart the backfill's Map run at 8 workers with exponential backoff and a 1,500 WCU rate limit",
+      "group": "Fix",
+      "available": "not busy and (not fixed and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "fixed",
+          "to": "true"
+        },
+        {
+          "output": "data@cloudshell:~$ aws stepfunctions stop-execution --execution-arn ...:member-backfill:run-1030 --cause 'restart at a capped rate'\ndata@cloudshell:~$ aws stepfunctions start-execution --state-machine-arn ...:member-backfill --input '{{\"resumeFrom\": \"checkpoint-1113\", \"maxConcurrency\": 8, \"maxWcu\": 1500, \"retry\": \"exponential\"}}'"
+        },
+        {
+          "log": "The backfill resumes from its checkpoint at a rate the table can carry alongside checkout, and backs off when items come back unprocessed instead of hammering.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "tonight": {
+      "label": "Schedule the remaining backfill for 01:00 at the same cap and alarm on WriteThrottleEvents",
+      "group": "Fix",
+      "available": "not busy and (not planned and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "data@cloudshell:~$ aws scheduler create-schedule --name member-backfill-night --schedule-expression 'at(2026-11-18T01:00:00)' ...\ndata@cloudshell:~$ aws cloudwatch put-metric-alarm --alarm-name members-write-throttles --metric-name WriteThrottleEvents --threshold 100 --evaluation-periods 2 ..."
+        },
+        {
+          "log": "The bulk of the history goes in when checkout is quiet, and an alarm pages the team if anything starts throttling the table again.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "more": {
+      "label": "Raise the Map run to 128 workers to finish the backfill sooner",
+      "group": "Fix",
+      "available": "not busy and (not harmed)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "harmed",
+          "to": "true"
+        },
+        {
+          "output": "data@cloudshell:~$ aws stepfunctions update-map-run --map-run-arn ...:member-backfill ... --max-concurrency 128\n(no output)"
+        },
+        {
+          "log": "Twice the workers, each re-sending at once: the table throttles harder and checkout loses a third of its writes.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "memory": {
+      "label": "Raise member-backfill's memory from 512 to 2,048 MB",
+      "group": "Fix",
+      "available": "not busy and (not harmed and not tried)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tried",
+          "to": "true"
+        },
+        {
+          "output": "data@cloudshell:~$ aws lambda update-function-configuration --function-name member-backfill --memory-size 2048\nLastUpdateStatus: Successful"
+        },
+        {
+          "log": "The limit is the table's write capacity, not the function's memory: nothing changes for checkout.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Check throttles and checkout errors after the change",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "data@cloudshell:~$ WriteThrottleEvents (last 5 min); checkout errors (last 5 min)\n{harmed ? \"WriteThrottleEvents: 61,000 per minute\ncheckout 'points not added': 31%\" : fixed ? \"WriteThrottleEvents: 0\ncheckout 'points not added': 0.0%\" : \"WriteThrottleEvents: 18,400 per minute\ncheckout 'points not added': 7%\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "backfill",
+                  "label": "The backfill's 64 workers with instant retries used the table's whole write capacity"
+                },
+                {
+                  "value": "hotkey",
+                  "label": "A hot partition key in checkout's writes"
+                },
+                {
+                  "value": "lambda",
+                  "label": "The backfill Lambda was short of memory"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-335)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "12:00: lunch traffic, points added on every basket.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "missAt",
+              "to": "t"
+            },
+            {
+              "log": "12:00: lunch traffic doubles the failed baskets.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why checkout was throttled, what you changed, and how the backfill will finish without repeating it.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Connects the saturation to the bulk writer's retries.",
+          "modelAnswer": "members has 4,000 write units shared by checkout and the backfill. The backfill's 64 workers re-sent UnprocessedItems at once, so it kept the table at 100% and checkout's PutItems were throttled."
+        },
+        {
+          "label": "What",
+          "criteria": "Caps the bulk writer instead of feeding it.",
+          "modelAnswer": "Restarted the backfill from its checkpoint at 8 workers, 1,500 write units and exponential backoff; checkout's throttling stopped. More workers would have throttled checkout harder, and memory was not the limit."
+        },
+        {
+          "label": "Finish",
+          "criteria": "Moves bulk work to a quiet time and watches for a repeat.",
+          "modelAnswer": "The rest runs at 01:00 at the same cap, and an alarm on WriteThrottleEvents pages us if the table is saturated again."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 2700,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "Lunch traffic doubles at 12:00, 45 minutes after the page."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: More workers throttled checkout harder."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed and not harmed",
+      "class": "harm",
+      "rationale": "Closing with the backfill still saturating the table leaves checkout failing at the lunch peak.",
+      "source": {
+        "cite": "Amazon DynamoDB Developer Guide, Error handling with DynamoDB",
+        "checkedAt": "2026-11-17",
+        "url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Programming.Errors.md",
+        "note": "Read directly on 2026-11-17. Relevant text: ProvisionedThroughputExceededException, 'Your request rate is too high ... Reduce the frequency of requests using Error retries and exponential backoff', OK to retry; for BatchWriteItem, failed puts come back in UnprocessedItems, 'The most likely cause of a failed read or a failed write is throttling', 'If you retry the batch operation immediately, the underlying read or write requests can still fail due to throttling ... we strongly recommend that you use an exponential backoff algorithm'."
+      }
+    }
+  },
+  "endings": {
+    "throttledHarder": {
+      "label": "Checkout throttled harder",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and harmed",
+      "narrative": "Doubling the workers doubled the immediate retries; checkout lost nearly a third of its writes."
+    },
+    "lunchFailed": {
+      "label": "Lunch peak with failing checkouts",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(missAt)",
+      "narrative": "At 12:00 the backfill still used all of the table's write capacity."
+    },
+    "shared": {
+      "label": "Backfill capped, rest scheduled, alarm set",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(cwAt) and not isNull(bfstatAt) and not isNull(verifiedAt) and causeDoc == \"backfill\"",
+      "narrative": "The backfill runs at a rate the table can carry, checkout writes succeed, and the rest of the history goes in overnight."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Checkout recovered, but the schedule, the alarm, the check or the record was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "throttledHarder",
+    "lunchFailed",
+    "shared",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Read the table's capacity and the backfill's retry behavior",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(cwAt) and not isNull(bfstatAt)",
+            "score": "met",
+            "why": "The key evidence, read before changing anything."
+          },
+          {
+            "when": "not isNull(cwAt) or not isNull(bfstatAt) or not isNull(contribAt) or not isNull(appAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Checkout writes healthy before 12:00",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and not harmed and isNull(missAt)",
+            "score": "met",
+            "why": "The right change, in time, without harm."
+          },
+          {
+            "when": "fixed or harmed",
+            "score": "partial",
+            "why": "{harmed ? \"More workers throttled checkout harder.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never removed."
+          }
+        ]
+      },
+      {
+        "id": "lasting",
+        "label": "Rest of the backfill scheduled with an alarm, result checked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The lasting step taken and the result checked."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"backfill\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record names the wrong cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes that caused harm",
+        "value": "harmed ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "11:15-11:19",
+        "text": "Consumed 4,000 of 4,000; throttles since 10:47; 64 workers resending at once; backfill 88% of writes."
+      },
+      {
+        "at": "11:19-11:24",
+        "text": "Restart at 8 workers, 1,500 WCU, backoff; schedule the rest for 01:00 with a throttle alarm."
+      },
+      {
+        "at": "11:24-11:26",
+        "text": "No throttles; checkout points 100%."
+      }
+    ],
+    "debrief": {
+      "throttledHarder": {
+        "headline": "Faster is the wrong direction",
+        "body": "A table's write capacity is shared. A bulk job that saturates it takes capacity from every other writer; more workers and instant retries only make it worse."
+      },
+      "lunchFailed": {
+        "headline": "The live app lost the capacity race",
+        "body": "Cap the bulk writer's rate and give it exponential backoff, so the live application keeps the capacity it needs."
+      },
+      "shared": {
+        "headline": "Good: working within the limit",
+        "body": "You saw the capacity was full and the backfill's instant retries were the cause, capped its rate with backoff instead of adding workers, checked checkout, and moved the bulk of the work to a quiet hour with an alarm."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the evidence before the change, the lasting step, the check, or the cause in the record."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Checkout and the backfill share 4,000 write units. The backfill's 64 workers re-send unprocessed items immediately, so they keep the table saturated and checkout is throttled. Work within the limit: cap the backfill's rate and concurrency and give its retries exponential backoff, then move the bulk of it to a quiet hour with an alarm on throttling. More workers make it worse and Lambda memory is not the bottleneck."
+  }
+}

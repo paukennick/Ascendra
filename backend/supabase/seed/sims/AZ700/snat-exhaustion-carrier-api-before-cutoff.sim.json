@@ -1,0 +1,875 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "snat-exhaustion-carrier-api-before-cutoff",
+  "title": "Cut-off: label requests to the carrier API time out on SNAT exhaustion",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "neteng@cloudshell:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "15:30 labels: 15% of carrier API calls time out since 14:50; pickup cut-off at 17:00",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "17:00: parcels miss the truck",
+          "when": "not isNull(missAt)",
+          "at": "timeAt(missAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "17:00: all parcels labeled",
+          "when": "not isNull(okAt)",
+          "at": "timeAt(okAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "vms",
+          "label": "Label VMs (12) in snet-labels",
+          "spokenLabel": "the label VMs",
+          "kind": "one destination",
+          "status": "{fixed and not harmed ? \"SNAT ports from a NAT gateway\" : \"SNAT ports exhausted\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "lb",
+          "label": "Public LB outbound (default allocation)",
+          "spokenLabel": "the load balancer's outbound path",
+          "kind": "1,024 ports per VM",
+          "status": "{harmed ? \"VMs given public IPs\" : fixed ? \"no longer used by snet-labels\" : \"failed SNAT connections\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "nat",
+          "label": "NAT gateway ng-labels",
+          "spokenLabel": "the NAT gateway",
+          "kind": "2 public IPs",
+          "status": "{fixed and not harmed ? \"attached to snet-labels\" : \"none\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "vms",
+          "to": "lb",
+          "label": "outbound",
+          "status": "{fixed and not harmed ? \"replaced by NAT gateway\" : \"ports exhausted\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Identifying use cases for Azure NAT Gateway, and implementing it",
+  "secondaryObjectives": [
+    "Creating and configuring explicit outbound rules, including source network address translation (SNAT)"
+  ],
+  "sources": [
+    {
+      "cite": "Microsoft Learn, Study guide for Exam AZ-700: Designing and Implementing Microsoft Azure Networking Solutions (page last updated 2026-06-29): core networking infrastructure 25-30%, connectivity services 20-25%, application delivery 15-20%, private access 10-15%, network security 15-20%",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-700",
+      "note": "Read through a summarizing fetch on 2026-11-17. Bullets quoted there (read by the first pass of this round): 'Design and implement user-defined routes (UDRs)', 'Associate a route table with a subnet', 'Diagnose and resolve routing issues', 'Monitor and troubleshoot network health by using Azure Network Watcher'. The objective wording is the course seed's. (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "Microsoft Learn, Troubleshoot Azure Load Balancer outbound connectivity issues",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/azure/load-balancer/troubleshoot-outbound-connection",
+      "note": "Read through a summarizing fetch on 2026-11-17. Quoted: 'Most problems with outbound connectivity ... is due to SNAT port exhaustion'; 'Default port allocation ... isn't a recommended method'; 'For most scenarios, Azure recommends using a NAT gateway for outbound connectivity ... highly recommended if your service is initiating repeated TCP or UDP outbound connections to the same destination'; 'a NAT gateway dynamically allocates SNAT ports across all VM instances within a subnet'; 'assigning individual public IP addresses isn't a scalable solution'; 'aggressive or brute force retries without decay and back-off logic cause exhaustion to occur or persist'. The Azure Monitor metrics reference for load balancers (read 2026-11-18) lists SnatConnectionCount (dimension ConnectionState), UsedSnatPorts and AllocatedSnatPorts; the NAT gateway overview (read 2026-11-18): 'Azure NAT Gateway takes precedence over other outbound connectivity methods, including a load balancer, instance-level public IP addresses' for all new connections, and it 'dynamically allocates source NAT (SNAT) ports'."
+    }
+  ],
+  "brief": {
+    "situation": "You are the network engineer at Haldane Freight. The label service (12 VMs in snet-labels, behind a Standard internal load balancer, outbound through the public load balancer's default port allocation) calls the carrier's single label API. Since the afternoon wave started, 15% of label requests time out. The carrier's pickup cut-off is 17:00: any parcel without a label misses today's truck.",
+    "handover": [
+      "The carrier allowlists our egress IPs; adding one takes them 15 minutes after a ticket.",
+      "The label client retries immediately, up to five times, on a timeout."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the label VMs, the load balancer's outbound SNAT ports and the carrier API they all call.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "15:30",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineAt": {
+      "value": 5400,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "The carrier's pickup cut-off is 17:00, 90 minutes after the page."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "harmed": {
+      "type": "bool",
+      "init": false
+    },
+    "tried": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "snatAt": {
+      "type": "time",
+      "init": null
+    },
+    "destAt": {
+      "type": "time",
+      "init": null
+    },
+    "clientAt": {
+      "type": "time",
+      "init": null
+    },
+    "ipsAt": {
+      "type": "time",
+      "init": null
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "missAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "snat",
+        "carrier",
+        "dns"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "snat",
+        "dest",
+        "client",
+        "ips",
+        "natgw",
+        "reuse",
+        "pip",
+        "restart",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "snat": {
+      "label": "Load balancer metrics: SNAT connection count (failed) and used SNAT ports",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(snatAt)",
+          "then": [
+            {
+              "set": "snatAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@cloudshell:~$ az monitor metrics list --resource lb-public --metric SnatConnectionCount UsedSnatPorts --filter \"ConnectionState eq 'failed'\" --interval PT5M --offset 1h\n{fixed and not harmed ? \"(snet-labels no longer uses the load balancer for outbound)\" : \"SnatConnectionCount failed: 0 before 14:50, 4,812 per 5 min since\nUsedSnatPorts: 1,024 of 1,024 per VM (all 12)\"}"
+        },
+        {
+          "finding": "Every VM has used all 1,024 default SNAT ports, and failed SNAT connections began with the wave."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "dest": {
+      "label": "On one VM: connections to the carrier API",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(destAt)",
+          "then": [
+            {
+              "set": "destAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@cloudshell:~$ ss -tan dst 198.51.100.40:443 | awk '{{print $1}}' | sort | uniq -c\n{fixed and not harmed ? \"  612 ESTAB\n   40 TIME-WAIT\" : \"  402 ESTAB\n  617 TIME-WAIT\n    5 SYN-SENT\"}"
+        },
+        {
+          "finding": "One destination, hundreds of short connections and immediate retries: the textbook pattern for SNAT exhaustion."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "client": {
+      "label": "Read the label client's HTTP settings",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(clientAt)",
+          "then": [
+            {
+              "set": "clientAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@cloudshell:~$ grep -nE 'keepAlive|retries|backoff' src/carrier/client.ts\n12:  keepAlive: false\n14:  retries: 5, backoff: none"
+        },
+        {
+          "finding": "A new connection per request and retries without back-off make exhaustion worse."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "ips": {
+      "label": "Carrier allowlist status",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(ipsAt)",
+          "then": [
+            {
+              "set": "ipsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@cloudshell:~$ (carrier ticket portal) allowlisted: 20.84.11.7 (lb-public)\nnew requests: none"
+        },
+        {
+          "finding": "Any new egress IP must be allowlisted by the carrier first."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "natgw": {
+      "label": "Get the carrier to allowlist two new public IPs, then attach NAT gateway ng-labels (those 2 IPs) to snet-labels",
+      "group": "Fix",
+      "available": "not busy and (not fixed and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "fixed",
+          "to": "true"
+        },
+        {
+          "output": "neteng@cloudshell:~$ (carrier ticket CR-88120: allowlist 20.84.30.11 and 20.84.30.12; confirmed 15:5x)\nneteng@cloudshell:~$ az network nat gateway create -g rg-labels -n ng-labels --public-ip-addresses pip-ng-1 pip-ng-2 --idle-timeout 4\nneteng@cloudshell:~$ az network vnet subnet update -g rg-labels --vnet-name vnet-ops -n snet-labels --nat-gateway ng-labels"
+        },
+        {
+          "log": "The subnet's outbound traffic now uses the NAT gateway, which allocates ports on demand across all VMs from two IPs, instead of 1,024 fixed ports per VM; the carrier accepts the new IPs because they were allowlisted first.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "25min"
+        }
+      ]
+    },
+    "reuse": {
+      "label": "Enable keep-alive and connection pooling in the label client, add back-off to retries, and alert on SNAT failures",
+      "group": "Fix",
+      "available": "not busy and (not planned and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "neteng@cloudshell:~$ git diff src/carrier/client.ts\n-  keepAlive: false\n+  keepAlive: true, maxSockets: 64\n-  retries: 5, backoff: none\n+  retries: 3, backoff: exponential with jitter\nneteng@cloudshell:~$ az monitor metrics alert create -n ng-labels-snat --condition 'total SNATConnectionCount where ConnectionState == Failed > 0' ..."
+        },
+        {
+          "log": "Fewer, reused connections need far fewer ports, retries no longer pile on, and any SNAT failure alerts.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "pip": {
+      "label": "Give each of the 12 label VMs its own public IP",
+      "group": "Fix",
+      "available": "not busy and (not harmed)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "harmed",
+          "to": "true"
+        },
+        {
+          "output": "neteng@cloudshell:~$ for i in $(seq 1 12); do az network nic ip-config update ... --public-ip-address pip-label-$i; done\n(12 public IPs attached)"
+        },
+        {
+          "log": "Twelve VMs are now directly reachable from the internet, and the carrier rejects all twelve unlisted addresses: labels fail outright.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "restart": {
+      "label": "Restart the label VMs to free ports",
+      "group": "Fix",
+      "available": "not busy and (not harmed and not tried)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tried",
+          "to": "true"
+        },
+        {
+          "output": "neteng@cloudshell:~$ az vm restart --ids $(az vm list -g rg-labels --query [].id -o tsv)\n(12 restarted)"
+        },
+        {
+          "log": "Ports free for a minute; the same traffic pattern exhausts them again within the wave.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Check SNAT failures, connection states and label success",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@cloudshell:~$ NAT gateway metrics (last 10 min); label success rate\n{harmed ? \"carrier 403 for all new IPs\nlabel success: 0%\" : fixed ? \"SNATConnectionCount failed: 0\nlabel success: 99.9%\" : \"SnatConnectionCount failed: 4,700 per 5 min\nlabel success: 85%\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "snat",
+                  "label": "Default outbound allocation of 1,024 SNAT ports per VM was exhausted by many connections to one destination"
+                },
+                {
+                  "value": "carrier",
+                  "label": "The carrier API was slow"
+                },
+                {
+                  "value": "dns",
+                  "label": "DNS lookups for the carrier failed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-335)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "17:00: every parcel has its label for the truck.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "missAt",
+              "to": "t"
+            },
+            {
+              "log": "17:00: hundreds of parcels miss today's truck without labels.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why label calls timed out, what you changed in what order, and what reduces port use.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Reads the SNAT metrics.",
+          "modelAnswer": "Each VM had used all 1,024 default SNAT ports and failed SNAT connections began with the wave; ss showed hundreds of short connections to one carrier IP, and the client opened a new connection per request and retried immediately."
+        },
+        {
+          "label": "Changed",
+          "criteria": "Allowlist, then NAT gateway.",
+          "modelAnswer": "The carrier allowlisted two new IPs first; then NAT gateway ng-labels with those IPs on snet-labels. Per-VM public IPs would have exposed the VMs and been refused by the carrier; restarts only freed ports briefly."
+        },
+        {
+          "label": "Port use",
+          "criteria": "Reuse and back-off.",
+          "modelAnswer": "Keep-alive with a pool and exponential back-off with jitter cut the connections needed; an alert fires on any SNAT failure."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The carrier's pickup cut-off is 17:00, 90 minutes after the page."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: Public IPs on every VM exposed them and broke the carrier allowlist."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed and not harmed",
+      "class": "harm",
+      "rationale": "Closing with the default allocation still exhausted leaves parcels without labels at 17:00.",
+      "source": {
+        "cite": "Microsoft Learn, Troubleshoot Azure Load Balancer outbound connectivity issues",
+        "checkedAt": "2026-11-17",
+        "url": "https://learn.microsoft.com/azure/load-balancer/troubleshoot-outbound-connection",
+        "note": "Read through a summarizing fetch on 2026-11-17. Quoted: 'Most problems with outbound connectivity ... is due to SNAT port exhaustion'; 'Default port allocation ... isn't a recommended method'; 'For most scenarios, Azure recommends using a NAT gateway for outbound connectivity ... highly recommended if your service is initiating repeated TCP or UDP outbound connections to the same destination'; 'a NAT gateway dynamically allocates SNAT ports across all VM instances within a subnet'; 'assigning individual public IP addresses isn't a scalable solution'; 'aggressive or brute force retries without decay and back-off logic cause exhaustion to occur or persist'. The Azure Monitor metrics reference for load balancers (read 2026-11-18) lists SnatConnectionCount (dimension ConnectionState), UsedSnatPorts and AllocatedSnatPorts; the NAT gateway overview (read 2026-11-18): 'Azure NAT Gateway takes precedence over other outbound connectivity methods, including a load balancer, instance-level public IP addresses' for all new connections, and it 'dynamically allocates source NAT (SNAT) ports'."
+      }
+    }
+  },
+  "endings": {
+    "exposedVms": {
+      "label": "VMs exposed, labels refused",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and harmed",
+      "narrative": "Per-VM public IPs exposed the label servers and sent requests from addresses the carrier refused."
+    },
+    "truckMissed": {
+      "label": "Parcels missed the truck",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(missAt)",
+      "narrative": "At 17:00 the label VMs were still out of SNAT ports."
+    },
+    "natted": {
+      "label": "NAT gateway with allowlisted IPs, client fixed",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(snatAt) and not isNull(destAt) and not isNull(verifiedAt) and causeDoc == \"snat\"",
+      "narrative": "The subnet's outbound goes through a NAT gateway, labels succeed, and the client now reuses connections and backs off."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Labels flow, but the client fix, the alert, the check or the record was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "exposedVms",
+    "truckMissed",
+    "natted",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Read SNAT metrics and the connection pattern",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(snatAt) and not isNull(destAt)",
+            "score": "met",
+            "why": "The key evidence, read before changing anything."
+          },
+          {
+            "when": "not isNull(snatAt) or not isNull(destAt) or not isNull(clientAt) or not isNull(ipsAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Labels succeeding by 17:00 with VMs still private",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and not harmed and isNull(missAt)",
+            "score": "met",
+            "why": "The right change, in time, without harm."
+          },
+          {
+            "when": "fixed or harmed",
+            "score": "partial",
+            "why": "{harmed ? \"Public IPs on every VM exposed them and broke the carrier allowlist.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never removed."
+          }
+        ]
+      },
+      {
+        "id": "lasting",
+        "label": "Client reuse and back-off, SNAT alert; success checked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The lasting step taken and the result checked."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"snat\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record names the wrong cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes that caused harm",
+        "value": "harmed ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "15:30-15:34",
+        "text": "SNAT failures since 14:50, 1,024/1,024 per VM; hundreds of connections to one IP; no keep-alive, no back-off; allowlist needed."
+      },
+      {
+        "at": "15:34-15:59",
+        "text": "Allowlist two IPs; NAT gateway on snet-labels; client keep-alive and back-off; alert."
+      },
+      {
+        "at": "15:59-16:01",
+        "text": "SNAT failures 0; labels 99.9%."
+      }
+    ],
+    "debrief": {
+      "exposedVms": {
+        "headline": "Scale outbound with a NAT gateway",
+        "body": "Per-VM public IPs do not scale and widen exposure. A NAT gateway with allowlisted IPs gives the subnet ports on demand."
+      },
+      "truckMissed": {
+        "headline": "Default allocation runs out",
+        "body": "Default outbound allocation gives each VM a fixed small share of ports. Many connections to one destination exhaust it; a NAT gateway allocates dynamically."
+      },
+      "natted": {
+        "headline": "Good: the outbound path that fits the workload",
+        "body": "You read the SNAT metrics and the connection pattern, had the new IPs allowlisted first, attached a NAT gateway, checked labels, and fixed the client behavior that drove exhaustion."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the evidence before the change, the lasting step, the check, or the cause in the record."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The load balancer shows every VM using all its default SNAT ports, and the VMs open hundreds of short connections to one carrier endpoint with immediate retries. Have the carrier allowlist new IPs, then attach a NAT gateway to the subnet: it allocates ports dynamically across the VMs. Per-VM public IPs expose the VMs and are not allowlisted; restarts free ports only briefly. Then make the client reuse connections and back off, and alert on SNAT failures."
+  }
+}

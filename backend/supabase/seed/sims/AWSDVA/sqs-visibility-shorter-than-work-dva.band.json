@@ -1,0 +1,27 @@
+{
+  "band": "dva",
+  "label": "AWS Developer Associate (DVA-C03)",
+  "base": {
+    "course": "AWSSAP",
+    "slug": "sqs-visibility-shorter-than-work"
+  },
+  "slug": "sqs-visibility-shorter-than-work-dva",
+  "patch": {
+    "objective": "Asynchronous processing with Amazon SQS",
+    "secondaryObjectives": [],
+    "sources": [
+      {
+        "cite": "AWS Certification, AWS Certified Developer - Associate (DVA-C03) exam guide: Development with AWS Services 30%, Security 26%, Testing and Deployment 22%, Troubleshooting and Optimization 22%",
+        "checkedAt": "2026-11-18",
+        "url": "https://docs.aws.amazon.com/aws-certification/latest/developer-associate-03/developer-associate-03.html",
+        "note": "Read through a summarizing fetch on 2026-11-18. The domain names and weights match the course seed's units. The exam guides index (aws-certification-exam-guides.md, read the same day) says registration for DVA-C03 opened on October 27, 2026 and the last day for DVA-C02 is November 30, 2026. Objective wording is the course seed's; the domain pages were not compared line by line."
+      },
+      {
+        "cite": "AWS Lambda Developer Guide, Creating and configuring an Amazon SQS event source mapping",
+        "checkedAt": "2026-11-17",
+        "url": "https://docs.aws.amazon.com/lambda/latest/dg/services-sqs-configure.html",
+        "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: by default, after an error 'all messages in that batch return to the queue. After the visibility timeout, the messages become visible to Lambda again'; set the visibility timeout to at least six times the function timeout; Lambda refuses a function timeout longer than the queue's visibility timeout. The case's consumer is a container worker, not Lambda, so this check does not protect it. The SQS developer guide page on the visibility timeout (read 2026-11-18): 'The default visibility timeout for a queue is 30 seconds'; ChangeMessageVisibility extends it; 'due to the at-least-once delivery model of Amazon SQS, there's no absolute guarantee that a message won't be delivered more than once', so consumers must tolerate duplicates."
+      }
+    ]
+  }
+}

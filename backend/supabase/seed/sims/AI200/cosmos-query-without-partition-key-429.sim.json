@@ -1,0 +1,875 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cosmos-query-without-partition-key-429",
+  "title": "Launch: the new 'my orders' panel throttles the whole Cosmos DB container",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "dev@cloudshell:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "10:15 checkout: 3% of order writes fail with 429 after retries; account page p95 2.4 s; sale email at 11:00",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "11:00: sale traffic, checkout failing",
+          "when": "not isNull(missAt)",
+          "at": "timeAt(missAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "11:00: sale traffic, no throttling",
+          "when": "not isNull(okAt)",
+          "at": "timeAt(okAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "q",
+          "label": "'My orders' query",
+          "spokenLabel": "the panel's query",
+          "kind": "customerId filter in SQL text",
+          "status": "{harmed ? \"container being recreated\" : fixed ? \"single-partition (PartitionKey set)\" : \"fans out to 24 partitions\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "c",
+          "label": "Container orders (/customerId)",
+          "spokenLabel": "the orders container",
+          "kind": "20,000 RU/s, 24 partitions",
+          "status": "{fixed and not harmed ? \"about 35%\" : \"100% normalized RU on all ranges\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "w",
+          "label": "Checkout writes",
+          "spokenLabel": "checkout",
+          "kind": "same container",
+          "status": "{fixed and not harmed ? \"succeeding\" : \"429 after retries\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "q",
+          "to": "c",
+          "label": "query",
+          "status": "{fixed and not harmed ? \"about 3 RU, one partition\" : \"about 72 RU, every partition\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Querying Cosmos DB for NoSQL from the SDK with a partition key that keeps queries in one partition",
+  "secondaryObjectives": [
+    "Cutting RU cost with indexing policies and choosing a consistency level for the read pattern"
+  ],
+  "sources": [
+    {
+      "cite": "Microsoft Learn, Study guide for Exam AI-200: Developing AI Cloud Solutions on Azure (page last updated 2026-10-30): containerized solutions 20-25%, data management services 25-30%, connect to and consume Azure services 20-25%, secure, monitor and troubleshoot 20-25%",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/credentials/certifications/resources/study-guides/ai-200",
+      "note": "Read through a summarizing fetch on 2026-11-17. Bullet quoted: 'Queue and process back-end operations by using Azure Service Bus, including dead-letter queue handling, messages, topics, and subscriptions'; 'Optimize query performance and Request Units (RUs) consumption by using indexing policies and consistency levels'; 'Secure secrets by using Azure Key Vault, including rotation and retrieval'. The objective wording is the course seed's."
+    },
+    {
+      "cite": "Microsoft Learn (Azure China mirror), Diagnose and troubleshoot Azure Cosmos DB request rate too large (429) exceptions",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.azure.cn/en-us/cosmos-db/troubleshoot-request-rate-too-large",
+      "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: a 429 means requests 'are being rate limited' when they exceed the provisioned RU/s in a second; throughput is split evenly across physical partitions (normalized RU consumption per PartitionKeyRangeId); the SDKs 'automatically retry requests on 429s', typically up to nine times; raising RU/s temporarily 'isn't recommended as a long-term strategy'; 'The partition key can't be updated in place', so changing it means moving data to a new container. The Cosmos DB page 'Query performance tips for Azure Cosmos DB SDKs' (read 2026-11-18): 'Cross-partition queries require the SDK to visit all existing partitions to check for results. The more physical partitions the container has, the slower they can potentially be'; targeting the partition key in the query options makes a single-partition query."
+    }
+  ],
+  "brief": {
+    "situation": "You are the developer at Corvin Garden Supply. The orders container in Cosmos DB for NoSQL is partitioned by /customerId (24 physical partitions, 20,000 RU/s). This morning's release added a 'my orders' panel. Since 09:50 checkout writes to the same container fail with 429 after retries and the account page is slow. The spring sale email goes out at 11:00.",
+    "handover": [
+      "The panel's query is SELECT * FROM c WHERE c.customerId = @id ORDER BY c.created DESC.",
+      "RU/s can be raised in minutes; changing the partition key needs a new container and a migration."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the container's physical partitions, the panel's query and checkout's writes.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "10:15",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineAt": {
+      "value": 2700,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "The sale email goes out at 11:00, 45 minutes after the page."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "harmed": {
+      "type": "bool",
+      "init": false
+    },
+    "tried": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "metricsAt": {
+      "type": "time",
+      "init": null
+    },
+    "chargeAt": {
+      "type": "time",
+      "init": null
+    },
+    "codeAt": {
+      "type": "time",
+      "init": null
+    },
+    "idxAt": {
+      "type": "time",
+      "init": null
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "missAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "fanout",
+        "hot",
+        "index"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "metrics",
+        "charge",
+        "code",
+        "idx",
+        "pk",
+        "guard",
+        "rekey",
+        "retries",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "metrics": {
+      "label": "Azure Monitor: Normalized RU consumption by PartitionKeyRangeId and 429s by operation",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(metricsAt)",
+          "then": [
+            {
+              "set": "metricsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dev@cloudshell:~$ az monitor metrics list --resource <account id> --metric NormalizedRUConsumption --dimension PartitionKeyRangeId --interval PT1M --offset 30m\n{fixed and not harmed ? \"all ranges about 35%; 429s 0\" : \"all 24 ranges 100% since 09:50; 429s: Query 61%, Create 39%\"}"
+        },
+        {
+          "finding": "Every partition is saturated, not one hot partition, and since the release."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "charge": {
+      "label": "Run the panel's query with diagnostics (RU charge, partitions touched)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(chargeAt)",
+          "then": [
+            {
+              "set": "chargeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dev@cloudshell:~$ python query_diag.py --customer C-118204\n{fixed and not harmed ? \"RequestCharge: 3.1 RU; partitions: 1\" : \"RequestCharge: 71.8 RU; partitions: 24 (cross-partition fan-out)\"}"
+        },
+        {
+          "finding": "Each panel load asks all 24 partitions: the SDK call does not pass the partition key, so the filter in the SQL text alone does not route it."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "code": {
+      "label": "Read the panel's SDK call",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(codeAt)",
+          "then": [
+            {
+              "set": "codeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dev@cloudshell:~$ grep -n 'query_items' -A3 src/account/orders_panel.py\n31: container.query_items(query, parameters=params, enable_cross_partition_query=True)"
+        },
+        {
+          "finding": "enable_cross_partition_query=True and no partition_key argument."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "idx": {
+      "label": "Indexing policy for the ORDER BY",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(idxAt)",
+          "then": [
+            {
+              "set": "idxAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dev@cloudshell:~$ az cosmosdb sql container show ... --query resource.indexingPolicy.compositeIndexes\n[[customerId ASC, created DESC]]"
+        },
+        {
+          "finding": "The index for the query exists; the cost is the fan-out."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "pk": {
+      "label": "Pass partition_key=customer_id in the query call and deploy; raise RU/s to 30,000 only until the deploy is out",
+      "group": "Fix",
+      "available": "not busy and (not fixed and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "fixed",
+          "to": "true"
+        },
+        {
+          "output": "dev@cloudshell:~$ git diff src/account/orders_panel.py\n-  container.query_items(query, parameters=params, enable_cross_partition_query=True)\n+  container.query_items(query, parameters=params, partition_key=customer_id)\ndev@cloudshell:~$ az cosmosdb sql container throughput update ... --throughput 30000   # temporary, until 10:40\ndev@cloudshell:~$ ./deploy account-api (rolling, 6 min)"
+        },
+        {
+          "log": "Each panel load now touches one partition for about 3 RU; the temporary RU increase covers the minutes until the deploy is live and is reverted after.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "8min"
+        }
+      ]
+    },
+    "guard": {
+      "label": "Revert RU/s to 20,000 after the deploy, add a test that panel queries are single-partition, and alert on 429 rate above 1%",
+      "group": "Fix",
+      "available": "not busy and (not planned and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "dev@cloudshell:~$ az cosmosdb sql container throughput update ... --throughput 20000\ndev@cloudshell:~$ git commit -am 'test: account queries must set partition_key (RU < 5)'\n(alert: TotalRequests StatusCode=429 / TotalRequests > 1% for 5 min)"
+        },
+        {
+          "log": "The cost goes back to normal, a test catches the next fan-out query, and throttling pages someone early.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "rekey": {
+      "label": "Recreate the container now with /orderId as the partition key",
+      "group": "Fix",
+      "available": "not busy and (not harmed)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "harmed",
+          "to": "true"
+        },
+        {
+          "output": "dev@cloudshell:~$ az cosmosdb sql container delete ... -n orders --yes && az cosmosdb sql container create ... --partition-key-path /orderId\n(deleted; created; data migration not started)"
+        },
+        {
+          "log": "The container and its orders are gone until a migration runs, and /orderId would make the per-customer query fan out anyway.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "retries": {
+      "label": "Raise the SDK's retry count for 429s from 9 to 30",
+      "group": "Fix",
+      "available": "not busy and (not harmed and not tried)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tried",
+          "to": "true"
+        },
+        {
+          "output": "dev@cloudshell:~$ git diff config.py\n-  retry_total=9\n+  retry_total=30\n(deployed)"
+        },
+        {
+          "log": "More retries hide 429s behind longer waits; the container is still saturated by the fan-out.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Check normalized RU, 429s and the panel query's charge",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dev@cloudshell:~$ Normalized RU (last 10 min); 429s; python query_diag.py --customer C-118204\n{harmed ? \"container empty; account page and checkout failing\" : fixed ? \"about 35%; 429s 0\nRequestCharge 3.1 RU, 1 partition\" : \"100%; 429s rising\nRequestCharge 71.8 RU, 24 partitions\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "fanout",
+                  "label": "The panel's query did not pass the partition key and fanned out to all 24 partitions"
+                },
+                {
+                  "value": "hot",
+                  "label": "One hot partition for a big customer"
+                },
+                {
+                  "value": "index",
+                  "label": "A missing index"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-335)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "11:00: the email traffic browses and checks out without throttling.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "missAt",
+              "to": "t"
+            },
+            {
+              "log": "11:00: the email traffic multiplies the throttling; checkouts fail.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why checkout was throttled, what you changed, and why not a new partition key.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Reads RU per partition and per query.",
+          "modelAnswer": "Since the release all 24 partitions were at 100% normalized RU. The panel's query cost about 72 RU because the SDK call set enable_cross_partition_query and no partition key, so it fanned out to every partition."
+        },
+        {
+          "label": "Changed",
+          "criteria": "Pass the key; bridge briefly.",
+          "modelAnswer": "partition_key=customer_id in the query call (about 3 RU, one partition), deployed, with RU/s raised to 30,000 only until the deploy and then reverted."
+        },
+        {
+          "label": "Not a new key",
+          "criteria": "Knows the partition key was right.",
+          "modelAnswer": "/customerId already matches the query. Recreating the container would have deleted the orders, and /orderId would make this query fan out. A test now requires single-partition account queries, and 429s alert."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 2700,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The sale email goes out at 11:00, 45 minutes after the page."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: The container was deleted and recreated."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed and not harmed",
+      "class": "harm",
+      "rationale": "Closing with the panel still fanning out leaves the sale traffic throttled.",
+      "source": {
+        "cite": "Microsoft Learn (Azure China mirror), Diagnose and troubleshoot Azure Cosmos DB request rate too large (429) exceptions",
+        "checkedAt": "2026-11-17",
+        "url": "https://docs.azure.cn/en-us/cosmos-db/troubleshoot-request-rate-too-large",
+        "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: a 429 means requests 'are being rate limited' when they exceed the provisioned RU/s in a second; throughput is split evenly across physical partitions (normalized RU consumption per PartitionKeyRangeId); the SDKs 'automatically retry requests on 429s', typically up to nine times; raising RU/s temporarily 'isn't recommended as a long-term strategy'; 'The partition key can't be updated in place', so changing it means moving data to a new container. The Cosmos DB page 'Query performance tips for Azure Cosmos DB SDKs' (read 2026-11-18): 'Cross-partition queries require the SDK to visit all existing partitions to check for results. The more physical partitions the container has, the slower they can potentially be'; targeting the partition key in the query options makes a single-partition query."
+      }
+    }
+  },
+  "endings": {
+    "containerGone": {
+      "label": "Orders container recreated empty",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and harmed",
+      "narrative": "Recreating the container with a new key deleted its orders and did not fix the query."
+    },
+    "saleThrottled": {
+      "label": "Sale traffic throttled",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(missAt)",
+      "narrative": "At 11:00 every panel load still fanned out to all partitions."
+    },
+    "singlePartition": {
+      "label": "Single-partition queries, RU back to normal",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(metricsAt) and not isNull(chargeAt) and not isNull(verifiedAt) and causeDoc == \"fanout\"",
+      "narrative": "The panel's query targets one partition; throttling stopped; RU/s returned to normal after a brief bridge."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Throttling stopped, but the RU revert, the test, the alert or the record was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "containerGone",
+    "saleThrottled",
+    "singlePartition",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Read normalized RU by partition and the query's charge",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(metricsAt) and not isNull(chargeAt)",
+            "score": "met",
+            "why": "The key evidence, read before changing anything."
+          },
+          {
+            "when": "not isNull(metricsAt) or not isNull(chargeAt) or not isNull(codeAt) or not isNull(idxAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "No throttling by 11:00 with the container intact",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and not harmed and isNull(missAt)",
+            "score": "met",
+            "why": "The right change, in time, without harm."
+          },
+          {
+            "when": "fixed or harmed",
+            "score": "partial",
+            "why": "{harmed ? \"The container was deleted and recreated.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never removed."
+          }
+        ]
+      },
+      {
+        "id": "lasting",
+        "label": "RU reverted, test and alert added; charge checked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The lasting step taken and the result checked."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"fanout\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record names the wrong cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes that caused harm",
+        "value": "harmed ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "10:15-10:19",
+        "text": "All ranges 100% since 09:50; query 72 RU across 24 partitions; no partition_key in the call; index fine."
+      },
+      {
+        "at": "10:19-10:27",
+        "text": "Pass partition_key; temporary 30,000 RU/s; deploy; test and alert."
+      },
+      {
+        "at": "10:27-10:29",
+        "text": "3.1 RU per query; 429s 0; revert RU/s."
+      }
+    ],
+    "debrief": {
+      "containerGone": {
+        "headline": "Fix the query, not the container",
+        "body": "The partition key already matched the query. The SDK call simply did not pass it. A partition key change needs a new container and a migration, and it was not the problem."
+      },
+      "saleThrottled": {
+        "headline": "A filter in the text is not a partition key",
+        "body": "Give the SDK the partition key so a query goes to one partition. Without it, every load costs RUs on every partition."
+      },
+      "singlePartition": {
+        "headline": "Good: read the RU charge",
+        "body": "You saw every partition saturated since the release, measured the query's fan-out and charge, passed the partition key, bridged with a temporary RU increase, checked, and guarded with a test and an alert."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the evidence before the change, the lasting step, the check, or the cause in the record."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Every physical partition is saturated since the release, and the new query costs about 72 RU because the SDK call does not pass the partition key, so it fans out to all 24 partitions. Pass customerId as the partition key so each query goes to one partition, bridge with a short RU increase until the deploy, then revert. Recreating the container deletes data and the key is already right; more SDK retries only hide throttling. Add a test and a 429 alert."
+  }
+}

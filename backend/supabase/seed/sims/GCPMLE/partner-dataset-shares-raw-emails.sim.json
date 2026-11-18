@@ -1,0 +1,982 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "partner-dataset-shares-raw-emails",
+  "title": "Data share: the partner's modeling dataset carries raw customer emails",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "Shared feature table for the partner data science team (BigQuery), Pellow Mobile (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Privacy officer, Ines Varga",
+          "text": "The table we share with the partner's modeling team at 15:00 has customer emails in it. They use email to join usage and billing. They cannot see emails, and they still need the join.",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "seen",
+          "label": "Pattern",
+          "text": "A direct identifier is the join key in a shared dataset.",
+          "when": "not isNull(lookAt) and not fixed",
+          "severity": "warning"
+        },
+        {
+          "id": "altered",
+          "label": "Data",
+          "text": "Production tables were altered to prepare a share.",
+          "when": "rowsAlteredOutsideFix > 0",
+          "severity": "error"
+        },
+        {
+          "id": "lock",
+          "label": "Share",
+          "text": "15:00: the share opened with the table as it was.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [],
+      "code": [
+        {
+          "id": "code",
+          "label": "share_prep: de-identification of usage and billing",
+          "language": "De-identification config",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "usage.email, billing.email: copied as is",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c1",
+              "text": "usage.email, billing.email: CryptoDeterministicConfig (KMS-wrapped key); phone: redact",
+              "when": "fix == \"det\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c2",
+              "text": "usage.email, billing.email: redactConfig (removed); phone: redact",
+              "when": "fix == \"redact\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c3",
+              "text": "usage.email, billing.email: characterMaskConfig (all but the domain masked); phone: redact",
+              "when": "fix == \"mask\"",
+              "mark": "\"warning\""
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Share",
+          "value": "15:00"
+        },
+        {
+          "id": "alteredRows",
+          "label": "Changed outside the fix",
+          "value": "{rowsAlteredOutsideFix}"
+        }
+      ]
+    }
+  },
+  "objective": "Ensuring data privacy and handling PII",
+  "secondaryObjectives": [
+    "Organizing and exploring data types -- tabular, text, images -- for efficient experimenting, training, and serving"
+  ],
+  "sources": [
+    {
+      "cite": "Google Cloud, Professional Machine Learning Engineer certification exam guide (as of June 1, 2026): low-code AI ~13%, collaborating on data and models ~16%, scaling prototypes into ML models ~21%, serving and scaling ~20%, automating pipelines ~18%, monitoring ~13%",
+      "checkedAt": "2026-11-17",
+      "url": "https://services.google.com/fh/files/misc/professional_machine_learning_engineer_exam_guide_english_new.pdf",
+      "note": "Read through a summarizing fetch on 2026-11-17. Bullets quoted there under section 3: 'Troubleshooting ML model training failures', 'Evaluation of compute and accelerator options (e.g., CPU, GPU, and TPU)'. The guide names 'Agent Platform' (Gemini Enterprise Agent Platform), not Vertex AI.. (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "Google Cloud documentation (Sensitive Data Protection), De-identifying sensitive data",
+      "checkedAt": "2026-11-18",
+      "url": "https://docs.cloud.google.com/sensitive-data-protection/docs/deidentify-sensitive-data",
+      "note": "Read through a summarizing fetch on 2026-11-18. Transformations include replacement, redaction, character masking, cryptographic hashing (cryptoHashConfig) and deterministic encryption (CryptoDeterministicConfig); in the page's deterministic example the same input in two rows returns the same token; 'you can re-identify that data, as long as you have the CryptoKey used to originally de-identify the data'; redaction 'removes it completely'. That a removed or masked key can no longer join two tables follows, stated as the author's."
+    },
+    {
+      "cite": "Author's scenario (REQ-335)",
+      "checkedAt": "2026-11-18",
+      "note": "Every organization, person, count and deadline is invented teaching data; tool output is an authored rendering in the tool style."
+    }
+  ],
+  "brief": {
+    "situation": "You prepare the shared feature table at Pellow Mobile (fictional) for a partner's data science team. The usage and billing tables are joined on customer email, and the share opens at 15:00. The privacy officer says the partner may not see emails or phone numbers but must still be able to join the two tables. It is 14:05.",
+    "handover": [
+      "The share is a dataset the partner can read; the encryption key stays in the company's Cloud KMS.",
+      "The partner never needs to contact a customer."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: look, change, check or ship. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "14:05",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-335)",
+        "checkedAt": "2026-11-18",
+        "note": "The deadline is an invented teaching value."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "det",
+        "mask",
+        "redact"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "c0",
+        "c1",
+        "c2"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "k0",
+        "k1",
+        "k2"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "(fix == \"det\") and rowsAlteredOutsideFix == 0"
+    },
+    "correct": {
+      "expr": "(fix == \"det\" or fix == \"mask\") and rowsAlteredOutsideFix == 0"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "look",
+        "change",
+        "destroy",
+        "check",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "look": {
+      "label": "Scan the share tables for identifiers and test the usage-to-billing join",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "output": "Scan: no EMAIL_ADDRESS or PHONE_NUMBER findings\nJoin on tokenized email: 2.1M rows matched"
+            }
+          ],
+          "else": [
+            {
+              "output": "Sensitive Data Protection scan: EMAIL_ADDRESS in usage.email (2.1M), billing.email (2.1M); PHONE_NUMBER in billing.phone (1.9M)\nJoin on email: 2.1M rows matched"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "finding": "The same email becomes the same token in both tables, so the join works with no email visible."
+            }
+          ],
+          "else": [
+            {
+              "finding": "The join key is a direct identifier, and phone numbers ride along unused."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Change how identifiers are de-identified",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "det",
+              "label": "Deterministically encrypt email in both tables with one KMS-wrapped key, and redact phone"
+            },
+            {
+              "value": "mask",
+              "label": "Mask emails down to the domain, and redact phone"
+            },
+            {
+              "value": "redact",
+              "label": "Redact emails and phone from both tables"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: {f}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "destroy": {
+      "label": "Drop the email column from the source usage and billing tables",
+      "group": "Change the data",
+      "available": "not busy and rowsAlteredOutsideFix == 0",
+      "why": "Already done.",
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "add": "rowsAlteredOutsideFix",
+          "by": "2"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "output": "Column email dropped from 2 production tables: prod.usage and prod.billing"
+        },
+        {
+          "log": "Production tables lost the column that support and billing use daily.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "check": {
+      "label": "Scan the share tables for identifiers and re-test the join",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"det\" and rowsAlteredOutsideFix == 0",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "Scan: 0 identifier findings\nJoin on tokenized email: 2.1M rows matched (same as before)\nTokens cannot be reversed without the company's key"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"mask\" and rowsAlteredOutsideFix == 0",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "Scan: 0 identifier findings\nJoin on masked email: 41.7M rows (many-to-many on domains)"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"redact\"",
+              "then": [
+                {
+                  "output": "Scan: 0 identifier findings\nJoin: no key, 0 rows matched"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "Scan: EMAIL_ADDRESS 4.2M, PHONE_NUMBER 1.9M findings"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Open the share to the partner",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "if": "correct",
+          "then": [
+            {
+              "output": "Shared: no identifiers, join intact."
+            }
+          ],
+          "else": [
+            {
+              "output": "Shared a table that leaks identifiers or cannot be joined."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "What the problem was",
+              "options": [
+                {
+                  "value": "c0",
+                  "label": "A direct identifier was the join key in a shared dataset"
+                },
+                {
+                  "value": "c1",
+                  "label": "The partner's account was compromised"
+                },
+                {
+                  "value": "c2",
+                  "label": "The tables were too large to share"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know it is right",
+              "options": [
+                {
+                  "value": "k0",
+                  "label": "No identifier findings and the join matches the same rows"
+                },
+                {
+                  "value": "k1",
+                  "label": "Emails look scrambled"
+                },
+                {
+                  "value": "k2",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-335)",
+        "checkedAt": "2026-11-18",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "15:00: the share opened with the table as it was.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the privacy officer: what was wrong, what you changed, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "What was wrong",
+          "criteria": "The usage and billing tables joined on customer email, a direct identifier, and phone numbers were included without need.",
+          "modelAnswer": "Email as join key; phone unused."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "Deterministic encryption of email in both tables with one KMS-wrapped key, so equal emails get equal tokens and the join still works, and phone redacted; masking to the domain makes false matches; redacting the key breaks the join; dropping production columns harms production.",
+          "modelAnswer": "CryptoDeterministicConfig; phone redacted."
+        },
+        {
+          "label": "How you know",
+          "criteria": "The scan finds no identifiers and the join matches the same 2.1M rows.",
+          "modelAnswer": "0 findings; 2.1M rows."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-335)",
+          "checkedAt": "2026-11-18",
+          "note": "The case's deadline; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Shipping nothing ships nothing wrong, but the deadline passes without the fix.",
+      "source": {
+        "cite": "Author's scenario (REQ-335)",
+        "checkedAt": "2026-11-18",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "altered": {
+      "label": "Production tables altered",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and rowsAlteredOutsideFix > 0",
+      "narrative": "Support and billing lose customer emails in production."
+    },
+    "wrongSent": {
+      "label": "Share wrong",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "The partner gets identifiers or a dataset it cannot join."
+    },
+    "notSent": {
+      "label": "Nothing shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "Nothing unsafe was shared, but the partner's work slipped."
+    },
+    "right": {
+      "label": "Right, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and fixed and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "The partner models on joined usage and billing without ever seeing an email."
+    },
+    "gaps": {
+      "label": "Right, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The result is right, but it went late, unchecked, before you looked, or with a weaker fix."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "altered",
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Scanned for identifiers and tested the join before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked before acting."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Replaced the email key with a deterministic token",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed",
+            "score": "met",
+            "why": "Deterministic encryption of the join key; phone redacted."
+          },
+          {
+            "when": "fix == \"mask\"",
+            "score": "partial",
+            "why": "No email is readable, but many customers share a domain, so the join produces false matches."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{rowsAlteredOutsideFix > 0 ? \"Altered production tables to prepare a share.\" : fix == \"redact\" ? \"The join key is gone: the partner cannot connect usage to billing.\" : \"Raw emails and phone numbers are still in the shared tables.\"}"
+          }
+        ]
+      },
+      {
+        "id": "data",
+        "label": "Changed only the share, not production tables",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "rowsAlteredOutsideFix == 0",
+            "score": "met",
+            "why": "Nothing changed outside the fix."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Altered production tables to prepare a share."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Scan and join checked after the last change, before opening the share",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "Checked after the last change, before shipping."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Checked, but it failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"c0\" and checkDoc == \"k0\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"c0\" or checkDoc == \"k0\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rightK",
+        "label": "Right result shipped",
+        "value": "sentAs == \"right\" ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "altered",
+        "label": "Rows changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until shipped",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 14"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "Emails and phones found; join on email."
+      },
+      {
+        "at": "4-9 min",
+        "text": "Deterministic tokens for email; redact phone."
+      },
+      {
+        "at": "9-12 min",
+        "text": "0 findings; join intact."
+      },
+      {
+        "at": "12-14 min",
+        "text": "Open the share."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: hide the identifier, keep the key",
+        "body": "Deterministic encryption gives the same token for the same input, so a de-identified key still joins; the key stays with you."
+      },
+      "gaps": {
+        "headline": "Right, with gaps",
+        "body": "The result is right; it went late, unchecked, before you looked, or with a weaker fix than the cause called for."
+      },
+      "wrongSent": {
+        "headline": "Share wrong",
+        "body": "Redaction removes the identifier and the join with it."
+      },
+      "notSent": {
+        "headline": "Nothing shipped",
+        "body": "Safe, but the deadline passed without the fix."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      },
+      "altered": {
+        "headline": "Production tables altered",
+        "body": "De-identify in the copy you share. Production tables are not the place to make a dataset safe for a partner."
+      }
+    },
+    "modelReasoning": "The partner needs a join but not the identity, so the email must become a consistent surrogate: deterministic encryption with one key turns equal emails into equal tokens in both tables, and the key stays in the company's KMS. Phone numbers are not needed, so redact them. Scan for identifiers and check the join matches the same rows. Masking to the domain causes false matches; redaction removes the join key; dropping columns in production breaks support and billing."
+  }
+}

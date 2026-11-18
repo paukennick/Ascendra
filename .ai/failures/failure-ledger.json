@@ -19380,6 +19380,179 @@
       "prevention_rules": [],
       "prevention_notes": "Builders run the whole lib/sim suite (under the heavy lock) before reporting, not only their own files.",
       "recurrence_of": "FAIL-2002"
+    },
+    {
+      "id": "FAIL-2500",
+      "date": "2026-11-17",
+      "title": "A sim action id equal to a server-only key name fails the client-leak check",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "documents.test.ts: 'client document leaks nothing server-only' failed for AWSDEA/athena-todays-partition-missing: client document has key \"parts\"",
+      "how_detected": "milestone run of lib/sim/documents.test.ts",
+      "root_cause": "The case factory used the look id 'parts' (SHOW PARTITIONS) as an action id; clientDocument keeps actions keyed by id, and the leak check rejects any key named like a server-only field (parts holds reasoning model answers), so a harmless id looked like a leaked rubric. The depth-cloud test only checked that client.scoring was absent, not the full key set.",
+      "requirement": "REQ-335",
+      "affected": [
+        "backend/supabase/seed/sims/AWSDEA/athena-todays-partition-missing.sim.json",
+        "backend/lib/sim/depth-cloud.test.ts"
+      ],
+      "fix_summary": "Renamed the action to 'showparts' (and its state key), regenerated goldens; the builder's factory now refuses an action id in the server-only key set",
+      "fix_commits": [
+        "cccb0f79"
+      ],
+      "regression_tests": [
+        "backend/lib/sim/depth-cloud.test.ts::no action or state id is a server-only key name",
+        "so the client document's keys stay clean (FAIL-2500)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Regression test over every REQ-335 document; factory assertion.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2501",
+      "date": "2026-11-17",
+      "title": "Literal braces in a terminal command (awk '{print $1}') parsed as a template expression",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "sim:golden: invalid document: actions.dest.effects[1].output: unexpected character \"$\" (at 6) for AZ700/snat-exhaustion-carrier-api-before-cutoff",
+      "how_detected": "golden generation and depth-cloud.test.ts lint check before commit",
+      "root_cause": "Effect output strings are templates where {expr} interpolates; the case spec wrote an awk program with single braces outside the factory's esc() helper, so the engine read '{print $1}' as an expression.",
+      "requirement": "REQ-335",
+      "affected": [
+        "backend/supabase/seed/sims/AZ700/snat-exhaustion-carrier-api-before-cutoff.sim.json"
+      ],
+      "fix_summary": "Wrapped the command in esc() (doubled braces) before the first commit of the case",
+      "fix_commits": [
+        "2d5839f1"
+      ],
+      "regression_tests": [
+        "backend/lib/sim/depth-cloud.test.ts::no lint error; terminal commands are bounded; nothing waits at the start; the client document drops the rubric"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "The existing lint test caught it before commit; the case was never committed broken.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2502",
+      "date": "2026-11-18",
+      "title": "SCS forensics case relied on an unconfirmed Auto Scaling Standby behavior",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The case taught putting a compromised instance in Standby to keep it from scale-in; the EC2 Auto Scaling docs read 2026-11-18 do not say Standby instances are excluded from scale-in termination",
+      "how_detected": "round-2 source verification (vendor docs)",
+      "root_cause": "The fix step was written from memory and marked 'to verify'; the verification pass found only termination protection (which does not stop Auto Scaling) and DetachInstances documented.",
+      "requirement": "REQ-335",
+      "affected": [
+        "backend/supabase/seed/sims/AWSSCS/miner-instance-evidence-before-scale-in.sim.json"
+      ],
+      "fix_summary": "The case now detaches the instance from the group with --should-decrement-desired-capacity (DetachInstances: managed independently, deregistered from target groups, not replaced)",
+      "fix_commits": [
+        "a6f0470a"
+      ],
+      "regression_tests": [],
+      "no_test_reason": "A vendor-behavior fact; checked by reading the EC2 Auto Scaling user guide and API reference, cited in the case's sources. The golden paths still reach the same endings.",
+      "prevention_rules": [],
+      "prevention_notes": "Scoring facts are confirmed against vendor docs before release; unconfirmed ones keep a visible 'to verify' in the source note.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2503",
+      "date": "2026-11-18",
+      "title": "Redshift case said a reboot rolls back the load; the docs say in-progress transactions are interrupted and must be resubmitted",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Harm-trap wording stated a rollback the REBOOT_CLUSTER reference does not describe",
+      "how_detected": "round-2 source verification",
+      "root_cause": "Written from general knowledge and marked 'to verify'.",
+      "requirement": "REQ-335",
+      "affected": [
+        "backend/supabase/seed/sims/AWSDEA/redshift-idle-transaction-blocks-load.sim.json"
+      ],
+      "fix_summary": "Reworded to 'interrupts the load, which must be resubmitted'",
+      "fix_commits": [
+        "a6f0470a"
+      ],
+      "regression_tests": [],
+      "no_test_reason": "Wording of a vendor fact; the decision taught and the goldens are unchanged.",
+      "prevention_rules": [],
+      "prevention_notes": "Scoring facts are confirmed against vendor docs before release; unconfirmed ones keep a visible 'to verify'.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2504",
+      "date": "2026-11-18",
+      "title": "ACE and Digital Leader outline findings came from stale HTML guide pages",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "22.39 reported that the ACE guide has five sections and Digital Leader weights of about 16-17%, prompting a request to change the seed",
+      "how_detected": "round-2 check of the PDFs before changing the seed",
+      "root_cause": "The HTML guide pages Google serves show older outlines; the exam guide PDFs linked from the certification pages are current and match the seed. The first pass compared against the HTML pages only.",
+      "requirement": "REQ-335",
+      "affected": [
+        "docs/sims.md",
+        "backend/supabase/seed/sims/GCPACE",
+        "backend/supabase/seed/sims/GCPCDL"
+      ],
+      "fix_summary": "Seed unchanged; bands cite the PDFs (read 2026-11-18); the finding was removed and replaced with a note that the HTML pages are stale",
+      "fix_commits": [
+        "3675c96f"
+      ],
+      "regression_tests": [],
+      "no_test_reason": "A source-reading error, not code; prevention is to read the guide linked from the certification page before reporting an outline difference.",
+      "prevention_rules": [],
+      "prevention_notes": "Read the exam guide linked from the certification page (PDF where Google links one) before reporting an outline difference; note when the HTML page differs.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2505",
+      "date": "2026-11-18",
+      "title": "A reworded action label exceeded the 200-character schema limit",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "documents.test.ts 'seeded sim documents pass the linter' failed for AWSSCS/miner-instance-evidence-before-scale-in and its DOP band: actions.preserve.label too big (208 characters)",
+      "how_detected": "documents.test.ts milestone run",
+      "root_cause": "The verification pass lengthened the fix label (Standby to detach wording) and the builder's factory did not check label length; depth-cloud.test.ts does not run the full schema check.",
+      "requirement": "REQ-335",
+      "affected": [
+        "backend/supabase/seed/sims/AWSSCS/miner-instance-evidence-before-scale-in.sim.json"
+      ],
+      "fix_summary": "Label shortened to 128 characters; the factory now refuses labels over 200 characters",
+      "fix_commits": [
+        "1e1bcc6c"
+      ],
+      "regression_tests": [
+        "backend/lib/sim/documents.test.ts::seeded sim documents pass the linter"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Factory assertion on label length; documents.test.ts covers every seeded document.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2506",
+      "date": "2026-11-18",
+      "title": "depth-cloud.test.ts failed tsc: an always-defined function used as a condition",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "tsc --noEmit: lib/sim/depth-cloud.test.ts(179,49): error TS2774",
+      "how_detected": "tsc at the end of round 2",
+      "root_cause": "The 'list is not empty' test referenced the until helper in a boolean to keep it used; round 1 ran the tests but not tsc.",
+      "requirement": "REQ-335",
+      "affected": [
+        "backend/lib/sim/depth-cloud.test.ts"
+      ],
+      "fix_summary": "typeof until === 'function' check",
+      "fix_commits": [
+        "fd497d2e"
+      ],
+      "regression_tests": [
+        "npm run typecheck (tsc --noEmit)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "tsc runs before handoff for any change to test files.",
+      "recurrence_of": ""
     }
   ]
 }

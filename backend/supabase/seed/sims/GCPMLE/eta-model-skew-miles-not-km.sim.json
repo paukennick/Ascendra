@@ -1,0 +1,876 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "eta-model-skew-miles-not-km",
+  "title": "Monitoring alert: delivery ETAs drift after a mobile app release",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "mle@cloudshell:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "16:10 Model Monitoring: skew alert trip_distance (JS divergence 0.41 > 0.1) since 15:50; late-delivery complaints up 5x",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "17:00: evening rush, ETAs wrong",
+          "when": "not isNull(missAt)",
+          "at": "timeAt(missAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "17:00: evening rush, ETAs accurate",
+          "when": "not isNull(okAt)",
+          "at": "timeAt(okAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "app",
+          "label": "Driver app 5.2 (78% of drivers)",
+          "spokenLabel": "the new app",
+          "kind": "sends trip_distance",
+          "status": "{fixed and not harmed ? \"in miles, converted at the endpoint\" : \"in miles\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "pre",
+          "label": "Endpoint preprocessing",
+          "spokenLabel": "the preprocessing step",
+          "kind": "custom container",
+          "status": "{fixed and not harmed ? \"converts app 5.2's miles to km\" : \"passes trip_distance through\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "model",
+          "label": "ETA model v14",
+          "spokenLabel": "the ETA model",
+          "kind": "trained on km",
+          "status": "{harmed ? \"retrained on mixed units\" : fixed ? \"predicting normally\" : \"under-predicting\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "app",
+          "to": "pre",
+          "label": "trip_distance",
+          "status": "{fixed and not harmed ? \"converted\" : \"miles as km\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Monitoring for training-serving skew, data drift, concept drift, and feature attribution drift",
+  "secondaryObjectives": [
+    "Configuring Model Monitoring for continuous evaluation of production models",
+    "Ensuring consistent data preprocessing between training and serving"
+  ],
+  "sources": [
+    {
+      "cite": "Google Cloud, Professional Machine Learning Engineer certification exam guide (as of June 1, 2026): low-code AI ~13%, collaborating on data and models ~16%, scaling prototypes into ML models ~21%, serving and scaling ~20%, automating pipelines ~18%, monitoring ~13%",
+      "checkedAt": "2026-11-17",
+      "url": "https://services.google.com/fh/files/misc/professional_machine_learning_engineer_exam_guide_english_new.pdf",
+      "note": "Read through a summarizing fetch on 2026-11-17. Bullets quoted there under section 3: 'Troubleshooting ML model training failures', 'Evaluation of compute and accelerator options (e.g., CPU, GPU, and TPU)'. The guide names 'Agent Platform' (Gemini Enterprise Agent Platform), not Vertex AI; the gcloud ai commands in the scenario are authored renderings.. (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "TensorFlow, 'Get started with TensorFlow Data Validation' (training-serving skew)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.tensorflow.org/tfx/data_validation/get_started",
+      "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: skew between training and serving data is detected with a skew_comparator on the schema and validate_statistics(statistics=train_stats, schema=schema, serving_statistics=serving_stats); 'L-infinity norm will only detect skew for the categorical features ... specifying a jensen_shannon_divergence threshold ... would detect skew for both numeric and categorical features'; if skew is real 'further investigation is necessary as this could have a direct impact on model performance'. The platform's Model Monitoring alert text is an authored rendering."
+    }
+  ],
+  "brief": {
+    "situation": "You are the ML engineer at Parcelo, a fictional delivery company. The ETA model serves every delivery estimate. At 15:50 Model Monitoring raised a training-serving skew alert on the feature trip_distance. Customer complaints say ETAs are far too short. Mobile app 5.2 rolled out to most drivers this afternoon. The evening rush, 40% of daily orders, starts at 17:00.",
+    "handover": [
+      "The model was trained on trip_distance in kilometers.",
+      "The data science lead suggests 'just retrain on the last week of data'."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the driver app versions, the feature they send and the model's training distribution.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "16:10",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineAt": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "The evening rush starts at 17:00, 50 minutes after the page."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "harmed": {
+      "type": "bool",
+      "init": false
+    },
+    "tried": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "distAt": {
+      "type": "time",
+      "init": null
+    },
+    "releaseAt": {
+      "type": "time",
+      "init": null
+    },
+    "perfAt": {
+      "type": "time",
+      "init": null
+    },
+    "attribAt": {
+      "type": "time",
+      "init": null
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "missAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "units",
+        "concept",
+        "model"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "dist",
+        "release",
+        "perf",
+        "attrib",
+        "convert",
+        "contract",
+        "retrain",
+        "threshold",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "dist": {
+      "label": "Compare trip_distance in serving vs training, by app version",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(distAt)",
+          "then": [
+            {
+              "set": "distAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "mle@cloudshell:~$ bq query 'SELECT app_version, APPROX_QUANTILES(trip_distance, 4) FROM serving.requests WHERE ts > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 2 HOUR) GROUP BY 1'\n{fixed and not harmed ? \"5.1  [0.4, 2.9, 5.1, 8.8, 31]\n5.2  [0.4, 2.8, 5.0, 8.9, 30] (converted)\" : \"5.1  [0.4, 2.9, 5.1, 8.8, 31]\n5.2  [0.2, 1.8, 3.2, 5.5, 19]\"}\ntraining (km)  [0.4, 3.0, 5.2, 8.7, 32]"
+        },
+        {
+          "finding": "App 5.2's distances are about 0.62 times the others': miles, read by the model as kilometers."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "release": {
+      "label": "Read app 5.2's release notes and request schema",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(releaseAt)",
+          "then": [
+            {
+              "set": "releaseAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "mle@cloudshell:~$ grep -n trip_distance mobile/CHANGELOG.md\n5.2: 'trip_distance now uses the device locale unit (mi for US)'"
+        },
+        {
+          "finding": "The release changed the unit on US devices without telling the model's owners."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "perf": {
+      "label": "Prediction error by app version (completed deliveries today)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(perfAt)",
+          "then": [
+            {
+              "set": "perfAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "mle@cloudshell:~$ bq query ... MAE minutes by app_version\n{fixed and not harmed ? \"5.1  4.1 min\n5.2  4.3 min\" : \"5.1  4.0 min\n5.2  17.6 min (predictions too short)\"}"
+        },
+        {
+          "finding": "Only app 5.2 requests are wrong: it is the input, not the world."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "attrib": {
+      "label": "Feature attribution drift for trip_distance",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(attribAt)",
+          "then": [
+            {
+              "set": "attribAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "mle@cloudshell:~$ Model Monitoring: feature attribution trip_distance 0.52 (baseline 0.55)"
+        },
+        {
+          "finding": "The model still relies on distance the same way: the relationship did not change, the unit did."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "convert": {
+      "label": "Deploy the preprocessing fix: convert trip_distance from miles to km for app 5.2 requests with locale units 'mi'",
+      "group": "Fix",
+      "available": "not busy and (not fixed and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "fixed",
+          "to": "true"
+        },
+        {
+          "output": "mle@cloudshell:~$ git diff serving/preprocess.py\n+  if req.app_version >= '5.2' and req.distance_unit == 'mi':\n+      req.trip_distance *= 1.609344\nmle@cloudshell:~$ gcloud ai endpoints deploy-model eta-ep --model=eta-v14 --container-image-uri=.../eta-serve:pre-1.4.1 --traffic-split=0=100,<old>=0 ... (same model, new container)"
+        },
+        {
+          "log": "The model again receives kilometers from every app version; its predictions return to normal without retraining.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "contract": {
+      "label": "Add unit to the request contract, a schema check on trip_distance per app version, and tell the mobile team",
+      "group": "Fix",
+      "available": "not busy and (not planned and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "mle@cloudshell:~$ git commit -am 'request schema: trip_distance_km required; reject unknown units'\n(ticket MOB-2207: send trip_distance_km explicitly; monitoring skew threshold kept at 0.1)"
+        },
+        {
+          "log": "The unit is part of the contract, so the next client change is rejected at the door instead of skewing the model.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "retrain": {
+      "label": "Retrain on the last 7 days of serving data, as the lead suggests",
+      "group": "Fix",
+      "available": "not busy and (not harmed)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "harmed",
+          "to": "true"
+        },
+        {
+          "output": "mle@cloudshell:~$ gcloud ai ... pipeline-jobs create --template eta-train --parameter window=7d\n(run eta-train-1117 started; deploys on success)"
+        },
+        {
+          "log": "The new model learns from a mix of miles and kilometers labeled as one unit: it bakes the bug in and gets worse for everyone.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "threshold": {
+      "label": "Raise the skew alert threshold from 0.1 to 0.5",
+      "group": "Fix",
+      "available": "not busy and (not harmed and not tried)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tried",
+          "to": "true"
+        },
+        {
+          "output": "mle@cloudshell:~$ gcloud ai model-monitoring-jobs update ... --feature-thresholds=trip_distance=0.5\n(updated)"
+        },
+        {
+          "log": "The alert goes quiet; the ETAs stay wrong.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Check skew and error by app version after the change",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "mle@cloudshell:~$ Model Monitoring skew (last 15 min); MAE by app_version (last 15 min)\n{harmed ? \"trip_distance JS 0.29 (new model on mixed units)\n5.1 9.8 min, 5.2 11.2 min\" : fixed ? \"trip_distance JS 0.03\n5.1 4.1 min, 5.2 4.3 min\" : \"trip_distance JS 0.41\n5.2 17.6 min\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "units",
+                  "label": "App 5.2 sends trip_distance in miles; the model was trained on kilometers"
+                },
+                {
+                  "value": "concept",
+                  "label": "Traffic patterns changed (concept drift)"
+                },
+                {
+                  "value": "model",
+                  "label": "Model v14 degraded over time"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-335)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "17:00: the rush gets accurate ETAs.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "missAt",
+              "to": "t"
+            },
+            {
+              "log": "17:00: 40% of the day's orders get ETAs 40% too short.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: what the skew alert meant, what you changed, and why not retrain.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Meant",
+          "criteria": "Splits the feature by source.",
+          "modelAnswer": "Only app 5.2's trip_distance was low by a factor of about 0.62: the release switched US devices to miles, which the model, trained on kilometers, read as shorter trips."
+        },
+        {
+          "label": "Changed",
+          "criteria": "Fixes preprocessing for serving.",
+          "modelAnswer": "The endpoint's preprocessing converts app 5.2's miles to kilometers; error by version is back to normal."
+        },
+        {
+          "label": "Not retrain",
+          "criteria": "Knows skew from drift.",
+          "modelAnswer": "Retraining on a week of mixed units would teach the model the bug. The attribution was unchanged, so the relationship had not drifted; the input had. The unit is now in the request contract."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The evening rush starts at 17:00, 50 minutes after the page."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: The model was retrained on mixed units."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed and not harmed",
+      "class": "harm",
+      "rationale": "Closing with app 5.2's miles still read as kilometers leaves the evening rush with wrong ETAs.",
+      "source": {
+        "cite": "TensorFlow, 'Get started with TensorFlow Data Validation' (training-serving skew)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.tensorflow.org/tfx/data_validation/get_started",
+        "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: skew between training and serving data is detected with a skew_comparator on the schema and validate_statistics(statistics=train_stats, schema=schema, serving_statistics=serving_stats); 'L-infinity norm will only detect skew for the categorical features ... specifying a jensen_shannon_divergence threshold ... would detect skew for both numeric and categorical features'; if skew is real 'further investigation is necessary as this could have a direct impact on model performance'. The platform's Model Monitoring alert text is an authored rendering."
+      }
+    }
+  },
+  "endings": {
+    "bakedIn": {
+      "label": "Retrained on the bug",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and harmed",
+      "narrative": "Retraining on a week of mixed units produced a model that is wrong for everyone."
+    },
+    "rushWrong": {
+      "label": "Evening rush with wrong ETAs",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(missAt)",
+      "narrative": "At 17:00 app 5.2 still sent miles that the model read as kilometers."
+    },
+    "consistent": {
+      "label": "Units consistent, contract added",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(distAt) and not isNull(releaseAt) and not isNull(verifiedAt) and causeDoc == \"units\"",
+      "narrative": "The endpoint converts app 5.2's miles, ETAs are accurate, and the unit is now part of the request contract."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "ETAs are accurate, but the contract, the mobile ticket, the check or the record was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "bakedIn",
+    "rushWrong",
+    "consistent",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Compared the feature by app version and read the release",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(distAt) and not isNull(releaseAt)",
+            "score": "met",
+            "why": "The key evidence, read before changing anything."
+          },
+          {
+            "when": "not isNull(distAt) or not isNull(releaseAt) or not isNull(perfAt) or not isNull(attribAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "ETAs accurate by 17:00 without retraining on skewed data",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and not harmed and isNull(missAt)",
+            "score": "met",
+            "why": "The right change, in time, without harm."
+          },
+          {
+            "when": "fixed or harmed",
+            "score": "partial",
+            "why": "{harmed ? \"The model was retrained on mixed units.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never removed."
+          }
+        ]
+      },
+      {
+        "id": "lasting",
+        "label": "Unit in the request contract; error checked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The lasting step taken and the result checked."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"units\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record names the wrong cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes that caused harm",
+        "value": "harmed ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "16:10-16:14",
+        "text": "5.2's distances 0.62x; release notes: device locale units; error only on 5.2; attribution unchanged."
+      },
+      {
+        "at": "16:14-16:22",
+        "text": "Preprocessing converts miles; contract and mobile ticket."
+      },
+      {
+        "at": "16:22-16:24",
+        "text": "Skew 0.03; error 4.3 min on 5.2."
+      }
+    ],
+    "debrief": {
+      "bakedIn": {
+        "headline": "Skew is a data bug, not a reason to retrain",
+        "body": "The world did not change; the input's unit did. Retraining on skewed data teaches the model the bug. Fix the input, then monitor."
+      },
+      "rushWrong": {
+        "headline": "The alert was right",
+        "body": "A skew alert on one feature after a client release points at the client. Compare the feature by version and fix the preprocessing."
+      },
+      "consistent": {
+        "headline": "Good: consistent preprocessing",
+        "body": "You split the skewed feature by app version, found the unit change, fixed the preprocessing without retraining, checked the error, and made the unit part of the contract."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the evidence before the change, the lasting step, the check, or the cause in the record."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The skew is on one feature and only for the new app version, whose distances are about 0.62 times the others': miles read as kilometers. The model's reliance on distance has not changed, so this is training-serving skew from a client change, not drift. Fix the serving preprocessing to convert, check error by version, and make the unit part of the contract. Retraining on mixed units bakes the bug in; raising the threshold hides it."
+  }
+}

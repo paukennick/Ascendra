@@ -12435,6 +12435,43 @@
         "CHANGELOG.md"
       ],
       "risk_notes": []
+    },
+    {
+      "id": "REQ-335",
+      "category": "content",
+      "title": "Depth sims for the AWS, Azure and Google Cloud courses (depth-cloud round of 2026-11-17)",
+      "description": "Nick (2026-11-17, 19:51 PT): courses still have one or two sims; build them out robustly. Target per course: every unit with a fitting objective gets a sim whose main objective is in it; under 60 objectives at least 4 sims, 60 or more at least 8; heaviest units first; purpose-written cases for each course's top two domains preferred over cross-level bands; a unit where nothing fits is recorded as no fit. Scope: every AWS, Azure (AZ*, DP*, AI200, AI901, PL300, SC500) and Google Cloud course, fewest sims first (AWSDEA, AWSSAP, AZ120, AZ140, DP300, DP900, GCPDBE, GCPMLE, GCPNET, GCPSEC), then the 2s and 3s. Existing screens only (terminal, security console, data console, sandbox report, service desk); no engine, schema or migration change. Sources read with dates; details from memory marked to verify.",
+      "priority": "high",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/",
+        "backend/lib/sim/documents.ts",
+        "backend/lib/sim/depth-cloud.ts",
+        "backend/lib/sim/depth-cloud.test.ts",
+        "backend/scripts/sim-golden/",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "each band and scenario is on an active objective of its own course with no other sim of that course on it",
+        "each document carries its course outline read 2026-11-17 as its first source",
+        "a band keeps its base's actions endings ending order and golden outcomes",
+        "each new scenario lints with zero errors and replays its goldens",
+        "goldens reach every ending but time_up and rate Good Mediocre and Bad",
+        "tests select documents by slug",
+        "a behavior test per new case checks the decision it teaches",
+        "a per-course before and after table with units covered and no-fit units in docs/sims.md 22.39"
+      ],
+      "validation_required": [
+        "lib/sim/depth-cloud.test.ts",
+        "lib/sim/documents.test.ts run alone",
+        "sims:lint",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": []
     }
   ]
 }

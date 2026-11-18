@@ -1,0 +1,913 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "hotel-reviews-hide-staff-complaints",
+  "title": "Guest feedback: staff complaints vanish inside positive reviews",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "Guest feedback pipeline (Azure Language sentiment analysis), Saltmarsh Hotels (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Guest experience manager, Leo Fontaine",
+          "text": "Front-desk complaints are up on the review sites, but our dashboard says 92% positive and shows nothing about staff. The regional managers meet at 11:00.",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "seen",
+          "label": "Pattern",
+          "text": "Mixed reviews count as positive and complaints have no target.",
+          "when": "not isNull(lookAt) and not fixed",
+          "severity": "warning"
+        },
+        {
+          "id": "lock",
+          "label": "Regional meeting",
+          "text": "11:00: the managers met with the old dashboard.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [],
+      "code": [
+        {
+          "id": "code",
+          "label": "feedback pipeline: the request",
+          "language": "Request settings",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "kind: SentimentAnalysis; parameters: default; dashboard: document label (mixed counted as positive)",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c1",
+              "text": "kind: SentimentAnalysis; parameters: opinionMining = true; dashboard: negative assessments by target",
+              "when": "fix == \"opinion\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c2",
+              "text": "kind: SentimentAnalysis; parameters: default; dashboard: sentence labels (negative sentences counted)",
+              "when": "fix == \"sentence\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c3",
+              "text": "kind: KeyPhraseExtraction; dashboard: top key phrases",
+              "when": "fix == \"phrases\"",
+              "mark": "\"warning\""
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Regional meeting",
+          "value": "11:00"
+        }
+      ]
+    }
+  },
+  "objective": "Common text analysis techniques: keyword extraction, entity detection, sentiment analysis, and summarization",
+  "secondaryObjectives": [
+    "Considerations for transparency in an AI solution"
+  ],
+  "sources": [
+    {
+      "cite": "Microsoft Learn, Study guide for Exam AI-901: Microsoft Azure AI Fundamentals (page last updated 2026-07-13; skills as of April 15, 2026): identify AI concepts and capabilities 40-45%, implement AI solutions by using Microsoft Foundry 55-60%",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/ai-901",
+      "note": "Read through a summarizing fetch on 2026-11-17. Bullets quoted there: 'Create effective system and user prompts for generative AI models', 'Deploy a model and interact with it in the Foundry portal', 'Create a lightweight chat client application by using the Foundry SDK'. (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "Microsoft Learn, How to use Sentiment Analysis and Opinion Mining (Azure Language)",
+      "checkedAt": "2026-11-18",
+      "url": "https://learn.microsoft.com/en-ca/azure/ai-services/language-service/sentiment-opinion-mining/how-to/call-api",
+      "note": "Read through a summarizing fetch on 2026-11-18. Labels positive, negative and neutral at sentence and document level; 'At the document level, the mixed sentiment label also can be returned' when there is at least one negative and one positive sentence; opinion mining 'locates targets (aspects) in the text, and their associated assessments (opinions) and sentiments. Sentiment Analysis might only report a negative sentiment'; 'you must include the opinionMining=true flag'. The overview page (read the same day) says the feature retires from Azure Language on March 31, 2029, with Microsoft Foundry recommended for new projects."
+    },
+    {
+      "cite": "Author's scenario (REQ-335)",
+      "checkedAt": "2026-11-18",
+      "note": "Every organization, person, count and deadline is invented teaching data; tool output is an authored rendering in the tool style."
+    }
+  ],
+  "brief": {
+    "situation": "You run the guest feedback pipeline at Saltmarsh Hotels (fictional). Reviews go through sentiment analysis and the dashboard counts document labels. Reviews like 'The room was great, but the front desk was rude' show as positive or mixed, and nothing says what guests disliked. The regional managers meet at 11:00. It is 10:05.",
+    "handover": [
+      "The pipeline sends kind SentimentAnalysis with default parameters.",
+      "The dashboard counts documents labeled positive, and treats mixed as positive."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: look, change, check or ship. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "10:05",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-335)",
+        "checkedAt": "2026-11-18",
+        "note": "The deadline is an invented teaching value."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "opinion",
+        "sentence",
+        "phrases"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "c0",
+        "c1",
+        "c2"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "k0",
+        "k1",
+        "k2"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "(fix == \"opinion\")"
+    },
+    "correct": {
+      "expr": "(fix == \"opinion\" or fix == \"sentence\")"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "look",
+        "change",
+        "check",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "look": {
+      "label": "Run five recent reviews and read the document, sentence and target results",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "output": "Targets with negative assessments: front desk (rude, slow) x31, check-in (long) x12, breakfast (cold) x5"
+            }
+          ],
+          "else": [
+            {
+              "output": "Review 1: document mixed (sentences: positive, negative)\nReview 2: document positive\nDashboard: 92% positive; no targets"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "finding": "Opinion mining ties each assessment to its target: the front desk stands out."
+            }
+          ],
+          "else": [
+            {
+              "finding": "Document labels hide a negative sentence inside a positive review, and nothing names what the complaint is about."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Change the analysis and the dashboard",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "opinion",
+              "label": "Turn on opinion mining and chart negative assessments by target"
+            },
+            {
+              "value": "sentence",
+              "label": "Count negative sentences instead of documents"
+            },
+            {
+              "value": "phrases",
+              "label": "Switch to key phrase extraction and chart the top phrases"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: {f}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "check": {
+      "label": "Spot-check 20 reviews against the new dashboard numbers",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"opinion\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "Last 30 days: front desk 31 negative assessments (up from 9), check-in 12\nSpot check of 20 reviews: targets and assessments correct"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"sentence\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "Last 30 days: 214 negative sentences (up 40%)\nNo breakdown by what guests disliked"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"phrases\"",
+              "then": [
+                {
+                  "output": "Top phrases: room, front desk, breakfast, view\nNo positive or negative signal"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "Dashboard 92% positive; 11 of 20 reviews contain a complaint"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Publish the dashboard for the regional meeting",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "if": "correct",
+          "then": [
+            {
+              "output": "Published: front-desk complaints up from 9 to 31 this month."
+            }
+          ],
+          "else": [
+            {
+              "output": "Published a dashboard that still hides what guests dislike."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why complaints were invisible",
+              "options": [
+                {
+                  "value": "c0",
+                  "label": "Document labels hide negative sentences in positive reviews, and nothing named the target"
+                },
+                {
+                  "value": "c1",
+                  "label": "The review sites changed format"
+                },
+                {
+                  "value": "c2",
+                  "label": "Sentiment analysis does not support English"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know it is right",
+              "options": [
+                {
+                  "value": "k0",
+                  "label": "A 20-review spot check matches the dashboard"
+                },
+                {
+                  "value": "k1",
+                  "label": "The chart shows more red"
+                },
+                {
+                  "value": "k2",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-335)",
+        "checkedAt": "2026-11-18",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "11:00: the managers met with the old dashboard.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the guest experience manager: why complaints were hidden, what you changed, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "The dashboard counted document labels, and a review with one negative sentence among positive ones is mixed or positive; nothing identified what the complaint was about.",
+          "modelAnswer": "Document label only; mixed counted as positive."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "Turned on opinion mining, which returns targets with their assessments and sentiment, and charted negative assessments by target; sentence counts show volume without the subject; key phrases carry no sentiment.",
+          "modelAnswer": "opinionMining = true; by target."
+        },
+        {
+          "label": "How you know",
+          "criteria": "A 20-review spot check matches, and the front desk stands out.",
+          "modelAnswer": "31 negative front-desk assessments."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-335)",
+          "checkedAt": "2026-11-18",
+          "note": "The case's deadline; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Shipping nothing ships nothing wrong, but the deadline passes without the fix.",
+      "source": {
+        "cite": "Author's scenario (REQ-335)",
+        "checkedAt": "2026-11-18",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "wrongSent": {
+      "label": "Dashboard still hides complaints",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "Managers see topics or counts but not that the front desk is the problem."
+    },
+    "notSent": {
+      "label": "Nothing shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "Nothing wrong was published, but the meeting used the old dashboard."
+    },
+    "right": {
+      "label": "Right, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and fixed and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "Managers see front-desk complaints tripled and act on staffing."
+    },
+    "gaps": {
+      "label": "Right, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The result is right, but it went late, unchecked, before you looked, or with a weaker fix."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Read document, sentence and target results before changing the pipeline",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked before acting."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Turned on opinion mining and reported by target",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed",
+            "score": "met",
+            "why": "Opinion mining with assessments by target."
+          },
+          {
+            "when": "fix == \"sentence\"",
+            "score": "partial",
+            "why": "Complaints are counted, but not what they are about."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{fix == \"phrases\" ? \"Key phrases show topics without sentiment: 'front desk' appears in praise and complaints alike.\" : \"The dashboard still counts document labels and names no target.\"}"
+          }
+        ]
+      },
+      {
+        "id": "shipped",
+        "label": "Shipped nothing wrong",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sentAs != \"wrong\"",
+            "score": "met",
+            "why": "Nothing wrong shipped."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Shipped a wrong result."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Spot check passed after the last change, before the meeting",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "Checked after the last change, before shipping."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Checked, but it failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"c0\" and checkDoc == \"k0\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"c0\" or checkDoc == \"k0\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rightK",
+        "label": "Right result shipped",
+        "value": "sentAs == \"right\" ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "altered",
+        "label": "Rows changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until shipped",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 14"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "Mixed reviews counted positive; no targets."
+      },
+      {
+        "at": "4-9 min",
+        "text": "Opinion mining; negative assessments by target."
+      },
+      {
+        "at": "9-12 min",
+        "text": "Spot check of 20 reviews matches."
+      },
+      {
+        "at": "12-14 min",
+        "text": "Publish."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: the technique that answers the question",
+        "body": "Who guests complain about is an aspect-level question; opinion mining returns targets and their assessments."
+      },
+      "gaps": {
+        "headline": "Right, with gaps",
+        "body": "The result is right; it went late, unchecked, before you looked, or with a weaker fix than the cause called for."
+      },
+      "wrongSent": {
+        "headline": "Still hidden",
+        "body": "Key phrase extraction finds topics but not whether guests liked them."
+      },
+      "notSent": {
+        "headline": "Nothing shipped",
+        "body": "Safe, but the deadline passed without the fix."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "The managers need to know what guests dislike, which document labels cannot show: a review with one negative sentence is mixed, and the dashboard counted mixed as positive. Opinion mining returns targets and their assessments with sentiment, so negative assessments can be charted by target. Check against a sample of reviews. Sentence counts show more complaints but not about what; key phrases carry no sentiment."
+  }
+}

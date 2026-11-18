@@ -1,0 +1,875 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "migration-wave-blocked-by-vm-family-quota",
+  "title": "Migration wave: the HANA VMs fail to deploy on quota, hours before the export",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "basis@cloudshell:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "15:30 deployment sap-wave3-db: FAILED (2 of 2 VMs); export window opens at 18:00",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "18:00: wave postponed",
+          "when": "not isNull(missAt)",
+          "at": "timeAt(missAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "18:00: export started",
+          "when": "not isNull(okAt)",
+          "at": "timeAt(okAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "sub",
+          "label": "Subscription sap-prod (West Europe)",
+          "spokenLabel": "the subscription",
+          "kind": "regional vCPU quota 350",
+          "status": "{harmed ? \"HANA in North Europe\" : fixed ? \"M-series family quota 256\" : \"M-series family quota 0 of 0 free\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "app",
+          "label": "App servers (6 x E16ds)",
+          "spokenLabel": "the application servers",
+          "kind": "deployed",
+          "status": "{fixed and not harmed ? \"running\" : \"running\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "db",
+          "label": "HANA VMs (2 x M64s)",
+          "spokenLabel": "the HANA VMs",
+          "kind": "128 vCPUs needed",
+          "status": "{fixed and not harmed ? \"deployed\" : \"not deployed\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "app",
+          "to": "db",
+          "label": "SAP app to database",
+          "status": "{fixed and not harmed ? \"same region, same zone\" : \"no database\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Assessing constraints imposed by subscription models and quota limits",
+  "secondaryObjectives": [
+    "Choosing an appropriate SAP workload migration strategy and tools"
+  ],
+  "sources": [
+    {
+      "cite": "Microsoft Learn, Study guide for Exam AZ-120: Planning and Administering Azure for SAP Workloads (page last updated 2026-02-22; skills as of April 17, 2026): migrate 25-30%, design and implement infrastructure 25-30%, high availability and disaster recovery 20-25%, maintain 20-25%",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/credentials/certifications/resources/study-guides/az-120",
+      "note": "Read through a summarizing fetch on 2026-11-17. Bullets quoted there under 'Design and implement networking for SAP on Azure virtual machines': 'Implement Accelerated Networking for Azure virtual machines', 'Design and configure proximity placement groups', 'Design networking to meet SAP workload latency requirements'. The two top domains are tied; this case is on the infrastructure domain. (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "Microsoft Learn, Azure Quotas: Increase VM-family vCPU quotas",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/azure/quotas/per-vm-quota-requests",
+      "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: standard vCPU quotas are 'enforced at two tiers, for each subscription, in each region': 'the total regional vCPU quota' and 'the VM-family vCPU quota'; request an increase from Quotas, Compute, New Quota Request; 'If your request to increase your VM-family quota is approved, Azure will automatically increase the regional vCPU quota'; review 'usually happens within a few minutes', otherwise a support request; 'Insufficient quota - family limit'. The deployment error text is an authored rendering; the M-series family name is the author's (the quota page does not list family names).; that SAP application servers and the database must sit close together for latency is from the SAP planning guide as read by the AZ-120 case of 2026-11-17."
+    }
+  ],
+  "brief": {
+    "situation": "You are the Azure lead for Pell & Hart, a fictional distributor migrating SAP S/4HANA to Azure (West Europe). Tonight's wave: the target landscape deploys this afternoon, and at 18:00 the database export from the data center starts. The deployment of the two HANA VMs (M64s) just failed. The application server VMs deployed fine.",
+    "handover": [
+      "The subscription is new for this program; nobody has requested quota for it yet.",
+      "If the export does not start by 18:00, the wave moves four weeks and the data center contract is extended."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the subscription's quotas in West Europe and the VMs the wave needs.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "15:30",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineAt": {
+      "value": 9000,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "The database export starts at 18:00, 150 minutes after the failure; the HANA VMs and their preparation need about an hour."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "harmed": {
+      "type": "bool",
+      "init": false
+    },
+    "tried": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "errAt": {
+      "type": "time",
+      "init": null
+    },
+    "usageAt": {
+      "type": "time",
+      "init": null
+    },
+    "planAt": {
+      "type": "time",
+      "init": null
+    },
+    "supportAt": {
+      "type": "time",
+      "init": null
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "missAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "quota",
+        "regional",
+        "template"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "err",
+        "usage",
+        "plan",
+        "support",
+        "request",
+        "checklist",
+        "region",
+        "retry",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "err": {
+      "label": "az deployment group show (sap-wave3-db): error details",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(errAt)",
+          "then": [
+            {
+              "set": "errAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "basis@cloudshell:~$ az deployment group show -g rg-sap-prd -n sap-wave3-db --query properties.error.details[0].message -o tsv\n{fixed and not harmed ? \"(deployment succeeded)\" : \"Operation could not be completed as it results in exceeding approved standardMSFamily Cores quota. Location: westeurope, Current Limit: 0, Current Usage: 0, Additional Required: 128.\"}"
+        },
+        {
+          "finding": "The M-series family has no quota at all in this subscription and region: the deployment needs 128 vCPUs of it."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "usage": {
+      "label": "az vm list-usage --location westeurope (families in use)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(usageAt)",
+          "then": [
+            {
+              "set": "usageAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "basis@cloudshell:~$ az vm list-usage --location westeurope --query \"[?contains(name.value,'MS') || name.value=='cores']\" -o table\n{fixed and not harmed ? \"Total Regional vCPUs   224 / 350\nStandard MS Family vCPUs   128 / 256\" : \"Total Regional vCPUs   96 / 350\nStandard MS Family vCPUs   0 / 0\"}"
+        },
+        {
+          "finding": "There is room in the regional total; the family tier is the limit. Both tiers must have room."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "plan": {
+      "label": "Read the wave's sizing sheet",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(planAt)",
+          "then": [
+            {
+              "set": "planAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "basis@cloudshell:~$ cat waves/wave3-sizing.md | head -4\nHANA PRD: M64s (1 TiB), certified; HSR pair, zones 1 and 2\nApp: 6 x E16ds_v5 (deployed)\nQuota check: (blank)\nRegion: West Europe (app and DB together, ExpressRoute to the data center)"
+        },
+        {
+          "finding": "The sizing is right and the quota check was never done for this subscription."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "support": {
+      "label": "Check open quota requests and the support plan",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(supportAt)",
+          "then": [
+            {
+              "set": "supportAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "basis@cloudshell:~$ az quota request status list --scope /subscriptions/.../providers/Microsoft.Compute/locations/westeurope -o table\n{fixed and not harmed ? \"standardMSFamily  256  Succeeded  (15:3x)\" : \"(no requests)\"}\nSupport plan: Professional Direct"
+        },
+        {
+          "finding": "Nothing was ever requested; the support plan allows a fast escalation if the request is not fulfilled automatically."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "request": {
+      "label": "Request standardMSFamily vCPUs = 256 in West Europe now (escalate through Professional Direct if not fulfilled), then re-run the deployment",
+      "group": "Fix",
+      "available": "not busy and (not fixed and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "fixed",
+          "to": "true"
+        },
+        {
+          "output": "basis@cloudshell:~$ az quota create --resource-name standardMSFamily --scope /subscriptions/.../providers/Microsoft.Compute/locations/westeurope --limit-object value=256 --resource-type dedicated\nprovisioningState: Succeeded\nbasis@cloudshell:~$ az deployment group create -g rg-sap-prd -n sap-wave3-db --template-file hana.bicep --parameters @wave3.json\nprovisioningState: Succeeded (2 VMs, 16:02)"
+        },
+        {
+          "log": "The family tier now has room (256 covers both HANA VMs and a spare); the regional total rises with it. The HANA VMs deploy in West Europe next to the application servers.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "checklist": {
+      "label": "Request quota for every remaining wave's VM families now, and add a quota check to the wave checklist",
+      "group": "Fix",
+      "available": "not busy and (not planned and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "basis@cloudshell:~$ ./quota-plan --waves 4-7 --region westeurope\nstandardMSFamily +256, standardEDSv5Family +192, standardMSv2Family +416  (3 requests submitted)\nbasis@cloudshell:~$ git commit -am 'wave checklist: quota by VM family and region, two weeks before each wave'"
+        },
+        {
+          "log": "Later waves will not meet the same wall, and the check happens two weeks ahead, when a support request still has time.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "region": {
+      "label": "Deploy the HANA VMs in North Europe, where the subscription has free quota",
+      "group": "Fix",
+      "available": "not busy and (not harmed)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "harmed",
+          "to": "true"
+        },
+        {
+          "output": "basis@cloudshell:~$ az deployment group create -g rg-sap-prd-ne -n sap-wave3-db --parameters location=northeurope ...\nprovisioningState: Succeeded"
+        },
+        {
+          "log": "The database is now in another region from its application servers: every SAP dialog step crosses regions, far beyond the latency SAP needs, and the landscape is not supportable.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "retry": {
+      "label": "Re-run the same deployment",
+      "group": "Fix",
+      "available": "not busy and (not harmed and not tried)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tried",
+          "to": "true"
+        },
+        {
+          "output": "basis@cloudshell:~$ az deployment group create -g rg-sap-prd -n sap-wave3-db ...\nERROR: ... exceeding approved standardMSFamily Cores quota ... Current Limit: 0"
+        },
+        {
+          "log": "A quota limit does not clear by retrying.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Check both HANA VMs, their zone, and app-to-DB latency (niping)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "basis@cloudshell:~$ az vm list -g rg-sap-prd --query \"[?contains(name,'hana')].[name,location,zones[0]]\" -o tsv; niping -c -H hana-prd -B 1 -L 100 | tail -1\n{harmed ? \"hana-prd-1 northeurope 1\nhana-prd-2 northeurope 2\nav2: 17.9 ms\" : fixed ? \"hana-prd-1 westeurope 1\nhana-prd-2 westeurope 2\nav2: 0.31 ms\" : \"(none)\nniping: host hana-prd unknown\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "quota",
+                  "label": "The subscription had no M-series family vCPU quota in West Europe"
+                },
+                {
+                  "value": "regional",
+                  "label": "The regional vCPU total was exhausted"
+                },
+                {
+                  "value": "template",
+                  "label": "The Bicep template had an error"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-335)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "18:00: the export starts into the new HANA VMs.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "missAt",
+              "to": "t"
+            },
+            {
+              "log": "18:00: no target database; the wave moves four weeks.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why the HANA deployment failed, what you did, and how later waves avoid it.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Names the tier that failed.",
+          "modelAnswer": "The error said the standardMSFamily quota in westeurope was 0 and 128 vCPUs were needed. The regional total had room; the VM-family tier had none, because nobody had requested quota for the new subscription."
+        },
+        {
+          "label": "What",
+          "criteria": "Requests the right quota and keeps the landscape together.",
+          "modelAnswer": "Requested 256 MS-family vCPUs in West Europe (approved in minutes, with Professional Direct ready if not) and re-ran the deployment. Deploying in North Europe would have split the app servers and the database across regions."
+        },
+        {
+          "label": "Later waves",
+          "criteria": "Treats quota as a planning input.",
+          "modelAnswer": "Requested the families for waves 4-7 now and added a quota check two weeks before each wave."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The database export starts at 18:00, 150 minutes after the failure; the HANA VMs and their preparation need about an hour."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: The database was deployed in another region from its application servers."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed and not harmed",
+      "class": "harm",
+      "rationale": "Closing with the family quota still at zero postpones the migration wave.",
+      "source": {
+        "cite": "Microsoft Learn, Azure Quotas: Increase VM-family vCPU quotas",
+        "checkedAt": "2026-11-17",
+        "url": "https://learn.microsoft.com/azure/quotas/per-vm-quota-requests",
+        "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: standard vCPU quotas are 'enforced at two tiers, for each subscription, in each region': 'the total regional vCPU quota' and 'the VM-family vCPU quota'; request an increase from Quotas, Compute, New Quota Request; 'If your request to increase your VM-family quota is approved, Azure will automatically increase the regional vCPU quota'; review 'usually happens within a few minutes', otherwise a support request; 'Insufficient quota - family limit'. The deployment error text is an authored rendering; the M-series family name is the author's (the quota page does not list family names).; that SAP application servers and the database must sit close together for latency is from the SAP planning guide as read by the AZ-120 case of 2026-11-17."
+      }
+    }
+  },
+  "endings": {
+    "splitRegion": {
+      "label": "Database in another region",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and harmed",
+      "narrative": "The HANA VMs went to North Europe while the application servers stayed in West Europe."
+    },
+    "wavePostponed": {
+      "label": "Wave postponed",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(missAt)",
+      "narrative": "At 18:00 the HANA VMs still did not exist."
+    },
+    "deployed": {
+      "label": "Quota raised, VMs deployed, waves planned",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(errAt) and not isNull(usageAt) and not isNull(verifiedAt) and causeDoc == \"quota\"",
+      "narrative": "The family quota was raised, the HANA VMs deployed beside the application servers, and the remaining waves' quotas are requested."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The wave ran, but the later waves' quota, the checklist, the check or the record was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "splitRegion",
+    "wavePostponed",
+    "deployed",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Read the quota error and the usage by tier",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(errAt) and not isNull(usageAt)",
+            "score": "met",
+            "why": "The key evidence, read before changing anything."
+          },
+          {
+            "when": "not isNull(errAt) or not isNull(usageAt) or not isNull(planAt) or not isNull(supportAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "HANA VMs deployed in West Europe before 18:00",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and not harmed and isNull(missAt)",
+            "score": "met",
+            "why": "The right change, in time, without harm."
+          },
+          {
+            "when": "fixed or harmed",
+            "score": "partial",
+            "why": "{harmed ? \"The database was deployed in another region from its application servers.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never removed."
+          }
+        ]
+      },
+      {
+        "id": "lasting",
+        "label": "Later waves' quota requested and the checklist changed; deployment checked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The lasting step taken and the result checked."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"quota\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record names the wrong cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes that caused harm",
+        "value": "harmed ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "15:30-15:34",
+        "text": "Error: standardMSFamily limit 0, need 128; regional total has room; sizing sheet has no quota check; no requests open."
+      },
+      {
+        "at": "15:34-15:45",
+        "text": "Request 256 in West Europe, re-run; request later waves' families, change the checklist."
+      },
+      {
+        "at": "15:45-15:47",
+        "text": "Both HANA VMs in West Europe, zones 1 and 2; niping 0.31 ms."
+      }
+    ],
+    "debrief": {
+      "splitRegion": {
+        "headline": "Free quota in the wrong place",
+        "body": "SAP needs the application servers and the database close together. Moving one tier to another region to dodge quota trades a request of a few minutes for an unsupportable landscape."
+      },
+      "wavePostponed": {
+        "headline": "A quota is a planning input",
+        "body": "Quotas are per subscription, per region, per VM family. Request them when the subscription is created, and long before a migration window."
+      },
+      "deployed": {
+        "headline": "Good: the right limit, in time",
+        "body": "You read the error and the usage, saw the family tier (not the region) was the limit, requested it with an escalation path, checked the result and latency, and planned quota for every later wave."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the evidence before the change, the lasting step, the check, or the cause in the record."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The error names the M-series family quota in West Europe: zero, with 128 vCPUs needed, while the regional total has room. Quotas apply per subscription, region and VM family, and both tiers must have room. Request the family quota now, with the support plan ready if it is not fulfilled at once, and re-run; retrying alone changes nothing, and deploying the database in another region splits SAP's tiers. Then request the later waves' quotas and make quota a checklist item."
+  }
+}

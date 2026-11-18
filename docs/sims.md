@@ -8173,6 +8173,338 @@ counts units with a fitting objective that are some sim's main objective.
   governance board or tabletop) would vary the mechanics if more nursing
   professional-unit sims are wanted.
 
+### 22.39 Depth for the AWS, Azure and Google Cloud courses (REQ-335)
+
+Nick, 2026-11-17 (19:51 PT): "Courses have no sims still ... Some still have 1
+or two. Let's build those out more robustly." The round's target per course:
+every unit with an objective that fits the selection rule gets a sim whose
+main objective is in it; fewer than 60 objectives, at least 4 sims; 60 or
+more, at least 8; heaviest units first; purpose-written cases preferred to
+cross-level bands for a course's top two domains; a unit where nothing fits
+is recorded as no fit. This builder (depth-cloud) took every AWS, Azure (AZ*,
+DP*, AI200, AI901, PL300, SC500) and Google Cloud course, fewest sims first.
+No engine, renderer, schema or migration change: engine 1.2, the terminal
+screen or the data console for every new case, and bands that carry other screens. The list is
+`lib/sim/depth-cloud.ts`; `lib/sim/depth-cloud.test.ts` selects every
+document by slug (FAIL-2002) and runs the same checks as `it-cloud.test.ts`
+(22.30): an active objective of its own course that no other sim of the
+course sits on, `endingOrder`, endings in all three classes with a debrief
+each, at least five goldens reaching every ending but `time_up` and rating
+Good, Mediocre and Bad with the expert path at `target` and every critical
+criterion both met and missed, no lint error, the course outline read on
+2026-11-17 as the first source, no permission-only body's marks outside
+`sources`, and a band's actions, endings, ending order and golden outcomes
+equal to its base's. A behavior test per new case checks the decision it
+teaches: the harmful shortcut causes harm, the plausible no-op leaves the
+deadline missed, and the right change makes it.
+
+**How the terminal cases are built.** Each terminal case is a compact spec turned into
+the 22.29/22.30 terminal pattern by a factory in the builder's scratchpad
+(`depth-cloud/factory2.py` on top of the REQ-320 factory): learner-paced
+`turns` phase; one `work` wait per command; a deadline as an `interruptsSkip`
+trigger; four or five commands to read the evidence (two of them key), one
+right change, one lasting step (prevention, alerting or the process gap), a
+harmful shortcut and a plausible no-op; a verify command; endings harm (the
+shortcut), harm (deadline missed), target and recovered ("held, with gaps")
+in that order; four criteria (diagnosis and the fix critical); a three-part
+write-up; six goldens (expert Good, shortcut Bad, no-op Bad, fix-only
+Mediocre, late Bad, blind Bad). The committed JSON is the source of truth.
+Teaching timings carry an "Author's scenario timing (REQ-335)" source (FLAG:
+not measured values). Every case names a fictional organization.
+
+**What was built.** 81 new cases (71 terminal, 10 data console) and 82 bands, 163 documents in all, on 35 courses, in two rounds: the first on 2026-11-17, the second on 2026-11-18 after the coordinator asked for every course to meet the rule, for purpose-written cases on top domains held by cross-family bands, and for a source verification pass. Every course now meets its target and every unit has a sim whose main objective is in it. Every case and band is listed in `lib/sim/depth-cloud.ts`; each document's `sources` carry the course outline first, then the vendor pages read for the case with what was quoted and what is an authored rendering.
+
+**New cases (81).** On the terminal screen, except the ten marked (data), which use the data console.
+
+| Course | Slug | Title | Main objective (abridged) |
+|---|---|---|---|
+| AWSDEA | s3-eventbridge-rule-never-fires | Outage: the invoice workflow never starts after the move to EventBridge | Setting up event triggers: Amazon S3 Event Notifications and EventBri… |
+| AWSDEA | redshift-idle-transaction-blocks-load | Outage: the nightly load and every dashboard wait on one idle session | Managing locks that block data access in Amazon Redshift and Amazon R… |
+| AWSDEA | athena-todays-partition-missing | Outage: today's clicks are in S3 but Athena returns zero rows | Synchronizing partitions with a data catalog |
+| AWSDEA | dynamodb-backfill-throttles-checkout | Outage: a history backfill starves the live loyalty table | Throttling and rate limits in DynamoDB, Amazon RDS, and Kinesis, and… |
+| AWSDEA | glue-join-skewed-on-guest-key | Late: the nightly Glue join runs three hours on one task | Implementing mechanisms that handle data skew |
+| AWSSAP | sqs-visibility-shorter-than-work | Incident: customers charged twice after the invoice PDF change | Event-driven architectures and their messaging guarantees: idempotenc… |
+| AWSSAP | onprem-cannot-resolve-private-zone | Cutover: the data center cannot resolve the new database's private name | Hybrid DNS: Route 53 Resolver endpoints, private hosted zones, split-… |
+| AWSSAP | region-scp-blocks-global-services | Launch: a new data-residency guardrail blocks every deployment | Policy enforcement with service control policies (SCPs) and resource… |
+| AWSSAP | cross-account-share-kms-denied | Deadline: the analytics account cannot read the encrypted data share | Encryption at rest with customer managed KMS keys and automatic key r… |
+| AZ120 | fence-agent-lost-role-before-maintenance | Maintenance: the HANA cluster cannot fence, two hours before host maintenance | Configuring an Azure fence agent or STONITH Block Device (SBD) |
+| AZ120 | migration-wave-blocked-by-vm-family-quota | Migration wave: the HANA VMs fail to deploy on quota, hours before the export | Assessing constraints imposed by subscription models and quota limits |
+| AZ120 | hana-log-writes-slow-no-write-accelerator | Month-end: HANA commits crawl on the new M-series VM | Configuring Write Accelerator |
+| AZ120 | hana-vip-unreachable-tcp-timestamps | Morning: HANA is up but no application server can reach its virtual IP | Designing and implementing load balancing for high availability |
+| AZ120 | baseline-policy-denies-hana-vm-size | Build night: the company's baseline policy denies the HANA VM size | Designing and implementing governance and compliance using Azure Poli… |
+| AZ140 | tls-inspection-breaks-session-hosts | Shift change: every session host goes Unavailable after a firewall change | Monitoring and troubleshooting network connectivity |
+| AZ140 | start-vm-on-connect-after-rg-move | Morning: engineers' desktops stay off after the resource group move | Implementing the Start VM on Connect feature |
+| AZ140 | scaling-plan-utc-forces-logoff-midshift | Mid-morning: a new scaling plan is about to sign out the whole claims floor | Implementing autoscaling in host pools |
+| AZ140 | one-minute-disconnect-limit-kills-field-sessions | Storm response: field adjusters lose their work every time the signal drops | Configuring session timeout properties |
+| AZ140 | bad-image-version-spreads-to-new-hosts | Rollout: a new session host image breaks the claims app on every new host | Planning and implementing lifecycle management for session host images |
+| DP300 | public-access-off-reporting-resolves-public-ip | Board pack: the reporting server cannot reach the database after public access… | Configuring private links and service endpoints |
+| DP300 | plan-regression-order-search-query-store | Peak hour: the order search query flips to a bad plan | Monitoring using Query Store |
+| DP300 | app-pinned-to-old-primary-after-geo-failover | After the outage: orders fail because one app still points at the old primary | Configuring failover groups |
+| DP300 | log-backup-job-failing-expired-sas | Disk alert: the transaction log is filling because the log backup job has faile… | Troubleshooting SQL Server Agent jobs |
+| DP300 | lrs-cutover-tail-backup-not-restored | Cutover night: the log-tail backup is uploaded but the managed instance never r… | Troubleshooting a migration |
+| DP300 | deploy-script-truncates-rates-table | Mid-day: a deployment script emptied the rates table, while orders keep coming | Performing a database restore to a point in time |
+| DP300 | managed-identity-login-fails-new-database | Go-live: the invoicing app's managed identity cannot log in to the new database | Troubleshooting authentication and authorization issues |
+| AZ140 | ca-policy-targets-arm-provider-feed-fails | Onboarding day: a new MFA policy leaves Windows App with an empty feed | Planning and implementing Microsoft Entra Conditional Access policies… |
+| GCPMLE | new-model-version-took-all-traffic | Release: a new fraud model took 100% of traffic and blocks good payments | Implementing model rollout strategies -- A/B testing, canary deployme… |
+| GCPMLE | retrain-pipeline-trains-on-broken-feed | Continuous training: tonight's retrain is about to deploy a model trained on a… | Validating data and models as part of a pipeline |
+| GCPMLE | eta-model-skew-miles-not-km | Monitoring alert: delivery ETAs drift after a mobile app release | Monitoring for training-serving skew, data drift, concept drift, and… |
+| DP900 | delete-without-where-open-transaction | Uncommitted: a DELETE without WHERE is still open in a colleague's session | Common SQL statements |
+| DP900 | auditor-needs-archived-invoices-today | Audit: the invoices the auditor needs by 15:00 are in the Archive tier | Features of Azure Blob storage |
+| DP900 | year-end-report-runs-on-checkout-database | Sale day: a year-over-year report is slowing checkout on the same database | Features of analytical workloads |
+| GCPDBE | new-feature-query-seq-scan-orders | Release: a new 'recent orders' query scans 80 million rows on every page view | Assessing slow-running queries, database locking, and missing indexes |
+| GCPDBE | dms-cutover-delay-never-reaches-zero | Cutover night: replication delay will not reach zero before the promotion | Developing and executing a migration strategy: zero/near-zero downtim… |
+| GCPDBE | reporting-query-stalls-read-replica | Stale stock: the storefront's read replica is 25 minutes behind | Deploying and scaling read replicas |
+| GCPNET | cloud-nat-port-exhaustion-payment-api | Flash sale: payments time out because Cloud NAT runs out of ports | Configuring static and dynamic port allocation for Cloud NAT |
+| GCPNET | cdn-serves-wrong-price-after-fix | Pricing error: the origin is fixed, but the CDN keeps selling jackets at 0.99 | Invalidating cached content in Cloud CDN |
+| GCPNET | psa-range-full-before-launch | Launch day: the new database cannot be created because the private services ran… | Planning connectivity to managed services: private services access, P… |
+| GCPNET | ha-vpn-bgp-down-after-router-swap | Monday 07:10: HA VPN tunnels are up, but no routes after the branch router swap | Implementing BGP attributes on Cloud Router: ASN, route priority/MED,… |
+| GCPNET | peered-vpc-no-route-to-onprem | Month-end: the analytics VPC cannot reach the on-premises ledger through the hub | Configuring custom route import/export over VPC Network Peering and N… |
+| GCPNET | folder-policy-deny-blocks-app-to-db | Outage: a new folder firewall policy cuts the orders app off from its database | Using Connectivity Tests to diagnose route and firewall misconfigurat… |
+| GCPSEC | cmek-old-version-scheduled-for-destruction | Report day: half the BigQuery tables fail after a key cleanup | Managing encryption keys for CMEK and EKM: rotation, revocation, impo… |
+| GCPSEC | service-account-key-on-public-repo | Exposure: a service account key is on a public repository | Securing, auditing, and mitigating service account key usage |
+| GCPSEC | unsigned-hotfix-blocked-by-binauthz | Hotfix: an unsigned image is blocked, and someone wants the policy off | Configuring Binary Authorization to secure GKE clusters or Cloud Run |
+| GCPSEC | vpcsc-blocks-partner-delivery-export | Deadline: the perimeter blocks the nightly export to the partner's bucket | Identifying use cases for, and configuring, VPC Service Controls |
+| AZ700 | expressroute-bgp-drops-over-prefix-limit | Outage: the ExpressRoute private peering keeps dropping after a routing change | Diagnosing and resolving ExpressRoute connection issues |
+| AZ400 | oidc-deploy-fails-after-environment-rename | Release: production deploys fail after the GitHub environment was renamed | Implementing and managing secrets and secretless authentication -- fo… |
+| AI200 | orders-dead-lettered-after-schema-bug | Morning after: 3,200 orders sit in the dead-letter queue | Handling poison messages through the dead-letter queue and resubmitti… |
+| AI200 | cosmos-query-without-partition-key-429 | Launch: the new 'my orders' panel throttles the whole Cosmos DB container | Querying Cosmos DB for NoSQL from the SDK with a partition key that k… |
+| AWSDVA | prod-alias-left-on-latest | Incident: a developer's test deploy is serving production | Lambda aliases as application environments |
+| GCPDEVOPS | drain-bad-region-from-global-lb | Incident: one region's backends return errors, and the error budget is burning | Draining or redirecting traffic to mitigate an incident |
+| GCPDEVOPS | cost-exclusion-hides-checkout-errors | Blind spot: a cost-saving log exclusion hides checkout's payment errors | Optimizing logs: filtering, sampling, exclusions, cost management, so… |
+| AZ700 | snat-exhaustion-carrier-api-before-cutoff | Cut-off: label requests to the carrier API time out on SNAT exhaustion | Identifying use cases for Azure NAT Gateway, and implementing it |
+| AWSANS | vpn-large-responses-hang-pmtud-blocked | Cutover: small queries work over the VPN, but every large report hangs | Network performance metrics and reachability constraints, including r… |
+| AZ400 | storage-key-in-history-before-open-source | Open-sourcing at 16:00: a storage account key sits in the repository's history | Removing specific data from source control |
+| AWSSCS | miner-instance-evidence-before-scale-in | Evidence: a compromised web instance is due to be scaled in at 22:00 | Capturing and storing system and application logs as forensic artifac… |
+| PL300 | merge-duplicates-double-region-revenue (data) | Board pack: two regions' revenue doubled after a merge | Combining queries with merge (a join) and append (a union) |
+| PL300 | return-rate-trend-on-a-pie-chart (data) | Ops review: is the return rate rising? The page answers with a pie chart | Picking the visual type that fits a comparison, trend, composition or… |
+| AWSAIF | ticket-labels-change-on-every-run (data) | Routing: the same ticket gets a different category every time | Inference parameters and what they change: temperature, input and out… |
+| AWSAIF | manual-in-every-prompt-triples-bill (data) | Cost: the policy assistant's bill tripled since the manual went into every prom… | Token-based pricing, and how it drives both cost and inference perfor… |
+| AWSAIF | guardrail-blocks-payroll-questions (data) | Help desk: the guardrail blocks every question about pay | Using Amazon Bedrock Guardrails to enforce responsible-AI features |
+| GCPGAIL | hr-assistant-grounded-on-the-web (data) | Leave policy: the HR assistant quotes other employers' rules | Describing grounding in LLMs, and differentiating grounding with firs… |
+| AI901 | hotel-reviews-hide-staff-complaints (data) | Guest feedback: staff complaints vanish inside positive reviews | Common text analysis techniques: keyword extraction, entity detection… |
+| GCPGAIL | claims-assistant-pilot-on-an-api-key (data) | Go-live: a claims assistant built on an AI Studio API key goes to production | Choosing between Agent Studio and Google AI Studio |
+| GCPMLE | bqml-churn-predictions-without-training-transforms (data) | Retention campaign: every customer scores as likely to churn | Generating predictions using BigQuery ML |
+| GCPMLE | partner-dataset-shares-raw-emails (data) | Data share: the partner's modeling dataset carries raw customer emails | Ensuring data privacy and handling PII |
+| AZ700 | appgw-502-after-login-on-root | Enrollment opens at 09:00: every request through Application Gateway returns 502 | Configuring health probes |
+| AZ400 | release-gate-unlinked-prs-new-repo | Release at 17:00: the traceability gate finds 14 pull requests with no work ite… | Configuring integration between Azure Boards and GitHub repositories |
+| AZ400 | debug-logging-hits-daily-cap-blind | Blind: Application Insights went silent at 11:20, mid-incident | Configuring collection of telemetry using Azure Monitor Application I… |
+| AZ400 | prod-stage-skips-environment-approval | Audit at 16:00: production deploys have been skipping the approval check | Designing and implementing checks and approvals using YAML-based envi… |
+| SC500 | arc-servers-missing-from-security-dcr | Blind spot: the brute-force rule is silent while new servers take password spra… | Collecting syslog, CEF and Windows Security events with data collecti… |
+| AWSANS | new-vpc-attachment-not-propagated | Go-live: the new analytics VPC cannot reach the shared services through the tra… | Using route tables and automatic propagation to direct traffic |
+| AWSANS | egress-allowlist-blocks-new-payment-api | Cutover: the new payment provider's API is blocked at the egress firewall | Securing outbound traffic flows from AWS: Network Firewall, proxies,… |
+| AWSMLA | vpc-endpoint-cannot-load-model-from-s3 | Launch: the fraud model's endpoint in the private VPC never comes up | Configuring SageMaker AI endpoints inside a VPC |
+| AWSMLA | tuning-job-early-stopping-never-fires | Budget: the tuning job has burned 70% of the month's GPU budget, and early stop… | Reducing training time with early stopping and distributed training |
+| AWSMLA | long-term-bedrock-key-in-app-logs | Exposure: a long-term Bedrock API key is in the support app's shared logs | Choosing a credential type to reach foundation models: Amazon Bedrock… |
+| GCPSEC | eu-patient-data-created-in-us | Residency: EU patient data landed in a US bucket the day before the regulator's… | Configuring compliance-supporting controls: Assured Workloads, organi… |
+| GCPDEV | integration-tests-share-staging-firestore | Release freeze at 17:00: integration tests fail at random because every build s… | Executing automated integration tests in Cloud Build |
+| GCPDEV | eventarc-trigger-wrong-region-for-bucket | Uploads pile up: the thumbnail service never hears about new photos | Invoking Cloud Run services with triggers: Eventarc, Pub/Sub |
+| AWSANS | failover-record-without-health-check | Region down: DNS failover never happens, and the booking site stays dark | Amazon Route 53 features: alias records, traffic policies, resolvers,… |
+
+**Bands (82).** Merge patches over a base case: the course outline first, the base's technical sources, a new main objective, no secondaries.
+
+| Course | Band (base course) | Main objective (abridged) |
+|---|---|---|
+| AWSDEA | phi-in-application-logs-dea (AWSDVA) | Data masking and anonymization to satisfy compliance law or company policy |
+| AWSDEA | rds-update-without-where-pitr-dea (AWSSOA) | Protecting data with appropriate resiliency and availability |
+| AWSSAP | nat-gateway-bill-spike-sap (AWSSAA) | Reducing data transfer cost: private connectivity, VPC endpoints versus NAT gateways, AZ-… |
+| AWSSAP | canary-rollback-dlq-sap (AWSDVA) | Deployment strategies with rollback: blue/green, canary, rolling |
+| AWSSAP | dynamodb-backfill-throttles-checkout-sap (AWSDEA) | Controlled remediation with safety limits: circuit breakers, rate limits, bulkheads, retr… |
+| AZ120 | stale-udr-to-retired-nva-az120 (AZ700) | Designing and implementing network flow control |
+| AZ140 | stale-udr-to-retired-nva-az140 (AZ700) | Implementing and managing network security for connections to Azure Virtual Desktop, incl… |
+| AWSDVA | sqs-visibility-shorter-than-work-dva (AWSSAP) | Asynchronous processing with Amazon SQS |
+| AWSDVA | s3-eventbridge-rule-never-fires-dva (AWSDEA) | Amazon S3 Event Notifications as an event source |
+| AWSDVA | dynamodb-backfill-throttles-checkout-dva (AWSDEA) | Retry with backoff when a call fails |
+| AWSDVA | cross-account-share-kms-denied-dva (AWSSAP) | Using encryption keys to encrypt and decrypt data with AWS KMS |
+| AWSSAA | sqs-visibility-shorter-than-work-saa (AWSSAP) | Decoupling with queues and pub/sub: Amazon SQS and Amazon SNS |
+| AWSSAA | cross-account-share-kms-denied-saa (AWSSAP) | Encrypting data at rest with AWS KMS, and writing key policies that hold |
+| AWSSAA | dynamodb-backfill-throttles-checkout-saa (AWSDEA) | Selecting a throttling strategy and bandwidth allocation |
+| AWSSCS | cross-account-share-kms-denied-scs (AWSSAP) | Creating and managing encryption keys and certificates across one or many Regions with KM… |
+| AWSSCS | region-scp-blocks-global-services-scs (AWSSAP) | Organization policies that manage permissions: service control policies, resource control… |
+| AWSANS | onprem-cannot-resolve-private-zone-ans (AWSSAP) | Inbound and outbound resolver endpoints, and when each is required |
+| AWSDOP | region-scp-blocks-global-services-dop (AWSSAP) | Service control policies in AWS Organizations |
+| AZ900 | auditor-needs-archived-invoices-today-az900 (DP900) | Storage tiers |
+| AZ900 | baseline-policy-denies-hana-vm-size-az900 (AZ120) | The purpose of Azure Policy |
+| AZ900 | ca-policy-targets-arm-provider-feed-fails-az900 (AZ140) | Microsoft Entra Conditional Access |
+| AZ104 | auditor-needs-archived-invoices-today-az104 (DP900) | Configuring storage tiers |
+| AZ104 | start-vm-on-connect-after-rg-move-az104 (AZ140) | Assigning roles at different scopes |
+| AZ104 | public-access-off-reporting-resolves-public-ip-az104 (DP300) | Configuring private endpoints for Azure PaaS |
+| AZ104 | baseline-policy-denies-hana-vm-size-az104 (AZ120) | Implementing and managing Azure Policy |
+| AZ305 | deploy-script-truncates-rates-table-az305 (DP300) | Recommending a backup and recovery solution for databases |
+| AZ400 | bad-image-version-spreads-to-new-hosts-az400 (AZ140) | Designing and implementing a versioning strategy for pipeline artifacts |
+| SC500 | public-access-off-reporting-resolves-public-ip-sc500 (DP300) | Reaching PaaS services privately with private endpoints and exposing your own services wi… |
+| SC500 | tls-inspection-breaks-session-hosts-sc500 (AZ140) | Inspecting and filtering traffic centrally with Azure Firewall rules and policies |
+| SC500 | baseline-policy-denies-hana-vm-size-sc500 (AZ120) | Enforcing guardrails with built-in and custom Azure Policy definitions |
+| SC500 | managed-identity-login-fails-new-database-sc500 (DP300) | Replacing stored credentials with system- or user-assigned managed identities |
+| AZ700 | public-access-off-reporting-resolves-public-ip-az700 (DP300) | Integrating Private Link and Private Endpoint with DNS |
+| AZ700 | hana-vip-unreachable-tcp-timestamps-az700 (AZ120) | Creating and configuring an Azure Load Balancer |
+| AZ700 | tls-inspection-breaks-session-hosts-az700 (AZ140) | Configuring Azure Firewall rules |
+| GCPACE | cloud-nat-port-exhaustion-payment-api-ace (GCPNET) | Using Cloud DNS and Cloud NAT |
+| GCPACE | folder-policy-deny-blocks-app-to-db-ace (GCPNET) | Managing VPC firewall rules and Cloud NGFW policies day-to-day |
+| GCPACE | cmek-old-version-scheduled-for-destruction-ace (GCPSEC) | Configuring customer-managed encryption keys (CMEK) |
+| GCPACE | new-feature-query-seq-scan-orders-ace (GCPDBE) | Using diagnostic tools to investigate an application issue: Cloud Trace, Cloud Profiler,… |
+| GCPACE | peered-vpc-no-route-to-onprem-ace (GCPNET) | Establishing network connectivity: Cloud VPN, VPC Network Peering, Cloud Interconnect |
+| GCPPCA | vpcsc-blocks-partner-delivery-export-pca (GCPSEC) | Designing security controls: auditing, VPC Service Controls, context-aware access, organi… |
+| GCPPCA | cmek-old-version-scheduled-for-destruction-pca (GCPSEC) | Managing customer-managed encryption keys with Cloud KMS |
+| GCPPCA | dms-cutover-delay-never-reaches-zero-pca (GCPDBE) | Choosing data and system migration/management tooling |
+| GCPPCA | folder-policy-deny-blocks-app-to-db-pca (GCPNET) | Building security protection into network topology: intrusion protection, access control,… |
+| GCPDEV | unsigned-hotfix-blocked-by-binauthz-pcd (GCPSEC) | Securing application artifacts with Binary Authorization |
+| GCPDEVOPS | unsigned-hotfix-blocked-by-binauthz-devops (GCPSEC) | Applying software supply chain security: Binary Authorization, the SLSA framework |
+| GCPPDE | dms-cutover-delay-never-reaches-zero-pde (GCPDBE) | Planning migration and validation to Google Cloud: BigQuery Data Transfer Service, Databa… |
+| GCPPDE | retrain-pipeline-trains-on-broken-feed-pde (GCPMLE) | Designing data validation into a pipeline |
+| GCPPDE | cmek-old-version-scheduled-for-destruction-pde (GCPSEC) | Designing data security: encryption and key management |
+| GCPPDE | reporting-query-stalls-read-replica-pde (GCPDBE) | Designing data replication and failover: Cloud SQL, Redis clusters |
+| GCPNET | vpcsc-blocks-partner-delivery-export-net (GCPSEC) | Configuring restricted Google Cloud services with VPC Service Controls perimeters |
+| GCPSEC | folder-policy-deny-blocks-app-to-db-sec (GCPNET) | Configuring security properties of a VPC network, VPC peering, Shared VPC, and firewall r… |
+| GCPSEC | cloud-nat-port-exhaustion-payment-api-sec (GCPNET) | Using Cloud NAT to enable outbound traffic |
+| GCPSEC | peered-vpc-no-route-to-onprem-sec (GCPNET) | Designing private connectivity between VPC networks and projects: Shared VPC, VPC peering… |
+| AWSCLF | ec2-status-check-recovery-clf (AWSSOA) | High availability, elasticity, and agility as three distinct advantages, not synonyms |
+| AWSCLF | canary-rollback-dlq-clf (AWSDVA) | Benefits of automation |
+| AWSCLF | dynamodb-backfill-throttles-checkout-clf (AWSDEA) | NoSQL: Amazon DynamoDB |
+| AWSCLF | sqs-visibility-shorter-than-work-clf (AWSSAP) | Application integration: Amazon SQS, Amazon SNS, Amazon EventBridge |
+| AWSAIF | fraud-model-drift-aif (AWSMLA) | MLOps fundamentals: experimentation, repeatable processes, scalable systems, technical de… |
+| AWSAIF | endpoint-scaling-latency-aif (AWSMLA) | Types of inferencing: batch, real-time, asynchronous, serverless |
+| AWSDOP | dynamodb-backfill-throttles-checkout-dop (AWSDEA) | Identifying and remediating scaling issues |
+| AWSDVA | kinesis-poison-record-blocks-shard-dva (AWSDEA) | Managing streaming data with AWS services such as Amazon Kinesis and Amazon Data Firehose |
+| AI901 | loan-data-bias-ai901 (AWSMLA) | Considerations for fairness in an AI solution |
+| GCPGAIL | retrain-pipeline-trains-on-broken-feed-gail (GCPMLE) | Explaining the characteristics and importance of data quality and accessibility: complete… |
+| GCPGAIL | eta-model-skew-miles-not-km-gail (GCPMLE) | Identifying the stages of the ML lifecycle -- data ingestion, data preparation, model tra… |
+| GCPCDL | drain-bad-region-from-global-lb-cdl (GCPDEVOPS) | How Google Cloud's global network -- regions, zones, and edge locations -- supports a dig… |
+| GCPCDL | streaming-window-drops-late-rides-cdl (GCPPDE) | Why real-time streaming analytics matters for a modern business |
+| GCPCDL | retrain-pipeline-trains-on-broken-feed-cdl (GCPMLE) | Why high-quality, accurate data is a prerequisite for a working AI model, and the dimensi… |
+| GCPCDL | dms-cutover-delay-never-reaches-zero-cdl (GCPDBE) | Cloud migration vocabulary: workload, discovery and assessment, retire, retain, rehost, r… |
+| GCPCDL | reporting-query-stalls-read-replica-cdl (GCPDBE) | Databases versus data warehouses versus data lakes, and what each is for |
+| GCPPCA | new-model-version-took-all-traffic-pca (GCPMLE) | Managing deployment and release |
+| GCPPCA | ha-vpn-bgp-down-after-router-swap-pca (GCPNET) | Applying troubleshooting and root-cause-analysis best practices |
+| GCPPDE | new-feature-query-seq-scan-orders-pde (GCPDBE) | Troubleshooting a poorly performing query |
+| GCPPDE | eta-model-skew-miles-not-km-pde (GCPMLE) | Preparing data for ML feature engineering, training, and serving with BigQuery ML |
+| GCPDEVOPS | peered-vpc-no-route-to-onprem-devops (GCPNET) | Designing shared networking: Shared VPC, VPC Network Peering, Network Connectivity Center… |
+| GCPDEVOPS | service-account-key-on-public-repo-devops (GCPSEC) | Creating and managing service accounts |
+| GCPDEVOPS | cloud-run-exhausts-sql-connections-devops (GCPDBE) | Monitoring application and agent performance |
+| AWSDOP | miner-instance-evidence-before-scale-in-dop (AWSSCS) | Governance and security controls at scale: AWS Config, Control Tower, Security Hub, Amazo… |
+| AWSSAA | glue-join-skewed-on-guest-key-saa (AWSDEA) | Transforming data with AWS Glue, including format changes such as CSV to Parquet |
+| AZ900 | app-pinned-to-old-primary-after-geo-failover-az900 (DP300) | Benefits of high availability and scalability in the cloud |
+| AZ305 | cosmos-query-without-partition-key-429-az305 (AI200) | Recommending a solution for storing semi-structured data |
+| GCPACE | service-account-key-on-public-repo-ace (GCPSEC) | Creating and managing short-lived service account credentials |
+| SC500 | containerapp-keyvault-revision-sc500 (AI200) | Securing AKS, Container Registry, Container Instances and Container Apps, and acting on D… |
+
+**Data console cases (round 2).** Ten cases use the existing data console
+instead of the terminal: two PL-300 (a Power Query merge on a lookup with
+duplicate keys; a trend question answered with a line chart and a ratio
+measure, the visual decision taken as a described choice with a described
+result), three AWS AI Practitioner (temperature and a fixed label set; input
+tokens and retrieval; a Bedrock Guardrails denied topic), two Generative AI
+Leader (grounding on first-party data; the enterprise Agent Platform against an
+AI Studio key), AI-901 opinion mining, and two Google Cloud ML Engineer
+(BigQuery ML TRANSFORM; deterministic de-identification). They are built by the
+REQ-333 data-case helper adapted to this list: look, one change chosen from
+three graded options (right, partial, wrong), an optional destructive
+shortcut, a check, ship, record; seven or eight goldens each. A behavior test
+per data case checks that the right option ships a right result and a wrong
+option ships a wrong one.
+
+**Cross-family bands.** Bands from another exam family on a course's top two
+domains (by weight, ties broken by outline order) were replaced as the main
+coverage there by purpose-written cases and kept as extra coverage: the SecAI+
+agent case on AWS AI Practitioner moved from Applications of Foundation Models
+to the governance domain's agent identity objective, and on Generative AI
+Leader from Gen AI Offerings to the security considerations objective in
+Business Strategies; new cases now hold those top domains. AI-901 has only two
+units, so its three cross-family bands stay in AI Concepts beside the new
+purpose-written opinion mining case. Other bands from another family sit
+outside the top two domains (the Security+ case on AWS Security Specialty's
+Incident Response, the SecAI+ cases on Machine Learning Engineer's operations
+domain beside a purpose-written credential case).
+
+**Source verification (round 2, read 2026-11-18).** For each fact a case's
+scoring depends on, the vendor's own page was read (docs.aws.amazon.com,
+learn.microsoft.com, cloud.google.com and their regional mirrors), using URLs
+from search results or fetched pages only. Each case's source note now says
+what the page states, or marks text as an authored rendering (CLI output,
+error text, log lines). Corrections made where the docs did not support the
+case: the AWS Security Specialty forensics case detaches the instance from its
+Auto Scaling group instead of putting it in Standby (FAIL-2502: Standby's
+effect on scale-in is not documented; detaching is); the Redshift case says a
+reboot interrupts the load rather than rolls it back (FAIL-2503); the
+ExpressRoute case clears the BGP sessions after fixing the advertisement,
+because the docs do not say the session returns on its own; the AZ-400
+history-scrub case uses the documented permission name 'Force push (rewrite
+history, delete branches and tags)'. Statements still not confirmed keep a
+visible "to verify" in their source note: Pacemaker's refusal to move
+resources without fencing (general behavior, not in the Azure guide); HANA's
+sub-millisecond log-write expectation (SAP's guidance); in-flight transactions
+on an Azure SQL failover; foreign key locking under read committed snapshot;
+the Cloud Router return-path advertisement for a peered VPC; a replacement HA
+VPN gateway's new IPs; the PSA overlap effect; the Firestore emulator start
+commands; the Azure Boards re-save step; the Sentinel SecurityEvent table name;
+Query Insights' features; and the Spark skew-splitting practice. Bands built
+on other builders' bases carry those bases' notes unchanged.
+
+**Exam guides (round 2).** The official AWS guides were read on
+docs.aws.amazon.com under aws-certification: SAP-C03, DVA-C03 and MLA-C02 match
+the seed's units in name and weight (MLA-C02 writes "Foundation Model (FM)";
+SAP-C03's Domain 1 has 34 skills and MLA-C02's Domain 4 has 25, the same counts
+and topics as the seed units); CLF-C02's Domain 1 confirms "Identifying
+benefits of automation" and "advantages of high availability, elasticity, and
+agility". These four courses' documents now cite the official guides. Other
+domains were compared by name and weight only. Google's HTML exam guide pages
+for Associate Cloud Engineer and Digital Leader are stale; the PDFs linked from
+the certification pages are current and match the seed (FAIL-2504), so the seed
+is unchanged and those bands cite the PDFs.
+
+**Defects found and fixed (failure ledger).** FAIL-2500: the Athena case's
+action id `parts` (a server-only key) failed the client-leak check; renamed,
+with a regression test over every REQ-335 action and state id. FAIL-2501: the
+AZ-700 SNAT case's `awk '{print $1}'` was read as a template expression;
+braces doubled before the first commit. FAIL-2502, FAIL-2503, FAIL-2504 as
+above. FAIL-2505: the reworded forensics fix label ran to 208 characters, over the
+schema's 200; documents.test.ts caught it, the label is 128 characters, and the
+builder's factory now refuses longer labels. FAIL-2506:
+`depth-cloud.test.ts` failed `tsc` (TS2774, an always-defined helper used as a
+condition); fixed. The remaining `tsc` error, in `lib/test-discovery.test.ts`
+(`globSync` from `node:fs`), is unchanged from `origin/master`.
+
+**Per course, before and after.** Before is the count on `origin/master` when the round started; after counts this branch. Target: fewer than 60 objectives, 4 sims; 60 or more, 8. "Units with a sim" counts units holding a sim whose main objective is in it.
+
+| Course | Before | After | Target | Met | Units with a sim | Units without (reason) |
+|---|---|---|---|---|---|---|
+| AWSDEA | 1 | 8 | 8 | yes | 4/4 | every unit |
+| AWSSAP | 1 | 8 | 8 | yes | 5/5 | every unit |
+| AZ120 | 1 | 8 | 8 | yes | 4/4 | every unit |
+| AZ140 | 1 | 8 | 8 | yes | 4/4 | every unit |
+| DP300 | 1 | 8 | 8 | yes | 5/5 | every unit |
+| DP900 | 1 | 4 | 4 | yes | 4/4 | every unit |
+| GCPDBE | 1 | 4 | 4 | yes | 4/4 | every unit |
+| GCPMLE | 1 | 6 | 4 | yes | 6/6 | every unit |
+| GCPNET | 1 | 8 | 8 | yes | 6/6 | every unit |
+| GCPSEC | 1 | 9 | 8 | yes | 5/5 | every unit |
+| AI200 | 2 | 4 | 4 | yes | 4/4 | every unit |
+| AI901 | 2 | 5 | 4 | yes | 2/2 | every unit |
+| AWSDVA | 2 | 8 | 8 | yes | 4/4 | every unit |
+| AZ400 | 2 | 8 | 8 | yes | 5/5 | every unit |
+| AZ700 | 2 | 8 | 8 | yes | 5/5 | every unit |
+| AZ900 | 2 | 6 | 4 | yes | 3/3 | every unit |
+| GCPDEVOPS | 2 | 8 | 8 | yes | 5/5 | every unit |
+| GCPGAIL | 2 | 6 | 4 | yes | 4/4 | every unit |
+| GCPPDE | 2 | 8 | 8 | yes | 5/5 | every unit |
+| PL300 | 2 | 4 | 4 | yes | 4/4 | every unit |
+| SC500 | 2 | 8 | 4 | yes | 4/4 | every unit |
+| AWSAIF | 3 | 8 | 8 | yes | 5/5 | every unit |
+| AWSANS | 3 | 8 | 8 | yes | 4/4 | every unit |
+| AWSMLA | 3 | 8 | 8 | yes | 4/4 | every unit |
+| AZ305 | 3 | 5 | 4 | yes | 4/4 | every unit |
+| GCPACE | 3 | 9 | 8 | yes | 4/4 | every unit |
+| GCPCDL | 3 | 8 | 8 | yes | 6/6 | every unit |
+| GCPDEV | 3 | 6 | 4 | yes | 4/4 | every unit |
+| GCPPCA | 3 | 9 | 8 | yes | 6/6 | every unit |
+| AWSCLF | 4 | 8 | 8 | yes | 4/4 | every unit |
+| AWSSCS | 4 | 8 | 8 | yes | 6/6 | every unit |
+| AWSDOP | 5 | 8 | 8 | yes | 6/6 | every unit |
+| AZ104 | 5 | 9 | 8 | yes | 5/5 | every unit |
+| AWSSAA | 6 | 10 | 8 | yes | 4/4 | every unit |
+| AWSSOA | 8 | 8 | 4 | yes | 5/5 | every unit |
+
+**Decisions for Nick.** (1) Whether AI-901's three cross-family bands (two SecAI+ cases and an AWS ML case) should stay as extra coverage beside the new case in its two-unit course. (2) Whether the twelve statements still marked 'to verify' (listed above) need a vendor confirmation before release or can ship as flagged.
+
 ### 22.40 Depth for the CNCF ecosystem, CompTIA, security and project-management courses (REQ-336)
 
 Nick, 2026-11-17 (19:51 PT): "Courses have no sims still ... Some still have 1

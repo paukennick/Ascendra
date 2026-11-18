@@ -1,0 +1,876 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "bad-image-version-spreads-to-new-hosts",
+  "title": "Rollout: a new session host image breaks the claims app on every new host",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "vdiadmin@cloudshell:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "09:10 service desk: claims app crashes opening PDFs, only on claims-34..39 (built 07:00); scale-out at 10:00",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "10:00: scale-out on the broken image",
+          "when": "not isNull(missAt)",
+          "at": "timeAt(missAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "10:00: scale-out on 2.3.0",
+          "when": "not isNull(okAt)",
+          "at": "timeAt(okAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "gal",
+          "label": "Compute Gallery win11-claims",
+          "spokenLabel": "the image gallery",
+          "kind": "'latest' reference",
+          "status": "{fixed and not harmed ? \"latest = 2.3.0 (2.4.0 excluded)\" : \"latest = 2.4.0 (crashes)\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "old",
+          "label": "claims-0..33 (2.3.0)",
+          "spokenLabel": "the older hosts",
+          "kind": "34 hosts",
+          "status": "{fixed and not harmed ? \"fine\" : \"fine\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "new",
+          "label": "claims-34..39 (2.4.0)",
+          "spokenLabel": "the new hosts",
+          "kind": "6 hosts, 24 users",
+          "status": "{harmed ? \"deleted with users on them\" : fixed ? \"draining, replaced at shift change\" : \"app crashes on PDFs\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "gal",
+          "to": "new",
+          "label": "built from",
+          "status": "{fixed and not harmed ? \"2.3.0 for new builds\" : \"2.4.0\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Planning and implementing lifecycle management for session host images",
+  "secondaryObjectives": [
+    "Planning and implementing image storage, including Azure Compute Gallery",
+    "Applying OS and application updates to a session host image"
+  ],
+  "sources": [
+    {
+      "cite": "Microsoft Learn, Study guide for Exam AZ-140: Configuring and Operating Microsoft Azure Virtual Desktop (page last updated 2026-06-19; skills as of July 20, 2026): plan and implement an Azure Virtual Desktop infrastructure 40-45%, identity and security 15-20%, user environments and apps 20-25%, monitor and maintain 10-15%",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/credentials/certifications/resources/study-guides/az-140",
+      "note": "Read through a summarizing fetch on 2026-11-17. Bullets quoted there under 'Plan and implement storage for Azure Virtual Desktop user data': 'Implement storage for FSLogix components', 'Implement storage accounts for Azure Virtual Desktop', 'Implement file shares for Azure Virtual Desktop'. (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "Microsoft Learn, Azure Resource Manager template reference, Microsoft.Compute galleries/images/versions (API 2026-03-03)",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/en-us/azure/templates/microsoft.compute/galleries/images/versions",
+      "note": "Read through a summarizing fetch on 2026-11-17. Quoted: excludeFromLatest, 'If set to true, Virtual Machines deployed from the latest version of the Image Definition won't use this Image Version'; endOfLifeDate, 'can be used for decommissioning purposes. This property is updatable.' A version excluded from latest can still be referenced explicitly. That a session host keeps the image it was built from until it is replaced follows from how VM images work (stated as the author's); the az sig commands are authored renderings."
+    }
+  ],
+  "brief": {
+    "situation": "You are the AVD administrator at Merrow Insurance. Session hosts for hp-claims are built from the Compute Gallery image definition win11-claims, referenced as 'latest'. Last night image version 2.4.0 (monthly updates plus a new PDF component) was published. Six hosts were added at 07:00 from it; on those, the claims app crashes when it opens a PDF. Autoscale adds ten more hosts at 10:00 for the second shift.",
+    "handover": [
+      "The previous version, 2.3.0, has run for a month without problems.",
+      "24 agents are working on the six new hosts right now; each holds open claims."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the gallery's image versions, what 'latest' resolves to and which hosts were built from which.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "09:10",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineAt": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "Autoscale adds ten hosts at 10:00, 50 minutes after the report; they will be built from whatever 'latest' resolves to."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "harmed": {
+      "type": "bool",
+      "init": false
+    },
+    "tried": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "whichAt": {
+      "type": "time",
+      "init": null
+    },
+    "latestAt": {
+      "type": "time",
+      "init": null
+    },
+    "crashAt": {
+      "type": "time",
+      "init": null
+    },
+    "sessionsAt": {
+      "type": "time",
+      "init": null
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "missAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "image",
+        "app",
+        "profiles"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "which",
+        "latest",
+        "crash",
+        "sessions",
+        "exclude",
+        "pipeline",
+        "delete",
+        "restart",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "which": {
+      "label": "Which image version each session host was built from",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(whichAt)",
+          "then": [
+            {
+              "set": "whichAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ az vm list -g rg-avd --query \"[].[name, storageProfile.imageReference.exactVersion]\" -o tsv | sort -k2 | uniq -c -f1\n{harmed ? \"34 claims-0..33  2.3.0\n 0 (claims-34..39 deleted)\" : fixed ? \"34 claims-0..33  2.3.0\n 6 claims-34..39  2.4.0 (draining)\" : \"34 claims-0..33  2.3.0\n 6 claims-34..39  2.4.0\"}"
+        },
+        {
+          "finding": "Every crashing host was built from 2.4.0; none of the 2.3.0 hosts crash."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "latest": {
+      "label": "az sig image-version list (win11-claims): versions and latest",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(latestAt)",
+          "then": [
+            {
+              "set": "latestAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ az sig image-version list -g rg-images -r galClaims -i win11-claims --query \"[].[name, publishingProfile.excludeFromLatest, publishingProfile.publishedDate]\" -o tsv\n2.3.0  False  2026-10-15\n2.4.0  {fixed and not harmed ? \"True   2026-11-16\" : \"False  2026-11-16\"}"
+        },
+        {
+          "finding": "'latest' resolves to 2.4.0: every host autoscale builds at 10:00 will get the broken image."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "crash": {
+      "label": "Application event log on claims-35",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(crashAt)",
+          "then": [
+            {
+              "set": "crashAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ Get-WinEvent -ComputerName claims-35 -FilterHashtable @{{LogName='Application'; Id=1000}} -MaxEvents 1 | fl Message\nFaulting application ClaimsDesk.exe, faulting module pdfrender64.dll 6.0.1"
+        },
+        {
+          "finding": "The crash is in the PDF component new in 2.4.0."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "sessions": {
+      "label": "Sessions on the 2.4.0 hosts",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(sessionsAt)",
+          "then": [
+            {
+              "set": "sessionsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ az desktopvirtualization usersession list -g rg-avd --host-pool-name hp-claims --query \"[?contains(name,'claims-3')].userPrincipalName | length(@)\"\n24"
+        },
+        {
+          "finding": "Twenty-four agents are on the broken hosts with open work."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "exclude": {
+      "label": "Set excludeFromLatest on 2.4.0 so 'latest' is 2.3.0 again; put claims-34..39 in drain mode with a message to save and reconnect",
+      "group": "Fix",
+      "available": "not busy and (not fixed and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "fixed",
+          "to": "true"
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ az sig image-version update -g rg-images -r galClaims -i win11-claims -e 2.4.0 --set publishingProfile.excludeFromLatest=true\nvdiadmin@cloudshell:~$ for h in 34 35 36 37 38 39; do az desktopvirtualization sessionhost update ... -n claims-$h.merrow.local --allow-new-session false; done\nvdiadmin@cloudshell:~$ Send-RDUserMessage ... 'Please save your claim and sign out; you will reconnect to a working desktop.'"
+        },
+        {
+          "log": "New hosts are built from 2.3.0 again, and no one new lands on the broken hosts; the 24 agents save and move over without losing work.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "pipeline": {
+      "label": "Replace the six hosts from 2.3.0 after they empty, and add a PDF smoke test to the image pipeline before a version is published",
+      "group": "Fix",
+      "available": "not busy and (not planned and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ ./replace-hosts --pool hp-claims --hosts claims-34..39 --image 2.3.0 --when-empty\n(scheduled)\nvdiadmin@cloudshell:~$ git commit -am 'image pipeline: ClaimsDesk PDF smoke test; publish with excludeFromLatest=true until a canary host passes'"
+        },
+        {
+          "log": "The broken hosts go away without logging anyone off, and the next version reaches 'latest' only after a canary host has passed the claims app's PDF test.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "delete": {
+      "label": "Delete claims-34..39 now and let autoscale rebuild",
+      "group": "Fix",
+      "available": "not busy and (not harmed)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "harmed",
+          "to": "true"
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ az vm delete --ids $(az vm list -g rg-avd --query \"[?contains(name,'claims-3')].id\" -o tsv) --yes\n(6 VMs deleted)"
+        },
+        {
+          "log": "Twenty-four agents lose their sessions and open claims; and autoscale rebuilds them from 'latest', which is still 2.4.0.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "restart": {
+      "label": "Restart the six 2.4.0 hosts",
+      "group": "Fix",
+      "available": "not busy and (not harmed and not tried)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tried",
+          "to": "true"
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ az vm restart --ids ... (6 VMs)\n(restarted)"
+        },
+        {
+          "log": "The hosts restart into the same image: the PDF component still crashes, and 'latest' still points at it.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Check what 'latest' resolves to and test a PDF on a 2.3.0 host",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ az sig image-version list ... (latest); test: open claim C-2291 PDF on claims-12\n{harmed ? \"latest: 2.4.0\n(6 hosts deleted; rebuilt from 2.4.0)\" : fixed ? \"latest: 2.3.0 (2.4.0 excluded)\nPDF opened in 0.8 s\" : \"latest: 2.4.0\nPDF opened in 0.8 s on claims-12; claims-35 crashes\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "image",
+                  "label": "Image version 2.4.0's new PDF component crashes the claims app, and hosts build from 'latest'"
+                },
+                {
+                  "value": "app",
+                  "label": "A server-side claims app change"
+                },
+                {
+                  "value": "profiles",
+                  "label": "Corrupt FSLogix profiles"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-335)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "10:00: the ten new hosts are built from 2.3.0; the claims app works on them.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "missAt",
+              "to": "t"
+            },
+            {
+              "log": "10:00: ten more hosts are built from 2.4.0; the crash reaches the second shift.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why only some hosts crashed, how you stopped the spread, and how the next image is gated.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Connects crashes to one image version.",
+          "modelAnswer": "Only claims-34..39 crash, all built at 07:00 from 2.4.0; the crash is in the PDF component new in that version. The host pool builds from 'latest', which resolved to 2.4.0."
+        },
+        {
+          "label": "Spread",
+          "criteria": "Makes latest safe, then moves users gently.",
+          "modelAnswer": "Set excludeFromLatest on 2.4.0 so the 10:00 scale-out uses 2.3.0; drained the six hosts and asked their users to save and reconnect. Deleting them would have lost open claims and rebuilt from the same image."
+        },
+        {
+          "label": "Gate",
+          "criteria": "Tests before latest.",
+          "modelAnswer": "The six are replaced from 2.3.0 when empty; new versions publish excluded from latest until a canary passes a PDF smoke test."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "Autoscale adds ten hosts at 10:00, 50 minutes after the report; they will be built from whatever 'latest' resolves to."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: Hosts were deleted with users working on them."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed and not harmed",
+      "class": "harm",
+      "rationale": "Closing with 'latest' still on 2.4.0 lets the 10:00 scale-out spread the crash.",
+      "source": {
+        "cite": "Microsoft Learn, Azure Resource Manager template reference, Microsoft.Compute galleries/images/versions (API 2026-03-03)",
+        "checkedAt": "2026-11-17",
+        "url": "https://learn.microsoft.com/en-us/azure/templates/microsoft.compute/galleries/images/versions",
+        "note": "Read through a summarizing fetch on 2026-11-17. Quoted: excludeFromLatest, 'If set to true, Virtual Machines deployed from the latest version of the Image Definition won't use this Image Version'; endOfLifeDate, 'can be used for decommissioning purposes. This property is updatable.' A version excluded from latest can still be referenced explicitly. That a session host keeps the image it was built from until it is replaced follows from how VM images work (stated as the author's); the az sig commands are authored renderings."
+      }
+    }
+  },
+  "endings": {
+    "workLost": {
+      "label": "Agents lost open claims",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and harmed",
+      "narrative": "Deleting the hosts ended 24 sessions, and the rebuilds came from the same broken image."
+    },
+    "spread": {
+      "label": "Broken image spread at 10:00",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(missAt)",
+      "narrative": "At 10:00 autoscale built ten more hosts from 2.4.0."
+    },
+    "contained": {
+      "label": "Bad version excluded, hosts drained, pipeline gated",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(whichAt) and not isNull(latestAt) and not isNull(verifiedAt) and causeDoc == \"image\"",
+      "narrative": "New hosts come from 2.3.0, the broken hosts empty without lost work, and the next image needs a canary."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The spread stopped, but the replacement, the pipeline gate, the check or the record was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "workLost",
+    "spread",
+    "contained",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Tied the crash to the image version and read what 'latest' resolves to",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(whichAt) and not isNull(latestAt)",
+            "score": "met",
+            "why": "The key evidence, read before changing anything."
+          },
+          {
+            "when": "not isNull(whichAt) or not isNull(latestAt) or not isNull(crashAt) or not isNull(sessionsAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "'latest' safe before 10:00 with no sessions lost",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and not harmed and isNull(missAt)",
+            "score": "met",
+            "why": "The right change, in time, without harm."
+          },
+          {
+            "when": "fixed or harmed",
+            "score": "partial",
+            "why": "{harmed ? \"Hosts were deleted with users working on them.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never removed."
+          }
+        ]
+      },
+      {
+        "id": "lasting",
+        "label": "Hosts replaced when empty, pipeline gated, checked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The lasting step taken and the result checked."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"image\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record names the wrong cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes that caused harm",
+        "value": "harmed ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "09:10-09:14",
+        "text": "Crashing hosts all 2.4.0; latest = 2.4.0; crash in pdfrender64.dll; 24 users on them."
+      },
+      {
+        "at": "09:14-09:19",
+        "text": "excludeFromLatest on 2.4.0; drain and message; replace when empty; pipeline gate."
+      },
+      {
+        "at": "09:19-09:21",
+        "text": "latest = 2.3.0; PDF opens on a 2.3.0 host."
+      }
+    ],
+    "debrief": {
+      "workLost": {
+        "headline": "Stop the spread before you remove the symptom",
+        "body": "First make 'latest' safe (exclude the bad version), then drain the bad hosts and replace them when they empty. Deleting hosts with users on them loses work, and rebuilds from 'latest' bring the problem back."
+      },
+      "spread": {
+        "headline": "'latest' kept pointing at the broken version",
+        "body": "A host pool that builds from 'latest' takes whatever is newest. Exclude a bad version from latest (or pin a known-good version) before the next scale-out."
+      },
+      "contained": {
+        "headline": "Good: image lifecycle as a control",
+        "body": "You tied the crash to one image version, made 'latest' safe before the scale-out, moved users off without logging them out, checked, and put a test gate in the image pipeline."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the evidence before the change, the lasting step, the check, or the cause in the record."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Only the hosts built from image 2.4.0 crash, and the host pool builds from 'latest', which is 2.4.0, so the 10:00 scale-out would spread it. Exclude 2.4.0 from latest so new hosts use 2.3.0, drain the six broken hosts and ask their users to save and reconnect, then replace them when empty and gate future versions behind a canary test. Deleting hosts with users on them loses work and rebuilds from the same image; restarts change nothing."
+  }
+}

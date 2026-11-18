@@ -1,0 +1,884 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "eventarc-trigger-wrong-region-for-bucket",
+  "title": "Uploads pile up: the thumbnail service never hears about new photos",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "dev@cloudshell:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "10:10 galleries: 2,400 uploads without thumbnails since yesterday 16:00; catalog email at 12:00",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "12:00: galleries blank",
+          "when": "not isNull(missAt)",
+          "at": "timeAt(missAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "12:00: galleries complete",
+          "when": "not isNull(okAt)",
+          "at": "timeAt(okAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "bucket",
+          "label": "gs://lumen-uploads-eu (europe-west1)",
+          "spokenLabel": "the upload bucket",
+          "kind": "object finalized events",
+          "status": "{fixed and not harmed ? \"events delivered\" : \"events go nowhere\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "trig",
+          "label": "Eventarc trigger thumbs",
+          "spokenLabel": "the Eventarc trigger",
+          "kind": "location us-central1",
+          "status": "{fixed and not harmed ? \"europe-west1, matching the bucket\" : \"never matches the bucket\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "run",
+          "label": "Cloud Run thumbnailer (europe-west1)",
+          "spokenLabel": "the thumbnail service",
+          "kind": "ready",
+          "status": "{harmed ? \"public, unauthenticated\" : fixed ? \"processing uploads\" : \"no requests\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "bucket",
+          "to": "trig",
+          "label": "events",
+          "status": "{fixed and not harmed ? \"routed\" : \"location mismatch\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "l2",
+          "from": "trig",
+          "to": "run",
+          "label": "invoke",
+          "status": "{fixed and not harmed ? \"authenticated\" : \"none\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Invoking Cloud Run services with triggers: Eventarc, Pub/Sub",
+  "secondaryObjectives": [
+    "Configuring event receivers: Eventarc, Pub/Sub",
+    "Deploying an application to Cloud Run from source code"
+  ],
+  "sources": [
+    {
+      "cite": "Google Cloud, Professional Cloud Developer certification exam guide: Section 1 Designing highly scalable, secure, and reliable cloud-native applications (~32%), Section 2 Building and testing (~23%), Section 3 Configuring for deployment (~24%), Section 4 Integrating with Google Cloud services (~21%)",
+      "checkedAt": "2026-11-17",
+      "url": "https://services.google.com/fh/files/misc/042426_professional_cloud_developer_exam_guide_english.pdf",
+      "note": "Read through a summarizing fetch of the PDF on 2026-11-17 (no version or date printed). Quoted: 1.1 'Using traffic splitting strategies (e.g., gradual rollouts, rollbacks, A/B testing) on a new service on Cloud Run or GKE'; 1.3 'Creating signed URLs to grant access to Cloud Storage objects'. (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "Google Cloud documentation (Eventarc), Route Cloud Storage events to Cloud Run",
+      "checkedAt": "2026-11-18",
+      "url": "https://docs.cloud.google.com/eventarc/standard/docs/run/route-trigger-cloud-storage",
+      "note": "Read through a summarizing fetch on 2026-11-18. The bucket must be in the same project and 'region or multi-region as the Eventarc trigger'; 'Grant the Pub/Sub Publisher role to the Cloud Storage service agent'; the trigger's service account needs roles/run.invoker for authenticated invocations."
+    }
+  ],
+  "brief": {
+    "situation": "You are a developer at Lumen Prints. Customers upload photos to gs://lumen-uploads-eu (europe-west1); an Eventarc trigger should send each object-finalized event to the Cloud Run service thumbnailer. The trigger was created yesterday by a script copied from another project, and since then no thumbnails have been made: 2,400 uploads are waiting. The holiday catalog email goes to 200,000 customers at 12:00 and links to their photo galleries.",
+    "handover": [
+      "thumbnailer works when called by hand with a sample event.",
+      "The copied script created the trigger in us-central1, where the other project's bucket is."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the upload bucket and its region, the Eventarc trigger and its location, and the thumbnail service.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "10:10",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineAt": {
+      "value": 6600,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "The catalog email goes out at 12:00, 110 minutes after the report, linking customers to galleries that need thumbnails."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "harmed": {
+      "type": "bool",
+      "init": false
+    },
+    "tried": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "triggerAt": {
+      "type": "time",
+      "init": null
+    },
+    "bucketAt": {
+      "type": "time",
+      "init": null
+    },
+    "agentAt": {
+      "type": "time",
+      "init": null
+    },
+    "saAt": {
+      "type": "time",
+      "init": null
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "missAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "region",
+        "role",
+        "code"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "trigger",
+        "bucket",
+        "agent",
+        "sa",
+        "recreate",
+        "guard",
+        "public",
+        "redeploy",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "trigger": {
+      "label": "Describe the trigger",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(triggerAt)",
+          "then": [
+            {
+              "set": "triggerAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dev@cloudshell:~$ gcloud eventarc triggers list --format='table(name,location,eventFilters,destination.cloudRun.service,serviceAccount)'\n{fixed and not harmed ? \"thumbs  europe-west1  type=google.cloud.storage.object.v1.finalized, bucket=lumen-uploads-eu  thumbnailer  thumbs-sa\" : \"thumbs  us-central1  type=google.cloud.storage.object.v1.finalized, bucket=lumen-uploads-eu  thumbnailer  thumbs-sa\"}"
+        },
+        {
+          "finding": "The trigger is in us-central1; the bucket is in europe-west1. Eventarc needs the bucket in the trigger's region."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "bucket": {
+      "label": "The bucket's location",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(bucketAt)",
+          "then": [
+            {
+              "set": "bucketAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dev@cloudshell:~$ gcloud storage buckets describe gs://lumen-uploads-eu --format='value(location)'\nEUROPE-WEST1"
+        },
+        {
+          "finding": "The bucket is regional in europe-west1."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "agent": {
+      "label": "The Cloud Storage service agent's Pub/Sub role",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(agentAt)",
+          "then": [
+            {
+              "set": "agentAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dev@cloudshell:~$ gcloud projects get-iam-policy lumen-prints --flatten=bindings --filter='bindings.members:gs-project-accounts' --format='value(bindings.role)'\nroles/pubsub.publisher"
+        },
+        {
+          "finding": "The service agent already has the Pub/Sub Publisher role."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "sa": {
+      "label": "The trigger service account's role on thumbnailer",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(saAt)",
+          "then": [
+            {
+              "set": "saAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dev@cloudshell:~$ gcloud run services get-iam-policy thumbnailer --region europe-west1 --format='value(bindings.role,bindings.members)'\nroles/run.invoker serviceAccount:thumbs-sa@lumen-prints..."
+        },
+        {
+          "finding": "The trigger may invoke the service."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "recreate": {
+      "label": "Create the trigger in europe-west1 with the same filters and service account, delete the us-central1 one, and replay yesterday's uploads",
+      "group": "Fix",
+      "available": "not busy and (not fixed and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "fixed",
+          "to": "true"
+        },
+        {
+          "output": "dev@cloudshell:~$ gcloud eventarc triggers create thumbs --location=europe-west1 --destination-run-service=thumbnailer --destination-run-region=europe-west1 --event-filters=type=google.cloud.storage.object.v1.finalized --event-filters=bucket=lumen-uploads-eu --service-account=thumbs-sa@lumen-prints.iam.gserviceaccount.com\ndev@cloudshell:~$ gcloud eventarc triggers delete thumbs --location=us-central1 --quiet\ndev@cloudshell:~$ ./scripts/replay-uploads.sh --since '2026-11-17 16:00'   # re-posts the 2,400 object names to thumbnailer"
+        },
+        {
+          "log": "New uploads now produce events the trigger receives, and the 2,400 waiting photos are processed by the replay.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "20min"
+        }
+      ]
+    },
+    "guard": {
+      "label": "Make the trigger's location a variable derived from the bucket in the deploy script, and alert when uploads outpace thumbnails",
+      "group": "Fix",
+      "available": "not busy and (not planned and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "dev@cloudshell:~$ git diff deploy/trigger.sh\n- LOCATION=us-central1\n+ LOCATION=$(gcloud storage buckets describe gs://$BUCKET --format='value(location)' | tr A-Z a-z)\n(alert: uploads minus thumbnails over 100 for 15 minutes)"
+        },
+        {
+          "log": "A copied script cannot create a mismatched trigger again, and a stalled pipeline alerts within 15 minutes.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "public": {
+      "label": "Make thumbnailer public and have the web app call it directly after each upload",
+      "group": "Fix",
+      "available": "not busy and (not harmed)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "harmed",
+          "to": "true"
+        },
+        {
+          "output": "dev@cloudshell:~$ gcloud run services add-iam-policy-binding thumbnailer --member=allUsers --role=roles/run.invoker; (web app change)\n(deployed)"
+        },
+        {
+          "log": "Anyone on the internet can now make the service process arbitrary objects, and uploads made outside the web app are still missed.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "redeploy": {
+      "label": "Redeploy thumbnailer from source",
+      "group": "Fix",
+      "available": "not busy and (not harmed and not tried)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tried",
+          "to": "true"
+        },
+        {
+          "output": "dev@cloudshell:~$ gcloud run deploy thumbnailer --source . --region europe-west1\n(revision thumbnailer-00042 serving)"
+        },
+        {
+          "log": "The service was never the problem: no event reaches it.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Upload a test photo and check the thumbnail and the backlog",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dev@cloudshell:~$ gcloud storage cp test.jpg gs://lumen-uploads-eu/test/; sleep 20; gcloud storage ls gs://lumen-thumbs-eu/test/; backlog count\n{harmed ? \"(thumbnail made by the web app)\nbacklog: 2,400 (bulk uploads still missed)\" : fixed ? \"gs://lumen-thumbs-eu/test/test_400.jpg\nbacklog: 0\" : \"(no thumbnail)\nbacklog: 2,401\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "region",
+                  "label": "The Eventarc trigger was in us-central1 while the bucket is in europe-west1"
+                },
+                {
+                  "value": "role",
+                  "label": "The service agent lacked the Pub/Sub Publisher role"
+                },
+                {
+                  "value": "code",
+                  "label": "thumbnailer had a bug"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-335)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "12:00: customers open galleries with every thumbnail.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "missAt",
+              "to": "t"
+            },
+            {
+              "log": "12:00: 200,000 customers open galleries full of blank tiles.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why no events arrived, what you changed, and how it stays fixed.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Reads trigger and bucket.",
+          "modelAnswer": "The copied script created the trigger in us-central1; Cloud Storage events need the bucket in the trigger's region, and gs://lumen-uploads-eu is in europe-west1. Roles were already correct."
+        },
+        {
+          "label": "Changed",
+          "criteria": "Trigger in the bucket's region.",
+          "modelAnswer": "Recreated the trigger in europe-west1 with the same filters and service account, deleted the old one and replayed 2,400 uploads; a test upload got its thumbnail. A public service opens it to everyone and still misses bulk uploads; redeploying changes nothing."
+        },
+        {
+          "label": "Stays fixed",
+          "criteria": "Script and alert.",
+          "modelAnswer": "The deploy script takes the location from the bucket, and an alert fires when uploads outpace thumbnails."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The catalog email goes out at 12:00, 110 minutes after the report, linking customers to galleries that need thumbnails."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: The thumbnail service was opened to unauthenticated callers."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed and not harmed",
+      "class": "harm",
+      "rationale": "Closing with the trigger in the wrong region sends the email to blank galleries.",
+      "source": {
+        "cite": "Google Cloud documentation (Eventarc), Route Cloud Storage events to Cloud Run",
+        "checkedAt": "2026-11-18",
+        "url": "https://docs.cloud.google.com/eventarc/standard/docs/run/route-trigger-cloud-storage",
+        "note": "Read through a summarizing fetch on 2026-11-18. The bucket must be in the same project and 'region or multi-region as the Eventarc trigger'; 'Grant the Pub/Sub Publisher role to the Cloud Storage service agent'; the trigger's service account needs roles/run.invoker for authenticated invocations."
+      }
+    }
+  },
+  "endings": {
+    "serviceOpen": {
+      "label": "Service open to the internet",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and harmed",
+      "narrative": "thumbnailer can be invoked by anyone, and bulk uploads are still missed."
+    },
+    "galleriesBlank": {
+      "label": "Galleries blank at send time",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(missAt)",
+      "narrative": "At 12:00 the trigger still sat in the wrong region."
+    },
+    "flowing": {
+      "label": "Events flowing, backlog cleared",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(triggerAt) and not isNull(bucketAt) and not isNull(verifiedAt) and causeDoc == \"region\"",
+      "narrative": "The trigger is in europe-west1, new uploads get thumbnails, the backlog is replayed, and the deploy script and alert prevent a repeat."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Thumbnails flow, but the script, the alert, the check or the record was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "serviceOpen",
+    "galleriesBlank",
+    "flowing",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Read the trigger's location and the bucket's",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(triggerAt) and not isNull(bucketAt)",
+            "score": "met",
+            "why": "The key evidence, read before changing anything."
+          },
+          {
+            "when": "not isNull(triggerAt) or not isNull(bucketAt) or not isNull(agentAt) or not isNull(saAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Thumbnails flowing and backlog cleared by 12:00, service still private",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and not harmed and isNull(missAt)",
+            "score": "met",
+            "why": "The right change, in time, without harm."
+          },
+          {
+            "when": "fixed or harmed",
+            "score": "partial",
+            "why": "{harmed ? \"The thumbnail service was opened to unauthenticated callers.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never removed."
+          }
+        ]
+      },
+      {
+        "id": "lasting",
+        "label": "Deploy script and backlog alert; test upload checked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The lasting step taken and the result checked."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"region\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record names the wrong cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes that caused harm",
+        "value": "harmed ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "10:10-10:14",
+        "text": "Trigger us-central1, bucket europe-west1; publisher and invoker roles fine."
+      },
+      {
+        "at": "10:14-10:34",
+        "text": "Trigger in europe-west1; delete old; replay backlog; script and alert."
+      },
+      {
+        "at": "10:34-10:36",
+        "text": "Test thumbnail; backlog 0."
+      }
+    ],
+    "debrief": {
+      "serviceOpen": {
+        "headline": "Fix the trigger; keep the service private",
+        "body": "Eventarc delivers events with an authenticated service account. Making the service public works around a misplaced trigger by opening it to everyone."
+      },
+      "galleriesBlank": {
+        "headline": "Trigger location must match the bucket",
+        "body": "For Cloud Storage events the bucket must be in the same region or multi-region as the Eventarc trigger."
+      },
+      "flowing": {
+        "headline": "Good: event routing matched to the source",
+        "body": "You compared the trigger's location with the bucket, confirmed roles were fine, recreated the trigger in the bucket's region, replayed the backlog, verified a new upload, and fixed the script."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the evidence before the change, the lasting step, the check, or the cause in the record."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The service works and roles are fine, but the trigger is in us-central1 while the bucket is in europe-west1, and Eventarc needs the bucket in the trigger's region. Recreate the trigger in europe-west1 with the same filters and service account, delete the old one, replay the backlog and test a new upload. Making the service public opens it to everyone and misses bulk uploads; redeploying the service changes nothing. Then derive the location from the bucket in the deploy script."
+  }
+}
