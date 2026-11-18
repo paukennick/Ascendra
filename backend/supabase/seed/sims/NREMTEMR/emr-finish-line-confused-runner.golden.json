@@ -1,0 +1,373 @@
+{
+  "slug": "emr-finish-line-confused-runner",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: heat stroke recognized; into the ice tub at once; ambulance called; airway watched, vital signs; out when alert; handed over",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "tub",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "chapter",
+          "chapter": "inTub",
+          "choice": "continue",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "callAmb",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "how",
+          "choice": "ms",
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "airway",
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 9,
+          "tick": 360
+        },
+        {
+          "type": "act",
+          "action": "out",
+          "seq": 10,
+          "tick": 571
+        },
+        {
+          "type": "act",
+          "action": "report",
+          "seq": 11,
+          "tick": 600
+        }
+      ],
+      "expect": {
+        "ending": "cooled",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "cool": "met",
+          "until": "met",
+          "mouth": "met",
+          "call": "met",
+          "assess": "met"
+        },
+        "kpis": {
+          "toCool": 0
+        },
+        "stateHash": "31304984d3fa333e"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "tubLate",
+      "title": "Assessment and the ambulance first, vital signs, then the tub only at 4 minutes; out when alert; handed over",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "callAmb",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "tub",
+          "seq": 4,
+          "tick": 240
+        },
+        {
+          "type": "chapter",
+          "chapter": "inTub",
+          "choice": "continue",
+          "seq": 5,
+          "tick": 240
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 6,
+          "tick": 360
+        },
+        {
+          "type": "act",
+          "action": "out",
+          "seq": 7,
+          "tick": 847
+        },
+        {
+          "type": "act",
+          "action": "report",
+          "seq": 8,
+          "tick": 847
+        }
+      ],
+      "expect": {
+        "ending": "late",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 83,
+        "criteria": {
+          "cool": "partial",
+          "until": "met",
+          "mouth": "met",
+          "call": "met",
+          "assess": "met"
+        },
+        "kpis": {
+          "toCool": 240
+        },
+        "stateHash": "7e81839f4c754569"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "sheetHot",
+      "title": "A wet sheet in the shade, the ambulance called late, handed over still drowsy and hot",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "sheet",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "callAmb",
+          "seq": 2,
+          "tick": 200
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 360
+        },
+        {
+          "type": "act",
+          "action": "report",
+          "seq": 4,
+          "tick": 800
+        }
+      ],
+      "expect": {
+        "ending": "hot",
+        "class": "harm",
+        "rating": "bad",
+        "score": 25,
+        "criteria": {
+          "cool": "missed",
+          "until": "missed",
+          "mouth": "met",
+          "call": "partial",
+          "assess": "missed"
+        },
+        "kpis": {
+          "toCool": 0
+        },
+        "stateHash": "f7d74006723b4f46"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "drinkFirst",
+      "title": "A sports drink while she is confused; she chokes; then the tub and the ambulance",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "drink",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "tub",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "chapter",
+          "chapter": "inTub",
+          "choice": "continue",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "callAmb",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 6,
+          "tick": 360
+        },
+        {
+          "type": "act",
+          "action": "out",
+          "seq": 7,
+          "tick": 571
+        },
+        {
+          "type": "act",
+          "action": "report",
+          "seq": 8,
+          "tick": 600
+        }
+      ],
+      "expect": {
+        "ending": "aspirated",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "cool": "met",
+          "until": "met",
+          "mouth": "missed",
+          "call": "met",
+          "assess": "partial"
+        },
+        "kpis": {
+          "toCool": 0
+        },
+        "stateHash": "d1c324ff458ee7c0"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "noRadio",
+      "title": "Cooled well in the tub, but no ambulance is ever requested",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "tub",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "chapter",
+          "chapter": "inTub",
+          "choice": "continue",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 360
+        },
+        {
+          "type": "act",
+          "action": "out",
+          "seq": 6,
+          "tick": 571
+        }
+      ],
+      "expect": {
+        "ending": "time_up",
+        "class": "harm",
+        "rating": "bad",
+        "score": 75,
+        "criteria": {
+          "cool": "met",
+          "until": "met",
+          "mouth": "met",
+          "call": "missed",
+          "assess": "met"
+        },
+        "kpis": {
+          "toCool": 0
+        },
+        "stateHash": "d5cc143d8aa878ff"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    }
+  ]
+}

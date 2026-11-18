@@ -1,0 +1,1127 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "emt-head-bump-on-a-blood-thinner",
+  "title": "A bump on the head and a blood thinner",
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate, last measured",
+          "value": "vHr",
+          "unit": "/min",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              100,
+              120
+            ]
+          },
+          "colour": "ecg",
+          "hiddenUntil": "vAt > 0"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure, last measured",
+          "value": [
+            "vSbp",
+            "vDbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "high": 180
+          },
+          "announce": {
+            "bands": [
+              160,
+              180
+            ]
+          },
+          "colour": "art",
+          "hiddenUntil": "vAt > 0"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 94
+          },
+          "announce": {
+            "bands": [
+              94,
+              90
+            ]
+          },
+          "colour": "spo2",
+          "hiddenUntil": "probeOn"
+        },
+        {
+          "id": "gcs",
+          "label": "GCS",
+          "spokenLabel": "Glasgow Coma Scale, last assessed",
+          "value": "vGcs",
+          "unit": "",
+          "alarm": {
+            "low": 14
+          },
+          "announce": {
+            "bands": [
+              14,
+              12
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "vAt > 0"
+        }
+      ],
+      "infusions": "Destination: {dest == \"none\" ? \"not chosen\" : dest == \"trauma\" ? \"trauma center, 25 min\" : \"community hospital, 8 min\"}. {isNull(departAt) ? \"On scene\" : isNull(arrivedAt) ? \"En route\" : \"Arrived\"}. Position: {isNull(sideAt) ? \"sitting up\" : \"on her side\"}.",
+      "banner": [
+        {
+          "when": "isNull(departAt)",
+          "text": "Ruth, 79, sits in her armchair holding an ice pack to her forehead. 'It's just a bump. I don't need a hospital.'"
+        },
+        {
+          "when": "not isNull(vomitAt) and isNull(arrivedAt)",
+          "text": "She has vomited and is hard to keep awake."
+        }
+      ]
+    }
+  },
+  "objective": "Recognize history findings that change urgency or destination, such as anticoagulant use after a fall or pregnancy after an injury",
+  "secondaryObjectives": [
+    "Reassess at intervals matched to the patient's stability, compare with the baseline, and change treatment when findings change",
+    "Choose the transport destination -- trauma, stroke, STEMI or pediatric-capable center -- and decide when lights and siren are justified",
+    "Assess decision-making capacity when a patient refuses care, explain the risks, involve medical direction and document the refusal"
+  ],
+  "sources": [
+    {
+      "cite": "National Registry of EMTs. EMT examination test plan",
+      "checkedAt": "2026-11-09",
+      "url": "https://nremt.org/getmedia/4cb170ab-35fa-4ec0-a76c-634847005bc4/EMT-Test-Plan_Public",
+      "note": "Relayed from the course seed (backend/supabase/seed/tracks/ems.ts and labs/ems-sources.ts, read in NREMT's own documents 2026-11-09); not re-read for this case. Secondary Assessment: history findings that change urgency or destination; Patient Treatment and Transport: destination choice under the field triage guideline."
+    },
+    {
+      "cite": "American College of Surgeons Committee on Trauma, with NAEMSP and partners. National Guideline for the Field Triage of Injured Patients (2021)",
+      "checkedAt": "2026-11-17",
+      "url": "https://ww2.facs.org/media/2zdltley/field-triage-handout-vfinal-revise.pdf",
+      "note": "Read 2026-11-17 in ACS's handout through a summarizing fetch (REQ-241 read the same handout 2026-11-11): yellow criteria include 'Low-level falls in young children (age <= 5 years) or older adults (age >= 65 years) with significant head impact', 'Anticoagulant use', 'Pregnancy > 20 weeks' and 'If concerned, take to a trauma center'; a patient with yellow but no red criteria 'should be preferentially transported to a trauma center' that 'need not be the highest-level trauma center'; red includes 'Unable to follow commands (motor GCS < 6)'."
+    },
+    {
+      "cite": "NASEMSO. National Model EMS Clinical Guidelines, Version 3.0 (March 2022): Head Injury",
+      "checkedAt": "2026-11-17",
+      "url": "https://nasemso.org/?p=223",
+      "note": "Read 2026-11-17 in the full text Iowa HHS hosts (https://hhs.iowa.gov/media/198/download) through summarizing fetches with quotes; NASEMSO's own page, read the same day, still presents Version 3 (2022) as current and names no later version. Avoid hypoxia (no SpO2 below 90%) and hypotension; trend GCS or AVPU and reassess with any change in mentation; preferential transport to the highest level of care in the trauma system for GCS 3-13."
+    },
+    {
+      "cite": "NASEMSO. National Model EMS Clinical Guidelines, Version 3.0 (March 2022): Patient Refusals",
+      "checkedAt": "2026-11-17",
+      "url": "https://nasemso.org/?p=223",
+      "note": "Read 2026-11-17 in the full text Iowa HHS hosts (https://hhs.iowa.gov/media/198/download) through summarizing fetches with quotes; NASEMSO's own page, read the same day, still presents Version 3 (2022) as current and names no later version. Capacity: 'alert, oriented, and can understand the circumstances surrounding his/her illness or impairment', judgment not significantly impaired by illness, injury or intoxication; a patient without capacity 'should not be allowed to refuse care against medical advice or to be released at the scene'; explain 'the possible risks and overall concerns'; doubts about capacity: contact medical direction; document the plan, who will be with the patient, and the patient's own words; tell them they may call again."
+    },
+    {
+      "cite": "NHTSA. National EMS Scope of Practice Model 2019: Including Change Notices 1.0 and 2.0 (DOT HS 813 151, 2021-08-01)",
+      "checkedAt": "2026-11-17",
+      "url": "https://rosap.ntl.bts.gov/view/dot/56917",
+      "note": "Read 2026-11-17: the record page (title, report number, date; the change notices add intramuscular injection, vaccination in a public health emergency and nasal swab collection at EMT and above) and the PDF's skill tables through a summarizing fetch whose table columns were partly unclear, so placement was checked against the course's own reading (backend/supabase/seed/labs/ems-sources.ts, 2026-11-09) and REQ-241's reading (2026-11-11). EMR: oxygen, BVM, naloxone (intranasal or auto-injector), unit-dose hazmat antidote auto-injectors, tourniquet, wound packing, emergency moves, manual stabilization; no pulse oximetry, glucose monitoring or transport. EMT adds pulse oximetry, glucose monitoring, oral glucose, aspirin, the patient's own nitroglycerin, an inhaled bronchodilator, CPAP, the epinephrine auto-injector. AEMT adds IV and IO access, non-medicated IV fluids, supraglottic airways, waveform capnography, sublingual nitroglycerin and a limited list of IV and IM drugs (dextrose, naloxone). Paramedic adds 12-lead interpretation, manual defibrillation, synchronized cardioversion, transcutaneous pacing, needle chest decompression, intubation and medicated infusions. No newer model was found on 2026-11-17."
+    },
+    {
+      "cite": "Ascendra NREMT EMT course catalog (backend/supabase/seed/tracks/ems.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Ascendra teaching model (REQ-338, authored)",
+      "checkedAt": "2026-11-17",
+      "note": "The timing of her decline (drowsy and vomiting about 12 minutes after you reach her, as with a bleed under the skull on an anticoagulant) and the drive times are authored; FLAG: no source gives a rate. Simplified teaching model written for exam practice; not a validated physiological model."
+    }
+  ],
+  "brief": {
+    "situation": "14:20. You and your partner are EMTs on an ambulance, called by a daughter: her mother Ruth, 79, tripped on a rug about 40 minutes ago and hit her forehead on a table edge. Ruth is sitting up, talking, and says she is fine.",
+    "handover": [
+      "The closest hospital is a community emergency department 8 minutes away with no neurosurgery; the regional trauma center is 25 minutes away.",
+      "Within EMT scope: assessment, pulse oximetry, glucose, oxygen, suction, positioning, transport and destination, and a refusal process with medical direction."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated seconds per real second. Pause any time.",
+      "Every assessment and treatment takes the time it would on a real call. Scene time and the drive run on the clock.",
+      "Partway through you are asked to explain your decisions in writing. The case ends when care is handed over, then a debrief scores what you did."
+    ]
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice; follow your local protocols and medical direction.",
+  "clock": {
+    "start": "14:20",
+    "tick": "1s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "declineAt": {
+      "value": 720,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (REQ-338, authored)",
+        "checkedAt": "2026-11-17",
+        "note": "FLAG: stands in for a number no guideline gives. Drowsy and vomiting 12 minutes after you reach her. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "sideGrace": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (REQ-338, authored)",
+        "checkedAt": "2026-11-17",
+        "note": "FLAG: stands in for a number no guideline gives. Lying back while vomiting and drowsy, she aspirates if not turned within a minute. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "vitalsTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A set of vital signs with GCS: about 1 minute. Authored for the case; real times vary."
+      }
+    },
+    "historyTime": {
+      "value": 90,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "SAMPLE history with her and her daughter: about 90 seconds. Authored for the case; real times vary."
+      }
+    },
+    "loadTime": {
+      "value": 240,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Stair chair to the ambulance and loaded: about 4 minutes. Authored for the case; real times vary."
+      }
+    },
+    "traumaDrive": {
+      "value": 1500,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "25 minutes to the trauma center. Authored for the case; real times vary."
+      }
+    },
+    "localDrive": {
+      "value": 480,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "8 minutes to the community hospital. Authored for the case; real times vary."
+      }
+    },
+    "sceneGoal": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (REQ-338, authored)",
+        "checkedAt": "2026-11-17",
+        "note": "FLAG: stands in for a number no guideline gives. Scene time of 15 minutes or less; the field triage guideline gives destinations, not scene times. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    }
+  },
+  "state": {
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "historyAt": {
+      "type": "time",
+      "init": null
+    },
+    "medsKnownAt": {
+      "type": "time",
+      "init": null
+    },
+    "explainAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstVAt": {
+      "type": "time",
+      "init": null
+    },
+    "secondVAt": {
+      "type": "time",
+      "init": null
+    },
+    "vomitAt": {
+      "type": "time",
+      "init": null
+    },
+    "sideAt": {
+      "type": "time",
+      "init": null
+    },
+    "suctionAt": {
+      "type": "time",
+      "init": null
+    },
+    "departAt": {
+      "type": "time",
+      "init": null
+    },
+    "arrivedAt": {
+      "type": "time",
+      "init": null
+    },
+    "notifyAt": {
+      "type": "time",
+      "init": null
+    },
+    "refusedAt": {
+      "type": "time",
+      "init": null
+    },
+    "medDirAt": {
+      "type": "time",
+      "init": null
+    },
+    "vPending": {
+      "type": "bool",
+      "init": false
+    },
+    "hPending": {
+      "type": "bool",
+      "init": false
+    },
+    "probeOn": {
+      "type": "bool",
+      "init": false
+    },
+    "aspirated": {
+      "type": "bool",
+      "init": false
+    },
+    "dest": {
+      "type": "enum",
+      "values": [
+        "none",
+        "trauma",
+        "local"
+      ],
+      "init": "none"
+    },
+    "vAt": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000,
+      "unit": "s"
+    },
+    "vHr": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 220,
+      "unit": "/min"
+    },
+    "vSbp": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 250,
+      "unit": "mmHg"
+    },
+    "vDbp": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 200,
+      "unit": "mmHg"
+    },
+    "vGcs": {
+      "type": "number",
+      "init": 15,
+      "min": 3,
+      "max": 15
+    }
+  },
+  "derived": {
+    "gcs": {
+      "expr": "isNull(vomitAt) ? 15 : 13"
+    },
+    "spo2": {
+      "expr": "aspirated ? 88 : 96",
+      "unit": "%",
+      "precision": 0
+    }
+  },
+  "processes": [],
+  "phases": {
+    "call": {
+      "label": "On the call",
+      "clock": "running",
+      "actions": [
+        "look",
+        "history",
+        "vitals",
+        "explain",
+        "refuse",
+        "medDir",
+        "transport",
+        "side",
+        "suction",
+        "notify"
+      ]
+    }
+  },
+  "initialPhase": "call",
+  "actions": {
+    "look": {
+      "label": "Primary assessment and a look at the head wound",
+      "group": "Assess",
+      "available": "isNull(lookAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Airway clear, breathing normal, radial pulse irregular; a 4 cm swelling above the right eye; alert, talking, oriented.",
+          "kind": "find"
+        }
+      ]
+    },
+    "history": {
+      "label": "SAMPLE history with her and her daughter, including every medication",
+      "group": "Assess",
+      "available": "isNull(historyAt) and not hPending",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "hPending",
+          "to": "true"
+        },
+        {
+          "schedule": "histT",
+          "after": "historyTime"
+        },
+        {
+          "log": "You go through events, allergies, medications and history."
+        }
+      ]
+    },
+    "vitals": {
+      "label": "Vital signs, pulse oximetry and GCS",
+      "group": "Assess",
+      "available": "not vPending",
+      "why": "Already measuring.",
+      "effects": [
+        {
+          "set": "vPending",
+          "to": "true"
+        },
+        {
+          "set": "probeOn",
+          "to": "true"
+        },
+        {
+          "schedule": "vitalsT",
+          "after": "vitalsTime"
+        },
+        {
+          "log": "Cuff, oximeter, GCS."
+        }
+      ]
+    },
+    "explain": {
+      "label": "Explain the risk: a head strike on a blood thinner can bleed inside the skull hours later; she needs a trauma center's scan",
+      "group": "Talk",
+      "available": "isNull(explainAt) and isNull(refusedAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(explainAt)",
+          "then": [
+            {
+              "set": "explainAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not isNull(medsKnownAt)",
+          "then": [
+            {
+              "log": "She listens, looks at her daughter and agrees to go.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "log": "Without knowing her medications you can only say 'just to be safe'; she reluctantly agrees."
+            }
+          ]
+        }
+      ]
+    },
+    "refuse": {
+      "label": "She says she's fine: have her sign a refusal and leave",
+      "group": "Talk",
+      "available": "isNull(departAt) and isNull(refusedAt) and isNull(explainAt)",
+      "why": "Not now.",
+      "effects": [
+        {
+          "if": "isNull(refusedAt)",
+          "then": [
+            {
+              "set": "refusedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "She signs; you leave her in her armchair.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "medDir": {
+      "label": "Call medical direction to discuss her refusal",
+      "group": "Talk",
+      "available": "isNull(medDirAt) and isNull(departAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(medDirAt)",
+          "then": [
+            {
+              "set": "medDirAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "The physician agrees she needs a scan and speaks to Ruth on speaker; she agrees to go.",
+          "kind": "good"
+        },
+        {
+          "if": "isNull(explainAt)",
+          "then": [
+            {
+              "set": "explainAt",
+              "to": "t"
+            }
+          ]
+        }
+      ]
+    },
+    "transport": {
+      "label": "Load her and go",
+      "group": "Transport",
+      "available": "isNull(departAt) and isNull(refusedAt) and not isNull(explainAt)",
+      "why": "She has to agree first.",
+      "params": [
+        {
+          "id": "to",
+          "kind": "choice",
+          "label": "Destination",
+          "options": [
+            {
+              "value": "trauma",
+              "label": "The regional trauma center, 25 minutes"
+            },
+            {
+              "value": "local",
+              "label": "The community hospital, 8 minutes"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(departAt)",
+          "then": [
+            {
+              "set": "departAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "dest",
+          "to": "to"
+        },
+        {
+          "schedule": "arriveT",
+          "after": "loadTime + (to == \"trauma\" ? traumaDrive : localDrive)"
+        },
+        {
+          "log": "Loading and leaving."
+        }
+      ]
+    },
+    "side": {
+      "label": "Turn her onto her side",
+      "group": "Treat",
+      "available": "not isNull(vomitAt) and isNull(sideAt)",
+      "why": "Only if she vomits.",
+      "effects": [
+        {
+          "if": "isNull(sideAt)",
+          "then": [
+            {
+              "set": "sideAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "On her side; vomit drains from her mouth.",
+          "kind": "good"
+        }
+      ]
+    },
+    "suction": {
+      "label": "Suction her mouth",
+      "group": "Treat",
+      "available": "not isNull(vomitAt) and isNull(suctionAt)",
+      "why": "Only if she vomits.",
+      "effects": [
+        {
+          "if": "isNull(suctionAt)",
+          "then": [
+            {
+              "set": "suctionAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Mouth suctioned clear."
+        }
+      ]
+    },
+    "notify": {
+      "label": "Radio the receiving hospital: fall on an anticoagulant, GCS 15 falling to 13, vomiting, ETA",
+      "group": "Transport",
+      "available": "not isNull(departAt) and isNull(notifyAt)",
+      "why": "Once you are moving.",
+      "effects": [
+        {
+          "if": "isNull(notifyAt)",
+          "then": [
+            {
+              "set": "notifyAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Hospital notified.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "histT": {
+      "label": "history",
+      "wait": {
+        "skipLabel": "the history (about 90 s)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 90 seconds. Authored for the case; real times vary."
+      },
+      "effects": [
+        {
+          "set": "hPending",
+          "to": "false"
+        },
+        {
+          "if": "isNull(historyAt)",
+          "then": [
+            {
+              "set": "historyAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(medsKnownAt)",
+          "then": [
+            {
+              "set": "medsKnownAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Apixaban twice a day for atrial fibrillation, last dose this morning; blood pressure tablets. No loss of consciousness that the daughter saw; mild headache.",
+          "kind": "find"
+        }
+      ]
+    },
+    "vitalsT": {
+      "label": "vital signs",
+      "wait": {
+        "skipLabel": "the vital signs (about 1 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 1 minute. Authored for the case; real times vary."
+      },
+      "effects": [
+        {
+          "set": "vPending",
+          "to": "false"
+        },
+        {
+          "set": "vAt",
+          "to": "t"
+        },
+        {
+          "if": "isNull(firstVAt)",
+          "then": [
+            {
+              "if": "isNull(firstVAt)",
+              "then": [
+                {
+                  "set": "firstVAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ],
+          "else": [
+            {
+              "if": "not isNull(vomitAt)",
+              "then": [
+                {
+                  "if": "isNull(secondVAt)",
+                  "then": [
+                    {
+                      "set": "secondVAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "vHr",
+          "to": "isNull(vomitAt) ? 88 : 62"
+        },
+        {
+          "set": "vSbp",
+          "to": "isNull(vomitAt) ? 152 : 184"
+        },
+        {
+          "set": "vDbp",
+          "to": "isNull(vomitAt) ? 84 : 96"
+        },
+        {
+          "set": "vGcs",
+          "to": "gcs"
+        },
+        {
+          "log": "HR {isNull(vomitAt) ? 88 : 62}, BP {isNull(vomitAt) ? \"152/84\" : \"184/96\"}, SpO2 {spo2}%, GCS {gcs}.",
+          "kind": "find"
+        }
+      ]
+    },
+    "arriveT": {
+      "label": "arrival",
+      "wait": {
+        "skipLabel": "arrival at the hospital"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Load and drive. Authored for the case; real times vary."
+      },
+      "effects": [
+        {
+          "if": "isNull(arrivedAt)",
+          "then": [
+            {
+              "set": "arrivedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "At the hospital.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "decline",
+      "when": "t >= declineAt and isNull(vomitAt) and isNull(refusedAt)",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "isNull(vomitAt)",
+          "then": [
+            {
+              "set": "vomitAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Ruth vomits, then her eyes keep closing; she is slow to answer.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "asp",
+      "when": "not isNull(vomitAt) and isNull(sideAt) and not aspirated and t >= timeAt(vomitAt) + sideGrace",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "aspirated",
+          "to": "true"
+        },
+        {
+          "log": "She coughs and gurgles; vomit is in her airway.",
+          "kind": "alarm"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "why": {
+      "trigger": "not isNull(departAt) and t >= timeAt(departAt) + 60",
+      "question": "What in her history changed where she goes, and what will you watch for on the way?",
+      "parts": [
+        {
+          "label": "The history",
+          "criteria": "Age 65 or older with a significant head impact, and anticoagulant use (apixaban): field triage yellow criteria; a trauma center, not necessarily the highest level; she agreed once the risk was explained.",
+          "modelAnswer": "She is 79, hit her head hard and takes apixaban. Both are yellow criteria in the field triage guideline, so she goes to the trauma center even though she looks well."
+        },
+        {
+          "label": "On the way",
+          "criteria": "Reassess GCS and vital signs at short intervals against the baseline; vomiting, drowsiness, rising blood pressure and slowing pulse are signs of a growing bleed; protect the airway (side, suction), notify the hospital.",
+          "modelAnswer": "GCS and vital signs every few minutes against her baseline of 15. Vomiting or drowsiness means a bleed may be growing: side and suction, and I tell the trauma center."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "not isNull(arrivedAt) and dest == \"local\"",
+      "class": "recovered",
+      "rationale": "She reached a hospital that cannot treat a bleed under the skull and needs a second transfer.",
+      "source": {
+        "cite": "American College of Surgeons Committee on Trauma, with NAEMSP and partners. National Guideline for the Field Triage of Injured Patients (2021)",
+        "checkedAt": "2026-11-17",
+        "url": "https://ww2.facs.org/media/2zdltley/field-triage-handout-vfinal-revise.pdf",
+        "note": "Read 2026-11-17 in ACS's handout through a summarizing fetch (REQ-241 read the same handout 2026-11-11): yellow criteria include 'Low-level falls in young children (age <= 5 years) or older adults (age >= 65 years) with significant head impact', 'Anticoagulant use', 'Pregnancy > 20 weeks' and 'If concerned, take to a trauma center'; a patient with yellow but no red criteria 'should be preferentially transported to a trauma center' that 'need not be the highest-level trauma center'; red includes 'Unable to follow commands (motor GCS < 6)'."
+      }
+    }
+  },
+  "endings": {
+    "leftHome": {
+      "label": "Left at home",
+      "class": "harm",
+      "terminal": true,
+      "when": "not isNull(refusedAt) and t >= timeAt(refusedAt) + 60",
+      "narrative": "You left her in her armchair. Her daughter called again two hours later: she was vomiting and could not be woken."
+    },
+    "aspirated": {
+      "label": "Vomit in her airway",
+      "class": "harm",
+      "terminal": true,
+      "when": "not isNull(arrivedAt) and aspirated",
+      "narrative": "{timeAt(arrivedAt)|clock}: she arrives with vomit in her lungs on top of a bleed."
+    },
+    "right": {
+      "label": "Right center, watched all the way",
+      "class": "target",
+      "terminal": true,
+      "when": "not isNull(arrivedAt) and dest == \"trauma\" and not aspirated and not isNull(medsKnownAt) and timeAt(medsKnownAt) <= 300 and not isNull(secondVAt) and not isNull(notifyAt) and timeAt(departAt) <= sceneGoal",
+      "narrative": "{timeAt(arrivedAt)|clock}: Ruth reaches the trauma center with her airway clear; the team, warned of her falling GCS, takes her straight to the scanner."
+    },
+    "arrived": {
+      "label": "At a hospital, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not isNull(arrivedAt)",
+      "narrative": "{timeAt(arrivedAt)|clock}: she arrives, but {dest == \"local\" ? \"at a hospital that will have to transfer her for the bleed\" : isNull(secondVAt) ? \"nobody re-measured her after she changed\" : isNull(notifyAt) ? \"the hospital was not warned\" : \"the history or the scene time had gaps\"}."
+    },
+    "time_up": {
+      "label": "60 minutes",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "Sixty minutes and she has not reached a hospital."
+    }
+  },
+  "endingOrder": [
+    "leftHome",
+    "aspirated",
+    "right",
+    "arrived"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "meds",
+        "label": "Found the anticoagulant in the history within 5 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(medsKnownAt) and timeAt(medsKnownAt) <= 300",
+            "score": "met",
+            "why": "Apixaban found at {timeAt(medsKnownAt)|clock}."
+          },
+          {
+            "when": "not isNull(medsKnownAt)",
+            "score": "partial",
+            "why": "Found late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never asked about medications."
+          }
+        ]
+      },
+      {
+        "id": "dest",
+        "label": "Trauma center for a head impact on an anticoagulant",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "dest == \"trauma\"",
+            "score": "met",
+            "why": "Trauma center."
+          },
+          {
+            "when": "dest == \"local\"",
+            "score": "partial",
+            "why": "The closest hospital without neurosurgery."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "She was not transported."
+          }
+        ]
+      },
+      {
+        "id": "reassess",
+        "label": "Re-measured GCS and vital signs when she changed",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(vomitAt)",
+            "score": "na",
+            "why": "No change while you had her."
+          },
+          {
+            "when": "not isNull(secondVAt)",
+            "score": "met",
+            "why": "GCS 13 found and acted on."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No reassessment after the change."
+          }
+        ]
+      },
+      {
+        "id": "airway",
+        "label": "Turned her within a minute of vomiting",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(vomitAt)",
+            "score": "na",
+            "why": "She did not vomit."
+          },
+          {
+            "when": "not aspirated",
+            "score": "met",
+            "why": "Turned in time."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "She aspirated."
+          }
+        ]
+      },
+      {
+        "id": "consent",
+        "label": "Explained the risk rather than accepting a refusal",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(refusedAt)",
+            "score": "missed",
+            "why": "A refusal signed without the risk explained."
+          },
+          {
+            "when": "not isNull(explainAt)",
+            "score": "met",
+            "why": "Risk explained."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "notify",
+        "label": "Hospital notified",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(notifyAt)",
+            "score": "met",
+            "why": "Notified."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No notification."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: the history, the destination and reassessment",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "scene",
+        "label": "Scene time",
+        "value": "isNull(departAt) ? -1 : timeAt(departAt)",
+        "format": "duration",
+        "expert": "under 12 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "14:20",
+        "text": "Primary assessment; SAMPLE with every medication: apixaban. Vital signs and GCS 15."
+      },
+      {
+        "at": "14:24",
+        "text": "Explain why a head strike on a blood thinner needs a trauma center; she agrees. Load for the trauma center."
+      },
+      {
+        "at": "~14:32",
+        "text": "She vomits and fades: on her side, suction, re-measure (GCS 13, BP up, pulse down), notify."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "The history changed everything",
+        "body": "She looked well, but 79, a head strike and apixaban are yellow criteria: a trauma center. Reassessing caught the bleed growing, and the airway stayed clear."
+      },
+      "arrived": {
+        "headline": "Arrived, with gaps",
+        "body": "Check the destination, whether you re-measured after she changed, and the notification."
+      },
+      "leftHome": {
+        "headline": "A bump on a blood thinner",
+        "body": "She looked fine, but nobody asked about her medications or explained the risk before she signed. Ask about every medication, explain, involve medical direction."
+      },
+      "aspirated": {
+        "headline": "Vomiting and drowsy: turn her",
+        "body": "A drowsy patient who vomits needs her side and suction within seconds."
+      },
+      "time_up": {
+        "headline": "Not at a hospital",
+        "body": "Sixty minutes passed."
+      }
+    },
+    "modelReasoning": "A 79-year-old who hit her head hard and takes apixaban meets two yellow criteria of the 2021 field triage guideline (age 65 or older with significant head impact; anticoagulant use), so she goes to a trauma center even though she looks well; ask about every medication to find this. Explain the risk; if she still refuses, involve medical direction. Reassess GCS and vital signs against her baseline; vomiting, drowsiness, rising pressure and a slowing pulse suggest a growing bleed: side, suction, notify the trauma center."
+  },
+  "chapters": [
+    {
+      "id": "rolling",
+      "label": "On the way",
+      "when": "not isNull(departAt)"
+    }
+  ],
+  "teaching": {
+    "yellow": {
+      "during": "histT",
+      "ask": "While you take the history: which finding alone sends an alert, talking 79-year-old to a trauma center after a fall?",
+      "choices": [
+        {
+          "id": "anti",
+          "label": "She takes an anticoagulant and struck her head"
+        },
+        {
+          "id": "age",
+          "label": "Her age alone, with no head strike"
+        },
+        {
+          "id": "bp",
+          "label": "A blood pressure of 152/84"
+        }
+      ],
+      "expect": "anti",
+      "explain": "The 2021 field triage guideline lists anticoagulant use, and low-level falls in adults 65 or older with significant head impact, as yellow criteria: preferential transport to a trauma center.",
+      "source": {
+        "cite": "American College of Surgeons Committee on Trauma, with NAEMSP and partners. National Guideline for the Field Triage of Injured Patients (2021)",
+        "checkedAt": "2026-11-17",
+        "url": "https://ww2.facs.org/media/2zdltley/field-triage-handout-vfinal-revise.pdf",
+        "note": "Read 2026-11-17 in ACS's handout through a summarizing fetch (REQ-241 read the same handout 2026-11-11): yellow criteria include 'Low-level falls in young children (age <= 5 years) or older adults (age >= 65 years) with significant head impact', 'Anticoagulant use', 'Pregnancy > 20 weeks' and 'If concerned, take to a trauma center'; a patient with yellow but no red criteria 'should be preferentially transported to a trauma center' that 'need not be the highest-level trauma center'; red includes 'Unable to follow commands (motor GCS < 6)'."
+      }
+    }
+  }
+}

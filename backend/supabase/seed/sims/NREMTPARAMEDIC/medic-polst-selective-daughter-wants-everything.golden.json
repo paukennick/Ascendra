@@ -1,0 +1,399 @@
+{
+  "slug": "medic-polst-selective-daughter-wants-everything",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: POLST read and validated; CPAP and albuterol; the form explained to his daughter; medical direction; transport with the POLST; notified",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "monitor",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "polst",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "secB",
+          "choice": "b",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "chapter",
+          "chapter": "read",
+          "choice": "continue",
+          "seq": 6,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "cpap",
+          "seq": 7,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "neb",
+          "seq": 8,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "talk",
+          "seq": 9,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "medDir",
+          "seq": 10,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 11,
+          "tick": 180
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "seq": 12,
+          "tick": 180
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "seq": 13,
+          "tick": 180
+        }
+      ],
+      "expect": {
+        "ending": "honored",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "read": "met",
+          "follow": "met",
+          "md": "met",
+          "family": "met",
+          "notify": "met"
+        },
+        "kpis": {
+          "toCpap": 60
+        },
+        "stateHash": "ad5072a0c722713f"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "oxygenOnly",
+      "title": "POLST read and explained, but oxygen only, no CPAP and no medical direction",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "polst",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "secB",
+          "choice": "b",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "chapter",
+          "chapter": "read",
+          "choice": "continue",
+          "seq": 4,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "o2",
+          "seq": 5,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "talk",
+          "seq": 6,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "seq": 7,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "seq": 8,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 9,
+          "tick": 180
+        }
+      ],
+      "expect": {
+        "ending": "arrived",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 67,
+        "criteria": {
+          "read": "met",
+          "follow": "partial",
+          "md": "missed",
+          "family": "met",
+          "notify": "met"
+        },
+        "kpis": {
+          "toCpap": -1
+        },
+        "stateHash": "00f8ffcba65729ff"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "lateRead",
+      "title": "Oxygen first, the POLST read only at 6 minutes, CPAP at 9; medical direction called; his daughter not spoken to",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "monitor",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "o2",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "polst",
+          "seq": 3,
+          "tick": 360
+        },
+        {
+          "type": "teach",
+          "prompt": "secB",
+          "choice": "b",
+          "seq": 4,
+          "tick": 360
+        },
+        {
+          "type": "chapter",
+          "chapter": "read",
+          "choice": "continue",
+          "seq": 5,
+          "tick": 420
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 6,
+          "tick": 540
+        },
+        {
+          "type": "act",
+          "action": "cpap",
+          "seq": 7,
+          "tick": 540
+        },
+        {
+          "type": "act",
+          "action": "medDir",
+          "seq": 8,
+          "tick": 540
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "seq": 9,
+          "tick": 540
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "seq": 10,
+          "tick": 540
+        }
+      ],
+      "expect": {
+        "ending": "arrived",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 58,
+        "criteria": {
+          "read": "partial",
+          "follow": "partial",
+          "md": "met",
+          "family": "missed",
+          "notify": "met"
+        },
+        "kpis": {
+          "toCpap": 540
+        },
+        "stateHash": "ee787e6fe3b5c288"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "intubated",
+      "title": "At his daughter's request, intubated without reading the POLST",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "intubate",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "seq": 3,
+          "tick": 0
+        }
+      ],
+      "expect": {
+        "ending": "intubated",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "read": "missed",
+          "follow": "missed",
+          "md": "missed",
+          "family": "missed",
+          "notify": "missed"
+        },
+        "kpis": {
+          "toCpap": -1
+        },
+        "stateHash": "80a229c480cbdb96"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "withheld",
+      "title": "POLST read as 'no treatment': no oxygen, no CPAP; he tires",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "polst",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "secB",
+          "choice": "b",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "chapter",
+          "chapter": "read",
+          "choice": "continue",
+          "seq": 3,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "withhold",
+          "seq": 4,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "seq": 5,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 6,
+          "tick": 180
+        }
+      ],
+      "expect": {
+        "ending": "withheld",
+        "class": "harm",
+        "rating": "bad",
+        "score": 17,
+        "criteria": {
+          "read": "met",
+          "follow": "missed",
+          "md": "missed",
+          "family": "missed",
+          "notify": "missed"
+        },
+        "kpis": {
+          "toCpap": -1
+        },
+        "stateHash": "ad36d0b1a4f86288"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

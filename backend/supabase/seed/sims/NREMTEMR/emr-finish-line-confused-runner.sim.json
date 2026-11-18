@@ -1,0 +1,1065 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "emr-finish-line-confused-runner",
+  "title": "Confused at the 10K finish",
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "Pulse",
+          "spokenLabel": "Pulse, last measured",
+          "value": "vHr",
+          "unit": "/min",
+          "alarm": {
+            "high": 130
+          },
+          "announce": {
+            "bands": [
+              110,
+              130
+            ]
+          },
+          "colour": "ecg",
+          "hiddenUntil": "vAt > 0"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure, last measured",
+          "value": [
+            "vSbp",
+            "vDbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90
+            ]
+          },
+          "colour": "art",
+          "hiddenUntil": "vAt > 0"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate, last measured",
+          "value": "vRr",
+          "unit": "/min",
+          "announce": {
+            "bands": [
+              24,
+              30
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "vAt > 0"
+        }
+      ],
+      "infusions": "Cooling: {method == \"tub\" ? \"ice-water tub\" : method == \"packs\" ? \"ice packs to neck, armpits and groin\" : method == \"sheet\" ? \"wet sheet wrapped around her\" : \"none\"}. Mental status: {tc > 40.5 ? \"confused, combative\" : tc > 39.4 ? \"drowsy, slow answers\" : \"alert, oriented\"}.",
+      "banner": [
+        {
+          "when": "tc > 40.5",
+          "text": "She is thrashing, flushed and hot, and does not know where she is."
+        },
+        {
+          "when": "tc <= 40.5 and tc > 39.4",
+          "text": "She is quieter, answering slowly."
+        },
+        {
+          "when": "tc <= 39.4",
+          "text": "She asks what happened and whether she finished."
+        }
+      ]
+    }
+  },
+  "objective": "Recognize heat stroke from altered mental status and hot skin, and begin active cooling",
+  "secondaryObjectives": [
+    "Reassess vital signs and mental status and report changes to the arriving crew",
+    "Hand over care to the transporting crew with a concise report"
+  ],
+  "sources": [
+    {
+      "cite": "National Registry of EMTs. EMR examination test plan",
+      "checkedAt": "2026-11-09",
+      "url": "https://nremt.org/getmedia/4657d30a-a955-43af-aa8f-a92388f0d9f4/EMR-Test-Plan_Public",
+      "note": "Relayed from the course seed (backend/supabase/seed/tracks/ems.ts and labs/ems-sources.ts, read in NREMT's own documents 2026-11-09); not re-read for this case. Secondary Assessment and Patient Treatment and Transport: recognize environmental emergencies and begin care within EMR scope."
+    },
+    {
+      "cite": "NASEMSO. National Model EMS Clinical Guidelines, Version 3.0 (March 2022): Hyperthermia/Heat Exposure",
+      "checkedAt": "2026-11-17",
+      "url": "https://nasemso.org/?p=223",
+      "note": "Read 2026-11-17 in the full text Iowa HHS hosts (https://hhs.iowa.gov/media/198/download) through summarizing fetches with quotes; NASEMSO's own page, read the same day, still presents Version 3 (2022) as current and names no later version. Heat stroke is told from heat exhaustion by altered consciousness, seizures or coma when no thermometer is available; rapid cooling takes priority over other interventions such as monitoring or IV access; 'Ice bath immersion provides the most rapid cooling mechanism'; cool until below 39 C (102.2 F), or until mental status improves when temperature cannot be measured; truncal ice packs are less effective than evaporation; do not use wet cloths that 'may trap heat'; every patient with life-threatening heat illness is transported."
+    },
+    {
+      "cite": "Caterisano A, Decker D, Snyder B, et al. CSCCa and NSCA Joint Consensus Guidelines for Transition Periods: Safe Return to Training Following Inactivity. Strength Cond J. 2019;41(3)",
+      "checkedAt": "2026-11-17",
+      "url": "https://dxpprod.nsca.com/contentassets/202023e9d6c440dab582d9d87c0f3729/cscca_and_nsca_joint_consensus_guidelines_for.1.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes (first 100,000 of 127,339 characters): after 2 weeks or more of inactivity, conditioning 'phased in gradually and progressively'; the 50/30/20/10 rule (returning athletes at least 50% less volume in week 1 and 30% less in week 2; new athletes 50, 30, 20, 10% over four weeks); weight training work-to-rest 1:4 or more in week 1, 1:3 in week 2, at least 1:2 after; no more than 3 days of weight training in the first week; heat acclimatization over 7-14 days, exertional heat stroke cooled to 38.9 C (102 F) or less within 30 minutes of collapse, cold-water immersion fastest; sickle cell trait raises the risk of collapse and sudden death; exertional rhabdomyolysis mostly follows 'a novel workout regimen', especially after detraining, and 'Athletes who develop the symptoms associated with ER need to be quickly admitted to the hospital'."
+    },
+    {
+      "cite": "NHTSA. National EMS Scope of Practice Model 2019: Including Change Notices 1.0 and 2.0 (DOT HS 813 151, 2021-08-01)",
+      "checkedAt": "2026-11-17",
+      "url": "https://rosap.ntl.bts.gov/view/dot/56917",
+      "note": "Read 2026-11-17: the record page (title, report number, date; the change notices add intramuscular injection, vaccination in a public health emergency and nasal swab collection at EMT and above) and the PDF's skill tables through a summarizing fetch whose table columns were partly unclear, so placement was checked against the course's own reading (backend/supabase/seed/labs/ems-sources.ts, 2026-11-09) and REQ-241's reading (2026-11-11). EMR: oxygen, BVM, naloxone (intranasal or auto-injector), unit-dose hazmat antidote auto-injectors, tourniquet, wound packing, emergency moves, manual stabilization; no pulse oximetry, glucose monitoring or transport. EMT adds pulse oximetry, glucose monitoring, oral glucose, aspirin, the patient's own nitroglycerin, an inhaled bronchodilator, CPAP, the epinephrine auto-injector. AEMT adds IV and IO access, non-medicated IV fluids, supraglottic airways, waveform capnography, sublingual nitroglycerin and a limited list of IV and IM drugs (dextrose, naloxone). Paramedic adds 12-lead interpretation, manual defibrillation, synchronized cardioversion, transcutaneous pacing, needle chest decompression, intubation and medicated infusions. No newer model was found on 2026-11-17."
+    },
+    {
+      "cite": "Ascendra NREMT EMR course catalog (backend/supabase/seed/tracks/ems.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Ascendra teaching model (REQ-338, authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Her core temperature at collapse (41.3 C), its rise uncooled in the sun, and how fast each method cools her (immersion about 0.2 C a minute, ice packs 0.05, a wet sheet that traps heat 0.01) are authored FLAG figures in the order the sources give; the EMR has no thermometer and judges by mental status, as NASEMSO allows. Simplified teaching model written for exam practice; not a validated physiological model."
+    }
+  ],
+  "brief": {
+    "situation": "10:40, a charity 10K, 29 C and humid. You are an emergency medical responder at the finish-line medical tent. Runners carry in a woman, about 25, who collapsed 200 meters from the line.",
+    "handover": [
+      "The tent has an ice-water tub, ice packs, sheets, water and sports drinks, and three volunteers. You have no thermometer.",
+      "An ambulance can be requested by radio; the nearest is about 10 minutes away.",
+      "Within EMR scope: assessment by hand, cooling, positioning, oxygen if available, and handover."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated seconds per real second. Pause any time.",
+      "Every assessment and treatment takes the time it would on a real call. Scene time and the drive run on the clock.",
+      "Partway through you are asked to explain your decisions in writing. The case ends when care is handed over, then a debrief scores what you did."
+    ]
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice; follow your local protocols and medical direction.",
+  "clock": {
+    "start": "10:40",
+    "tick": "1s",
+    "maxDuration": "45min",
+    "calendar": "clock"
+  },
+  "params": {
+    "cwi": {
+      "value": 0.2,
+      "unit": "C/min",
+      "source": {
+        "cite": "Ascendra teaching model (REQ-338, authored)",
+        "checkedAt": "2026-11-17",
+        "note": "FLAG: stands in for a number no guideline gives. Ice-water immersion: about 0.2 C a minute. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "packRate": {
+      "value": 0.05,
+      "unit": "C/min",
+      "source": {
+        "cite": "Ascendra teaching model (REQ-338, authored)",
+        "checkedAt": "2026-11-17",
+        "note": "FLAG: stands in for a number no guideline gives. Ice packs to neck, armpits and groin: about 0.05 C a minute. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "sheetRate": {
+      "value": 0.01,
+      "unit": "C/min",
+      "source": {
+        "cite": "Ascendra teaching model (REQ-338, authored)",
+        "checkedAt": "2026-11-17",
+        "note": "FLAG: stands in for a number no guideline gives. A wet sheet left wrapped around her: about 0.01 C a minute (NASEMSO: wet cloths may trap heat). Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "rise": {
+      "value": 0.03,
+      "unit": "C/min",
+      "source": {
+        "cite": "Ascendra teaching model (REQ-338, authored)",
+        "checkedAt": "2026-11-17",
+        "note": "FLAG: stands in for a number no guideline gives. Uncooled in the tent her temperature keeps rising about 0.03 C a minute. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "ambEta": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Ambulance about 10 minutes after the request. Authored for the case; real times vary."
+      }
+    },
+    "vitalsTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A set of vital signs by hand: about 1 minute. Authored for the case; real times vary."
+      }
+    },
+    "window": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Caterisano A, Decker D, Snyder B, et al. CSCCa and NSCA Joint Consensus Guidelines for Transition Periods: Safe Return to Training Following Inactivity. Strength Cond J. 2019;41(3)",
+        "checkedAt": "2026-11-17",
+        "url": "https://dxpprod.nsca.com/contentassets/202023e9d6c440dab582d9d87c0f3729/cscca_and_nsca_joint_consensus_guidelines_for.1.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes (first 100,000 of 127,339 characters): after 2 weeks or more of inactivity, conditioning 'phased in gradually and progressively'; the 50/30/20/10 rule (returning athletes at least 50% less volume in week 1 and 30% less in week 2; new athletes 50, 30, 20, 10% over four weeks); weight training work-to-rest 1:4 or more in week 1, 1:3 in week 2, at least 1:2 after; no more than 3 days of weight training in the first week; heat acclimatization over 7-14 days, exertional heat stroke cooled to 38.9 C (102 F) or less within 30 minutes of collapse, cold-water immersion fastest; sickle cell trait raises the risk of collapse and sudden death; exertional rhabdomyolysis mostly follows 'a novel workout regimen', especially after detraining, and 'Athletes who develop the symptoms associated with ER need to be quickly admitted to the hospital'."
+      }
+    }
+  },
+  "state": {
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "coolAt": {
+      "type": "time",
+      "init": null
+    },
+    "drinkAt": {
+      "type": "time",
+      "init": null
+    },
+    "airwayAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstVAt": {
+      "type": "time",
+      "init": null
+    },
+    "ambAt": {
+      "type": "time",
+      "init": null
+    },
+    "handAt": {
+      "type": "time",
+      "init": null
+    },
+    "loadAt": {
+      "type": "time",
+      "init": null
+    },
+    "clearAt": {
+      "type": "time",
+      "init": null
+    },
+    "vPending": {
+      "type": "bool",
+      "init": false
+    },
+    "aspirated": {
+      "type": "bool",
+      "init": false
+    },
+    "injured": {
+      "type": "bool",
+      "init": false
+    },
+    "method": {
+      "type": "enum",
+      "values": [
+        "none",
+        "tub",
+        "packs",
+        "sheet"
+      ],
+      "init": "none"
+    },
+    "tc": {
+      "type": "number",
+      "init": 41.3,
+      "min": 35,
+      "max": 44,
+      "unit": "C"
+    },
+    "vAt": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000,
+      "unit": "s"
+    },
+    "vHr": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 220,
+      "unit": "/min"
+    },
+    "vSbp": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 250,
+      "unit": "mmHg"
+    },
+    "vDbp": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 200,
+      "unit": "mmHg"
+    },
+    "vRr": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 60,
+      "unit": "/min"
+    },
+    "handTc": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 44,
+      "unit": "C"
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(clamp(70 + 20 * (tc - 37), 60, 180))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(clamp(128 - 8 * (tc - 37), 80, 140))",
+      "unit": "mmHg",
+      "precision": 0
+    }
+  },
+  "processes": [
+    {
+      "id": "core",
+      "when": "isNull(handAt) and isNull(loadAt) and isNull(clearAt)",
+      "update": {
+        "tc": "clamp(tc + (method == \"tub\" ? -cwi : method == \"packs\" ? -packRate : method == \"sheet\" ? -sheetRate : rise) * dt / 60, 36.5, 44)"
+      }
+    }
+  ],
+  "phases": {
+    "call": {
+      "label": "In the medical tent",
+      "clock": "running",
+      "actions": [
+        "look",
+        "callAmb",
+        "tub",
+        "packs",
+        "sheet",
+        "drink",
+        "airway",
+        "vitals",
+        "out",
+        "report",
+        "load"
+      ]
+    }
+  },
+  "initialPhase": "call",
+  "actions": {
+    "look": {
+      "label": "Primary assessment: responsiveness, airway, breathing, skin",
+      "group": "Assess",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "tc > 40.5",
+              "then": [
+                {
+                  "log": "Responds to voice with nonsense, swinging her arms; airway clear, breathing fast; skin hot, flushed and still sweating.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "tc > 39.4",
+              "then": [
+                {
+                  "log": "Drowsy, answers slowly; skin hot.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Alert and oriented now; skin cooler.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "callAmb": {
+      "label": "Radio for an ambulance: suspected heat stroke, cooling under way",
+      "group": "Call",
+      "available": "isNull(callAt)",
+      "why": "Already requested.",
+      "effects": [
+        {
+          "if": "isNull(callAt)",
+          "then": [
+            {
+              "set": "callAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "schedule": "ambT",
+          "after": "ambEta"
+        },
+        {
+          "log": "Ambulance en route, about 10 minutes.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "tub": {
+      "label": "Into the ice-water tub up to the chest, a volunteer holding her head and arms",
+      "group": "Cool",
+      "available": "method != \"tub\" and isNull(clearAt)",
+      "why": "Already in the tub.",
+      "effects": [
+        {
+          "set": "method",
+          "to": "\"tub\""
+        },
+        {
+          "if": "isNull(coolAt)",
+          "then": [
+            {
+              "set": "coolAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Three of you lift her into the tub; one volunteer keeps her head above the water.",
+          "kind": "good"
+        }
+      ]
+    },
+    "packs": {
+      "label": "Ice packs to her neck, armpits and groin",
+      "group": "Cool",
+      "available": "method == \"none\"",
+      "why": "Already cooling.",
+      "effects": [
+        {
+          "set": "method",
+          "to": "\"packs\""
+        },
+        {
+          "if": "isNull(coolAt)",
+          "then": [
+            {
+              "set": "coolAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Ice packs on."
+        }
+      ]
+    },
+    "sheet": {
+      "label": "Wrap her in a wet sheet and let her rest in the shade",
+      "group": "Cool",
+      "available": "method == \"none\"",
+      "why": "Already cooling.",
+      "effects": [
+        {
+          "set": "method",
+          "to": "\"sheet\""
+        },
+        {
+          "if": "isNull(coolAt)",
+          "then": [
+            {
+              "set": "coolAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Wet sheet around her; it is warm within minutes.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "drink": {
+      "label": "Give her a sports drink to sip",
+      "group": "Treat",
+      "available": "isNull(drinkAt)",
+      "why": "Already tried.",
+      "effects": [
+        {
+          "if": "isNull(drinkAt)",
+          "then": [
+            {
+              "set": "drinkAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "tc > 39.4",
+          "then": [
+            {
+              "set": "aspirated",
+              "to": "true"
+            },
+            {
+              "log": "She gulps, chokes and coughs drink back up; her breathing turns wet and fast.",
+              "kind": "bad"
+            }
+          ],
+          "else": [
+            {
+              "log": "Now alert, she sips it without trouble."
+            }
+          ]
+        }
+      ]
+    },
+    "airway": {
+      "label": "Keep her airway clear and watch her breathing as she cools",
+      "group": "Assess",
+      "available": "isNull(airwayAt)",
+      "why": "Already watching.",
+      "effects": [
+        {
+          "if": "isNull(airwayAt)",
+          "then": [
+            {
+              "set": "airwayAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You stay at her head, watching her breathing."
+        }
+      ]
+    },
+    "vitals": {
+      "label": "Pulse, blood pressure and breathing by hand",
+      "group": "Assess",
+      "available": "not vPending",
+      "why": "Already measuring.",
+      "effects": [
+        {
+          "set": "vPending",
+          "to": "true"
+        },
+        {
+          "schedule": "vitalsT",
+          "after": "vitalsTime"
+        },
+        {
+          "log": "Pulse, cuff, counting breaths."
+        }
+      ]
+    },
+    "out": {
+      "label": "She is alert and answering clearly: out of the tub, dry her and keep watching",
+      "group": "Cool",
+      "available": "method == \"tub\" and isNull(clearAt)",
+      "why": "Only from the tub.",
+      "effects": [
+        {
+          "if": "isNull(clearAt)",
+          "then": [
+            {
+              "set": "clearAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "method",
+          "to": "\"none\""
+        },
+        {
+          "set": "handTc",
+          "to": "tc"
+        },
+        {
+          "if": "tc > 39.4",
+          "then": [
+            {
+              "log": "You take her out while she is still drowsy.",
+              "kind": "bad"
+            }
+          ],
+          "else": [
+            {
+              "log": "Out of the tub, alert and asking about her race.",
+              "kind": "good"
+            }
+          ]
+        }
+      ]
+    },
+    "report": {
+      "label": "Hand over to the ambulance crew: collapse time, confusion, cooling method and times, mental status now, vital signs",
+      "group": "Handover",
+      "available": "not isNull(ambAt) and isNull(handAt) and isNull(loadAt)",
+      "why": "When the crew is here.",
+      "effects": [
+        {
+          "if": "isNull(handAt)",
+          "then": [
+            {
+              "set": "handAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "handTc",
+          "to": "tc"
+        },
+        {
+          "log": "Report given; the crew transports her.",
+          "kind": "good"
+        }
+      ]
+    },
+    "load": {
+      "label": "Ambulance here: get her out of the tub and onto the stretcher now so they can go",
+      "group": "Handover",
+      "available": "not isNull(ambAt) and isNull(handAt) and isNull(loadAt) and isNull(clearAt) and method != \"none\"",
+      "why": "Only while she is still being cooled.",
+      "effects": [
+        {
+          "if": "isNull(loadAt)",
+          "then": [
+            {
+              "set": "loadAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "handTc",
+          "to": "tc"
+        },
+        {
+          "log": "Cooling stops; she leaves {tc > 39.4 ? \"still drowsy and hot\" : \"alert\"}.",
+          "kind": "bad"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "ambT": {
+      "label": "the ambulance",
+      "wait": {
+        "skipLabel": "the ambulance (about 10 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 minutes. Authored for the case; real times vary."
+      },
+      "effects": [
+        {
+          "if": "isNull(ambAt)",
+          "then": [
+            {
+              "set": "ambAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "The ambulance crew arrives.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "vitalsT": {
+      "label": "vital signs",
+      "wait": {
+        "skipLabel": "the vital signs (about 1 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 1 minute. Authored for the case; real times vary."
+      },
+      "effects": [
+        {
+          "set": "vPending",
+          "to": "false"
+        },
+        {
+          "set": "vAt",
+          "to": "t"
+        },
+        {
+          "if": "isNull(firstVAt)",
+          "then": [
+            {
+              "set": "firstVAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "vHr",
+          "to": "hr"
+        },
+        {
+          "set": "vSbp",
+          "to": "sbp"
+        },
+        {
+          "set": "vDbp",
+          "to": "round(sbp * 0.6)"
+        },
+        {
+          "set": "vRr",
+          "to": "26"
+        },
+        {
+          "log": "Pulse {hr}, BP {sbp}/{round(sbp * 0.6)}, breathing 26.",
+          "kind": "find"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "late",
+      "when": "not injured and t >= window and tc > 39.4 and isNull(handAt) and isNull(loadAt)",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "injured",
+          "to": "true"
+        },
+        {
+          "log": "Thirty minutes and she is still drowsy and hot.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "seizure",
+      "when": "tc >= 42 and isNull(handAt)",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "injured",
+          "to": "true"
+        },
+        {
+          "log": "She stiffens and has a seizure.",
+          "kind": "alarm"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "why": {
+      "trigger": "not isNull(coolAt) and t >= 360",
+      "question": "What told you this was heat stroke rather than exhaustion, and why cool here instead of waiting for the ambulance?",
+      "parts": [
+        {
+          "label": "Recognition",
+          "criteria": "Altered mental status (confusion, combativeness) in a hot runner is heat stroke, even with sweating; without a thermometer, mental status is the guide.",
+          "modelAnswer": "She was confused and combative with hot skin after running in the heat. Without a thermometer, the confusion is what separates heat stroke from exhaustion; sweating doesn't rule it out."
+        },
+        {
+          "label": "Cool first",
+          "criteria": "Rapid cooling comes before transport; ice-water immersion is fastest; continue until mental status improves (no thermometer); nothing by mouth while confused; then hand over.",
+          "modelAnswer": "Cooling comes before transport, and the tub is the fastest. I kept her in until she was alert and talking clearly, gave nothing by mouth while she was confused, then handed over."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "not isNull(handAt) and tc > 39.4",
+      "class": "harm",
+      "rationale": "She left the tent still drowsy and hot; heat stroke needs cooling before transport.",
+      "source": {
+        "cite": "NASEMSO. National Model EMS Clinical Guidelines, Version 3.0 (March 2022): Hyperthermia/Heat Exposure",
+        "checkedAt": "2026-11-17",
+        "url": "https://nasemso.org/?p=223",
+        "note": "Read 2026-11-17 in the full text Iowa HHS hosts (https://hhs.iowa.gov/media/198/download) through summarizing fetches with quotes; NASEMSO's own page, read the same day, still presents Version 3 (2022) as current and names no later version. Heat stroke is told from heat exhaustion by altered consciousness, seizures or coma when no thermometer is available; rapid cooling takes priority over other interventions such as monitoring or IV access; 'Ice bath immersion provides the most rapid cooling mechanism'; cool until below 39 C (102.2 F), or until mental status improves when temperature cannot be measured; truncal ice packs are less effective than evaporation; do not use wet cloths that 'may trap heat'; every patient with life-threatening heat illness is transported."
+      }
+    }
+  },
+  "endings": {
+    "aspirated": {
+      "label": "Fluid into a confused patient's airway",
+      "class": "harm",
+      "terminal": true,
+      "when": "aspirated and (not isNull(handAt) or not isNull(loadAt))",
+      "narrative": "She inhaled the drink while confused and left with wet, labored breathing."
+    },
+    "hot": {
+      "label": "Left hot",
+      "class": "harm",
+      "terminal": true,
+      "when": "(not isNull(handAt) or not isNull(loadAt)) and (handTc > 39.4 or injured)",
+      "narrative": "{(isNull(handAt) ? timeAt(loadAt) : timeAt(handAt))|clock}: she left the tent {injured ? \"after too long hot\" : \"still drowsy and hot\"}. Heat stroke needed cooling first."
+    },
+    "cooled": {
+      "label": "Cooled first, then handed over",
+      "class": "target",
+      "terminal": true,
+      "when": "not isNull(handAt) and method != \"sheet\" and not isNull(coolAt) and timeAt(coolAt) <= 180 and not isNull(callAt) and timeAt(callAt) <= 120 and isNull(drinkAt) and not isNull(clearAt) and handTc <= 39.4 and not isNull(firstVAt)",
+      "narrative": "{timeAt(handAt)|clock}: she is alert, asking about her race, and the crew takes a cooled patient with your times."
+    },
+    "late": {
+      "label": "Cooled, by a slower route",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not isNull(handAt) or not isNull(loadAt)",
+      "narrative": "She left alert, but {timeAt(coolAt) > 180 ? \"cooling started late\" : method != \"none\" and isNull(clearAt) ? \"she was still being cooled by a slower method\" : isNull(callAt) or timeAt(callAt) > 120 ? \"the ambulance was called late\" : \"the assessment or the record had gaps\"}."
+    },
+    "time_up": {
+      "label": "45 minutes",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "Forty-five minutes and no handover."
+    }
+  },
+  "endingOrder": [
+    "aspirated",
+    "hot",
+    "cooled",
+    "late"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "cool",
+        "label": "Ice-water immersion within 3 minutes of arrival",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "method == \"sheet\" or isNull(coolAt)",
+            "score": "missed",
+            "why": "A wet sheet, or no cooling."
+          },
+          {
+            "when": "timeAt(coolAt) <= 180 and not isNull(clearAt)",
+            "score": "met",
+            "why": "In the tub at {timeAt(coolAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Late, or a slower method."
+          }
+        ]
+      },
+      {
+        "id": "until",
+        "label": "Cooled until she was alert before she left",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "handTc <= 39.4 and not injured",
+            "score": "met",
+            "why": "Alert at handover."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Left drowsy and hot, or too long hot."
+          }
+        ]
+      },
+      {
+        "id": "mouth",
+        "label": "Nothing by mouth while confused",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "aspirated",
+            "score": "missed",
+            "why": "Drink given while she was confused."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Nothing by mouth while confused."
+          }
+        ]
+      },
+      {
+        "id": "call",
+        "label": "Ambulance requested within 2 minutes",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(callAt) and timeAt(callAt) <= 120",
+            "score": "met",
+            "why": "Requested early."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never requested."
+          }
+        ]
+      },
+      {
+        "id": "assess",
+        "label": "Assessment and vital signs",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(lookAt) and not isNull(firstVAt)",
+            "score": "met",
+            "why": "Primary assessment and vital signs."
+          },
+          {
+            "when": "not isNull(lookAt) or not isNull(firstVAt)",
+            "score": "partial",
+            "why": "Only one."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: recognizing heat stroke and cooling first",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toCool",
+        "label": "Arrival to cooling",
+        "value": "isNull(coolAt) ? -1 : timeAt(coolAt)",
+        "format": "duration",
+        "expert": "under 2 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "10:40",
+        "text": "Confused, combative, hot after running in the heat: heat stroke. Into the ice tub at once; radio for an ambulance."
+      },
+      {
+        "at": "10:42",
+        "text": "Primary assessment, airway watched, vital signs; nothing by mouth."
+      },
+      {
+        "at": "~10:50",
+        "text": "Alert and answering clearly: out, dried, handed over with times and findings."
+      }
+    ],
+    "debrief": {
+      "cooled": {
+        "headline": "Cooled first, then handed over",
+        "body": "Confusion in a hot runner is heat stroke; the tub is the fastest way to cool, and without a thermometer you cool until she is alert. That is the expert path."
+      },
+      "late": {
+        "headline": "Cooled, by a slower route",
+        "body": "She is all right, but look at how soon cooling began, the method, and when the ambulance was called."
+      },
+      "hot": {
+        "headline": "Cool first, transport second",
+        "body": "She left still drowsy and hot. The crew can't cool her as fast as the tub could."
+      },
+      "aspirated": {
+        "headline": "Nothing by mouth while confused",
+        "body": "A confused patient can't protect her airway. Fluids wait until she is alert."
+      },
+      "time_up": {
+        "headline": "No handover",
+        "body": "Forty-five minutes passed."
+      }
+    },
+    "modelReasoning": "Confusion and combativeness with hot skin after running in the heat is heat stroke, even though she is sweating. Cool first: ice-water immersion is the fastest method, so into the tub at once while a volunteer protects her head and the ambulance is called. Without a thermometer, cool until her mental status returns to normal; give nothing by mouth while she is confused; reassess and take vital signs; then hand over with the collapse time, the cooling and the findings."
+  },
+  "chapters": [
+    {
+      "id": "inTub",
+      "label": "Cooling under way",
+      "when": "method == \"tub\""
+    }
+  ],
+  "teaching": {
+    "how": {
+      "during": "ambT",
+      "ask": "While you cool her: with no thermometer, how do you know when to stop cooling?",
+      "choices": [
+        {
+          "id": "ms",
+          "label": "When her mental status returns to normal"
+        },
+        {
+          "id": "shiver",
+          "label": "When she stops sweating"
+        },
+        {
+          "id": "ten",
+          "label": "After ten minutes, whatever her state"
+        }
+      ],
+      "expect": "ms",
+      "explain": "NASEMSO: cool until below 39 C, or until mental status improves when temperature cannot be measured. Immersion is the fastest method.",
+      "source": {
+        "cite": "NASEMSO. National Model EMS Clinical Guidelines, Version 3.0 (March 2022): Hyperthermia/Heat Exposure",
+        "checkedAt": "2026-11-17",
+        "url": "https://nasemso.org/?p=223",
+        "note": "Read 2026-11-17 in the full text Iowa HHS hosts (https://hhs.iowa.gov/media/198/download) through summarizing fetches with quotes; NASEMSO's own page, read the same day, still presents Version 3 (2022) as current and names no later version. Heat stroke is told from heat exhaustion by altered consciousness, seizures or coma when no thermometer is available; rapid cooling takes priority over other interventions such as monitoring or IV access; 'Ice bath immersion provides the most rapid cooling mechanism'; cool until below 39 C (102.2 F), or until mental status improves when temperature cannot be measured; truncal ice packs are less effective than evaporation; do not use wet cloths that 'may trap heat'; every patient with life-threatening heat illness is transported."
+      }
+    }
+  }
+}

@@ -12285,6 +12285,44 @@
       "risk_notes": [
         "Three units are recorded as no fit in docs/sims.md 22.37 (MSCS Final integration, CMPCBS History of Mathematics, CMPCBS Capstone)"
       ]
+    },
+    {
+      "id": "REQ-338",
+      "category": "content",
+      "title": "EMS and fitness depth sims of the 2026-11-17 round (depth-ems-fitness): every fitting unit of the NREMT, personal trainer, nutrition coach and strength and conditioning courses gets a sim, each course to the round's count",
+      "description": "Nick (2026-11-17, 19:51 PT): courses with few or no sims should be built out more robustly; 19:55 PT: give the work to several agents, no per-builder cap. Scope: NREMTEMR, NREMTEMT, NREMTAEMT, NREMTPARAMEDIC (bedside, each case inside that level's US scope of practice per the 2019 National EMS Scope of Practice Model with its change notices, and NASEMSO National Model EMS Clinical Guidelines v3.0), ACECPT, ACSMCPT, NASMCPT, NASMCNC, NCCPTCPT, NSCACPT and NSCACSCS (trainer screen). Target: every unit with an objective fitting the selection rule gets a sim whose main objective is in it; courses under 60 objectives reach 4 sims. NSCACSCS Scientific Foundations stays no fit. Bands only where the scope matches. No new screen, engine, schema or migration.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/",
+        "backend/lib/sim/documents.ts",
+        "backend/scripts/sim-golden/",
+        "backend/lib/sim/ems-fitness-depth.test.ts",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "each new case is a fitting objective's main sim on the bedside or trainer screen",
+        "each authored case has endingOrder three or four critical criteria a conditional harm ending and Good Mediocre and Bad golden paths reaching every ending but time_up with every criterion met and missed",
+        "each band changes only objective secondary objectives sources and brief and keeps the base's actions so the scope is the same",
+        "every EMS case stays inside its level's scope of practice",
+        "drugs only at labeled doses",
+        "no permission-only mark in learner text",
+        "sources dated and say how they were read",
+        "per-course before and after table with no-fit reasons in docs/sims.md 22.42"
+      ],
+      "validation_required": [
+        "lint of the REQ-338 documents",
+        "lib/sim/ems-fitness-depth.test.ts",
+        "lib/sim/cert-marks.test.ts",
+        "lib/sim/documents.test.ts",
+        "sims:lint"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.42",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": []
     }
   ]
 }

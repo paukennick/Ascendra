@@ -1,0 +1,1332 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cpt-watch-zone-on-a-beta-blocker",
+  "title": "Below zone on a beta-blocker",
+  "screen": {
+    "type": "trainer",
+    "level": 1,
+    "trainer": {
+      "client": {
+        "name": "Walter Grant, 63",
+        "presentation": "{not isNull(worseAt) and isNull(emsAt) ? \"Grey, gripping the rails, legs buckling.\" : exercising and not isNull(dizzyAt) ? \"Pale, breathless, says the room is tilting.\" : exercising and rpe >= 8 ? \"Breathing hard, can't finish a sentence; the watch still says 'below zone'.\" : exercising ? \"Walking briskly, chatting.\" : \"Cleared by his doctor and keen to use his new watch.\"}"
+      },
+      "gauges": [
+        {
+          "id": "gTrust",
+          "label": "Trust",
+          "spokenLabel": "His trust in the trainer",
+          "value": "trust",
+          "max": 10,
+          "bands": [
+            3,
+            6
+          ],
+          "words": [
+            "guarded",
+            "warming",
+            "trusting"
+          ]
+        }
+      ],
+      "readings": [
+        {
+          "id": "hrR",
+          "label": "Heart rate (watch)",
+          "spokenLabel": "Heart rate on his watch",
+          "value": "{hr|0dp}/min",
+          "when": "not isNull(startAt)"
+        },
+        {
+          "id": "zone",
+          "label": "Watch zone",
+          "spokenLabel": "The watch's target zone",
+          "value": "{hr < 110 ? \"110-126: below zone\" : \"110-126: in zone\"}",
+          "when": "not isNull(startAt)"
+        },
+        {
+          "id": "rpeR",
+          "label": "Effort (0-10)",
+          "spokenLabel": "His rating of perceived exertion, 0 to 10",
+          "value": "{rpe|0dp}",
+          "when": "not isNull(startAt)",
+          "flag": "rpe >= 8"
+        },
+        {
+          "id": "sym",
+          "label": "Symptoms",
+          "spokenLabel": "Symptoms",
+          "value": "{not isNull(worseAt) and isNull(emsAt) ? \"nearly fainting\" : not isNull(dizzyAt) and exercising ? \"lightheaded, breathless\" : \"none\"}",
+          "when": "not isNull(startAt)",
+          "flag": "(not isNull(dizzyAt) and exercising) or (not isNull(worseAt) and isNull(emsAt))"
+        }
+      ],
+      "intake": {
+        "label": "Clearance note and medications",
+        "items": [
+          {
+            "id": "c1",
+            "question": "Doctor's note",
+            "answer": "Cleared for moderate-intensity exercise; hypertension, well controlled.",
+            "when": "true"
+          },
+          {
+            "id": "c2",
+            "question": "Medications",
+            "answer": "Metoprolol (a beta-blocker) 50 mg every morning.",
+            "when": "not isNull(noteAt)",
+            "flag": "true"
+          },
+          {
+            "id": "c3",
+            "question": "His watch",
+            "answer": "Zone 2 'cardio' set from the age formula: 110-126 beats a minute (70-80% of 220 minus age).",
+            "when": "true"
+          }
+        ]
+      },
+      "findings": [
+        {
+          "id": "talk",
+          "label": "Talk test",
+          "result": "{rpe >= 8 ? \"He cannot speak more than a word or two.\" : \"He talks in full sentences, a little breathless: moderate.\"}",
+          "when": "not isNull(talkAt)"
+        },
+        {
+          "id": "dz",
+          "label": "During exercise",
+          "result": "Lightheaded and breathless at an effort of 8 out of 10, heart rate still only {hr|0dp}.",
+          "when": "not isNull(dizzyAt)",
+          "flag": "true"
+        }
+      ],
+      "program": {
+        "label": "Cardio plan",
+        "items": [
+          {
+            "label": "Intensity by the watch's heart-rate zone (110-126)",
+            "when": "intensity == \"hr\""
+          },
+          {
+            "label": "Intensity by heart-rate reserve from his resting rate",
+            "when": "intensity == \"hrr\""
+          },
+          {
+            "label": "Intensity by effort: 4-6 out of 10 and able to talk in sentences",
+            "when": "intensity == \"rpe\""
+          },
+          {
+            "label": "Report today's lightheadedness to his doctor before the next session",
+            "when": "not isNull(referAt)"
+          }
+        ]
+      },
+      "journal": [
+        {
+          "id": "jBuzz",
+          "text": "Watch: below zone, speed up.",
+          "when": "not isNull(buzzAt)",
+          "at": "timeAt(buzzAt)"
+        },
+        {
+          "id": "jDizzy",
+          "text": "Lightheaded during exercise.",
+          "when": "not isNull(dizzyAt)",
+          "at": "timeAt(dizzyAt)"
+        },
+        {
+          "id": "jCall",
+          "text": "911 called.",
+          "when": "not isNull(calledAt)",
+          "at": "timeAt(calledAt)"
+        }
+      ],
+      "rules": [
+        {
+          "id": "rMed",
+          "label": "Medications that change heart rate",
+          "text": "A beta-blocker blunts the exercise heart rate: set intensity by effort (RPE) and the talk test, not a heart-rate zone.",
+          "met": "intensity == \"hr\" or intensity == \"hrr\""
+        },
+        {
+          "id": "rStop",
+          "label": "Warning sign during exercise",
+          "text": "Dizziness or unusual breathlessness: stop now and have him sit.",
+          "met": "exercising and not isNull(dizzyAt)"
+        },
+        {
+          "id": "rScope",
+          "label": "Scope of practice",
+          "text": "Medication timing and doses are for his doctor.",
+          "met": "medAdvice"
+        }
+      ]
+    }
+  },
+  "objective": "Exercise physiology: how each system responds and adapts to acute and chronic exercise",
+  "secondaryObjectives": [
+    "Designing resistance and cardiorespiratory training with appropriate acute variables",
+    "Scope of practice and when to refer to other health professionals"
+  ],
+  "sources": [
+    {
+      "cite": "NASM Candidate Handbook (updated 9/2025), Appendix A, CPT 7 exam blueprint: Basic and Applied Sciences 15%, Client Relations and Behavioral Coaching 15%, Assessment 16%, Program Design 20%, Exercise Technique and Training Instruction 24%, Professional Development and Responsibility 10%",
+      "checkedAt": "2026-10-08",
+      "url": "https://www.nasm.org/certified-personal-trainer/exam-information",
+      "note": "Relayed from the course seed (backend/supabase/seed/tracks/fitness.ts, read 2026-10-08), not re-read for this case. The objective titles are the course's own words."
+    },
+    {
+      "cite": "Porcari JP. Ask ACE: How to Help Clients Who Have Heart-related Concerns Exercise Safely. CERTIFIED (American Council on Exercise), July 2024",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.acefitness.org/continuing-education/certified/july-2024/8665/ask-ace-how-to-help-clients-who-have-heart-related-concerns-exercise-safely/",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'Beta blockers, as the name suggests, partially block or blunt exercise heart rates', typically lowering maximal and exercise heart rates by about 10-40 beats per minute; for intensity 'The two recommended methods use ratings of perceived exertion (RPE) or the talk test'; be aware of abnormal signs such as 'extreme shortness of breath, palpitations, dizziness'."
+    },
+    {
+      "cite": "U.S. Department of Health and Human Services (ODPHP). Top 10 Things to Know About the Second Edition of the Physical Activity Guidelines for Americans (content updated 2025-11-19)",
+      "checkedAt": "2026-11-17",
+      "url": "https://odphp.health.gov/our-work/physical-activity/current-guidelines/top-10-things-know",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: adults need 'at least 150 to 300 minutes of moderate-intensity aerobic activity, like brisk walking or fast dancing, each week' and 'muscle-strengthening activity, like lifting weights or doing push-ups, at least 2 days each week'; 'move more and sit less'; 'any amount of physical activity has some health benefits'."
+    },
+    {
+      "cite": "ACSM Information On... Who Needs a Stress Test Before Exercising? (2017): warning signs 'Chest pain or pressure', 'Neck, jaw or arm pain', 'Shortness of breath', 'Unusual fatigue', 'Heart palpitations', 'Dizziness or a feeling like you are going to faint', 'Ankle swelling or overnight shortness of breath'; if they develop, 'discontinue exercise and seek a doctor's clearance right away'",
+      "checkedAt": "2026-11-16",
+      "url": "https://acsm.org/docs/default-source/files-for-resource-library/cpi-who-needs-a-stress-test-before-exercising-brochure.pdf",
+      "note": "Read 2026-11-16 through a summarizing fetch. A consumer brochure; it does not say when to call emergency services, so the 911 step rests on the AHA page."
+    },
+    {
+      "cite": "Ascendra teaching model (REQ-338, authored)",
+      "checkedAt": "2026-11-17",
+      "note": "His heart rate at each effort level on metoprolol, and the rule that chasing the watch's zone for three minutes brings on lightheadedness, are authored. The direction follows the source: a beta-blocker blunts the exercise heart rate (often by 10-40 beats per minute), so a heart-rate zone from an age formula overstates the effort he needs, and RPE or the talk test set intensity instead. Simplified teaching model written for exam practice; not a validated physiological model."
+    },
+    {
+      "cite": "Ascendra NASM-CPT course catalog (backend/supabase/seed/tracks/fitness.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    }
+  ],
+  "brief": {
+    "situation": "You are a personal trainer. Walter Grant, 63 (a fictional client), has high blood pressure, is cleared by his doctor for moderate-intensity exercise and has a new fitness watch. Today is his first cardio session with you.",
+    "handover": [
+      "The gym's emergency action plan: call 911, send the front desk to meet the crew, bring the AED.",
+      "Trainers set intensity and watch for warning signs; medications are for his doctor."
+    ],
+    "howItWorks": [
+      "Each task takes time: choose it, then let it finish, which moves the clock by the minutes it takes.",
+      "The screen shows the client, your read-outs and findings, the plan and the rules that apply now.",
+      "When you end the session you write the record and explain your reasoning."
+    ]
+  },
+  "safetyNote": "Teaching case for exam practice; fictional client. Not medical advice.",
+  "clock": {
+    "start": "09:00",
+    "tick": "1min",
+    "maxDuration": "90min",
+    "calendar": "clock"
+  },
+  "params": {
+    "dizzyDelay": {
+      "value": 180,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-338)",
+        "checkedAt": "2026-11-17",
+        "note": "Three minutes at a near-maximal effort before he becomes lightheaded is the author's figure."
+      }
+    },
+    "worseDelay": {
+      "value": 240,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-338)",
+        "checkedAt": "2026-11-17",
+        "note": "Four more minutes on the treadmill while lightheaded before he nearly falls is the author's figure."
+      }
+    },
+    "emsDelay": {
+      "value": 480,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-338)",
+        "checkedAt": "2026-11-17",
+        "note": "Eight minutes for the ambulance is the author's figure; response times vary."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "exercising": {
+      "type": "bool",
+      "init": false
+    },
+    "hr": {
+      "type": "number",
+      "init": 66,
+      "min": 40,
+      "max": 200,
+      "unit": "/min"
+    },
+    "rpe": {
+      "type": "number",
+      "init": 1,
+      "min": 0,
+      "max": 10
+    },
+    "noteAt": {
+      "type": "time",
+      "init": null
+    },
+    "intensity": {
+      "type": "enum",
+      "values": [
+        "none",
+        "hr",
+        "hrr",
+        "rpe"
+      ],
+      "init": "none"
+    },
+    "intensityAt": {
+      "type": "time",
+      "init": null
+    },
+    "startAt": {
+      "type": "time",
+      "init": null
+    },
+    "buzzAt": {
+      "type": "time",
+      "init": null
+    },
+    "chaseAt": {
+      "type": "time",
+      "init": null
+    },
+    "keptAt": {
+      "type": "time",
+      "init": null
+    },
+    "talkAt": {
+      "type": "time",
+      "init": null
+    },
+    "dizzyAt": {
+      "type": "time",
+      "init": null
+    },
+    "stoppedAt": {
+      "type": "time",
+      "init": null
+    },
+    "worseAt": {
+      "type": "time",
+      "init": null
+    },
+    "pushedAt": {
+      "type": "time",
+      "init": null
+    },
+    "calledAt": {
+      "type": "time",
+      "init": null
+    },
+    "emsAt": {
+      "type": "time",
+      "init": null
+    },
+    "explainAt": {
+      "type": "time",
+      "init": null
+    },
+    "medAdvice": {
+      "type": "bool",
+      "init": false
+    },
+    "referAt": {
+      "type": "time",
+      "init": null
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "enum",
+      "values": [
+        "none",
+        "nothing",
+        "brief",
+        "full"
+      ],
+      "init": "none"
+    },
+    "trust": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "session": {
+      "label": "Session",
+      "clock": "turns",
+      "actions": [
+        "readNote",
+        "setIntensity",
+        "explain",
+        "treadmill",
+        "chase",
+        "keep",
+        "talkTest",
+        "stopEx",
+        "pushOn",
+        "call911",
+        "medSkip",
+        "refer",
+        "closeSession"
+      ]
+    },
+    "close": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "session",
+  "actions": {
+    "readNote": {
+      "label": "Read his clearance note and medication list with him",
+      "group": "Screen",
+      "available": "not busy and (isNull(noteAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(noteAt)",
+          "then": [
+            {
+              "set": "noteAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "trust",
+          "by": "1"
+        },
+        {
+          "log": "You read the note and his medications.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "setIntensity": {
+      "label": "Set how today's cardio intensity will be judged",
+      "group": "Program",
+      "available": "not busy and (isNull(intensityAt) and not exercising)",
+      "why": "Already set.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "Intensity by",
+          "options": [
+            {
+              "value": "hr",
+              "label": "His watch's zone: 110-126 beats a minute"
+            },
+            {
+              "value": "hrr",
+              "label": "Heart-rate reserve (Karvonen) from his resting rate of 66"
+            },
+            {
+              "value": "rpe",
+              "label": "Effort: 4-6 out of 10 and the talk test"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(intensityAt)",
+          "then": [
+            {
+              "set": "intensityAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "intensity",
+          "to": "how"
+        },
+        {
+          "log": "Intensity set.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "explain": {
+      "label": "Explain why his watch's zone does not fit him: the beta-blocker holds his heart rate down, so effort and breathing are his guide",
+      "group": "Talk",
+      "available": "not busy and (isNull(explainAt) and not exercising)",
+      "why": "Not mid-interval; or already explained.",
+      "effects": [
+        {
+          "if": "isNull(explainAt)",
+          "then": [
+            {
+              "set": "explainAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "trust",
+          "by": "1"
+        },
+        {
+          "log": "You explain the beta-blocker and effort-based intensity.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "treadmill": {
+      "label": "Start 25 minutes on the treadmill at a brisk walk",
+      "group": "Train",
+      "available": "not busy and (isNull(startAt))",
+      "why": "Already started.",
+      "effects": [
+        {
+          "if": "isNull(startAt)",
+          "then": [
+            {
+              "set": "startAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "exercising",
+          "to": "true"
+        },
+        {
+          "set": "hr",
+          "to": "92"
+        },
+        {
+          "set": "rpe",
+          "to": "4"
+        },
+        {
+          "log": "He starts at a brisk walk.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "25min"
+        }
+      ]
+    },
+    "chase": {
+      "label": "Raise the speed and grade until his watch shows the zone",
+      "group": "Train",
+      "available": "exercising and isNull(chaseAt) and isNull(dizzyAt)",
+      "why": "Not now.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "if": "isNull(chaseAt)",
+          "then": [
+            {
+              "set": "chaseAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "hr",
+          "to": "108"
+        },
+        {
+          "set": "rpe",
+          "to": "8"
+        },
+        {
+          "log": "Speed and grade up; his heart rate creeps to 108 while he gasps.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "keep": {
+      "label": "Keep the pace where he can talk in sentences, effort about 5, and ignore the watch's buzz",
+      "group": "Train",
+      "available": "exercising and isNull(keptAt) and isNull(dizzyAt)",
+      "why": "Not now.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "if": "isNull(keptAt)",
+          "then": [
+            {
+              "set": "keptAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "rpe",
+          "to": "5"
+        },
+        {
+          "set": "hr",
+          "to": "96"
+        },
+        {
+          "log": "You keep him at an effort of about 5.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "15min"
+        }
+      ]
+    },
+    "talkTest": {
+      "label": "Ask him to rate his effort and say a full sentence",
+      "group": "Assess",
+      "available": "not busy and (exercising)",
+      "why": "Only while he is exercising.",
+      "effects": [
+        {
+          "if": "isNull(talkAt)",
+          "then": [
+            {
+              "set": "talkAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You ask for his effort rating and a sentence.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "stopEx": {
+      "label": "Stop the treadmill and sit him down",
+      "group": "Respond",
+      "available": "exercising",
+      "why": "He is not exercising.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "exercising",
+          "to": "false"
+        },
+        {
+          "if": "isNull(stoppedAt)",
+          "then": [
+            {
+              "set": "stoppedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "hr",
+          "to": "84"
+        },
+        {
+          "set": "rpe",
+          "to": "2"
+        },
+        {
+          "log": "You stop the belt and sit him on the bench; the lightheadedness eases over a few minutes.",
+          "kind": "act"
+        }
+      ]
+    },
+    "pushOn": {
+      "label": "Encourage him to hold on: 'nearly in the zone'",
+      "group": "Respond",
+      "available": "exercising and not isNull(dizzyAt)",
+      "why": "Only after a warning sign.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "if": "isNull(pushedAt)",
+          "then": [
+            {
+              "set": "pushedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You encourage him to keep going.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "call911": {
+      "label": "Call 911 under the emergency action plan",
+      "group": "Respond",
+      "available": "isNull(calledAt) and not isNull(dizzyAt)",
+      "why": "Only after a warning sign.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "exercising",
+          "to": "false"
+        },
+        {
+          "if": "isNull(calledAt)",
+          "then": [
+            {
+              "set": "calledAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You call 911, lay him down and send the front desk for the AED and to meet the crew.",
+          "kind": "good"
+        },
+        {
+          "schedule": "ems",
+          "after": "emsDelay"
+        }
+      ]
+    },
+    "medSkip": {
+      "label": "Suggest he takes his metoprolol after training instead of in the morning, so his heart rate can reach the zone",
+      "group": "Talk",
+      "available": "not busy and (not medAdvice and not exercising)",
+      "why": "Not now.",
+      "effects": [
+        {
+          "set": "medAdvice",
+          "to": "true"
+        },
+        {
+          "log": "You suggest moving his medication.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "refer": {
+      "label": "Ask him to report today's lightheadedness to his doctor before the next session; give him your notes",
+      "group": "Talk",
+      "available": "not busy and (isNull(referAt) and not exercising and not isNull(dizzyAt))",
+      "why": "Only after a warning sign.",
+      "effects": [
+        {
+          "if": "isNull(referAt)",
+          "then": [
+            {
+              "set": "referAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You ask him to tell his doctor and give him a note.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "closeSession": {
+      "label": "End the session and write it up",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Finish what you are doing first.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "if": "isNull(closedAt)",
+          "then": [
+            {
+              "set": "closedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You end the session.",
+          "kind": "act"
+        },
+        {
+          "phase": "close"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the record",
+      "group": "Record",
+      "available": "documented == \"none\"",
+      "why": "Written.",
+      "params": [
+        {
+          "id": "what",
+          "kind": "choice",
+          "label": "Record",
+          "options": [
+            {
+              "value": "full",
+              "label": "Clearance and medication, the intensity method and why, his readings and efforts, any symptom, what was done and the referral"
+            },
+            {
+              "value": "brief",
+              "label": "One line: 'Cardio done'"
+            },
+            {
+              "value": "nothing",
+              "label": "Nothing written"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "documented",
+          "to": "what"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Work in progress",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-338)",
+        "checkedAt": "2026-11-17",
+        "note": "How many sim minutes each task takes and when the fictional events happen are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "ems": {
+      "label": "Ambulance on the way",
+      "wait": {
+        "skipLabel": "Wait for the crew"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Author's scenario timing (REQ-338)",
+        "checkedAt": "2026-11-17",
+        "note": "Eight minutes for the ambulance is the author's figure; response times vary."
+      },
+      "effects": [
+        {
+          "if": "isNull(emsAt)",
+          "then": [
+            {
+              "set": "emsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Paramedics arrive and take over.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "buzz",
+      "when": "exercising and isNull(buzzAt) and hr < 110 and not isNull(startAt) and t - timeAt(startAt) >= 300",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "isNull(buzzAt)",
+          "then": [
+            {
+              "set": "buzzAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "His watch buzzes: 'Below zone. Speed up.'",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "dizzy",
+      "when": "exercising and rpe >= 8 and not isNull(chaseAt) and t - timeAt(chaseAt) >= dizzyDelay and isNull(dizzyAt)",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "isNull(dizzyAt)",
+          "then": [
+            {
+              "set": "dizzyAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "'I feel lightheaded... the room's tilting.' He is pale and breathless.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "worse",
+      "when": "exercising and not isNull(dizzyAt) and t - timeAt(dizzyAt) >= worseDelay and isNull(worseAt)",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "isNull(worseAt)",
+          "then": [
+            {
+              "set": "worseAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "exercising",
+          "to": "false"
+        },
+        {
+          "log": "He grabs the rails, grey, and his legs start to buckle; you catch him onto the floor.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "not isNull(closedAt)",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For his record: how you set his intensity and why, what happened, and what changes next time.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Intensity",
+          "criteria": "Metoprolol, a beta-blocker, blunts the exercise heart rate, so an age-formula zone (and heart-rate reserve) overstates the effort; set intensity by RPE (about 4-6 of 10, moderate as cleared) and the talk test.",
+          "modelAnswer": "He takes metoprolol, which holds his heart rate down, so the watch's 110-126 zone would push him far past the moderate effort he is cleared for. I used effort, 4-6 out of 10, and the talk test."
+        },
+        {
+          "label": "Warning signs",
+          "criteria": "Lightheadedness or unusual breathlessness during exercise: stop at once and sit him down; if it does not settle or he nearly faints, call 911.",
+          "modelAnswer": "If he becomes lightheaded or unusually breathless, the session stops and he sits; if he does not recover quickly or nearly faints, 911."
+        },
+        {
+          "label": "Next time",
+          "criteria": "No advice about his medication timing or dose (his doctor's); report any symptom to his doctor; keep the effort-based method; record it.",
+          "modelAnswer": "His medication is his doctor's call, so I made no suggestion about it. Any symptom goes to his doctor with my notes, and we keep training by effort."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "fitness",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Fitness outcome profile (docs/sims.md 9.2, 22.27)",
+          "checkedAt": "2026-11-16",
+          "note": "Exercise stopped within 2 minutes of a warning sign; a teaching figure, as for the physical therapy profile."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "not isNull(closedAt) and isNull(startAt) and isNull(intensityAt)",
+      "class": "recovered",
+      "rationale": "No session and no plan: nothing harmful, nothing learned.",
+      "source": {
+        "cite": "Porcari JP. Ask ACE: How to Help Clients Who Have Heart-related Concerns Exercise Safely. CERTIFIED (American Council on Exercise), July 2024",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.acefitness.org/continuing-education/certified/july-2024/8665/ask-ace-how-to-help-clients-who-have-heart-related-concerns-exercise-safely/",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'Beta blockers, as the name suggests, partially block or blunt exercise heart rates', typically lowering maximal and exercise heart rates by about 10-40 beats per minute; for intensity 'The two recommended methods use ratings of perceived exertion (RPE) or the talk test'; be aware of abnormal signs such as 'extreme shortness of breath, palpitations, dizziness'."
+      }
+    }
+  },
+  "endings": {
+    "nearFaint": {
+      "label": "Pushed through a warning sign",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented != \"none\" and not isNull(worseAt)",
+      "narrative": "He kept going while lightheaded until his legs gave way. {isNull(calledAt) ? \"No one called 911.\" : \"The paramedics took him to hospital.\"}"
+    },
+    "medAdvice": {
+      "label": "Advice on his medication",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented != \"none\" and medAdvice",
+      "narrative": "He moved his blood pressure tablet on your advice, outside a trainer's scope, and without his doctor knowing."
+    },
+    "rpeSession": {
+      "label": "Intensity that fits his medication",
+      "class": "target",
+      "terminal": true,
+      "when": "documented == \"full\" and intensity == \"rpe\" and timeAt(intensityAt) <= timeAt(startAt) and isNull(dizzyAt) and not isNull(explainAt) and not medAdvice",
+      "narrative": "He trained at a moderate effort, by effort and breath rather than a zone his heart cannot reach, and he knows why."
+    },
+    "stopped": {
+      "label": "Stopped in time",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented != \"none\" and not isNull(dizzyAt) and not isNull(stoppedAt) and timeAt(stoppedAt) - timeAt(dizzyAt) <= 120",
+      "narrative": "Chasing the watch's zone made him lightheaded; you stopped him at once and he recovered. The zone was the mistake."
+    },
+    "gaps": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented != \"none\"",
+      "narrative": "He finished, but {intensity != \"rpe\" ? \"his intensity was set by heart rate, which his medication holds down\" : isNull(explainAt) ? \"he does not know why his watch's zone does not fit him\" : \"the record is thin\"}."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The session ran out with no record."
+    }
+  },
+  "endingOrder": [
+    "nearFaint",
+    "medAdvice",
+    "rpeSession",
+    "stopped",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "method",
+        "label": "Set intensity by effort and the talk test before he started",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "intensity == \"rpe\" and timeAt(intensityAt) <= timeAt(startAt) and isNull(chaseAt)",
+            "score": "met",
+            "why": "RPE and the talk test."
+          },
+          {
+            "when": "intensity == \"hrr\" or not isNull(keptAt)",
+            "score": "partial",
+            "why": "Heart-rate reserve, or effort only once the watch buzzed."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The watch's heart-rate zone."
+          }
+        ]
+      },
+      {
+        "id": "stop",
+        "label": "Stopped within 2 minutes of the lightheadedness",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(dizzyAt)",
+            "score": "na",
+            "why": "No warning sign."
+          },
+          {
+            "when": "not isNull(stoppedAt) and timeAt(stoppedAt) - timeAt(dizzyAt) <= 120 and isNull(pushedAt)",
+            "score": "met",
+            "why": "Stopped at once."
+          },
+          {
+            "when": "not isNull(stoppedAt) or not isNull(calledAt) and isNull(worseAt)",
+            "score": "partial",
+            "why": "Stopped late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Kept going until he nearly fainted."
+          }
+        ]
+      },
+      {
+        "id": "scope",
+        "label": "No advice on his medication",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not medAdvice",
+            "score": "met",
+            "why": "None."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Suggested moving his beta-blocker."
+          }
+        ]
+      },
+      {
+        "id": "explain",
+        "label": "Explained why his watch's zone does not fit him",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(explainAt)",
+            "score": "met",
+            "why": "Explained."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not explained."
+          }
+        ]
+      },
+      {
+        "id": "refer",
+        "label": "Symptom reported to his doctor",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(dizzyAt)",
+            "score": "na",
+            "why": "No symptom."
+          },
+          {
+            "when": "not isNull(referAt) or not isNull(emsAt)",
+            "score": "met",
+            "why": "Referred."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No referral."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Documented the session",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "documented == \"full\"",
+            "score": "met",
+            "why": "A full record."
+          },
+          {
+            "when": "documented == \"brief\"",
+            "score": "partial",
+            "why": "One line."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nothing written."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written intensity, warning signs and next steps",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "peakRpe",
+        "label": "Highest effort reached (0-10)",
+        "value": "isNull(chaseAt) ? (isNull(startAt) ? 0 : 5) : 8",
+        "format": "number",
+        "expert": "6 or less"
+      },
+      {
+        "id": "trustEnd",
+        "label": "His trust at the end (0-10)",
+        "value": "trust",
+        "format": "number",
+        "expert": "8 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Start",
+        "text": "Read the note and the medication list: metoprolol. Explain why the watch's zone does not fit; set intensity by effort 4-6 and the talk test."
+      },
+      {
+        "at": "On the treadmill",
+        "text": "When the watch buzzes 'below zone', keep him where he can talk in sentences; check his effort."
+      },
+      {
+        "at": "Close",
+        "text": "A full record; any symptom would go to his doctor; no advice on his medication."
+      }
+    ],
+    "debrief": {
+      "rpeSession": {
+        "headline": "Intensity that fits his medication",
+        "body": "A beta-blocker blunts the exercise heart rate, so a zone from the age formula would drive him past the moderate effort he is cleared for. Effort and the talk test fit."
+      },
+      "stopped": {
+        "headline": "Stopped in time, but the zone was the mistake",
+        "body": "Chasing a heart rate his medication holds down took him to an effort of 8 and made him lightheaded. You stopped at once; next time set intensity by effort."
+      },
+      "gaps": {
+        "headline": "Done, with gaps",
+        "body": "Check how intensity was set (effort, not a heart-rate formula, on a beta-blocker), and whether he knows why."
+      },
+      "nearFaint": {
+        "headline": "A warning sign is a stop sign",
+        "body": "Lightheadedness and breathlessness during exercise mean stop and sit him down now. Pushing on until he nearly fainted turned a warning into an emergency."
+      },
+      "medAdvice": {
+        "headline": "Medication is his doctor's call",
+        "body": "Moving or skipping a blood pressure medicine is a medical decision. Change the intensity method instead."
+      },
+      "time_up": {
+        "headline": "No record",
+        "body": "The session ended without a record."
+      }
+    },
+    "modelReasoning": "He takes metoprolol, a beta-blocker, which blunts the exercise heart rate (often by 10-40 beats a minute), so a zone from 220 minus age, or heart-rate reserve from his resting rate, overstates the effort he needs and pushes him past the moderate intensity he is cleared for. Set intensity by RPE (about 4-6 of 10) and the talk test, explain why, and ignore the watch's buzz. Lightheadedness or unusual breathlessness means stop at once; 911 if he nearly faints. Medication timing is his doctor's decision; report symptoms to the doctor and record the session."
+  }
+}

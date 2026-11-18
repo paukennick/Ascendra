@@ -779,6 +779,46 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("CMPCBS", "cmpcbs-access-rule-de-morgan"),
   band("MSCS", "access-rule-de-morgan-mscs"),
   // ---- end REQ-333 ----
+  // ---- REQ-338 (docs/sims.md 22.42): EMS and fitness depth, round of
+  // 2026-11-17 (depth-ems-fitness). Bedside cases within each NREMT level's
+  // scope of practice; trainer cases for the personal trainer, nutrition coach
+  // and strength and conditioning courses; bands where the scope matches.
+  // Keep these entries together. ----
+  entry("NASMCPT", "cpt-low-glucose-mid-intervals"),
+  entry("NASMCPT", "cpt-six-weeks-off-make-it-up"),
+  entry("NASMCPT", "cpt-watch-zone-on-a-beta-blocker"),
+  entry("NASMCNC", "cnc-losing-too-fast-and-thirsty"),
+  entry("NSCACSCS", "cscs-first-day-back-collapse-in-heat"),
+  entry("NSCACSCS", "cscs-shuttle-test-trait-on-file"),
+  entry("NSCACSCS", "cscs-winter-return-gut-check-squats"),
+  entry("NREMTEMR", "emr-line-down-on-the-car"),
+  entry("NREMTEMR", "emr-finish-line-confused-runner"),
+  entry("NREMTEMR", "emr-head-cut-wants-to-drive-home"),
+  entry("NREMTAEMT", "aemt-chest-pressure-pill-last-night"),
+  entry("NREMTEMT", "emt-low-sugar-now-says-no"),
+  entry("NREMTAEMT", "aemt-copd-tripod-cpap"),
+  entry("NREMTEMT", "emt-head-bump-on-a-blood-thinner"),
+  entry("NREMTAEMT", "aemt-belly-pain-fainted-in-bathroom"),
+  entry("NREMTPARAMEDIC", "medic-racing-heart-pressure-falling"),
+  entry("NREMTPARAMEDIC", "medic-assisted-living-fever-confused"),
+  entry("NREMTPARAMEDIC", "medic-polst-selective-daughter-wants-everything"),
+  entry("NREMTPARAMEDIC", "medic-chest-stab-pulse-lost"),
+  entry("NASMCPT", "cpt-twenty-four-weeks-leaking-fluid"),
+  band("ACECPT", "ace-low-glucose-mid-intervals"),
+  band("ACSMCPT", "acsm-low-glucose-mid-intervals"),
+  band("NCCPTCPT", "nccpt-low-glucose-mid-intervals"),
+  band("NSCACPT", "nscacpt-low-glucose-mid-intervals"),
+  band("ACECPT", "ace-six-weeks-off-make-it-up"),
+  band("ACSMCPT", "acsm-six-weeks-off-make-it-up"),
+  band("NCCPTCPT", "nccpt-six-weeks-off-make-it-up"),
+  band("ACECPT", "ace-watch-zone-on-a-beta-blocker"),
+  band("NSCACPT", "nscacpt-watch-zone-on-a-beta-blocker"),
+  band("NCCPTCPT", "nccpt-twenty-four-weeks-leaking-fluid"),
+  band("ACECPT", "ace-twenty-four-weeks-leaking-fluid"),
+  band("ACSMCPT", "acsm-twenty-four-weeks-leaking-fluid"),
+  band("NREMTEMT", "emt-line-down-on-the-car"),
+  band("NREMTAEMT", "aemt-low-sugar-now-says-no"),
+  // ---- end REQ-338 ----
 ];
 
 // REQ-312: the data and code console documents (docs/sims.md 22.25), by

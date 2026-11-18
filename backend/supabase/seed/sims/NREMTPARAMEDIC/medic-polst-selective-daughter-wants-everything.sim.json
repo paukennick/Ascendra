@@ -1,0 +1,1028 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "medic-polst-selective-daughter-wants-everything",
+  "title": "A POLST on the fridge",
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              110,
+              130
+            ]
+          },
+          "colour": "ecg",
+          "hiddenUntil": "monOn"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 88
+          },
+          "announce": {
+            "bands": [
+              90,
+              85
+            ]
+          },
+          "colour": "spo2",
+          "hiddenUntil": "monOn"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "high": 34
+          },
+          "announce": {
+            "bands": [
+              28,
+              34
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "monOn"
+        },
+        {
+          "id": "etco2",
+          "label": "EtCO2",
+          "spokenLabel": "End-tidal carbon dioxide",
+          "value": "etco2",
+          "unit": "mmHg",
+          "alarm": {
+            "high": 60
+          },
+          "announce": {
+            "bands": [
+              50,
+              60
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "monOn"
+        }
+      ],
+      "infusions": "POLST: {isNull(polstAt) ? \"not read\" : \"Section A: Do Not Attempt Resuscitation; Section B: Selective Treatments\"}. Support: {intubated ? \"intubated\" : cpapOn ? \"CPAP\" : o2On ? \"oxygen by mask\" : \"none\"}. {isNull(departAt) ? \"At home\" : isNull(arrivedAt) ? \"En route\" : \"Arrived\"}.",
+      "banner": [
+        {
+          "when": "isNull(departAt)",
+          "text": "Henry, 88, propped up in a hospital bed in his living room, breathing fast and wet. His daughter, just in from out of town: 'Do everything. Put the tube in if you have to.'"
+        }
+      ]
+    }
+  },
+  "objective": "Apply consent, refusal, capacity and advance directives such as POLST in the field",
+  "secondaryObjectives": [
+    "Work within medical direction and protocols, and know when to call online medical control",
+    "Choose between oxygen, noninvasive ventilation, bag-valve-mask ventilation and an advanced airway, using the least invasive method that works"
+  ],
+  "sources": [
+    {
+      "cite": "National Registry of EMTs. Paramedic examination test plan",
+      "checkedAt": "2026-11-09",
+      "url": "https://www.nremt.org/getmedia/1f27af23-e889-4edc-8041-55d1854d66ed/Paramedic-Test-Plan_1July2024",
+      "note": "Relayed from the course seed (backend/supabase/seed/tracks/ems.ts and labs/ems-sources.ts, read in NREMT's own documents 2026-11-09); not re-read for this case. EMS Operations: consent, refusal, capacity and advance directives such as POLST in the field."
+    },
+    {
+      "cite": "National POLST. National POLST Form (copyright May 2025)",
+      "checkedAt": "2026-11-17",
+      "url": "https://polst.org/wp-content/uploads/2026/01/National-POLST-Form.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: Section A applies when the patient 'has no pulse and is not breathing' (NO CPR: 'Do Not Attempt Resuscitation'); Section B applies when the patient 'has a pulse and/or is breathing'; Selective Treatments: 'Attempt to restore function while avoiding intensive care if possible (e.g., ventilator, defibrillation)', 'May use non-invasive positive airway pressure, antibiotics and IV fluids as indicated', 'Transfer to hospital if treatment needs cannot be met in current location'; Comfort-Focused: 'Maximize comfort through symptom management; allow natural death'. 'This form does not expire.' States use their own versions."
+    },
+    {
+      "cite": "NASEMSO. National Model EMS Clinical Guidelines, Version 3.0 (March 2022): Do Not Resuscitate Status/Advance Directives/Healthcare Power of Attorney Status",
+      "checkedAt": "2026-11-17",
+      "url": "https://nasemso.org/?p=223",
+      "note": "Read 2026-11-17 in the full text Iowa HHS hosts (https://hhs.iowa.gov/media/198/download) through summarizing fetches with quotes; NASEMSO's own page, read the same day, still presents Version 3 (2022) as current and names no later version. A patient with a valid exclusion who has signs of life 'should receive full treatment per protocols with the exception of any intervention specifically prohibited'; a POLST 'may provide specific guidance'; 'Directives should be followed as closely as possible and medical direction contacted as needed'; if a prohibited intervention is being considered, contact medical direction; a document whose validity is in question: resuscitate until more is known."
+    },
+    {
+      "cite": "NASEMSO. National Model EMS Clinical Guidelines, Version 3.0 (March 2022): Respiratory Distress (Includes Bronchospasm, Pulmonary Edema); Airway Management",
+      "checkedAt": "2026-11-17",
+      "url": "https://nasemso.org/?p=223",
+      "note": "Read 2026-11-17 in the full text Iowa HHS hosts (https://hhs.iowa.gov/media/198/download) through summarizing fetches with quotes; NASEMSO's own page, read the same day, still presents Version 3 (2022) as current and names no later version. Albuterol nebulized for bronchospasm, repeated for ongoing distress; noninvasive ventilation (CPAP) for severe distress, considered early; start PEEP at 5 cmH2O and raise in 2-3 cmH2O steps to the lowest effective pressure; if the patient worsens on CPAP (worse mental status, rising EtCO2, vomiting), 'remove CPAP/BiPAP and escalate airway management options'; target SpO2 94-98%, and 'permissive hypoxia (SPO2 >= 90%) may be appropriate in patients with COPD'; avoid nitrates within 48 hours of a phosphodiesterase inhibitor. The guideline's albuterol dose for distress (5 mg) is above the inhalation solution's labeled 2.5 mg; the case uses the labeled 2.5 mg dose, repeated."
+    },
+    {
+      "cite": "NHTSA. National EMS Scope of Practice Model 2019: Including Change Notices 1.0 and 2.0 (DOT HS 813 151, 2021-08-01)",
+      "checkedAt": "2026-11-17",
+      "url": "https://rosap.ntl.bts.gov/view/dot/56917",
+      "note": "Read 2026-11-17: the record page (title, report number, date; the change notices add intramuscular injection, vaccination in a public health emergency and nasal swab collection at EMT and above) and the PDF's skill tables through a summarizing fetch whose table columns were partly unclear, so placement was checked against the course's own reading (backend/supabase/seed/labs/ems-sources.ts, 2026-11-09) and REQ-241's reading (2026-11-11). EMR: oxygen, BVM, naloxone (intranasal or auto-injector), unit-dose hazmat antidote auto-injectors, tourniquet, wound packing, emergency moves, manual stabilization; no pulse oximetry, glucose monitoring or transport. EMT adds pulse oximetry, glucose monitoring, oral glucose, aspirin, the patient's own nitroglycerin, an inhaled bronchodilator, CPAP, the epinephrine auto-injector. AEMT adds IV and IO access, non-medicated IV fluids, supraglottic airways, waveform capnography, sublingual nitroglycerin and a limited list of IV and IM drugs (dextrose, naloxone). Paramedic adds 12-lead interpretation, manual defibrillation, synchronized cardioversion, transcutaneous pacing, needle chest decompression, intubation and medicated infusions. No newer model was found on 2026-11-17."
+    },
+    {
+      "cite": "Ascendra NREMT Paramedic course catalog (backend/supabase/seed/tracks/ems.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Ascendra teaching model (REQ-338, authored)",
+      "checkedAt": "2026-11-17",
+      "note": "His breathing as one severity score: untreated it climbs about 0.015 a minute; oxygen alone slows it, CPAP reverses it at about 0.02 a minute. Authored FLAG figures. Simplified teaching model written for exam practice; not a validated physiological model."
+    }
+  ],
+  "brief": {
+    "situation": "11:40. You are a paramedic with an EMT partner. Henry, 88, has advanced dementia and COPD; his son, who is his health care agent, called because Henry is breathing hard since last night. A POLST form is on the refrigerator. His daughter has just arrived from out of town.",
+    "handover": [
+      "Henry cannot take part in decisions. His son is his legal health care agent and is on the phone, on his way.",
+      "You carry oxygen, CPAP, nebulized albuterol, IV supplies and intubation equipment. Online medical direction is a radio call away. The hospital is 15 minutes away."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated seconds per real second. Pause any time.",
+      "Every assessment and treatment takes the time it would on a real call. Scene time and the drive run on the clock.",
+      "Partway through you are asked to explain your decisions in writing. The case ends when care is handed over, then a debrief scores what you did."
+    ]
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice; follow your local protocols and medical direction.",
+  "clock": {
+    "start": "11:40",
+    "tick": "1s",
+    "maxDuration": "45min",
+    "calendar": "clock"
+  },
+  "params": {
+    "rise": {
+      "value": 0.015,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (REQ-338, authored)",
+        "checkedAt": "2026-11-17",
+        "note": "FLAG: stands in for a number no guideline gives. Untreated rise. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "o2Slow": {
+      "value": 0.01,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (REQ-338, authored)",
+        "checkedAt": "2026-11-17",
+        "note": "FLAG: stands in for a number no guideline gives. Oxygen alone offsets this much. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "cpapRate": {
+      "value": 0.035,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (REQ-338, authored)",
+        "checkedAt": "2026-11-17",
+        "note": "FLAG: stands in for a number no guideline gives. CPAP offsets this much. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "polstTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Reading and checking the form: about a minute. Authored for the case; real times vary."
+      }
+    },
+    "mdTime": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Online medical direction: about 2 minutes. Authored for the case; real times vary."
+      }
+    },
+    "loadTime": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Load: about 5 minutes. Authored for the case; real times vary."
+      }
+    },
+    "driveTime": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "15 minutes to the hospital. Authored for the case; real times vary."
+      }
+    }
+  },
+  "state": {
+    "sev": {
+      "type": "number",
+      "init": 0.65,
+      "min": 0,
+      "max": 1.2
+    },
+    "monOn": {
+      "type": "bool",
+      "init": false
+    },
+    "o2On": {
+      "type": "bool",
+      "init": false
+    },
+    "cpapOn": {
+      "type": "bool",
+      "init": false
+    },
+    "intubated": {
+      "type": "bool",
+      "init": false
+    },
+    "pPending": {
+      "type": "bool",
+      "init": false
+    },
+    "mdPending": {
+      "type": "bool",
+      "init": false
+    },
+    "withheld": {
+      "type": "bool",
+      "init": false
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "polstAt": {
+      "type": "time",
+      "init": null
+    },
+    "talkAt": {
+      "type": "time",
+      "init": null
+    },
+    "mdAt": {
+      "type": "time",
+      "init": null
+    },
+    "cpapAt": {
+      "type": "time",
+      "init": null
+    },
+    "o2At": {
+      "type": "time",
+      "init": null
+    },
+    "nebAt": {
+      "type": "time",
+      "init": null
+    },
+    "departAt": {
+      "type": "time",
+      "init": null
+    },
+    "arrivedAt": {
+      "type": "time",
+      "init": null
+    },
+    "notifyAt": {
+      "type": "time",
+      "init": null
+    },
+    "intAt": {
+      "type": "time",
+      "init": null
+    },
+    "withholdAt": {
+      "type": "time",
+      "init": null
+    },
+    "exhaustAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "spo2": {
+      "expr": "round(clamp(98 - 20 * sev + (o2On ? 5 : 0) + (cpapOn ? 4 : 0) + (intubated ? 6 : 0), 60, 100))",
+      "unit": "%",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "round(intubated ? 16 : clamp(14 + 28 * sev, 12, 44))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "hr": {
+      "expr": "round(clamp(80 + 50 * sev, 60, 160))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "etco2": {
+      "expr": "round(clamp(30 + 35 * sev, 20, 90))",
+      "unit": "mmHg",
+      "precision": 0
+    }
+  },
+  "processes": [
+    {
+      "id": "breath",
+      "when": "isNull(arrivedAt) and not intubated",
+      "update": {
+        "sev": "clamp(sev + (rise - (o2On ? o2Slow : 0) - (cpapOn ? cpapRate : 0)) * dt / 60, 0, 1.2)"
+      }
+    }
+  ],
+  "phases": {
+    "call": {
+      "label": "At the house",
+      "clock": "running",
+      "actions": [
+        "look",
+        "monitor",
+        "polst",
+        "talk",
+        "medDir",
+        "o2",
+        "cpap",
+        "neb",
+        "intubate",
+        "withhold",
+        "transport",
+        "notify"
+      ]
+    }
+  },
+  "initialPhase": "call",
+  "actions": {
+    "look": {
+      "label": "Primary assessment",
+      "group": "Assess",
+      "available": "isNull(lookAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Airway open; fast, shallow breathing with accessory muscles; wet crackles and wheeze; responds to voice; pulse fast.",
+          "kind": "find"
+        }
+      ]
+    },
+    "monitor": {
+      "label": "Monitor, pulse oximetry and capnography",
+      "group": "Assess",
+      "available": "not monOn",
+      "why": "On.",
+      "effects": [
+        {
+          "set": "monOn",
+          "to": "true"
+        },
+        {
+          "log": "Monitor on."
+        }
+      ]
+    },
+    "polst": {
+      "label": "Read the POLST: his name, signatures, intact and current; Sections A and B",
+      "group": "Directive",
+      "available": "isNull(polstAt) and not pPending",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "pPending",
+          "to": "true"
+        },
+        {
+          "schedule": "polstT",
+          "after": "polstTime"
+        },
+        {
+          "log": "You take the form off the fridge."
+        }
+      ]
+    },
+    "talk": {
+      "label": "Sit with his daughter: what the POLST says, that it was Henry's choice with his doctor, and what you will do for him",
+      "group": "Directive",
+      "available": "isNull(talkAt) and not isNull(polstAt)",
+      "why": "Read the form first.",
+      "effects": [
+        {
+          "if": "isNull(talkAt)",
+          "then": [
+            {
+              "set": "talkAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "She cries, then nods: 'He did say he never wanted a machine.'",
+          "kind": "good"
+        }
+      ]
+    },
+    "medDir": {
+      "label": "Call online medical direction: a valid POLST with selective treatment and a family member asking for full treatment",
+      "group": "Directive",
+      "available": "isNull(mdAt) and not mdPending",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "mdPending",
+          "to": "true"
+        },
+        {
+          "schedule": "mdT",
+          "after": "mdTime"
+        },
+        {
+          "log": "Radioing medical direction."
+        }
+      ]
+    },
+    "o2": {
+      "label": "Oxygen by mask",
+      "group": "Treat",
+      "available": "not o2On and not cpapOn",
+      "why": "On.",
+      "effects": [
+        {
+          "set": "o2On",
+          "to": "true"
+        },
+        {
+          "if": "isNull(o2At)",
+          "then": [
+            {
+              "set": "o2At",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Oxygen on."
+        }
+      ]
+    },
+    "cpap": {
+      "label": "CPAP (noninvasive positive airway pressure)",
+      "group": "Treat",
+      "available": "not cpapOn and not intubated",
+      "why": "On.",
+      "effects": [
+        {
+          "set": "cpapOn",
+          "to": "true"
+        },
+        {
+          "set": "o2On",
+          "to": "true"
+        },
+        {
+          "if": "isNull(cpapAt)",
+          "then": [
+            {
+              "set": "cpapAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "CPAP on; he tolerates it with coaching.",
+          "kind": "good"
+        }
+      ]
+    },
+    "neb": {
+      "label": "Albuterol 2.5 mg nebulized (in line)",
+      "group": "Treat",
+      "available": "isNull(nebAt)",
+      "why": "Given.",
+      "effects": [
+        {
+          "if": "isNull(nebAt)",
+          "then": [
+            {
+              "set": "nebAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "sev",
+          "to": "max(0, sev - 0.05)"
+        },
+        {
+          "log": "Albuterol nebulized."
+        }
+      ]
+    },
+    "intubate": {
+      "label": "Intubate him, as his daughter asks",
+      "group": "Treat",
+      "available": "not intubated",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "intubated",
+          "to": "true"
+        },
+        {
+          "set": "cpapOn",
+          "to": "false"
+        },
+        {
+          "if": "isNull(intAt)",
+          "then": [
+            {
+              "set": "intAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Tube placed and confirmed by capnography.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "withhold": {
+      "label": "DNR on the form: no treatment, just keep him company",
+      "group": "Treat",
+      "available": "isNull(withholdAt) and not o2On and not cpapOn",
+      "why": "Not now.",
+      "effects": [
+        {
+          "if": "isNull(withholdAt)",
+          "then": [
+            {
+              "set": "withholdAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "withheld",
+          "to": "true"
+        },
+        {
+          "log": "You withhold oxygen and CPAP.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "transport": {
+      "label": "Transport to the hospital (Section B allows transfer when needs cannot be met at home)",
+      "group": "Transport",
+      "available": "isNull(departAt)",
+      "why": "Moving.",
+      "effects": [
+        {
+          "if": "isNull(departAt)",
+          "then": [
+            {
+              "set": "departAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "schedule": "arriveT",
+          "after": "loadTime + driveTime"
+        },
+        {
+          "log": "Loading; the POLST goes with him."
+        }
+      ]
+    },
+    "notify": {
+      "label": "Notify: COPD and pneumonia, POLST DNR with selective treatment, on CPAP, ETA",
+      "group": "Transport",
+      "available": "not isNull(departAt) and isNull(notifyAt)",
+      "why": "Once moving.",
+      "effects": [
+        {
+          "if": "isNull(notifyAt)",
+          "then": [
+            {
+              "set": "notifyAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Hospital notified.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "polstT": {
+      "label": "POLST",
+      "wait": {
+        "skipLabel": "reading the POLST"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About a minute. Authored for the case; real times vary."
+      },
+      "effects": [
+        {
+          "set": "pPending",
+          "to": "false"
+        },
+        {
+          "if": "isNull(polstAt)",
+          "then": [
+            {
+              "set": "polstAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "POLST: Henry's name, signed by him (two years ago, before his dementia advanced) and his physician; intact. Section A: NO CPR. Section B: Selective Treatments: may use non-invasive positive airway pressure, antibiotics and IV fluids; avoid intensive care such as a ventilator; transfer to hospital if needs cannot be met at home.",
+          "kind": "find"
+        }
+      ]
+    },
+    "mdT": {
+      "label": "medical direction",
+      "wait": {
+        "skipLabel": "medical direction (about 2 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 2 minutes. Authored for the case; real times vary."
+      },
+      "effects": [
+        {
+          "set": "mdPending",
+          "to": "false"
+        },
+        {
+          "if": "isNull(mdAt)",
+          "then": [
+            {
+              "set": "mdAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Physician: follow the POLST as written; CPAP and transport are within Selective Treatment; no intubation; no CPR if he arrests. The son, his agent, agrees by phone.",
+          "kind": "good"
+        }
+      ]
+    },
+    "arriveT": {
+      "label": "arrival",
+      "wait": {
+        "skipLabel": "arrival"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Load and drive. Authored for the case; real times vary."
+      },
+      "effects": [
+        {
+          "if": "isNull(arrivedAt)",
+          "then": [
+            {
+              "set": "arrivedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "At the hospital.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "exhaust",
+      "when": "sev >= 1 and isNull(exhaustAt)",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "isNull(exhaustAt)",
+          "then": [
+            {
+              "set": "exhaustAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Henry is barely responsive; his breaths are shallow and slow.",
+          "kind": "alarm"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "why": {
+      "trigger": "not isNull(polstAt) and t >= timeAt(polstAt) + 120",
+      "question": "His daughter asked you to do everything. What does the POLST let you do, and how did you handle the disagreement?",
+      "parts": [
+        {
+          "label": "What the POLST says",
+          "criteria": "A valid POLST (his name, signatures, intact): Section A NO CPR applies only if pulseless and not breathing; with a pulse, Section B Selective Treatments applies: CPAP, IV fluids, antibiotics and transfer are allowed; intubation and intensive care are not. DNR does not mean no treatment.",
+          "modelAnswer": "The POLST is valid. He has a pulse and is breathing, so Section B applies: Selective Treatments. CPAP and transport are allowed; intubation is not. 'No CPR' only matters if he arrests."
+        },
+        {
+          "label": "The disagreement",
+          "criteria": "Follow the patient's documented wishes; explain them compassionately to the daughter; the son is the legal agent; contact medical direction when a prohibited intervention is being requested.",
+          "modelAnswer": "I explained the form was Henry's own choice, kept caring for him, and called medical direction because a prohibited intervention was being requested; his son, the legal agent, agreed."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "not isNull(arrivedAt) and sev >= 0.8",
+      "class": "recovered",
+      "rationale": "He arrived still in severe distress: the support he was allowed came late.",
+      "source": {
+        "cite": "National POLST. National POLST Form (copyright May 2025)",
+        "checkedAt": "2026-11-17",
+        "url": "https://polst.org/wp-content/uploads/2026/01/National-POLST-Form.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: Section A applies when the patient 'has no pulse and is not breathing' (NO CPR: 'Do Not Attempt Resuscitation'); Section B applies when the patient 'has a pulse and/or is breathing'; Selective Treatments: 'Attempt to restore function while avoiding intensive care if possible (e.g., ventilator, defibrillation)', 'May use non-invasive positive airway pressure, antibiotics and IV fluids as indicated', 'Transfer to hospital if treatment needs cannot be met in current location'; Comfort-Focused: 'Maximize comfort through symptom management; allow natural death'. 'This form does not expire.' States use their own versions."
+      }
+    }
+  },
+  "endings": {
+    "intubated": {
+      "label": "An intervention his POLST declined",
+      "class": "harm",
+      "terminal": true,
+      "when": "intubated and (not isNull(arrivedAt) or t >= timeAt(intAt) + 120)",
+      "narrative": "Henry is on a ventilator, the intensive care he declined in writing; his son is distressed when he arrives."
+    },
+    "withheld": {
+      "label": "Allowed treatment withheld",
+      "class": "harm",
+      "terminal": true,
+      "when": "not isNull(exhaustAt) or (withheld and not isNull(arrivedAt))",
+      "narrative": "Treatment his POLST allowed was withheld{not isNull(exhaustAt) ? \" and he became exhausted and barely responsive\" : \"\"}. A DNR order is not an order to withhold care."
+    },
+    "honored": {
+      "label": "His wishes honored, his breathing supported",
+      "class": "target",
+      "terminal": true,
+      "when": "not isNull(arrivedAt) and not intubated and not withheld and not isNull(polstAt) and timeAt(polstAt) <= 300 and not isNull(cpapAt) and timeAt(cpapAt) <= 480 and not isNull(mdAt) and not isNull(talkAt) and sev < 0.6",
+      "narrative": "{timeAt(arrivedAt)|clock}: Henry arrives breathing easier on CPAP with his POLST, his son on the way and his daughter beside him."
+    },
+    "arrived": {
+      "label": "Arrived, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not isNull(arrivedAt)",
+      "narrative": "{timeAt(arrivedAt)|clock}: Henry arrives, but {isNull(cpapAt) ? \"without the CPAP his POLST allowed\" : isNull(mdAt) ? \"medical direction was never involved\" : isNull(talkAt) ? \"his daughter was never told why\" : \"support or the form came late\"}."
+    },
+    "time_up": {
+      "label": "45 minutes",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "Forty-five minutes."
+    }
+  },
+  "endingOrder": [
+    "intubated",
+    "withheld",
+    "honored",
+    "arrived"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "read",
+        "label": "Read and validated the POLST within 5 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(polstAt) and timeAt(polstAt) <= 300",
+            "score": "met",
+            "why": "Read and checked."
+          },
+          {
+            "when": "not isNull(polstAt)",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never read."
+          }
+        ]
+      },
+      {
+        "id": "follow",
+        "label": "Followed Section B: CPAP allowed, no intubation",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "intubated",
+            "score": "missed",
+            "why": "Intubated."
+          },
+          {
+            "when": "withheld",
+            "score": "missed",
+            "why": "Allowed treatment withheld."
+          },
+          {
+            "when": "not isNull(cpapAt) and timeAt(cpapAt) <= 480",
+            "score": "met",
+            "why": "CPAP, no intubation."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Support late or oxygen only."
+          }
+        ]
+      },
+      {
+        "id": "md",
+        "label": "Medical direction for a requested prohibited intervention",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(mdAt)",
+            "score": "met",
+            "why": "Called."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not called."
+          }
+        ]
+      },
+      {
+        "id": "family",
+        "label": "Explained the POLST to his daughter",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(talkAt)",
+            "score": "met",
+            "why": "Explained."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not explained."
+          }
+        ]
+      },
+      {
+        "id": "notify",
+        "label": "Hospital notified with the POLST",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(notifyAt)",
+            "score": "met",
+            "why": "Notified."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not notified."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: the POLST and the disagreement",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toCpap",
+        "label": "Arrival to CPAP",
+        "value": "isNull(cpapAt) ? -1 : timeAt(cpapAt)",
+        "format": "duration",
+        "expert": "under 5 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "11:40",
+        "text": "Primary assessment, monitor; read and validate the POLST: NO CPR, Selective Treatments."
+      },
+      {
+        "at": "11:42",
+        "text": "CPAP and albuterol; explain the form to his daughter; call medical direction."
+      },
+      {
+        "at": "~11:47",
+        "text": "Transport with the POLST; notify."
+      }
+    ],
+    "debrief": {
+      "honored": {
+        "headline": "DNR is not 'do not treat'",
+        "body": "With a pulse, Section B governs: CPAP and transport, no ventilator. His wishes, kindly explained, and medical direction for the disagreement."
+      },
+      "arrived": {
+        "headline": "Arrived, with gaps",
+        "body": "Check how soon CPAP went on, and whether his daughter and medical direction were involved."
+      },
+      "intubated": {
+        "headline": "He declined a ventilator",
+        "body": "A valid POLST with Selective Treatments rules out intubation. A family member's request does not override it; call medical direction."
+      },
+      "withheld": {
+        "headline": "DNR is about CPR",
+        "body": "Section A applies only without a pulse. His form allowed CPAP and transport; withholding them was not his wish."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Forty-five minutes."
+      }
+    },
+    "modelReasoning": "Read and validate the POLST (his name, signatures, intact). Section A (NO CPR) applies only if he is pulseless and not breathing; with a pulse, Section B Selective Treatments governs: noninvasive positive airway pressure, IV fluids, antibiotics and transfer are allowed, a ventilator is not. So: CPAP, albuterol, transport, no intubation. Explain the form kindly to his daughter; his son is the legal agent; call medical direction because a prohibited intervention is being requested (NASEMSO). Send the POLST with him and notify."
+  },
+  "chapters": [
+    {
+      "id": "read",
+      "label": "POLST read",
+      "when": "not isNull(polstAt)"
+    }
+  ],
+  "teaching": {
+    "secB": {
+      "during": "polstT",
+      "ask": "While you read the form: Henry has a pulse and is breathing. Which section tells you what to do now?",
+      "choices": [
+        {
+          "id": "b",
+          "label": "Section B, initial treatment orders"
+        },
+        {
+          "id": "a",
+          "label": "Section A, CPR"
+        },
+        {
+          "id": "none",
+          "label": "Neither; the daughter decides"
+        }
+      ],
+      "expect": "b",
+      "explain": "National POLST: Section A applies when the patient has no pulse and is not breathing; Section B when the patient has a pulse and/or is breathing.",
+      "source": {
+        "cite": "National POLST. National POLST Form (copyright May 2025)",
+        "checkedAt": "2026-11-17",
+        "url": "https://polst.org/wp-content/uploads/2026/01/National-POLST-Form.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: Section A applies when the patient 'has no pulse and is not breathing' (NO CPR: 'Do Not Attempt Resuscitation'); Section B applies when the patient 'has a pulse and/or is breathing'; Selective Treatments: 'Attempt to restore function while avoiding intensive care if possible (e.g., ventilator, defibrillation)', 'May use non-invasive positive airway pressure, antibiotics and IV fluids as indicated', 'Transfer to hospital if treatment needs cannot be met in current location'; Comfort-Focused: 'Maximize comfort through symptom management; allow natural death'. 'This form does not expire.' States use their own versions."
+      }
+    }
+  }
+}
