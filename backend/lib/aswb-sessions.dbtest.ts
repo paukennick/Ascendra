@@ -20,7 +20,7 @@ import { __setClientForTest } from "./anthropic";
 import { setAiCallSink } from "./ai-calls";
 import { recordStudyNoticeAcceptance } from "./study-notice";
 import { MATURE_CONTENT_NOTICE_VERSION } from "./mature-content";
-import { ASWB_SESSION_DOCUMENTS, WAJP_SESSION_DOCUMENTS, loadDocument } from "./sim/documents.ts";
+import { ALL_DOCUMENTS, ASWB_SESSION_DOCUMENTS, WAJP_SESSION_DOCUMENTS, loadDocument } from "./sim/documents.ts";
 
 // REQ-289: the ASWB coverage sessions and bands, and the Washington jurisprudence band.
 const DOCS = [...ASWB_SESSION_DOCUMENTS, ...WAJP_SESSION_DOCUMENTS];
@@ -110,7 +110,9 @@ describe("REQ-288: the seeded ASWB client sessions", () => {
       await recordStudyNoticeAcceptance(u);
       const listed = await json(await simsGet(req(u, `/api/sims?trackId=${id}`)));
       assert.equal(listed.status, 200);
-      assert.equal(listed.body.sims.length, DOCS.filter((e) => e.course === code).length, `${code}: every session listed`);
+      // FAIL-2541: DOCS is the REQ-288/289 first set by slug (FAIL-2520); the
+      // course lists every sim it has, REQ-337's included, so count them all.
+      assert.equal(listed.body.sims.length, ALL_DOCUMENTS.filter((e) => e.course === code).length, `${code}: every session listed`);
       const simId = listed.body.sims[0].id as string;
       const r = await json(await runsPost(req(u, "/api/x", "POST", { restart: true, deviceId: "dev-a" }), idCtx(simId)));
       assert.equal(r.status, 403, `${code}: ${JSON.stringify(r.body)}`);

@@ -17,7 +17,7 @@ import { isPerformanceObjective } from "../../scripts/generate-labs-lib.ts";
 const COURSES = ["CYSAPLUS", "PENTESTPLUS", "SECURITYX", "SECAIPLUS"] as const;
 // FAIL-2221: select the console cases by screen too; REQ-314 added a CySA+
 // band on the sandbox report.
-// wave/2026-11-18 (a recurrence of FAIL-2002): the REQ-238 set by slug, so
+// FAIL-2542 (a recurrence of FAIL-2002): the REQ-238 set by slug, so
 // REQ-336's console cases in these courses do not join it.
 const W2_SLUGS = [
   "alert-triage-lolbin-hunt",

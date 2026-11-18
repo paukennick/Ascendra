@@ -19331,6 +19331,55 @@
       "prevention_rules": [],
       "prevention_notes": "Copy objective titles from the catalog itself, never from a truncated display; run the per-round pin test (objective in catalog) before committing a case, not only lint.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2541",
+      "date": "2026-11-18",
+      "title": "ASWB sessions dbtest counts the first set while /api/sims lists every sim of the course",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "test:db on wave/2026-11-18: REQ-288 'starting a session refuses until the 18+ acknowledgment' failed with 'ASWBCLINICAL: every session listed 8 !== 4'.",
+      "how_detected": "full test:db on the merged wave (integrator-3, Postgres on 55435)",
+      "root_cause": "FAIL-2520 narrowed ASWB_SESSION_DOCUMENTS and WAJP_SESSION_DOCUMENTS to the REQ-288/289 slugs, but aswb-sessions.dbtest.ts used them as the expected size of the course's whole /api/sims list; REQ-337 added four ASWB Clinical, four ASWB Masters and three WAPSYCHJP sims. The depth-mh branch alone fails it too; the builder did not run test:db.",
+      "requirement": "REQ-337",
+      "affected": [
+        "backend/lib/aswb-sessions.dbtest.ts"
+      ],
+      "fix_summary": "The listed count is compared with every registered sim of the course (ALL_DOCUMENTS filtered by course), keeping strict equality; the first-set fixtures are unchanged.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/aswb-sessions.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A course-wide listing is compared with the course's whole registry, never with a slug-named test set.",
+      "recurrence_of": "FAIL-2002"
+    },
+    {
+      "id": "FAIL-2542",
+      "date": "2026-11-18",
+      "title": "Four first-wave sim test sets selected by course code pick up the depth round's cases",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "lib/sim on wave/2026-11-18: 11 subtests failed in cnc-session.test.ts (3 slugs, not 2), project-dashboard.test.ts (6 PSMI against 5 CSM; ITIL desk set no longer 1) and security-w2.test.ts (CYSAPLUS 6, not 2).",
+      "how_detected": "lib/sim suite on the merged wave (integrator-3)",
+      "root_cause": "Recurrence of FAIL-2002: CNC_SESSION_DOCUMENTS (REQ-282), SCRUM_DASHBOARD_DOCUMENTS and DESK_DOCUMENTS (REQ-311) and security-w2.test.ts's W2 (REQ-238) filtered by course code; REQ-336 and REQ-338 registered new PSMI, CSM, ITIL5FND, CYSAPLUS, PENTESTPLUS, SECURITYX, SECAIPLUS and NASMCNC sims. Each branch alone fails them; the builders ran only their own test files.",
+      "requirement": "REQ-336",
+      "affected": [
+        "backend/lib/sim/documents.ts",
+        "backend/lib/sim/security-w2.test.ts"
+      ],
+      "fix_summary": "Each set filters by its original slug list (CNC_FIRST_SET, SCRUM_FIRST_SET, the one desk slug, W2_SLUGS); no assertion changed.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/cnc-session.test.ts",
+        "backend/lib/sim/project-dashboard.test.ts",
+        "backend/lib/sim/security-w2.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Builders run the whole lib/sim suite (under the heavy lock) before reporting, not only their own files.",
+      "recurrence_of": "FAIL-2002"
     }
   ]
 }
