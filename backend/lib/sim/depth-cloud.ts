@@ -7,4 +7,5 @@ export const DEPTH_CLOUD: readonly CloudEntry[] = [
   { course: "AWSDEA", slug: "s3-eventbridge-rule-never-fires", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "dea-s3-eventbridge" },
   { course: "AWSDEA", slug: "redshift-idle-transaction-blocks-load", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "dea-redshift-locks" },
   { course: "AWSDEA", slug: "athena-todays-partition-missing", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "dea-partitions" },
+  { course: "AWSDEA", slug: "dynamodb-backfill-throttles-checkout", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "dea-ddb-throttle" },
 ];

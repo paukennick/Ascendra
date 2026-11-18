@@ -220,4 +220,21 @@ describe("what each new depth cloud case teaches (REQ-335)", () => {
     assert.equal(ok.value("missAt"), null);
     assert.equal(ok.value("okAt") !== null, true);
   });
+  test("AWSDEA dynamodb-backfill-throttles-checkout: more workers throttle checkout harder; Lambda memory changes nothing; capping the backfill with backoff holds the lunch peak", () => {
+    const d = docOf("dynamodb-backfill-throttles-checkout");
+    const h = driver(d);
+    h.act("more");
+    assert.equal(h.value("harmed"), true, "more causes harm");
+    until(h, 46);
+    assert.notEqual(h.value("missAt"), null);
+    const n = driver(d);
+    n.act("memory");
+    until(n, 46);
+    assert.notEqual(n.value("missAt"), null, "memory changes nothing");
+    const ok = driver(d);
+    ok.act("cap");
+    until(ok, 46);
+    assert.equal(ok.value("missAt"), null);
+    assert.equal(ok.value("okAt") !== null, true);
+  });
 });
