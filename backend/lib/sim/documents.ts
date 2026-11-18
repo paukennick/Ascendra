@@ -663,6 +663,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   band("EPPP", "eppp-client-hired-by-your-practice"),
   entry("WAPSYCHJP", "wajp-adult-disclosure-children-at-risk"),
   band("EPPP", "eppp-adult-disclosure-children-at-risk"),
+  entry("WAPSYCHJP", "wajp-former-psychologist-misconduct"),
   // ---- end REQ-337 ----
 ];
 
