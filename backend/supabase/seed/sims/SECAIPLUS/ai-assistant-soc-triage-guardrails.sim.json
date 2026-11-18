@@ -1,0 +1,1013 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "ai-assistant-soc-triage-guardrails",
+  "title": "An AI assistant in the SOC: what it may do on its own, checking its output, and a deepfake call",
+  "screen": {
+    "type": "security-console",
+    "level": 1,
+    "console": {
+      "alerts": [
+        {
+          "id": "aAuto",
+          "severity": "high",
+          "title": "Agent wants to disable 40 accounts",
+          "detail": "The agent proposes disabling 40 accounts flagged by an alert storm.",
+          "when": "p >= 1",
+          "at": "600",
+          "status": "{auto == \"approve\" ? \"Human approval for high-impact actions\" : auto == \"rateLimit\" ? \"Autonomous with a cap\" : auto == \"full\" ? \"Agent acts alone\" : \"Due\"}",
+          "open": "auto == \"none\""
+        },
+        {
+          "id": "aVerify",
+          "severity": "medium",
+          "title": "AI-proposed code fix",
+          "detail": "The AI scanner in CI flags an injection flaw and proposes a code fix.",
+          "when": "p >= 2",
+          "at": "1200",
+          "status": "{verify == \"review\" ? \"Reviewed and tested fix\" : verify == \"trustFinding\" ? \"Finding trusted, own fix\" : verify == \"autoMerge\" ? \"AI fix auto-merged\" : \"Due\"}",
+          "open": "verify == \"none\""
+        },
+        {
+          "id": "aDeepfake",
+          "severity": "critical",
+          "title": "Urgent MFA reset request",
+          "detail": "The voice sounds like the CFO and asks for an urgent MFA reset.",
+          "when": "p >= 3",
+          "at": "1800",
+          "status": "{deepfake == \"callback\" ? \"Verified out of band: fraud\" : deepfake == \"questions\" ? \"Knowledge questions\" : deepfake == \"reset\" ? \"MFA reset on voice\" : \"Due\"}",
+          "open": "deepfake == \"none\""
+        }
+      ],
+      "events": [
+        {
+          "id": "eAuto",
+          "source": "SOAR",
+          "text": "{auto == \"approve\" ? \"Human approval for high-impact actions\" : auto == \"rateLimit\" ? \"Autonomous with a cap\" : auto == \"full\" ? \"Agent acts alone\" : \"\"}",
+          "when": "auto != \"none\"",
+          "at": "timeAt(autoAt)"
+        },
+        {
+          "id": "eVerify",
+          "source": "CI",
+          "text": "{verify == \"review\" ? \"Reviewed and tested fix\" : verify == \"trustFinding\" ? \"Finding trusted, own fix\" : verify == \"autoMerge\" ? \"AI fix auto-merged\" : \"\"}",
+          "when": "verify != \"none\"",
+          "at": "timeAt(verifyAt)"
+        },
+        {
+          "id": "eDeepfake",
+          "source": "Help desk",
+          "text": "{deepfake == \"callback\" ? \"Verified out of band: fraud\" : deepfake == \"questions\" ? \"Knowledge questions\" : deepfake == \"reset\" ? \"MFA reset on voice\" : \"\"}",
+          "when": "deepfake != \"none\"",
+          "at": "timeAt(deepfakeAt)"
+        },
+        {
+          "id": "iPerm",
+          "source": "Analyst",
+          "text": "The agent's tool connection can disable any account, including executives' and service accounts, with no approval step.",
+          "when": "not isNull(permAt)",
+          "at": "timeAt(permAt)"
+        },
+        {
+          "id": "iActs",
+          "source": "Analyst",
+          "text": "Three of its IP blocks hit the company's own payment partner after a misread alert.",
+          "when": "not isNull(actsAt)",
+          "at": "timeAt(actsAt)"
+        }
+      ],
+      "assets": [
+        {
+          "id": "xAuto",
+          "label": "SOC AI agent",
+          "spokenLabel": "SOC AI agent",
+          "kind": "AI agent",
+          "status": "{auto == \"approve\" ? \"Human approval for high-impact actions\" : auto == \"rateLimit\" ? \"Autonomous with a cap\" : auto == \"full\" ? \"Agent acts alone\" : \"Under review\"}",
+          "tone": "auto == \"approve\" ? \"ok\" : auto == \"rateLimit\" ? \"watch\" : auto == \"full\" ? \"bad\" : p >= 1 ? \"watch\" : \"ok\""
+        },
+        {
+          "id": "xVerify",
+          "label": "Loan application code",
+          "spokenLabel": "Loan application code",
+          "kind": "repository",
+          "status": "{verify == \"review\" ? \"Reviewed and tested fix\" : verify == \"trustFinding\" ? \"Finding trusted, own fix\" : verify == \"autoMerge\" ? \"AI fix auto-merged\" : \"Under review\"}",
+          "tone": "verify == \"review\" ? \"ok\" : verify == \"trustFinding\" ? \"watch\" : verify == \"autoMerge\" ? \"bad\" : p >= 2 ? \"watch\" : \"ok\""
+        },
+        {
+          "id": "xDeepfake",
+          "label": "CFO account",
+          "spokenLabel": "CFO account",
+          "kind": "identity",
+          "status": "{deepfake == \"callback\" ? \"Verified out of band: fraud\" : deepfake == \"questions\" ? \"Knowledge questions\" : deepfake == \"reset\" ? \"MFA reset on voice\" : \"Under review\"}",
+          "tone": "deepfake == \"callback\" ? \"ok\" : deepfake == \"questions\" ? \"watch\" : deepfake == \"reset\" ? \"bad\" : p >= 3 ? \"watch\" : \"ok\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Check-in",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Using AI to automate security tasks: low-code/no-code scripting, AI-assisted change management, AI agents, and CI/CD security scanning",
+  "secondaryObjectives": [
+    "Using AI-enabled tools to facilitate security tasks: IDE/browser/CLI plug-ins, chatbots, MCP servers, and use cases like vulnerability analysis and automated penetration testing",
+    "How AI enables or enhances attack vectors: deepfake impersonation and disinformation, adversarial networks, automated reconnaissance, and automated attack generation"
+  ],
+  "sources": [
+    {
+      "cite": "CompTIA SecAI+ CY0-001 (V1) exam page: launched 2026-02-17; domains Basic AI concepts related to cybersecurity 17%, Securing AI systems 40%, AI-assisted security 24%, AI governance, risk, and compliance 19%",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.comptia.org/en-us/certifications/secai/",
+      "note": "Relevant text: Securing AI systems: 'Mitigate adversarial risks: Defend against attacks targeting AI models, data pipelines, and inference layers'; 'Implement security controls: Protect AI systems, data, and models using robust technical safeguards'. The page does not name prompt injection, data leakage or guardrails. Read through a summarizing fetch on 2026-11-11; the CY0-001 objectives PDF was not re-read here; the course's objective titles come from the course seed. Reused for REQ-336 from this course's agent-indirect-prompt-injection (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the systems and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You lead the security operations center at Fairholme Credit, a fictional lender. An AI agent now summarizes alerts and can run playbook actions through a tool connection. This morning brings three decisions about it.",
+    "handover": [
+      "The agent can disable accounts and block IP addresses through its tools.",
+      "The help desk gets voice calls from 'executives' asking for urgent resets."
+    ],
+    "howItWorks": [
+      "The console shows the alert queue, the event log and each asset's status.",
+      "Move on a check-in at a time. A decision comes to you at each check-in; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-05-10T08:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "auto": {
+      "type": "enum",
+      "values": [
+        "none",
+        "approve",
+        "rateLimit",
+        "full"
+      ],
+      "init": "none"
+    },
+    "autoAt": {
+      "type": "time",
+      "init": null
+    },
+    "verify": {
+      "type": "enum",
+      "values": [
+        "none",
+        "review",
+        "trustFinding",
+        "autoMerge"
+      ],
+      "init": "none"
+    },
+    "verifyAt": {
+      "type": "time",
+      "init": null
+    },
+    "deepfake": {
+      "type": "enum",
+      "values": [
+        "none",
+        "callback",
+        "questions",
+        "reset"
+      ],
+      "init": "none"
+    },
+    "deepfakeAt": {
+      "type": "time",
+      "init": null
+    },
+    "permAt": {
+      "type": "time",
+      "init": null
+    },
+    "actsAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((auto == \"full\") ? 1 : 0) + ((verify == \"autoMerge\") ? 1 : 0) + ((deepfake == \"reset\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(auto == \"none\" or (auto == \"full\") ? 1 : 0) + (verify == \"none\" or (verify == \"autoMerge\") ? 1 : 0) + (deepfake == \"none\" or (deepfake == \"reset\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The SOC shift",
+      "clock": "turns",
+      "actions": [
+        "perm",
+        "acts"
+      ]
+    },
+    "close": {
+      "label": "Shift record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "perm": {
+      "label": "Read the agent's tool permissions",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(permAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "permAt",
+          "to": "t"
+        },
+        {
+          "log": "Read the agent's tool permissions.",
+          "kind": "act"
+        },
+        {
+          "finding": "The agent's tool connection can disable any account, including executives' and service accounts, with no approval step."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "acts": {
+      "label": "Read the agent's last 50 actions",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(actsAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "actsAt",
+          "to": "t"
+        },
+        {
+          "log": "Read the agent's last 50 actions.",
+          "kind": "act"
+        },
+        {
+          "finding": "Three of its IP blocks hit the company's own payment partner after a misread alert."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Human approval for high-impact agent actions, the AI fix reviewed and tested, and the voice request verified out of band"
+                },
+                {
+                  "value": "summary",
+                  "label": "Shift complete"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next check-in",
+      "wait": {
+        "skipLabel": "Go to the next check-in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "auto == \"full\"",
+              "then": [
+                {
+                  "log": "Check-in 2: payroll fails because the agent disabled its service account; 37 staff are locked out.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "verify == \"autoMerge\"",
+              "then": [
+                {
+                  "log": "Check-in 3: loan applications with accented names fail validation after the auto-merged fix.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "deepfake == \"reset\"",
+              "then": [
+                {
+                  "log": "Check-in 4: the attacker uses the reset to approve a 240 thousand dollar transfer.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "10min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The shift ends.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "10min"
+        }
+      ]
+    },
+    {
+      "id": "t_auto",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 1: an alert storm.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "autoPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_verify",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 2: a CI scan.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "verifyPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_deepfake",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 3: a call.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "deepfakePrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "autoPrompt": {
+      "title": "Let the agent act alone?",
+      "context": "The agent proposes disabling 40 accounts flagged by an alert storm.",
+      "choices": [
+        {
+          "id": "approve",
+          "label": "Let the agent enrich and propose; a human approves disabling accounts and blocking IPs, with low-impact actions (ticket tagging) automated",
+          "effects": [
+            {
+              "set": "auto",
+              "to": "\"approve\""
+            },
+            {
+              "set": "autoAt",
+              "to": "t"
+            },
+            {
+              "log": "Proposals are reviewed; 3 of 40 accounts are real.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "AI automation suits low-risk steps; high-impact actions keep a human in the loop."
+        },
+        {
+          "id": "rateLimit",
+          "label": "Let it act alone but cap it at 10 actions an hour",
+          "effects": [
+            {
+              "set": "auto",
+              "to": "\"rateLimit\""
+            },
+            {
+              "set": "autoAt",
+              "to": "t"
+            },
+            {
+              "log": "A rate limit is set.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Limits the damage, not the mistakes."
+        },
+        {
+          "id": "full",
+          "label": "Let it disable all 40 now",
+          "effects": [
+            {
+              "set": "auto",
+              "to": "\"full\""
+            },
+            {
+              "set": "autoAt",
+              "to": "t"
+            },
+            {
+              "log": "40 accounts are disabled.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "37 of the 40 were false positives, including the payroll service account."
+        }
+      ]
+    },
+    "verifyPrompt": {
+      "title": "An AI-written fix",
+      "context": "The AI scanner in CI flags an injection flaw and proposes a code fix.",
+      "choices": [
+        {
+          "id": "review",
+          "label": "Confirm the finding, have a developer review and test the proposed fix, and merge through the normal change process",
+          "effects": [
+            {
+              "set": "verify",
+              "to": "\"review\""
+            },
+            {
+              "set": "verifyAt",
+              "to": "t"
+            },
+            {
+              "log": "The fix is reviewed, tested and merged.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "AI-assisted findings and fixes are verified like any other change."
+        },
+        {
+          "id": "trustFinding",
+          "label": "Accept the finding, write your own fix",
+          "effects": [
+            {
+              "set": "verify",
+              "to": "\"trustFinding\""
+            },
+            {
+              "set": "verifyAt",
+              "to": "t"
+            },
+            {
+              "log": "Your own fix.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Fine, but the finding itself wasn't confirmed."
+        },
+        {
+          "id": "autoMerge",
+          "label": "Auto-merge the AI's fix",
+          "effects": [
+            {
+              "set": "verify",
+              "to": "\"autoMerge\""
+            },
+            {
+              "set": "verifyAt",
+              "to": "t"
+            },
+            {
+              "log": "The fix auto-merges.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The fix breaks input handling for international names."
+        }
+      ]
+    },
+    "deepfakePrompt": {
+      "title": "The CFO's voice asks for a reset",
+      "context": "The voice sounds like the CFO and asks for an urgent MFA reset.",
+      "choices": [
+        {
+          "id": "callback",
+          "label": "Verify out of band: call back on the CFO's registered number and follow the reset procedure",
+          "effects": [
+            {
+              "set": "deepfake",
+              "to": "\"callback\""
+            },
+            {
+              "set": "deepfakeAt",
+              "to": "t"
+            },
+            {
+              "log": "The real CFO made no call.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "AI makes voices convincing; verify identity through a separate channel."
+        },
+        {
+          "id": "questions",
+          "label": "Ask the caller personal questions",
+          "effects": [
+            {
+              "set": "deepfake",
+              "to": "\"questions\""
+            },
+            {
+              "set": "deepfakeAt",
+              "to": "t"
+            },
+            {
+              "log": "Questions asked.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Attackers research answers."
+        },
+        {
+          "id": "reset",
+          "label": "Reset MFA: it sounded exactly like the CFO",
+          "effects": [
+            {
+              "set": "deepfake",
+              "to": "\"reset\""
+            },
+            {
+              "set": "deepfakeAt",
+              "to": "t"
+            },
+            {
+              "log": "MFA is reset.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "A cloned voice gets the CFO's account."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the shift record: how the AI agent and tools were used safely and how the deepfake was handled.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Automation",
+          "criteria": "Agent proposes, humans approve high impact; AI fixes reviewed and tested.",
+          "modelAnswer": "The agent enriched and proposed; we approved 3 of 40 disables. The AI's fix was reviewed, tested and merged normally."
+        },
+        {
+          "label": "Deepfake",
+          "criteria": "Out-of-band callback revealed the fraud.",
+          "modelAnswer": "We called the CFO back on her registered number; she hadn't called."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "security",
+    "thresholds": {
+      "containWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Contained and closed within 60 minutes of the first alert."
+        }
+      },
+      "containSpread": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No asset newly exposed by the response."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (auto == \"rateLimit\") and (verify == \"trustFinding\") and (deepfake == \"questions\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CompTIA SecAI+ CY0-001 (V1) exam page: launched 2026-02-17; domains Basic AI concepts related to cybersecurity 17%, Securing AI systems 40%, AI-assisted security 24%, AI governance, risk, and compliance 19%",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.comptia.org/en-us/certifications/secai/",
+        "note": "Relevant text: Securing AI systems: 'Mitigate adversarial risks: Defend against attacks targeting AI models, data pipelines, and inference layers'; 'Implement security controls: Protect AI systems, data, and models using robust technical safeguards'. The page does not name prompt injection, data leakage or guardrails. Read through a summarizing fetch on 2026-11-11; the CY0-001 objectives PDF was not re-read here; the course's objective titles come from the course seed. Reused for REQ-336 from this course's agent-indirect-prompt-injection (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "autoHarm": {
+      "label": "Payroll down",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and auto == \"full\"",
+      "narrative": "The agent disabled a service account and 36 staff; payroll failed."
+    },
+    "verifyHarm": {
+      "label": "A broken release",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and verify == \"autoMerge\"",
+      "narrative": "The unreviewed fix rejected applicants with accented names."
+    },
+    "deepfakeHarm": {
+      "label": "A fraudulent transfer",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and deepfake == \"reset\"",
+      "narrative": "The deepfake reset led to a fraudulent transfer."
+    },
+    "target": {
+      "label": "AI used safely in the SOC",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (auto == \"approve\") and (verify == \"review\") and (deepfake == \"callback\") and record == \"honest\" and missCount <= containSpread and timeAt(doneAt) <= containWindow",
+      "narrative": "The agent saved time without disabling the wrong accounts, and the deepfake failed."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "autoHarm",
+    "verifyHarm",
+    "deepfakeHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "autoCrit",
+        "label": "Kept a human approval on high-impact automated actions",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "auto == \"approve\"",
+            "score": "met",
+            "why": "Guarded."
+          },
+          {
+            "when": "auto == \"rateLimit\"",
+            "score": "partial",
+            "why": "Partial."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Unchecked automation."
+          }
+        ]
+      },
+      {
+        "id": "verifyCrit",
+        "label": "Verified the AI's finding and fix before merging",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "verify == \"review\"",
+            "score": "met",
+            "why": "Verified."
+          },
+          {
+            "when": "verify == \"trustFinding\"",
+            "score": "partial",
+            "why": "Partial."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Unverified change."
+          }
+        ]
+      },
+      {
+        "id": "deepfakeCrit",
+        "label": "Treated a possible deepfake with out-of-band verification",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "deepfake == \"callback\"",
+            "score": "met",
+            "why": "Verified."
+          },
+          {
+            "when": "deepfake == \"questions\"",
+            "score": "partial",
+            "why": "Weak."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Deepfake succeeded."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(permAt) and not isNull(actsAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(permAt) or not isNull(actsAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the agent's permissions and its recent actions first."
+      },
+      {
+        "at": "Check-in 1",
+        "text": "Keep human approval for high-impact actions."
+      },
+      {
+        "at": "Check-in 2",
+        "text": "Review and test the AI's fix through change control."
+      },
+      {
+        "at": "Check-in 3",
+        "text": "Call back on a registered number before any reset."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "autoHarm": {
+        "headline": "Humans approve high impact",
+        "body": "Automate low-risk steps; approve the rest."
+      },
+      "verifyHarm": {
+        "headline": "Verify AI output",
+        "body": "Review and test like any change."
+      },
+      "deepfakeHarm": {
+        "headline": "Verify out of band",
+        "body": "Never act on a voice alone."
+      },
+      "target": {
+        "headline": "Good: aI used safely in the SOC",
+        "body": "Guardrails, verification and out-of-band checks."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "AI can automate security tasks, but high-impact actions keep a human approval step, and AI-generated findings and fixes are verified like any other change. AI also enhances attacks: cloned voices make out-of-band verification essential."
+  }
+}
