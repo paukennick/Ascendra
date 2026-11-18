@@ -1,0 +1,1107 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cpap-baby-sudden-desaturation",
+  "title": "Sudden drop on CPAP",
+  "objective": "Recognize pleural space abnormalities (pneumothorax, hemothorax, empyema, effusions), and manage chest tubes and thoracentesis",
+  "secondaryObjectives": [
+    "Manage apnea of prematurity and acute respiratory distress or failure"
+  ],
+  "sources": [
+    {
+      "cite": "AACN Certification Corporation. CCRN Exam Handbook - Direct Care (July 2026), Neonatal test plan",
+      "checkedAt": "2026-10-31",
+      "url": "https://www.aacn.org/certification/get-certified/ccrn-neonatal",
+      "note": "Relayed from the CCRN Neonatal course seed (backend/supabase/seed/tracks/ccrn-peds-neo.ts), which read the handbook 2026-10-31, not re-read: the objective titles are the course's own. Scope only."
+    },
+    {
+      "cite": "Ascendra CCRN Neonatal course catalog (backend/supabase/seed/tracks/ccrn-peds-neo.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Merck Manual Consumer Version: Pneumothorax in the Newborn (full review September 2025)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.merckmanuals.com/home/children-s-health-issues/lung-and-breathing-problems-in-newborns/pneumothorax-in-the-newborn",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: more likely in newborns 'who have a lung disorder such as respiratory distress syndrome' or 'who are treated with continuous positive airway pressure (CPAP) or a ventilator'; 'it typically causes rapid and labored breathing', grunting and 'a bluish color'; 'The chest on the affected side is larger'; diagnosis by 'Transillumination' and 'Chest x-ray'; air removed 'by using a needle and syringe' or a tube to 'continuously suction and remove air'."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "22:40 in the NICU. Baby Ahmed, a boy born at 32 weeks, 26 hours old, is on nasal CPAP for respiratory distress syndrome and had surfactant this morning. He has been stable in 30% oxygen.",
+    "handover": [
+      "At 22:38 his saturation alarm fires: 82% and falling, and he is grunting and working harder.",
+      "The neonatal nurse practitioner is in the unit. Unit policy: the nurse may increase oxygen to keep saturations in the ordered range, transilluminates the chest for a suspected air leak, calls the provider at once, and sets up for needle aspiration; a chest x-ray is ordered by the provider."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "22:40",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.02,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A tension air leak builds while it is unrecognized and undrained. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.004,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It slows once the provider aspirates the air. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of tension pneumothorax arrest. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The nurse practitioner called within 5 minutes of a bright transillumination (unit policy: at once)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min to aspirate, place a drain and take the film."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.45,
+      "min": 0,
+      "max": 2
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "transAt": {
+      "type": "time",
+      "init": null
+    },
+    "suctionAt": {
+      "type": "time",
+      "init": null
+    },
+    "apicalAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "look",
+        "trans",
+        "suction",
+        "apical"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "call",
+        "film"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "ptx",
+        "rds",
+        "plug"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "o2At": {
+      "type": "time",
+      "init": null
+    },
+    "kitAt": {
+      "type": "time",
+      "init": null
+    },
+    "pressureAt": {
+      "type": "time",
+      "init": null
+    },
+    "xrayWaitAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(165 - 70 * max(0, prog - 0.75) + sin(t / 9) * 3)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "round(70 + 10 * max(0, prog - 0.5) - 40 * max(0, prog - 0.9))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(max(55, (isNull(o2At) ? 84 : 88) - 20 * max(0, prog - 0.5)))",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (route == \"call\" ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "low": 100,
+            "high": 180
+          },
+          "announce": {
+            "bands": [
+              160,
+              180
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "high": 70
+          },
+          "announce": {
+            "bands": [
+              60,
+              70
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              94,
+              90
+            ]
+          },
+          "colour": "spo2"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Nasal CPAP. Oxygen raised: {not isNull(o2At)|yesno}. Aspiration kit ready: {not isNull(kitAt)|yesno}.",
+      "banner": [
+        {
+          "when": "route == \"call\" and inClinic",
+          "text": "The nurse practitioner is at the bedside aspirating the left chest."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "look": {
+      "label": "Look and listen: chest movement, breath sounds both sides, the CPAP prongs and seal",
+      "group": "Assess",
+      "available": "not testPending and isNull(lookAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"look\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "trans": {
+      "label": "Transilluminate the chest with the cold light",
+      "group": "Assess",
+      "available": "not testPending and isNull(transAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"trans\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "suction": {
+      "label": "Suction the nose and mouth",
+      "group": "Assess",
+      "available": "not testPending and isNull(suctionAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"suction\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "apical": {
+      "label": "Listen for where the heart sounds loudest",
+      "group": "Assess",
+      "available": "not testPending and isNull(apicalAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"apical\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "o2": {
+      "label": "Increase the oxygen to keep saturations in the ordered range",
+      "group": "Treat",
+      "available": "isNull(o2At) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "o2At",
+          "to": "t"
+        },
+        {
+          "log": "Oxygen increased.",
+          "kind": "act"
+        }
+      ]
+    },
+    "kit": {
+      "label": "Set up the needle aspiration and chest drain equipment at the bedside",
+      "group": "Treat",
+      "available": "isNull(kitAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "kitAt",
+          "to": "t"
+        },
+        {
+          "log": "Aspiration kit, stopcock and syringe, and a drain set are open at the bedside.",
+          "kind": "act"
+        }
+      ]
+    },
+    "pressure": {
+      "label": "Turn the CPAP pressure up to recruit more lung",
+      "group": "Treat",
+      "available": "isNull(pressureAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "pressureAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.25, 2)"
+        },
+        {
+          "log": "CPAP pressure raised.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "xrayWait": {
+      "label": "Wait for the morning chest film before doing anything more",
+      "group": "Treat",
+      "available": "isNull(xrayWaitAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "xrayWaitAt",
+          "to": "t"
+        },
+        {
+          "log": "The film is left for the 06:00 round.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "What is happening?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "ptx",
+              "label": "A left pneumothorax, possibly tension: sudden worsening on CPAP, a fuller quiet left chest, a bright transillumination and a shifted heart"
+            },
+            {
+              "value": "rds",
+              "label": "His RDS getting worse; more pressure"
+            },
+            {
+              "value": "plug",
+              "label": "Secretions; suction and wait"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"ptx\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"ptx\""
+                },
+                {
+                  "log": "Left pneumothorax.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"rds\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"rds\""
+                },
+                {
+                  "log": "Read as worsening RDS.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"plug\""
+                },
+                {
+                  "log": "Read as secretions.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Escalate",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "call",
+              "label": "Call the nurse practitioner to the bedside now: sudden desaturation on CPAP, left chest fuller and quieter, bright left transillumination, heart shifted right; kit ready"
+            },
+            {
+              "value": "film",
+              "label": "Ask for a chest film when the radiographer next comes by"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"call\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"call\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "The nurse practitioner aspirates the left chest with a needle at the bedside; air returns and his saturation climbs. A drain and a film follow.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"film\""
+                },
+                {
+                  "log": "A film is requested for the radiographer's next round.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Tell his parents and document the event, findings and response",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "His parents are told; the event, transillumination, aspiration and response are documented.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "NICU, bed 3",
+      "clock": "running",
+      "actions": [
+        "look",
+        "trans",
+        "suction",
+        "apical",
+        "o2",
+        "kit",
+        "pressure",
+        "xrayWait",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"look\"",
+              "then": [
+                {
+                  "set": "lookAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Prongs in place and sealed. Left chest looks fuller and moves less; breath sounds quieter on the left.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"trans\"",
+              "then": [
+                {
+                  "set": "transAt",
+                  "to": "t"
+                },
+                {
+                  "log": "The whole left hemithorax lights up brightly; the right does not.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"suction\"",
+              "then": [
+                {
+                  "set": "suctionAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Small amount of clear secretions; no change in saturation.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "apicalAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Heart sounds loudest to the right of the sternum: shifted.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the drain and film",
+      "wait": {
+        "skipLabel": "the drain and film"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min to aspirate, place a drain and take the film."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "A left chest drain is in and the film confirms the lung re-expanding.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What is happening to Baby Ahmed, and what do you do?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "A preterm infant on CPAP for RDS who suddenly worsens with a fuller, quieter left chest, a bright transillumination and a shifted heart has a pneumothorax, possibly under tension.",
+          "modelAnswer": "He's on CPAP with RDS, he crashes suddenly, the left side is fuller and quiet, it lights up, and his heart's shifted. That's a pneumothorax, maybe tension."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Supports oxygenation, does not raise the pressure, sets up for needle aspiration and calls the provider to the bedside at once; does not wait for a film.",
+          "modelAnswer": "Turn up the oxygen, not the pressure, get the aspiration kit open, and get the nurse practitioner here now. Don't wait for an x-ray."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "A suspected tension pneumothorax undrained an hour on is harm here.",
+      "source": {
+        "cite": "Merck Manual Consumer Version: Pneumothorax in the Newborn (full review September 2025)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.merckmanuals.com/home/children-s-health-issues/lung-and-breathing-problems-in-newborns/pneumothorax-in-the-newborn",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: more likely in newborns 'who have a lung disorder such as respiratory distress syndrome' or 'who are treated with continuous positive airway pressure (CPAP) or a ventilator'; 'it typically causes rapid and labored breathing', grunting and 'a bluish color'; 'The chest on the affected side is larger'; diagnosis by 'Transillumination' and 'Chest x-ray'; air removed 'by using a needle and syringe' or a tube to 'continuously suction and remove air'."
+      }
+    }
+  },
+  "endings": {
+    "tension": {
+      "label": "Tension pneumothorax arrest",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "His heart rate falls below 60 and his saturation drops out; the team starts compressions while the chest is aspirated."
+    },
+    "safe": {
+      "label": "Air leak found and drained",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"call\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and (not isNull(transAt)) and isNull(pressureAt) and (not isNull(o2At) and not isNull(kitAt))",
+      "narrative": "{timeAt(leftAt)|clock}: the left lung is re-expanding with a drain in, and his saturation is back in range."
+    },
+    "safeGaps": {
+      "label": "Drained, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: the leak is drained, but the call was slow, the pressure was raised, or the kit wasn't ready."
+    },
+    "time_up": {
+      "label": "Undrained at 23:40",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "23:40 and the air is still in his chest."
+    }
+  },
+  "endingOrder": [
+    "tension",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "The nurse practitioner called within 5 minutes of the transillumination",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"call\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"call\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "transC",
+        "label": "Transilluminated the chest",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(transAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "noPressC",
+        "label": "Did not raise the CPAP pressure on a suspected air leak",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(pressureAt)",
+            "score": "missed",
+            "why": "Pressure raised."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Pressure not raised."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "kitC",
+        "label": "Supported oxygenation and set up for aspiration",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(o2At) and not isNull(kitAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not both."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Checked the prongs, breath sounds and heart sounds",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(lookAt) and not isNull(apicalAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(lookAt) or not isNull(apicalAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Read the picture as a pneumothorax",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"ptx\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"rds\"",
+            "score": "missed",
+            "why": "The asymmetry and transillumination point to an air leak."
+          },
+          {
+            "when": "dxEnum == \"plug\"",
+            "score": "missed",
+            "why": "Suction did not help."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Told the parents and documented",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: pneumothorax on CPAP; transilluminate; no more pressure; provider to aspirate now",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Transillumination to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "22:40 to the kit ready",
+        "value": "isNull(kitAt) ? -1 : timeAt(kitAt)",
+        "format": "duration",
+        "expert": "under 3 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "22:40",
+        "text": "Prongs and seal fine; left chest fuller and quieter."
+      },
+      {
+        "at": "~22:41",
+        "text": "Transilluminate: left lights up."
+      },
+      {
+        "at": "~22:42",
+        "text": "Oxygen up; call the nurse practitioner; open the kit."
+      },
+      {
+        "at": "~22:44",
+        "text": "Heart shifted; tell the parents; document."
+      }
+    ],
+    "debrief": {
+      "tension": {
+        "headline": "Tension pneumothorax arrest",
+        "body": "Sudden worsening on CPAP with an asymmetric chest is an air leak until proven otherwise. Transilluminate, support oxygenation, don't raise the pressure, and get the provider to aspirate now."
+      },
+      "safe": {
+        "headline": "Air leak found and drained",
+        "body": "You checked the equipment, transilluminated, supported oxygen without raising pressure, set up the kit and called within minutes. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Drained, with gaps",
+        "body": "Check how soon you called after the transillumination, whether you raised the CPAP pressure, and whether you set up for aspiration."
+      },
+      "time_up": {
+        "headline": "Undrained at 23:40",
+        "body": "A suspected tension air leak needs aspiration now, not a film later."
+      }
+    },
+    "modelReasoning": "Pneumothorax is more likely in preterm infants with RDS on CPAP or a ventilator. Sudden worsening with grunting, a fuller and quieter side, a bright transillumination and a shifted apex beat point to an air leak, possibly under tension. Check the equipment, support oxygenation without raising the pressure, set up for needle aspiration and call the provider to the bedside at once; the film confirms but does not come first when he is deteriorating."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "riskQ": {
+      "during": "testT",
+      "ask": "While you check: which infants are most at risk of pneumothorax?",
+      "choices": [
+        {
+          "id": "rds",
+          "label": "Preterm infants with RDS on CPAP or a ventilator"
+        },
+        {
+          "id": "term",
+          "label": "Healthy term infants"
+        },
+        {
+          "id": "none",
+          "label": "No infant in particular"
+        }
+      ],
+      "expect": "rds",
+      "explain": "Pneumothorax may develop in premature newborns with RDS or meconium aspiration and in those treated with CPAP or a ventilator.",
+      "source": {
+        "cite": "Merck Manual Consumer Version: Pneumothorax in the Newborn (full review September 2025)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.merckmanuals.com/home/children-s-health-issues/lung-and-breathing-problems-in-newborns/pneumothorax-in-the-newborn",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: more likely in newborns 'who have a lung disorder such as respiratory distress syndrome' or 'who are treated with continuous positive airway pressure (CPAP) or a ventilator'; 'it typically causes rapid and labored breathing', grunting and 'a bluish color'; 'The chest on the affected side is larger'; diagnosis by 'Transillumination' and 'Chest x-ray'; air removed 'by using a needle and syringe' or a tube to 'continuously suction and remove air'."
+      }
+    },
+    "treatQ": {
+      "during": "leaveT",
+      "ask": "While the drain goes in: how is the air removed?",
+      "choices": [
+        {
+          "id": "needle",
+          "label": "Needle aspiration, then a tube on suction if it continues"
+        },
+        {
+          "id": "wait",
+          "label": "It always resolves on its own"
+        },
+        {
+          "id": "pressure",
+          "label": "Higher CPAP pressure"
+        }
+      ],
+      "expect": "needle",
+      "explain": "Air is removed with a needle and syringe or a tube placed to suction continuously.",
+      "source": {
+        "cite": "Merck Manual Consumer Version: Pneumothorax in the Newborn (full review September 2025)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.merckmanuals.com/home/children-s-health-issues/lung-and-breathing-problems-in-newborns/pneumothorax-in-the-newborn",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: more likely in newborns 'who have a lung disorder such as respiratory distress syndrome' or 'who are treated with continuous positive airway pressure (CPAP) or a ventilator'; 'it typically causes rapid and labored breathing', grunting and 'a bluish color'; 'The chest on the affected side is larger'; diagnosis by 'Transillumination' and 'Chest x-ray'; air removed 'by using a needle and syringe' or a tube to 'continuously suction and remove air'."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

@@ -1,0 +1,461 @@
+{
+  "slug": "cpap-baby-sudden-desaturation",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: prongs and chest, transilluminates, oxygen up, kit open, calls, checks the heart, tells the parents",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "riskQ",
+          "choice": "rds",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "trans",
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "o2",
+          "seq": 6,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "kit",
+          "seq": 7,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "ptx"
+          },
+          "seq": 8,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "call"
+          },
+          "seq": 9,
+          "tick": 25
+        },
+        {
+          "type": "teach",
+          "prompt": "treatQ",
+          "choice": "needle",
+          "seq": 10,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "apical",
+          "seq": 11,
+          "tick": 25
+        },
+        {
+          "type": "chapter",
+          "chapter": "escalated",
+          "choice": "continue",
+          "seq": 12,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 13,
+          "tick": 37
+        }
+      ],
+      "expect": {
+        "ending": "safe",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "reportC": "met",
+          "transC": "met",
+          "noPressC": "met",
+          "kitC": "met",
+          "lookC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": 125
+        },
+        "stateHash": "3abfde0c01078662"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Finds it and sets up, but suctions and listens before calling 6 minutes after the transillumination",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "trans",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "riskQ",
+          "choice": "rds",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "o2",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "kit",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "suction",
+          "seq": 7,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "apical",
+          "seq": 8,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "ptx"
+          },
+          "seq": 9,
+          "tick": 85
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "call"
+          },
+          "seq": 10,
+          "tick": 85
+        },
+        {
+          "type": "teach",
+          "prompt": "treatQ",
+          "choice": "needle",
+          "seq": 11,
+          "tick": 85
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 85
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 88,
+        "criteria": {
+          "reportC": "partial",
+          "transC": "met",
+          "noPressC": "met",
+          "kitC": "met",
+          "lookC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 365,
+          "toKey": 60
+        },
+        "stateHash": "f782f980ae0aa018"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "pressure",
+      "title": "Transilluminates and calls at once, but raises the CPAP pressure and never opens the kit",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "trans",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "riskQ",
+          "choice": "rds",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "pressure",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "ptx"
+          },
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "call"
+          },
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "treatQ",
+          "choice": "needle",
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 8,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 56,
+        "criteria": {
+          "reportC": "met",
+          "transC": "met",
+          "noPressC": "missed",
+          "kitC": "missed",
+          "lookC": "missed",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": -1
+        },
+        "stateHash": "beba8e7d447a35dc"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "rds",
+      "title": "Failure: reads it as worsening RDS, raises the pressure and asks for a film later",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "riskQ",
+          "choice": "rds",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "rds"
+          },
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "pressure",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "film"
+          },
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 6,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "tension",
+        "class": "harm",
+        "rating": "bad",
+        "score": 6,
+        "criteria": {
+          "reportC": "missed",
+          "transC": "missed",
+          "noPressC": "missed",
+          "kitC": "missed",
+          "lookC": "partial",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": -1,
+          "toKey": -1
+        },
+        "stateHash": "33f522a2a4353ed4"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "plug",
+      "title": "Failure: suctions and waits for the morning film",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "suction",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "riskQ",
+          "choice": "rds",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "plug"
+          },
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "xrayWait",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "tension",
+        "class": "harm",
+        "rating": "bad",
+        "score": 13,
+        "criteria": {
+          "reportC": "missed",
+          "transC": "missed",
+          "noPressC": "met",
+          "kitC": "missed",
+          "lookC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": -1,
+          "toKey": -1
+        },
+        "stateHash": "eea21192d0c3e940"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

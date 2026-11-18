@@ -677,6 +677,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("CCRNNEO", "green-vomit-day-three"),
   entry("CCRNNEO", "yellow-at-twenty-hours"),
   entry("CCRNNEO", "floppy-after-cord-prolapse"),
+  entry("CCRNNEO", "cpap-baby-sudden-desaturation"),
   // ---- end REQ-334 ----
 ];
 
