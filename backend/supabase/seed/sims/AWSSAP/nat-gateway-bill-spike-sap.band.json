@@ -1,0 +1,51 @@
+{
+  "band": "sap",
+  "label": "AWS Solutions Architect Professional (SAP-C03)",
+  "base": {
+    "course": "AWSSAA",
+    "slug": "nat-gateway-bill-spike"
+  },
+  "slug": "nat-gateway-bill-spike-sap",
+  "patch": {
+    "objective": "Reducing data transfer cost: private connectivity, VPC endpoints versus NAT gateways, AZ-aware and Region-aware traffic",
+    "secondaryObjectives": [],
+    "sources": [
+      {
+        "cite": "AWS Certification, AWS Certified Solutions Architect - Professional certification page (current exam SAP-C03), and Tutorials Dojo, 'What's new with the AWS Certified Solutions Architect Professional SAP-C03'",
+        "checkedAt": "2026-11-17",
+        "url": "https://aws.amazon.com/certification/certified-solutions-architect-professional",
+        "note": "Both read through summarizing fetches on 2026-11-17. The AWS page links the SAP-C03 exam guide and prep plan but shows no domains. The Tutorials Dojo page lists the five SAP-C03 domains (cloud-native architecture design and implementation; security, compliance, and governance; cost-optimized architecture design; resilience, migration, and business continuity; operational excellence and automation) and says SAP-C03 became generally available on November 17, 2026. The weights (25/25/15/15/20) and the objective wording are the course seed's; the official SAP-C03 guide was not read (to verify)."
+      },
+      {
+        "cite": "AWS. Amazon VPC pricing (NAT gateway pricing examples)",
+        "checkedAt": "2026-11-11",
+        "url": "https://aws.amazon.com/vpc/pricing/",
+        "note": "Read 2026-11-11: the worked example for US East (Ohio) gives 'the rate is $0.045 per hour' and a data processing charge of $0.045 per GB; 'There are no data processing or hourly charges for using Gateway Type VPC endpoints'; the page suggests a gateway endpoint for S3 'To avoid the NAT Gateway Data Processing charge'. The scenario is placed in us-east-2 (Ohio) so these are the rates read. Prices change; re-check at the next review."
+      },
+      {
+        "cite": "AWS. Amazon VPC User Guide: Pricing for NAT gateways",
+        "checkedAt": "2026-11-11",
+        "url": "https://docs.aws.amazon.com/vpc/latest/userguide/nat-gateway-pricing.html",
+        "note": "Read 2026-11-11: charged 'for each hour that your NAT gateway is available and each gigabyte of data that it processes'; if most traffic is to AWS services that support gateway or interface endpoints, 'consider creating an interface endpoint or gateway endpoint for these services'."
+      },
+      {
+        "cite": "AWS. Amazon VPC User Guide: NAT gateway basics",
+        "checkedAt": "2026-11-11",
+        "url": "https://docs.aws.amazon.com/vpc/latest/userguide/nat-gateway-basics.html",
+        "note": "Read 2026-11-11: 'Each NAT gateway is created in a specific Availability Zone and implemented with redundancy in that zone.' 'If you have resources in multiple Availability Zones and they share one NAT gateway, and if the NAT gateway's Availability Zone is down, resources in the other Availability Zones lose internet access.' 'To improve resiliency, create a NAT gateway in each Availability Zone, and configure your routing to ensure that resources use the NAT gateway in the same Availability Zone.'"
+      },
+      {
+        "cite": "AWS. AWS PrivateLink Guide: Gateway endpoints",
+        "checkedAt": "2026-11-11",
+        "url": "https://docs.aws.amazon.com/vpc/latest/privatelink/gateway-endpoints.html",
+        "note": "Read 2026-11-11: gateway endpoints serve Amazon S3 and DynamoDB 'without requiring an internet gateway or a NAT device'; 'There is no additional charge for using gateway endpoints'; the route is added to the route tables you select, and 'Instances in subnets that aren't associated with these route tables use the public service endpoint'; traffic to the service 'in a different Region goes to the internet gateway because prefix lists are specific to a Region'."
+      },
+      {
+        "cite": "AWS. Cost Management User Guide: AWS Cost Anomaly Detection",
+        "checkedAt": "2026-11-11",
+        "url": "https://docs.aws.amazon.com/cost-management/latest/userguide/manage-ad.html",
+        "note": "Read 2026-11-11: uses machine learning models 'to detect and alert on anomalous spend patterns'; alerts by email or an Amazon SNS topic; runs 'approximately three times a day' after billing data is processed; can take up to 24 hours to detect because it uses Cost Explorer data with a delay of up to 24 hours."
+      }
+    ]
+  }
+}

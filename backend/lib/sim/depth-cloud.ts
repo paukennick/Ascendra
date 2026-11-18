@@ -15,4 +15,7 @@ export const DEPTH_CLOUD: readonly CloudEntry[] = [
   { course: "AWSSAP", slug: "onprem-cannot-resolve-private-zone", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "sap-hybrid-dns" },
   { course: "AWSSAP", slug: "region-scp-blocks-global-services", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "sap-scp-region" },
   { course: "AWSSAP", slug: "cross-account-share-kms-denied", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "sap-kms-cross-account" },
+  { course: "AWSSAP", slug: "nat-gateway-bill-spike-sap", screen: "board", profile: "cloud", kind: "band", steps: "dc-awssap-nat-gateway-bill-spike-sap", base: "AWSSAA/nat-gateway-bill-spike" },
+  { course: "AWSSAP", slug: "canary-rollback-dlq-sap", screen: "board", profile: "cloud", kind: "band", steps: "dc-awssap-canary-rollback-dlq-sap", base: "AWSDVA/canary-rollback-dlq" },
+  { course: "AWSSAP", slug: "dynamodb-backfill-throttles-checkout-sap", screen: "terminal", profile: "infrastructure", kind: "band", steps: "dc-awssap-dynamodb-backfill-throttles-checkout-sap", base: "AWSDEA/dynamodb-backfill-throttles-checkout" },
 ];
