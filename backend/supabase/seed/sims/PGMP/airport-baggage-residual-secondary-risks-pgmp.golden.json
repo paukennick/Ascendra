@@ -1,0 +1,853 @@
+{
+  "slug": "airport-baggage-residual-secondary-risks-pgmp",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Responses and register reviewed; secondary risk owned; expired risks closed; overall risk reported; an honest decision",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "resp",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "stale",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 7,
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "choose",
+          "prompt": "secPrompt",
+          "choice": "add",
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 14,
+          "seq": 7,
+          "tick": 7
+        },
+        {
+          "type": "choose",
+          "prompt": "closePrompt",
+          "choice": "cleanup",
+          "seq": 8,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 21,
+          "seq": 9,
+          "tick": 14
+        },
+        {
+          "type": "choose",
+          "prompt": "levelPrompt",
+          "choice": "overall",
+          "seq": 10,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 28,
+          "seq": 11,
+          "tick": 21
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 28
+        }
+      ],
+      "expect": {
+        "ending": "target",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "secCrit": "met",
+          "closeCrit": "met",
+          "levelCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0,
+          "supK": 7
+        },
+        "stateHash": "2425155ce55d7e49"
+      },
+      "reasoning": {
+        "reflection": "met"
+      }
+    },
+    {
+      "id": "partialSec",
+      "title": "Partly right on the secondary risk, the rest on plan",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "resp",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 7,
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "choose",
+          "prompt": "secPrompt",
+          "choice": "note",
+          "seq": 4,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 14,
+          "seq": 5,
+          "tick": 7
+        },
+        {
+          "type": "choose",
+          "prompt": "closePrompt",
+          "choice": "cleanup",
+          "seq": 6,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 21,
+          "seq": 7,
+          "tick": 14
+        },
+        {
+          "type": "choose",
+          "prompt": "levelPrompt",
+          "choice": "overall",
+          "seq": 8,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 28,
+          "seq": 9,
+          "tick": 21
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 10,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 11,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 12,
+          "tick": 28
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "secCrit": "partial",
+          "closeCrit": "met",
+          "levelCrit": "met",
+          "evidenceCrit": "partial",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0,
+          "supK": 5
+        },
+        "stateHash": "c9341df0cbdff01a"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "partialLevel",
+      "title": "Partly right on overall risk, and a one-line record",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 7,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "secPrompt",
+          "choice": "add",
+          "seq": 2,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 2,
+          "to": 14,
+          "seq": 3,
+          "tick": 7
+        },
+        {
+          "type": "choose",
+          "prompt": "closePrompt",
+          "choice": "cleanup",
+          "seq": 4,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 21,
+          "seq": 5,
+          "tick": 14
+        },
+        {
+          "type": "choose",
+          "prompt": "levelPrompt",
+          "choice": "top10",
+          "seq": 6,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 28,
+          "seq": 7,
+          "tick": 21
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 8,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "summary"
+          },
+          "seq": 9,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 10,
+          "tick": 28
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "secCrit": "met",
+          "closeCrit": "met",
+          "levelCrit": "partial",
+          "evidenceCrit": "missed",
+          "recordCrit": "missed"
+        },
+        "kpis": {
+          "missK": 0,
+          "supK": 5
+        },
+        "stateHash": "630ba23a355850f5"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "allPartial",
+      "title": "Every decision only partly right",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 7,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "secPrompt",
+          "choice": "note",
+          "seq": 2,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 2,
+          "to": 14,
+          "seq": 3,
+          "tick": 7
+        },
+        {
+          "type": "choose",
+          "prompt": "closePrompt",
+          "choice": "archive",
+          "seq": 4,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 21,
+          "seq": 5,
+          "tick": 14
+        },
+        {
+          "type": "choose",
+          "prompt": "levelPrompt",
+          "choice": "top10",
+          "seq": 6,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 28,
+          "seq": 7,
+          "tick": 21
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 8,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 9,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 10,
+          "tick": 28
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "secCrit": "partial",
+          "closeCrit": "partial",
+          "levelCrit": "partial",
+          "evidenceCrit": "missed",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0,
+          "supK": 5
+        },
+        "stateHash": "592e6dea5615d0e3"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "badSec",
+      "title": "The secondary risk ignored",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "resp",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "stale",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 7,
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "choose",
+          "prompt": "secPrompt",
+          "choice": "ignore",
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 14,
+          "seq": 7,
+          "tick": 7
+        },
+        {
+          "type": "choose",
+          "prompt": "closePrompt",
+          "choice": "cleanup",
+          "seq": 8,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 21,
+          "seq": 9,
+          "tick": 14
+        },
+        {
+          "type": "choose",
+          "prompt": "levelPrompt",
+          "choice": "overall",
+          "seq": 10,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 28,
+          "seq": 11,
+          "tick": 21
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 28
+        }
+      ],
+      "expect": {
+        "ending": "secHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "secCrit": "missed",
+          "closeCrit": "met",
+          "levelCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1,
+          "supK": 4
+        },
+        "stateHash": "dffb8833370e964f"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    },
+    {
+      "id": "badClose",
+      "title": "Unchanged entries deleted",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "resp",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "stale",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 7,
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "choose",
+          "prompt": "secPrompt",
+          "choice": "add",
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 14,
+          "seq": 7,
+          "tick": 7
+        },
+        {
+          "type": "choose",
+          "prompt": "closePrompt",
+          "choice": "deleteAll",
+          "seq": 8,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 21,
+          "seq": 9,
+          "tick": 14
+        },
+        {
+          "type": "choose",
+          "prompt": "levelPrompt",
+          "choice": "overall",
+          "seq": 10,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 28,
+          "seq": 11,
+          "tick": 21
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 28
+        }
+      ],
+      "expect": {
+        "ending": "closeHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "secCrit": "met",
+          "closeCrit": "missed",
+          "levelCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1,
+          "supK": 4
+        },
+        "stateHash": "e9782ad5c1d5b98c"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    },
+    {
+      "id": "badLevel",
+      "title": "A reassuring summary without figures",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "resp",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "stale",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 7,
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "choose",
+          "prompt": "secPrompt",
+          "choice": "add",
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 14,
+          "seq": 7,
+          "tick": 7
+        },
+        {
+          "type": "choose",
+          "prompt": "closePrompt",
+          "choice": "cleanup",
+          "seq": 8,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 21,
+          "seq": 9,
+          "tick": 14
+        },
+        {
+          "type": "choose",
+          "prompt": "levelPrompt",
+          "choice": "allGreen",
+          "seq": 10,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 28,
+          "seq": 11,
+          "tick": 21
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 28
+        }
+      ],
+      "expect": {
+        "ending": "levelHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "secCrit": "met",
+          "closeCrit": "met",
+          "levelCrit": "missed",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1,
+          "supK": 4
+        },
+        "stateHash": "0b61fb5f0f537b78"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    }
+  ]
+}
