@@ -1,0 +1,1064 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "he-used-to-say-ball",
+  "title": "He used to say 'ball'",
+  "objective": "Connect families to early intervention programs, which provide evaluations and link them to services such as service coordination, social work and home visits",
+  "secondaryObjectives": [
+    "Legal and policy frameworks: IDEA early intervention and school-based services",
+    "Know developmental red flags that need immediate evaluation: no social smile by 2 months, no babbling or pointing by 12 months, no words by 16 months, no 2-word phrases by 24 months, and any loss of skills"
+  ],
+  "sources": [
+    {
+      "cite": "Specialist certification examination outline: pediatrics (the certifying board's published outline page)",
+      "checkedAt": "2026-11-08",
+      "url": "https://specialization.apta.org/become-a-specialist/pediatrics/specialist-certification-examination-outline-pediatrics",
+      "note": "Relayed from the pediatrics specialty course seed (backend/supabase/seed/tracks/pt-abpts.ts, outline pages read 2026-10-08 and 2026-11-04, OUTLINE_CHECKED_AT 2026-11-08), not re-read: Professional roles and responsibilities (16%) is a tested area. Scope only; no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra pediatrics specialty course catalog (backend/supabase/seed/tracks/pt-abpts.ts, track ABPTSPCS)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Boehning, et al.. Developmental Milestones. StatPearls (updated 2026-09-13), StatPearls Publishing",
+      "checkedAt": "2026-11-04",
+      "note": "Relayed from the course seed (tag SP-DEVM; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: early intervention programs provide evaluations and link families to services such as service coordination, social work and home visits (the pediatric course objective's wording)."
+    },
+    {
+      "cite": "CDC. Learn the Signs. Act Early: What to know about developmental milestones (last reviewed 2026-02-17)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.cdc.gov/act-early/milestones/index.html",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: act early if a child 'has lost skills he or she once had'; 'Don't wait'; 'Talk with your child's doctor, share your concerns, and ask about developmental screening'; 'Ask for a referral to a specialist who can evaluate your child more'; 'Call your state or territory's early intervention program to find out if your child can get services to help.' The page lists the early intervention call as its own step, not one that waits for a diagnosis."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "14:00 in an outpatient pediatric clinic. You are the physical therapist. Leo, 16 months, is at his last visit for congenital muscular torticollis, which has resolved. As you wrap up, his mother says he 'used to say mama, dada and ball and wave bye-bye' but stopped over the last two months. A relative told her boys talk late and to wait for the 18-month checkup.",
+    "handover": [
+      "His pediatrician's next well visit is in two months.",
+      "Clinic policy: share developmental concerns with the family and, with their permission, the child's pediatrician the same day; give families the state early intervention program's contact."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "14:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.004,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each week of waiting is a week of early help lost. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.001,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The family is connected. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of months of early help lost. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The pediatrician called within 5 minutes of the concern (clinic policy: same day)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min to finish the visit."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "lossAt": {
+      "type": "time",
+      "init": null
+    },
+    "obsAt": {
+      "type": "time",
+      "init": null
+    },
+    "motorAt": {
+      "type": "time",
+      "init": null
+    },
+    "famAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "loss",
+        "obs",
+        "motor",
+        "fam"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "ped",
+        "letter"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "red",
+        "late",
+        "motor"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "waitAt": {
+      "type": "time",
+      "init": null
+    },
+    "eiAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "112",
+      "unit": "/min",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (route == \"ped\" and not isNull(eiAt) ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Leo, 16 months, last outpatient visit for torticollis",
+        "presentation": "Neck range now full. His mother mentions something else. {not isNull(waitAt) ? \"Told to wait and see.\" : \"\"}"
+      },
+      "vitals": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "colour": "ecg",
+          "alarm": {
+            "high": 170
+          },
+          "announce": {
+            "bands": [
+              155,
+              170
+            ]
+          }
+        }
+      ],
+      "activity": "{not inClinic ? \"Visit over.\" : \"Playing with blocks on the mat, not looking up when called.\"}",
+      "measures": [
+        {
+          "id": "lossResult",
+          "label": "Skills",
+          "result": "Said 3 words and waved at 13 months; none now for 2 months.",
+          "when": "not isNull(lossAt)",
+          "flag": "true"
+        },
+        {
+          "id": "obsResult",
+          "label": "Play",
+          "result": "Does not turn to his name; does not point; brief eye contact.",
+          "when": "not isNull(obsAt)"
+        },
+        {
+          "id": "motorResult",
+          "label": "Motor",
+          "result": "Walks alone; squats to play; on track.",
+          "when": "not isNull(motorAt)"
+        },
+        {
+          "id": "famResult",
+          "label": "Family",
+          "result": "Never heard of early intervention; worried about cost.",
+          "when": "not isNull(famAt)"
+        }
+      ],
+      "dosage": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "Pediatrician called with the family",
+            "when": "route == \"ped\""
+          },
+          {
+            "label": "Early intervention contact given",
+            "when": "not isNull(eiAt)"
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleLoss",
+          "label": "Any loss of skills",
+          "text": "A developmental red flag: act now, don't wait for the next checkup.",
+          "met": "not isNull(lossAt) and isNull(callAt)"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "loss": {
+      "label": "Ask exactly which skills he had and when they stopped",
+      "group": "Examine",
+      "available": "not testPending and isNull(lossAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"loss\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "obs": {
+      "label": "Watch him play: response to his name, pointing, eye contact, shared attention",
+      "group": "Examine",
+      "available": "not testPending and isNull(obsAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"obs\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "motor": {
+      "label": "Check gross motor milestones",
+      "group": "Examine",
+      "available": "not testPending and isNull(motorAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"motor\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "fam": {
+      "label": "Ask what the family knows about services and what worries them",
+      "group": "Examine",
+      "available": "not testPending and isNull(famAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"fam\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "wait": {
+      "label": "Reassure her: boys talk late; mention it at the 18-month checkup",
+      "group": "Treat",
+      "available": "isNull(waitAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "waitAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.6, 2)"
+        },
+        {
+          "log": "She leaves reassured to wait two more months.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "ei": {
+      "label": "Explain early intervention: an evaluation through the state program, which the family can call directly; give the number and help her call or make the referral with her permission",
+      "group": "Treat",
+      "available": "isNull(eiAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "eiAt",
+          "to": "t"
+        },
+        {
+          "log": "You explain early intervention and help her make the call from the clinic; an evaluation is being scheduled.",
+          "kind": "act"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "What does the loss of words and waving mean?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "red",
+              "label": "A developmental red flag: any loss of skills needs evaluation now, not at the next checkup"
+            },
+            {
+              "value": "late",
+              "label": "A late talker; boys often are"
+            },
+            {
+              "value": "motor",
+              "label": "Fine, because his motor skills are on track"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"red\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"red\""
+                },
+                {
+                  "log": "Red flag.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"late\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"late\""
+                },
+                {
+                  "log": "Read as a late talker.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"motor\""
+                },
+                {
+                  "log": "Read as fine.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Contact",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "ped",
+              "label": "With the mother's permission, call the pediatrician today: lost 3 words and waving over 2 months, no response to name or pointing; ask for a prompt visit and developmental evaluation; early intervention contact made"
+            },
+            {
+              "value": "letter",
+              "label": "Mention it in your discharge letter"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"ped\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"ped\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "The pediatrician moves Leo's visit to this week for developmental screening and a specialist referral.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"letter\""
+                },
+                {
+                  "log": "Mentioned in the discharge letter.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document the concern, what you observed and the referrals",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Concern, observations, early intervention contact and pediatrician call documented.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Pediatric clinic",
+      "clock": "running",
+      "actions": [
+        "loss",
+        "obs",
+        "motor",
+        "fam",
+        "wait",
+        "ei",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the test",
+      "wait": {
+        "skipLabel": "the test result"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each test or question takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"loss\"",
+              "then": [
+                {
+                  "set": "lossAt",
+                  "to": "t"
+                },
+                {
+                  "log": "He said mama, dada and ball and waved at 13 months; none of these for the past 2 months. A loss of skills.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"obs\"",
+              "then": [
+                {
+                  "set": "obsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "He does not turn to his name or point, and eye contact is brief.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"motor\"",
+              "then": [
+                {
+                  "set": "motorAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Walks alone and squats to play: gross motor on track.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "famAt",
+                  "to": "t"
+                },
+                {
+                  "log": "The family has never heard of early intervention and worries about cost.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the end of the visit",
+      "wait": {
+        "skipLabel": "the end of the visit"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min to finish the visit."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "They leave with an early intervention call made and a pediatrician visit this week.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What does Leo's lost speech and waving mean, and what do you do?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "Loss of skills he once had (three words and waving), with no response to his name or pointing, is a developmental red flag needing evaluation now, whatever his motor progress.",
+          "modelAnswer": "He lost words and waving he used to have, and doesn't respond to his name or point. Losing skills is a red flag, even with good motor skills."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Explain early intervention (a state program the family can call directly, which evaluates and links families to services), help the family call now, and with permission call the pediatrician today; document.",
+          "modelAnswer": "Tell her about early intervention and help her call, get her OK to call the pediatrician today, and write it up."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "spo2Floor": {
+        "value": 88,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "escalateWindow": {
+        "value": 300,
+        "source": {
+          "cite": "Unit practice (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "The pediatrician called within 5 minutes of the concern (clinic policy: same day)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "A loss of skills left at 'wait and see' is harm here.",
+      "source": {
+        "cite": "CDC. Learn the Signs. Act Early: What to know about developmental milestones (last reviewed 2026-02-17)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.cdc.gov/act-early/milestones/index.html",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: act early if a child 'has lost skills he or she once had'; 'Don't wait'; 'Talk with your child's doctor, share your concerns, and ask about developmental screening'; 'Ask for a referral to a specialist who can evaluate your child more'; 'Call your state or territory's early intervention program to find out if your child can get services to help.' The page lists the early intervention call as its own step, not one that waits for a diagnosis."
+      }
+    }
+  },
+  "endings": {
+    "delay": {
+      "label": "Months of early help lost",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "Leo goes home with 'wait and see'. The first evaluation is months away, and the earliest window for help is slipping."
+    },
+    "safe": {
+      "label": "Family connected",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"ped\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and (not isNull(lossAt) and not isNull(obsAt)) and isNull(waitAt) and (not isNull(eiAt))",
+      "narrative": "{timeAt(leftAt)|clock}: an early intervention evaluation is being scheduled and the pediatrician is seeing Leo this week."
+    },
+    "safeGaps": {
+      "label": "Connected, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: help is coming, but the call was slow or a step was skipped."
+    },
+    "time_up": {
+      "label": "Undecided at 15:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "15:00 and nothing is in motion."
+    }
+  },
+  "endingOrder": [
+    "delay",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "The pediatrician called, with the mother's permission, within 5 minutes of hearing about the loss",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"ped\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"ped\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "lossC",
+        "label": "Asked exactly what skills were lost and watched his social play",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(lossAt) and not isNull(obsAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not asked."
+          }
+        ]
+      },
+      {
+        "id": "eiC",
+        "label": "Connected the family to early intervention, without 'wait and see'",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(waitAt)",
+            "score": "missed",
+            "why": "Wait and see."
+          },
+          {
+            "when": "not isNull(eiAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not connected."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Checked motor milestones and the family's questions",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(motorAt) and not isNull(famAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(motorAt) or not isNull(famAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Recognized loss of skills as a red flag",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"red\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"late\"",
+            "score": "missed",
+            "why": "He had words and lost them: loss of skills is a red flag at any age."
+          },
+          {
+            "when": "dxEnum == \"motor\"",
+            "score": "missed",
+            "why": "Motor progress does not cancel a loss of language and social skills."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: loss of skills is a red flag; connect to early intervention; tell the pediatrician",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Concern heard to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "14:00 to asking about the lost skills",
+        "value": "isNull(lossAt) ? -1 : timeAt(lossAt)",
+        "format": "duration",
+        "expert": "under 3 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "14:00",
+        "text": "Ask exactly what he lost: 3 words and waving, 2 months ago."
+      },
+      {
+        "at": "~14:01",
+        "text": "Watch his play: no response to name, no pointing."
+      },
+      {
+        "at": "~14:02",
+        "text": "Call the pediatrician with permission."
+      },
+      {
+        "at": "~14:04",
+        "text": "Explain early intervention; help her call; motor check; document."
+      }
+    ],
+    "debrief": {
+      "delay": {
+        "headline": "Months of early help lost",
+        "body": "Any loss of skills is a red flag. Don't wait: tell the doctor and connect the family to early intervention now."
+      },
+      "safe": {
+        "headline": "Family connected",
+        "body": "You asked exactly what was lost, watched his play, connected the family to early intervention and called the pediatrician within minutes. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Connected, with gaps",
+        "body": "Check whether you asked and watched before acting, and how soon you called."
+      },
+      "time_up": {
+        "headline": "Undecided at 15:00",
+        "body": "Act on a red flag in the visit."
+      }
+    },
+    "modelReasoning": "Any loss of skills is a developmental red flag that needs prompt evaluation; 'don't wait'. Early intervention programs, set up under IDEA, provide evaluations and link families to services such as service coordination, social work and home visits. The family can call the state program directly. Connect Leo's family now and, with permission, tell his pediatrician the same day."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "eiQ": {
+      "during": "leaveT",
+      "ask": "While she calls: what does an early intervention program do?",
+      "choices": [
+        {
+          "id": "ei",
+          "label": "Evaluates the child and links the family to services such as service coordination, social work and home visits"
+        },
+        {
+          "id": "dx",
+          "label": "Only treats walking problems"
+        },
+        {
+          "id": "school",
+          "label": "Starts at school age"
+        }
+      ],
+      "expect": "ei",
+      "explain": "Early intervention programs provide evaluations and link families to services such as service coordination, social work and home visits.",
+      "source": {
+        "cite": "Boehning, et al.. Developmental Milestones. StatPearls (updated 2026-09-13), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-DEVM; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: early intervention programs provide evaluations and link families to services such as service coordination, social work and home visits (the pediatric course objective's wording)."
+      }
+    },
+    "lossQ": {
+      "during": "testT",
+      "ask": "While you ask: which of these needs evaluation now at any age?",
+      "choices": [
+        {
+          "id": "loss",
+          "label": "Losing skills the child once had"
+        },
+        {
+          "id": "late",
+          "label": "Walking at 14 months"
+        },
+        {
+          "id": "shy",
+          "label": "Shyness with strangers"
+        }
+      ],
+      "expect": "loss",
+      "explain": "Any loss of skills is a red flag that needs immediate evaluation.",
+      "source": {
+        "cite": "CDC. Learn the Signs. Act Early: What to know about developmental milestones (last reviewed 2026-02-17)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.cdc.gov/act-early/milestones/index.html",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: act early if a child 'has lost skills he or she once had'; 'Don't wait'; 'Talk with your child's doctor, share your concerns, and ask about developmental screening'; 'Ask for a referral to a specialist who can evaluate your child more'; 'Call your state or territory's early intervention program to find out if your child can get services to help.' The page lists the early intervention call as its own step, not one that waits for a diagnosis."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}
