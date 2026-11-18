@@ -9,4 +9,6 @@ export const DEPTH_CLOUD: readonly CloudEntry[] = [
   { course: "AWSDEA", slug: "athena-todays-partition-missing", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "dea-partitions" },
   { course: "AWSDEA", slug: "dynamodb-backfill-throttles-checkout", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "dea-ddb-throttle" },
   { course: "AWSDEA", slug: "glue-join-skewed-on-guest-key", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "dea-glue-skew" },
+  { course: "AWSDEA", slug: "phi-in-application-logs-dea", screen: "board", profile: "cloud", kind: "band", steps: "dc-awsdea-phi-in-application-logs-dea", base: "AWSDVA/phi-in-application-logs" },
+  { course: "AWSDEA", slug: "rds-update-without-where-pitr-dea", screen: "board", profile: "cloud", kind: "band", steps: "dc-awsdea-rds-update-without-where-pitr-dea", base: "AWSSOA/rds-update-without-where-pitr" },
 ];

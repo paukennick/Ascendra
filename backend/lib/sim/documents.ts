@@ -544,6 +544,8 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("AWSDEA", "athena-todays-partition-missing"),
   entry("AWSDEA", "dynamodb-backfill-throttles-checkout"),
   entry("AWSDEA", "glue-join-skewed-on-guest-key"),
+  band("AWSDEA", "phi-in-application-logs-dea"),
+  band("AWSDEA", "rds-update-without-where-pitr-dea"),
   // ---- end REQ-335 ----
   // ---- REQ-323 (docs/sims.md 22.32): health breadth and nursing depth of the
   // 2026-11-17 round. Bands first, then new cases. Keep these together. ----
