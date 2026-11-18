@@ -1,0 +1,1110 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "too-early-to-test-day-four-weakness",
+  "title": "Too early to test?",
+  "objective": "For suspected Guillain-Barre syndrome (including AIDP), use electrodiagnosis early to support the diagnosis: in the first week absent H-reflexes and polyneuropathy-pattern conduction changes support it, a sural-sparing pattern is less sensitive but more specific, a normal first-week study does not exclude it, and a repeat study later helps because abnormalities can take weeks to develop",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "Specialist certification examination outline: clinical electrophysiology (the certifying board's published outline page)",
+      "checkedAt": "2026-11-08",
+      "url": "https://specialization.apta.org/become-a-specialist/clinical-electrophysiology/specialist-certification-examination-outline-clinical-electrophysiology",
+      "note": "Relayed from the clinical electrophysiology specialty course seed (backend/supabase/seed/tracks/pt-abpts.ts, outline pages read 2026-10-08 and 2026-11-04, OUTLINE_CHECKED_AT 2026-11-08), not re-read: Examination (20%) is a tested area. Scope only; no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra clinical electrophysiology specialty course catalog (backend/supabase/seed/tracks/pt-abpts.ts, track ABPTSECS)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "van Doorn PA, et al. European Academy of Neurology/Peripheral Nerve Society guideline on diagnosis and treatment of Guillain-Barre syndrome. J Peripher Nerv Syst 2023;28:535-563, doi:10.1111/jns.12594",
+      "checkedAt": "2026-11-17",
+      "url": "https://ddd.uab.cat/pub/artpub/2023/300094/300094_1.pdf",
+      "note": "Relayed from the course seed (backend/supabase/seed/tracks/pt-abpts.ts, tag EAN-PNS-GBS; full text read 2026-11-17), not re-read: section 4.2.8 (diagnostic PICO 4, electrodiagnosis) advises electrodiagnosis to support the diagnosis early; in the first week absent H-reflexes and polyneuropathy-pattern conduction changes support it, a sural-sparing pattern is less sensitive but more specific, a normal first-week study does not exclude it, and a repeat study later helps because abnormalities can take weeks to develop (REQ-310, FAIL-2390: this replaced an older StatPearls chapter's advice to wait at least 3 weeks). A European guideline; no US guideline on electrodiagnostic timing was found."
+    },
+    {
+      "cite": "Bhatti, et al.. Guillain-Barre Syndrome. StatPearls (updated 2026-01-31), StatPearls Publishing",
+      "checkedAt": "2026-11-04",
+      "note": "Relayed from the course seed (tag SP-GBS; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: Guillain-Barre syndrome is monitored for progressive symmetric weakness and for the respiratory, cardiac and autonomic complications that drive its morbidity (the neurology course objective's wording, relayed from the same seed)."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "11:00 in an outpatient electrodiagnostic lab. You are the physical therapist electrophysiologist. Mr. Reyes, 45, was referred by a neurologist for 'nerve conduction studies and EMG, query GBS'. The front desk booked him for three weeks from now because 'it's too early to see anything', but a cancellation brought him in today, four days after his symptoms started.",
+    "handover": [
+      "He drove himself in; his wife is in the waiting room.",
+      "Lab policy: findings that suggest an acute, progressing neuropathy are phoned to the referring physician before the patient leaves."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "11:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.008,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The weakness is climbing while he waits. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.002,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It is being watched in hospital. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of breathing failure at home. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The referring neurologist called within 5 minutes of the H-reflex result (lab policy: before the patient leaves)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min to finish and hand over."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "examAt": {
+      "type": "time",
+      "init": null
+    },
+    "hrefAt": {
+      "type": "time",
+      "init": null
+    },
+    "motorAt": {
+      "type": "time",
+      "init": null
+    },
+    "breathAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "exam",
+        "href",
+        "motor",
+        "breath"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "neuro",
+        "report"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "gbs",
+        "early",
+        "normal"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "homeAt": {
+      "type": "time",
+      "init": null
+    },
+    "repeatAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(96 + 10 * max(0, prog - 0.6))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(isNull(homeAt) ? 138 : 152)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.6)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(96 - 4 * max(0, prog - 0.7))",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (route == \"neuro\" ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Mr. Reyes, 45, referred for nerve conduction studies and EMG",
+        "presentation": "Four days of tingling feet and hands and leg weakness, two weeks after a diarrheal illness. {not isNull(homeAt) ? \"Sent home to wait.\" : \"\"}"
+      },
+      "vitals": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "colour": "ecg",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              105,
+              120
+            ]
+          }
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "announce": {
+            "bands": [
+              160,
+              180
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "colour": "spo2",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              95,
+              92
+            ]
+          }
+        }
+      ],
+      "activity": "{not inClinic ? \"Gone.\" : (not isNull(homeAt) ? \"Walking out slowly, holding the wall.\" : \"Lying on the exam table.\")}",
+      "measures": [
+        {
+          "id": "examResult",
+          "label": "Exam",
+          "result": "Symmetric weakness, worse in the legs; reflexes absent at the ankles and knees; glove-and-stocking tingling.",
+          "when": "not isNull(examAt)"
+        },
+        {
+          "id": "hrefResult",
+          "label": "H-reflex",
+          "result": "Absent on both sides.",
+          "when": "not isNull(hrefAt)",
+          "flag": "true"
+        },
+        {
+          "id": "motorResult",
+          "label": "Conduction",
+          "result": "Polyneuropathy pattern; median sensory abnormal, sural normal (sural sparing).",
+          "when": "not isNull(motorAt)"
+        },
+        {
+          "id": "breathResult",
+          "label": "Breathing",
+          "result": "Weakness reached his thighs overnight; a little short of breath lying flat.",
+          "when": "not isNull(breathAt)"
+        }
+      ],
+      "dosage": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "Referring neurologist called",
+            "when": "route == \"neuro\""
+          },
+          {
+            "label": "Repeat study planned",
+            "when": "not isNull(repeatAt)"
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleGbs",
+          "label": "Absent H-reflexes with a polyneuropathy pattern in week one",
+          "text": "Supports Guillain-Barre syndrome: urgent call; a normal early study would not have excluded it.",
+          "met": "not isNull(hrefAt) and isNull(callAt)"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "exam": {
+      "label": "Strength, reflexes and sensation in all four limbs",
+      "group": "Examine",
+      "available": "not testPending and isNull(examAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"exam\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "href": {
+      "label": "Tibial H-reflexes on both sides",
+      "group": "Examine",
+      "available": "not testPending and isNull(hrefAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"href\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "motor": {
+      "label": "Motor and sensory conduction in arms and legs, including sural and median sensory",
+      "group": "Examine",
+      "available": "not testPending and isNull(motorAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"motor\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "breath": {
+      "label": "Ask about breathing, swallowing and how fast the weakness has spread",
+      "group": "Examine",
+      "available": "not testPending and isNull(breathAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"breath\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "home": {
+      "label": "Stop here: it's too early for the study to mean anything; rebook him for three weeks and send him home",
+      "group": "Treat",
+      "available": "isNull(homeAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "homeAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.6, 2)"
+        },
+        {
+          "log": "He is rebooked for three weeks and walks out holding the wall.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "repeat": {
+      "label": "Plan a repeat study in a few weeks to follow the changes",
+      "group": "Treat",
+      "available": "isNull(repeatAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "repeatAt",
+          "to": "t"
+        },
+        {
+          "log": "A repeat study is planned, since abnormalities can take weeks to develop.",
+          "kind": "act"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "What does the study show?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "gbs",
+              "label": "Supports Guillain-Barre syndrome: absent H-reflexes and a polyneuropathy pattern in week one, with sural sparing"
+            },
+            {
+              "value": "early",
+              "label": "Too early to read: the study cannot help until three weeks"
+            },
+            {
+              "value": "normal",
+              "label": "Not GBS, because some nerves are still normal"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"gbs\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"gbs\""
+                },
+                {
+                  "log": "Supports GBS.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"early\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"early\""
+                },
+                {
+                  "log": "Read as too early.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"normal\""
+                },
+                {
+                  "log": "Read as not GBS.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Report",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "neuro",
+              "label": "Call the neurologist now: day 4, ascending symmetric weakness to the thighs, absent reflexes and H-reflexes, polyneuropathy pattern with sural sparing, short of breath lying flat; he should not drive home"
+            },
+            {
+              "value": "report",
+              "label": "Send the written report tomorrow"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"neuro\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"neuro\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "The neurologist admits him directly for monitoring of his breathing and treatment; his wife drives him over.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"report\""
+                },
+                {
+                  "log": "Report queued for tomorrow.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Write the report: findings, the early-study caveat and the repeat plan",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Report written: findings support GBS; a normal early study would not have excluded it; repeat planned.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Electrodiagnostic lab",
+      "clock": "running",
+      "actions": [
+        "exam",
+        "href",
+        "motor",
+        "breath",
+        "home",
+        "repeat",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the test",
+      "wait": {
+        "skipLabel": "the test result"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each test or question takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"exam\"",
+              "then": [
+                {
+                  "set": "examAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Symmetric weakness, legs worse than arms; ankle and knee reflexes absent; tingling in the hands and feet.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"href\"",
+              "then": [
+                {
+                  "set": "hrefAt",
+                  "to": "t"
+                },
+                {
+                  "log": "H-reflexes absent on both sides: in the first week, this supports Guillain-Barre syndrome.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"motor\"",
+              "then": [
+                {
+                  "set": "motorAt",
+                  "to": "t"
+                },
+                {
+                  "log": "A polyneuropathy pattern across motor nerves; abnormal median sensory with a normal sural response: a sural-sparing pattern, less sensitive but more specific for Guillain-Barre syndrome.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "breathAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Weakness has climbed to his thighs since last night; a little short of breath lying flat. Progressing.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the end of the study",
+      "wait": {
+        "skipLabel": "the end of the study"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min to finish and hand over."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "He leaves for the hospital with his wife.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What does Mr. Reyes's study show, and what happens next?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "On day 4 the absent H-reflexes and a polyneuropathy pattern support Guillain-Barre syndrome, and the sural-sparing pattern is more specific; a normal first-week study would not have excluded it.",
+          "modelAnswer": "Day 4, H-reflexes gone, polyneuropathy pattern, sural spared. That supports GBS. Even a normal study this early wouldn't have ruled it out."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Call the neurologist before he leaves (the weakness is climbing and he is short of breath lying flat), stop him driving, plan a repeat study because changes can take weeks, and write the report.",
+          "modelAnswer": "Call the neurologist now, don't let him drive, plan a repeat study, and write it up."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "spo2Floor": {
+        "value": 88,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "escalateWindow": {
+        "value": 300,
+        "source": {
+          "cite": "Unit practice (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "The referring neurologist called within 5 minutes of the H-reflex result (lab policy: before the patient leaves)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "A progressing neuropathy left unreported is harm here.",
+      "source": {
+        "cite": "Bhatti, et al.. Guillain-Barre Syndrome. StatPearls (updated 2026-01-31), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-GBS; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: Guillain-Barre syndrome is monitored for progressive symmetric weakness and for the respiratory, cardiac and autonomic complications that drive its morbidity (the neurology course objective's wording, relayed from the same seed)."
+      }
+    }
+  },
+  "endings": {
+    "resp": {
+      "label": "Breathing failure at home",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "Two days later his wife calls 911: he can barely lift his arms and is fighting for breath."
+    },
+    "safe": {
+      "label": "Early study, early care",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"neuro\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and (not isNull(hrefAt) and not isNull(motorAt)) and isNull(homeAt)",
+      "narrative": "{timeAt(leftAt)|clock}: the early study supports GBS and he is admitted for monitoring and treatment."
+    },
+    "safeGaps": {
+      "label": "Studied, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: he is in care, but the call was slow or a step was skipped."
+    },
+    "time_up": {
+      "label": "Unreported at 12:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "12:00 and the findings are not reported."
+    }
+  },
+  "endingOrder": [
+    "resp",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "The referring neurologist called within 5 minutes of the H-reflex result",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"neuro\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"neuro\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "studyC",
+        "label": "Did the early study: H-reflexes and conduction studies",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(hrefAt) and not isNull(motorAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "keepC",
+        "label": "Did not send him home to wait",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(homeAt)",
+            "score": "missed",
+            "why": "Sent home to wait."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Kept and escalated."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Examined him, asked about breathing and planned a repeat study",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(examAt) and not isNull(breathAt) and not isNull(repeatAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(examAt) or not isNull(breathAt) or not isNull(repeatAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Read the early study as supporting Guillain-Barre syndrome",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"gbs\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"early\"",
+            "score": "missed",
+            "why": "Early electrodiagnosis supports the diagnosis; a normal first-week study does not exclude it."
+          },
+          {
+            "when": "dxEnum == \"normal\"",
+            "score": "missed",
+            "why": "Normal sural with abnormal median sensory is the sural-sparing pattern that supports GBS."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Reported",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: early electrodiagnosis supports GBS; report; repeat",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "H-reflex result to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "11:00 to the H-reflexes",
+        "value": "isNull(hrefAt) ? -1 : timeAt(hrefAt)",
+        "format": "duration",
+        "expert": "under 5 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "11:00",
+        "text": "Quick exam; tibial H-reflexes: absent."
+      },
+      {
+        "at": "~11:02",
+        "text": "Ask about breathing: climbing, short of breath lying flat."
+      },
+      {
+        "at": "~11:03",
+        "text": "Call the neurologist; he does not drive."
+      },
+      {
+        "at": "~11:05",
+        "text": "Conduction studies; plan a repeat; report."
+      }
+    ],
+    "debrief": {
+      "resp": {
+        "headline": "Breathing failure at home",
+        "body": "In suspected Guillain-Barre syndrome, do the study early, call the findings in, and remember weakness can climb to the breathing muscles."
+      },
+      "safe": {
+        "headline": "Early study, early care",
+        "body": "You did the study instead of waiting three weeks, read the week-one pattern, called the neurologist within minutes and planned a repeat. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Studied, with gaps",
+        "body": "Check how soon you called and whether you asked about breathing and planned a repeat."
+      },
+      "time_up": {
+        "headline": "Unreported at 12:00",
+        "body": "Report a progressing neuropathy before the patient leaves."
+      }
+    },
+    "modelReasoning": "For suspected Guillain-Barre syndrome, electrodiagnosis is used early to support the diagnosis. In the first week absent H-reflexes and polyneuropathy-pattern conduction changes support it; sural sparing is less sensitive but more specific; a normal first-week study does not exclude it; and a repeat later helps because abnormalities can take weeks to develop. GBS is watched for progressing weakness and breathing complications, so a climbing weakness goes to the neurologist before he leaves."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "earlyQ": {
+      "during": "testT",
+      "ask": "While you test: what does a normal study in the first week mean in suspected GBS?",
+      "choices": [
+        {
+          "id": "notex",
+          "label": "It does not exclude GBS"
+        },
+        {
+          "id": "excl",
+          "label": "GBS is excluded"
+        },
+        {
+          "id": "useless",
+          "label": "The study should never be done that early"
+        }
+      ],
+      "expect": "notex",
+      "explain": "A normal first-week study does not exclude GBS; a repeat study later helps.",
+      "source": {
+        "cite": "van Doorn PA, et al. European Academy of Neurology/Peripheral Nerve Society guideline on diagnosis and treatment of Guillain-Barre syndrome. J Peripher Nerv Syst 2023;28:535-563, doi:10.1111/jns.12594",
+        "checkedAt": "2026-11-17",
+        "url": "https://ddd.uab.cat/pub/artpub/2023/300094/300094_1.pdf",
+        "note": "Relayed from the course seed (backend/supabase/seed/tracks/pt-abpts.ts, tag EAN-PNS-GBS; full text read 2026-11-17), not re-read: section 4.2.8 (diagnostic PICO 4, electrodiagnosis) advises electrodiagnosis to support the diagnosis early; in the first week absent H-reflexes and polyneuropathy-pattern conduction changes support it, a sural-sparing pattern is less sensitive but more specific, a normal first-week study does not exclude it, and a repeat study later helps because abnormalities can take weeks to develop (REQ-310, FAIL-2390: this replaced an older StatPearls chapter's advice to wait at least 3 weeks). A European guideline; no US guideline on electrodiagnostic timing was found."
+      }
+    },
+    "suralQ": {
+      "during": "leaveT",
+      "ask": "While you write: what does sural sparing add?",
+      "choices": [
+        {
+          "id": "spec",
+          "label": "Less sensitive but more specific for GBS"
+        },
+        {
+          "id": "sens",
+          "label": "More sensitive but less specific"
+        },
+        {
+          "id": "nothing",
+          "label": "Nothing"
+        }
+      ],
+      "expect": "spec",
+      "explain": "A sural-sparing pattern is less sensitive but more specific.",
+      "source": {
+        "cite": "van Doorn PA, et al. European Academy of Neurology/Peripheral Nerve Society guideline on diagnosis and treatment of Guillain-Barre syndrome. J Peripher Nerv Syst 2023;28:535-563, doi:10.1111/jns.12594",
+        "checkedAt": "2026-11-17",
+        "url": "https://ddd.uab.cat/pub/artpub/2023/300094/300094_1.pdf",
+        "note": "Relayed from the course seed (backend/supabase/seed/tracks/pt-abpts.ts, tag EAN-PNS-GBS; full text read 2026-11-17), not re-read: section 4.2.8 (diagnostic PICO 4, electrodiagnosis) advises electrodiagnosis to support the diagnosis early; in the first week absent H-reflexes and polyneuropathy-pattern conduction changes support it, a sural-sparing pattern is less sensitive but more specific, a normal first-week study does not exclude it, and a repeat study later helps because abnormalities can take weeks to develop (REQ-310, FAIL-2390: this replaced an older StatPearls chapter's advice to wait at least 3 weeks). A European guideline; no US guideline on electrodiagnostic timing was found."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

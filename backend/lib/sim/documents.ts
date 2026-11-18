@@ -730,6 +730,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("CCRNNEO", "consent-through-the-twelve-year-old"),
   entry("ABPTSGCS", "quiet-not-lazy-day-three-hip-fracture"),
   entry("ABPTSSCS", "second-stress-fracture-no-period"),
+  entry("ABPTSECS", "too-early-to-test-day-four-weakness"),
   // ---- end REQ-334 ----
 ];
 
