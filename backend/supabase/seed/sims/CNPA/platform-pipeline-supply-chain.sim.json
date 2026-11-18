@@ -1,0 +1,1034 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "platform-pipeline-supply-chain",
+  "title": "Securing the platform's shared pipeline: credentials, signed provenance and SBOMs",
+  "screen": {
+    "type": "security-console",
+    "level": 1,
+    "console": {
+      "alerts": [
+        {
+          "id": "aIdent",
+          "severity": "critical",
+          "title": "Shared cloud admin key",
+          "detail": "A leaked key would give an attacker the whole cloud account.",
+          "when": "p >= 1",
+          "at": "600",
+          "status": "{ident == \"oidc\" ? \"OIDC, short-lived and scoped\" : ident == \"rotate\" ? \"Rotated long-lived key\" : ident == \"keep\" ? \"Shared admin key kept\" : \"Due\"}",
+          "open": "ident == \"none\""
+        },
+        {
+          "id": "aSign",
+          "severity": "high",
+          "title": "Unsigned images",
+          "detail": "Anyone with push rights could replace an image.",
+          "when": "p >= 2",
+          "at": "1200",
+          "status": "{sign == \"signVerify\" ? \"Signed, with provenance, verified at admission\" : sign == \"signOnly\" ? \"Signed, never verified\" : sign == \"skip\" ? \"Unsigned images\" : \"Due\"}",
+          "open": "sign == \"none\""
+        },
+        {
+          "id": "aSbom",
+          "severity": "high",
+          "title": "Advisory: logging library",
+          "detail": "A critical advisory names a logging library; nobody knows which images include it.",
+          "when": "p >= 3",
+          "at": "1800",
+          "status": "{sbom == \"attest\" ? \"Signed SBOM attestation per image\" : sbom == \"artifact\" ? \"SBOMs in CI artifacts\" : sbom == \"noSbom\" ? \"No SBOMs\" : \"Due\"}",
+          "open": "sbom == \"none\""
+        }
+      ],
+      "events": [
+        {
+          "id": "eIdent",
+          "source": "Review",
+          "text": "{ident == \"oidc\" ? \"OIDC, short-lived and scoped\" : ident == \"rotate\" ? \"Rotated long-lived key\" : ident == \"keep\" ? \"Shared admin key kept\" : \"\"}",
+          "when": "ident != \"none\"",
+          "at": "timeAt(identAt)"
+        },
+        {
+          "id": "eSign",
+          "source": "Review",
+          "text": "{sign == \"signVerify\" ? \"Signed, with provenance, verified at admission\" : sign == \"signOnly\" ? \"Signed, never verified\" : sign == \"skip\" ? \"Unsigned images\" : \"\"}",
+          "when": "sign != \"none\"",
+          "at": "timeAt(signAt)"
+        },
+        {
+          "id": "eSbom",
+          "source": "Advisory feed",
+          "text": "{sbom == \"attest\" ? \"Signed SBOM attestation per image\" : sbom == \"artifact\" ? \"SBOMs in CI artifacts\" : sbom == \"noSbom\" ? \"No SBOMs\" : \"\"}",
+          "when": "sbom != \"none\"",
+          "at": "timeAt(sbomAt)"
+        },
+        {
+          "id": "iSecrets",
+          "source": "Analyst",
+          "text": "One cloud key with administrator rights is shared by all 40 repositories; it was created two years ago.",
+          "when": "not isNull(secretsAt)",
+          "at": "timeAt(secretsAt)"
+        },
+        {
+          "id": "iRegistry",
+          "source": "Analyst",
+          "text": "No signatures, provenance or SBOMs on any image; the cluster admits any image from the registry.",
+          "when": "not isNull(registryAt)",
+          "at": "timeAt(registryAt)"
+        }
+      ],
+      "assets": [
+        {
+          "id": "xIdent",
+          "label": "CI credentials",
+          "spokenLabel": "CI credentials",
+          "kind": "identity",
+          "status": "{ident == \"oidc\" ? \"OIDC, short-lived and scoped\" : ident == \"rotate\" ? \"Rotated long-lived key\" : ident == \"keep\" ? \"Shared admin key kept\" : \"Under review\"}",
+          "tone": "ident == \"oidc\" ? \"ok\" : ident == \"rotate\" ? \"watch\" : ident == \"keep\" ? \"bad\" : p >= 1 ? \"watch\" : \"ok\""
+        },
+        {
+          "id": "xSign",
+          "label": "Image registry",
+          "spokenLabel": "Image registry",
+          "kind": "registry",
+          "status": "{sign == \"signVerify\" ? \"Signed, with provenance, verified at admission\" : sign == \"signOnly\" ? \"Signed, never verified\" : sign == \"skip\" ? \"Unsigned images\" : \"Under review\"}",
+          "tone": "sign == \"signVerify\" ? \"ok\" : sign == \"signOnly\" ? \"watch\" : sign == \"skip\" ? \"bad\" : p >= 2 ? \"watch\" : \"ok\""
+        },
+        {
+          "id": "xSbom",
+          "label": "40 service images",
+          "spokenLabel": "40 service images",
+          "kind": "images",
+          "status": "{sbom == \"attest\" ? \"Signed SBOM attestation per image\" : sbom == \"artifact\" ? \"SBOMs in CI artifacts\" : sbom == \"noSbom\" ? \"No SBOMs\" : \"Under review\"}",
+          "tone": "sbom == \"attest\" ? \"ok\" : sbom == \"artifact\" ? \"watch\" : sbom == \"noSbom\" ? \"bad\" : p >= 3 ? \"watch\" : \"ok\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Check-in",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Secure CI/CD pipelines: supply chain controls, signed artifacts, SBOMs, least-privilege pipeline identities and secret handling",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "CNCF Certified Cloud Native Platform Engineering Associate (CNPA) curriculum: Platform Engineering Core Fundamentals 36%, Platform Observability, Security and Conformance 20%, Continuous Delivery and Platform Engineering 16%, Platform APIs and Provisioning Infrastructure 12%, IDPs and Developer Experience 8%, Measuring your Platform 8%",
+      "checkedAt": "2026-11-17",
+      "url": "https://kube-dojo.github.io/k8s/cnpa",
+      "note": "On 2026-11-17 the weights were confirmed through a third-party study page (kube-dojo.github.io/k8s/cnpa, summarizing fetch), which lists 'GitOps fundamentals' and continuous delivery in the core fundamentals domain and says to 'understand why GitOps uses pull-based reconciliation'. The official curriculum was not re-read; the objective wording is the course seed's. Reused for REQ-336 from this course's service-selector-no-endpoints-cnpa (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "GitHub Enterprise Server 3.18 documentation, OpenID Connect",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.github.com/en/enterprise-server@3.18/actions/concepts/security/openid-connect",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: workflows exchange an OIDC token for a short-lived cloud token valid for a single job instead of storing long-lived cloud credentials as secrets; the cloud role's trust conditions match the token's subject, such as repository, environment and branch."
+    },
+    {
+      "cite": "SLSA specification v1.0, Security levels (slsa.dev)",
+      "checkedAt": "2026-11-17",
+      "url": "https://slsa.dev/spec/v1.0/levels",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: provenance describes who built an artifact, how and from what inputs; Build L1 has provenance, L2 a hosted build platform that signs it, L3 hardened builds."
+    },
+    {
+      "cite": "Sigstore documentation, Kubernetes Policy Controller",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.sigstore.dev/policy-controller/overview",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: an admission controller that validates image signatures and attestations against ClusterImagePolicy resources in opted-in namespaces, with a warn mode."
+    },
+    {
+      "cite": "Anchore open source documentation, Syft: Attestation",
+      "checkedAt": "2026-11-17",
+      "url": "https://oss.anchore.com/docs/guides/sbom/attestation/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: syft attest generates an SBOM as a signed in-toto attestation stored in the registry alongside the image."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the systems and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You own the shared CI/CD pipeline at Calder Retail, a fictional retailer whose platform builds images for 40 services. A security review lands this week.",
+    "handover": [
+      "Every pipeline uses one long-lived cloud admin key stored as a CI secret.",
+      "Images are pushed unsigned; nothing records how they were built."
+    ],
+    "howItWorks": [
+      "The console shows the alert queue, the event log and each asset's status.",
+      "Move on a check-in at a time. A decision comes to you at each check-in; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-04-19T09:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "ident": {
+      "type": "enum",
+      "values": [
+        "none",
+        "oidc",
+        "rotate",
+        "keep"
+      ],
+      "init": "none"
+    },
+    "identAt": {
+      "type": "time",
+      "init": null
+    },
+    "sign": {
+      "type": "enum",
+      "values": [
+        "none",
+        "signVerify",
+        "signOnly",
+        "skip"
+      ],
+      "init": "none"
+    },
+    "signAt": {
+      "type": "time",
+      "init": null
+    },
+    "sbom": {
+      "type": "enum",
+      "values": [
+        "none",
+        "attest",
+        "artifact",
+        "noSbom"
+      ],
+      "init": "none"
+    },
+    "sbomAt": {
+      "type": "time",
+      "init": null
+    },
+    "secretsAt": {
+      "type": "time",
+      "init": null
+    },
+    "registryAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((ident == \"keep\") ? 1 : 0) + ((sign == \"skip\") ? 1 : 0) + ((sbom == \"noSbom\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(ident == \"none\" or (ident == \"keep\") ? 1 : 0) + (sign == \"none\" or (sign == \"skip\") ? 1 : 0) + (sbom == \"none\" or (sbom == \"noSbom\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Pipeline security review",
+      "clock": "turns",
+      "actions": [
+        "secrets",
+        "registry"
+      ]
+    },
+    "close": {
+      "label": "Review record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "secrets": {
+      "label": "Read the CI secret inventory",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(secretsAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "secretsAt",
+          "to": "t"
+        },
+        {
+          "log": "Read the CI secret inventory.",
+          "kind": "act"
+        },
+        {
+          "finding": "One cloud key with administrator rights is shared by all 40 repositories; it was created two years ago."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "registry": {
+      "label": "Read the image registry",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(registryAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "registryAt",
+          "to": "t"
+        },
+        {
+          "log": "Read the image registry.",
+          "kind": "act"
+        },
+        {
+          "finding": "No signatures, provenance or SBOMs on any image; the cluster admits any image from the registry."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "OIDC short-lived scoped credentials, signed images and provenance verified at admission, and SBOM attestations"
+                },
+                {
+                  "value": "summary",
+                  "label": "Review closed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next check-in",
+      "wait": {
+        "skipLabel": "Go to the next check-in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "ident == \"keep\"",
+              "then": [
+                {
+                  "log": "Check-in 2: a dependency in one repository's build steals the key; the attacker creates crypto-mining instances across the account.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "sign == \"skip\"",
+              "then": [
+                {
+                  "log": "Check-in 3: a replaced checkout image with a card skimmer runs for six hours before anyone notices.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "sbom == \"noSbom\"",
+              "then": [
+                {
+                  "log": "Check-in 4: a week after the advisory, two affected images are still unpatched; nobody knew they used the library.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "10min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The review closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "10min"
+        }
+      ]
+    },
+    {
+      "id": "t_ident",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 1: the shared key.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "identPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_sign",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 2: the registry.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "signPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_sbom",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 3: an advisory.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "sbomPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "identPrompt": {
+      "title": "One admin key for 40 pipelines",
+      "context": "A leaked key would give an attacker the whole cloud account.",
+      "choices": [
+        {
+          "id": "oidc",
+          "label": "Replace the key with OIDC federation: each job exchanges its token for a short-lived credential on a role scoped to its repository and environment, with only the permissions it needs; then revoke the old key",
+          "effects": [
+            {
+              "set": "ident",
+              "to": "\"oidc\""
+            },
+            {
+              "set": "identAt",
+              "to": "t"
+            },
+            {
+              "log": "Jobs use short-lived, scoped credentials.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Short-lived tokens from OIDC remove long-lived secrets; trust scoped by repository and environment keeps each pipeline to its own role."
+        },
+        {
+          "id": "rotate",
+          "label": "Keep the key but rotate it every quarter",
+          "effects": [
+            {
+              "set": "ident",
+              "to": "\"rotate\""
+            },
+            {
+              "set": "identAt",
+              "to": "t"
+            },
+            {
+              "log": "A rotation schedule is set.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Rotation shortens exposure, but it is still one admin key for everyone."
+        },
+        {
+          "id": "keep",
+          "label": "Keep the key; CI secrets are encrypted",
+          "effects": [
+            {
+              "set": "ident",
+              "to": "\"keep\""
+            },
+            {
+              "set": "identAt",
+              "to": "t"
+            },
+            {
+              "log": "Nothing changes.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Any compromised pipeline holds full cloud access."
+        }
+      ]
+    },
+    "signPrompt": {
+      "title": "Images nobody can verify",
+      "context": "Anyone with push rights could replace an image.",
+      "choices": [
+        {
+          "id": "signVerify",
+          "label": "Build on the hosted builder that signs provenance, sign images with cosign, and have the policy controller admit only images signed by the pipeline, in warn mode first",
+          "effects": [
+            {
+              "set": "sign",
+              "to": "\"signVerify\""
+            },
+            {
+              "set": "signAt",
+              "to": "t"
+            },
+            {
+              "log": "Signed images with provenance; admission verifies them.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Signed provenance records who built what from which inputs; verification at admission is what makes signing a control."
+        },
+        {
+          "id": "signOnly",
+          "label": "Sign images but do not verify them anywhere",
+          "effects": [
+            {
+              "set": "sign",
+              "to": "\"signOnly\""
+            },
+            {
+              "set": "signAt",
+              "to": "t"
+            },
+            {
+              "log": "Images are signed.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "A signature nobody checks stops nothing."
+        },
+        {
+          "id": "skip",
+          "label": "Skip signing; the registry requires a login",
+          "effects": [
+            {
+              "set": "sign",
+              "to": "\"skip\""
+            },
+            {
+              "set": "signAt",
+              "to": "t"
+            },
+            {
+              "log": "No change.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "A stolen push credential lets an attacker replace any image."
+        }
+      ]
+    },
+    "sbomPrompt": {
+      "title": "Which images contain the flawed library?",
+      "context": "A critical advisory names a logging library; nobody knows which images include it.",
+      "choices": [
+        {
+          "id": "attest",
+          "label": "Generate an SBOM for every image with syft attest, stored as a signed attestation with the image, and query them for the advisory",
+          "effects": [
+            {
+              "set": "sbom",
+              "to": "\"attest\""
+            },
+            {
+              "set": "sbomAt",
+              "to": "t"
+            },
+            {
+              "log": "Affected images are listed in minutes.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "An SBOM attached to each image answers 'where is this library?' when an advisory lands."
+        },
+        {
+          "id": "artifact",
+          "label": "Save SBOMs as build artifacts in the CI system",
+          "effects": [
+            {
+              "set": "sbom",
+              "to": "\"artifact\""
+            },
+            {
+              "set": "sbomAt",
+              "to": "t"
+            },
+            {
+              "log": "SBOMs are saved in CI.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "They exist, but are detached from the images and expire with build logs."
+        },
+        {
+          "id": "noSbom",
+          "label": "Skip SBOMs; scan images when advisories arrive",
+          "effects": [
+            {
+              "set": "sbom",
+              "to": "\"noSbom\""
+            },
+            {
+              "set": "sbomAt",
+              "to": "t"
+            },
+            {
+              "log": "No SBOMs.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Every advisory means rescanning 40 services by hand."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the review record for the security team.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Identity",
+          "criteria": "OIDC federation to scoped, short-lived roles; the admin key revoked.",
+          "modelAnswer": "Each pipeline now gets a short-lived credential for its own role; the shared admin key is revoked."
+        },
+        {
+          "label": "Artifacts",
+          "criteria": "Signed images and provenance verified at admission; SBOM attestations.",
+          "modelAnswer": "Images and provenance are signed and verified by the policy controller; each image carries a signed SBOM."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "security",
+    "thresholds": {
+      "containWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Contained and closed within 60 minutes of the first alert."
+        }
+      },
+      "containSpread": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No asset newly exposed by the response."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (ident == \"rotate\") and (sign == \"signOnly\") and (sbom == \"artifact\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CNCF Certified Cloud Native Platform Engineering Associate (CNPA) curriculum: Platform Engineering Core Fundamentals 36%, Platform Observability, Security and Conformance 20%, Continuous Delivery and Platform Engineering 16%, Platform APIs and Provisioning Infrastructure 12%, IDPs and Developer Experience 8%, Measuring your Platform 8%",
+        "checkedAt": "2026-11-17",
+        "url": "https://kube-dojo.github.io/k8s/cnpa",
+        "note": "On 2026-11-17 the weights were confirmed through a third-party study page (kube-dojo.github.io/k8s/cnpa, summarizing fetch), which lists 'GitOps fundamentals' and continuous delivery in the core fundamentals domain and says to 'understand why GitOps uses pull-based reconciliation'. The official curriculum was not re-read; the objective wording is the course seed's. Reused for REQ-336 from this course's service-selector-no-endpoints-cnpa (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "identHarm": {
+      "label": "The cloud account abused",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and ident == \"keep\"",
+      "narrative": "A compromised build used the shared admin key across the account."
+    },
+    "signHarm": {
+      "label": "A tampered image ran",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and sign == \"skip\"",
+      "narrative": "A replaced, unsigned image ran in production for six hours."
+    },
+    "sbomHarm": {
+      "label": "Exposure left open",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and sbom == \"noSbom\"",
+      "narrative": "Without SBOMs, two affected images went unpatched for a week."
+    },
+    "target": {
+      "label": "A pipeline you can trust",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (ident == \"oidc\") and (sign == \"signVerify\") and (sbom == \"attest\") and record == \"honest\" and missCount <= containSpread and timeAt(doneAt) <= containWindow",
+      "narrative": "Pipelines hold no standing secrets, and every running image is signed, traceable and inventoried."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "identHarm",
+    "signHarm",
+    "sbomHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "identCrit",
+        "label": "Gave pipelines short-lived, least-privilege identities",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "ident == \"oidc\"",
+            "score": "met",
+            "why": "Least privilege."
+          },
+          {
+            "when": "ident == \"rotate\"",
+            "score": "partial",
+            "why": "Still shared."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Over-privileged."
+          }
+        ]
+      },
+      {
+        "id": "signCrit",
+        "label": "Signed images with provenance and verified them at admission",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sign == \"signVerify\"",
+            "score": "met",
+            "why": "Verified supply chain."
+          },
+          {
+            "when": "sign == \"signOnly\"",
+            "score": "partial",
+            "why": "Unverified."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Unverifiable."
+          }
+        ]
+      },
+      {
+        "id": "sbomCrit",
+        "label": "Attached an SBOM to every image",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sbom == \"attest\"",
+            "score": "met",
+            "why": "Inventory ready."
+          },
+          {
+            "when": "sbom == \"artifact\"",
+            "score": "partial",
+            "why": "Detached."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Blind."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(secretsAt) and not isNull(registryAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(secretsAt) or not isNull(registryAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the secret inventory and the image registry first."
+      },
+      {
+        "at": "Check-in 1",
+        "text": "Federate with OIDC to scoped, short-lived roles and revoke the key."
+      },
+      {
+        "at": "Check-in 2",
+        "text": "Sign images and provenance, then verify at admission."
+      },
+      {
+        "at": "Check-in 3",
+        "text": "Attest an SBOM for every image and query it."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "identHarm": {
+        "headline": "Scope pipeline identity",
+        "body": "Short-lived, least-privilege credentials per pipeline."
+      },
+      "signHarm": {
+        "headline": "Sign and verify",
+        "body": "Provenance and admission checks."
+      },
+      "sbomHarm": {
+        "headline": "Keep SBOMs with images",
+        "body": "Signed SBOM attestations per image."
+      },
+      "target": {
+        "headline": "Good: a pipeline you can trust",
+        "body": "Least-privilege identity, signed provenance and SBOMs."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A secure pipeline holds no long-lived shared secrets: OIDC gives each job a short-lived credential scoped to its role. Signed provenance records how artifacts were built, and verification at admission makes signatures a control. SBOM attestations stored with images answer advisories quickly."
+  }
+}
