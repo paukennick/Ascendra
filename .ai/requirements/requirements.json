@@ -7774,8 +7774,8 @@
     {
       "id": "REQ-221",
       "category": "operations",
-      "title": "Operations and docs audit fixes (G6): restore into a fresh cluster, CRON_SECRET health check, env docs, Android preview workflow",
-      "description": "Audit of 2026-11-11, batch G6 (Nick approved 2026-11-10). H9: a restore into a cluster without the app_runtime and content_recheck roles fails (about 120 pg_restore errors); the drill and runbook now create both roles first and re-apply 071 then 064's grants, and CI restores on a second Postgres server that never saw them. CRON_SECRET is required in production (/api/health reports misconfigured). apply-migration header corrected; runbook: after hand-applied SQL run app_runtime_sync() then migrate --status. .env.example and the runbook list 17 missing settings. Data inventory names the scheduled purge-auth-data cron (09:30 UTC). Backup workflow comments name production-backup. build-android-preview.yml added to master (pinned, Node 24, tolerant summary). No migration.",
+      "title": "Operations and docs audit fixes (G6): restore into a fresh cluster, CRON_SECRET health check, env docs, Android preview workflow; M8 Android autofill site link (asset_statements)",
+      "description": "Audit of 2026-11-11, batch G6 (Nick approved 2026-11-10). H9: a restore into a cluster without the app_runtime and content_recheck roles fails (about 120 pg_restore errors); the drill and runbook now create both roles first and re-apply 071 then 064's grants, and CI restores on a second Postgres server that never saw them. CRON_SECRET is required in production (/api/health reports misconfigured). apply-migration header corrected; runbook: after hand-applied SQL run app_runtime_sync() then migrate --status. .env.example and the runbook list 17 missing settings. Data inventory names the scheduled purge-auth-data cron (09:30 UTC). Backup workflow comments name production-backup. build-android-preview.yml added to master (pinned, Node 24, tolerant summary). No migration. M8 (FAIL-1167, branch fix/android-autofill-assetlinks): Android offers a password saved for the website inside the app only if the app also declares the website (Digital Asset Links asset_statements); native config change shipped with the store build 2.1.0.",
       "priority": "high",
       "status": "needs_review",
       "minimum_access_scope": [
@@ -7790,29 +7790,40 @@
         "docs/legal/data-inventory.md",
         ".github/workflows/",
         ".github/scripts/eas-build-summary.mjs",
-        "CHANGELOG.md"
+        "CHANGELOG.md",
+        "mobile/plugins/withAssetStatements.js",
+        "mobile/app.json",
+        "backend/public/.well-known/README.md"
       ],
       "acceptance_criteria": [
         "a plain restore into a fresh cluster fails and the drill passes there",
         "restored roles have the source's privileges",
         "CRON_SECRET missing in production is misconfigured",
         "every listed env name is in .env.example and the runbook",
-        "the Android preview workflow is pinned and its summary never throws"
+        "the Android preview workflow is pinned and its summary never throws",
+        "app.json lists the plugin for https://www.ascendra-learn.com",
+        "prebuild writes the asset_statements meta-data and string",
+        "assetlinks.json keeps its existing fingerprint"
       ],
       "validation_required": [
         "backend npm test",
         "backup-drill-test.sh on two clusters",
         "node --test .github/scripts",
-        "omni gate"
+        "omni gate",
+        "mobile npx tsc --noEmit and npm test",
+        "expo prebuild --platform android in a scratch copy"
       ],
       "documentation_required": [
         "CHANGELOG.md",
         "docs/operations-runbook.md",
-        "docs/restore-drill.md"
+        "docs/restore-drill.md",
+        "backend/public/.well-known/README.md"
       ],
       "risk_notes": [
         "production Vercel must have CRON_SECRET or /api/health turns 503 after the next deploy",
-        "the Android preview workflow's EAS JSON shape is untested against live EAS"
+        "the Android preview workflow's EAS JSON shape is untested against live EAS",
+        "needs a new EAS build",
+        "the Play app signing fingerprint must be added to assetlinks.json by Nick for Play installs"
       ]
     },
     {
