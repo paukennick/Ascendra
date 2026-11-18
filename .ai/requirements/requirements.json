@@ -12049,6 +12049,34 @@
         "content on suicide and violence reaches adults only through the REQ-327 gate",
         "a case that names a method would breach the content rule: sensitive-sims.test.ts checks a word list"
       ]
+    },
+    {
+      "id": "REQ-302",
+      "category": "release",
+      "title": "Leave the app version out of the Expo runtime fingerprint",
+      "description": "Nick 2026-11-14 approved: the installed @expo/fingerprint hashes expo.version/versionCode/buildNumber by default, so a version bump would change the runtime and strand OTA updates. mobile/fingerprint.config.js skips them (keeping the default skip). Ships with the next store build.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/fingerprint.config.js",
+        "docs/versioning.md"
+      ],
+      "acceptance_criteria": [
+        "fingerprint.config.js sets ExpoConfigVersions plus the default skip",
+        "docs/versioning.md §11 records the decisions"
+      ],
+      "validation_required": [
+        "EAS update workflow dry run on the store-build commit",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "docs/versioning.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Changes the runtime fingerprint once: merge only together with a store build",
+        "Not run: the fingerprint tool itself"
+      ]
     }
   ]
 }
