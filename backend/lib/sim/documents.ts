@@ -770,6 +770,14 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("MSHI", "mshi-eye-exam-recall-left-join"),
   entry("MSHI", "mshi-ed-registration-rework-loop"),
   entry("MSHI", "mshi-telehealth-vendor-weights"),
+  entry("CMPCBS", "cmpcbs-order-quantity-derivative"),
+  entry("CMPCBS", "cmpcbs-lifetime-value-diverging-series"),
+  entry("CMPCBS", "cmpcbs-depot-saddle-point"),
+  entry("CMPCBS", "cmpcbs-pool-flush-first-order"),
+  entry("CMPCBS", "cmpcbs-member-id-check-digit"),
+  entry("CMPCBS", "cmpcbs-fertilizer-blend-singular-system"),
+  entry("CMPCBS", "cmpcbs-access-rule-de-morgan"),
+  band("MSCS", "access-rule-de-morgan-mscs"),
   // ---- end REQ-333 ----
 ];
 

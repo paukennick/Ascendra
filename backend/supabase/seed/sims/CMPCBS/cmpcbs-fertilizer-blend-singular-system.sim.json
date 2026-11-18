@@ -1,0 +1,908 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cmpcbs-fertilizer-blend-singular-system",
+  "title": "The blend calls for minus 4 quadrillion kilos",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "blend.xlsx, fertilizer blending, Sunfield Growers Cooperative (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Plant manager, Carla Nunes",
+          "text": "The blend sheet returned nonsense amounts for the 15-5-10 order. The mixing plant needs the recipe by 10:00.",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "seen",
+          "label": "Pattern",
+          "text": "The sheet inverted a matrix that has no inverse.",
+          "when": "not isNull(lookAt) and not fixed",
+          "severity": "warning"
+        },
+        {
+          "id": "lock",
+          "label": "Mixing plant",
+          "text": "10:00: the mixing plant ran the recipe as it stood.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [],
+      "code": [
+        {
+          "id": "code",
+          "label": "blend.xlsx",
+          "language": "text",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "x = MINVERSE(S) x target   (S = analyses of A, B, C)",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c1",
+              "text": "Row-reduce [S | target] with a + b + c = 1: rank 2, one free variable: a free, b = 0.75 - a/2, c = 0.25 - a/2, 0 <= a <= 0.5; cheapest: a = 0.5, b = 0.5, c = 0",
+              "when": "fix == \"rref\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c2",
+              "text": "x = PINV(S) x target (minimum-norm solution)",
+              "when": "fix == \"pinv\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c3",
+              "text": "Round the MINVERSE result to 3 decimals and clip negatives to 0",
+              "when": "fix == \"round\"",
+              "mark": "\"warning\""
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Recipe due",
+          "value": "10:00"
+        }
+      ]
+    }
+  },
+  "objective": "Systems of linear equations and Gaussian elimination",
+  "secondaryObjectives": [
+    "Matrix algebra and operations",
+    "Vector spaces and subspaces"
+  ],
+  "sources": [
+    {
+      "cite": "Kuei-Nuan Lin, Matrices (Penn State open textbook), Section 1.2 Gaussian Elimination",
+      "checkedAt": "2026-11-17",
+      "url": "https://psu.pb.unizin.org/psumath220lin/chapter/chapter-4/",
+      "note": "Read 2026-11-17 through a summarizing fetch. After elimination 'All rows consisting entirely of zeros are at the bottom'; 'If a row of the form [0 0 ... 0|1] occurs, the system is inconsistent'; a consistent system has 'infinitely many solutions, when there is at least one free variable'."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Every organization, person, count and deadline is invented teaching data; tool output is an authored rendering in the tool style."
+    }
+  ],
+  "brief": {
+    "situation": "You maintain blend.xlsx at Sunfield Growers Cooperative (fictional). It finds fractions a, b, c of three stock fertilizers that give the ordered nitrogen-phosphorus-potassium analysis, by inverting the 3 by 3 matrix of stock analyses. For a 15-5-10 order it returned amounts in the quadrillions, some negative. The plant needs the recipe at 10:00. It is 09:05.",
+    "handover": [
+      "Stocks: A 10-10-10 ($300/t), B 20-0-10 ($420/t), C 0-20-10 ($380/t).",
+      "The fractions must add to 1 and none may be negative."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: look, change, check or ship. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "09:05",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "The deadline is an invented teaching value."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "rref",
+        "pinv",
+        "round"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "c0",
+        "c1",
+        "c2"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "k0",
+        "k1",
+        "k2"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "(fix == \"rref\")"
+    },
+    "correct": {
+      "expr": "(fix == \"rref\" or fix == \"pinv\")"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "look",
+        "change",
+        "check",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "look": {
+      "label": "Row-reduce the stock matrix and check its rank",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "output": "consistent, one free variable; nonnegative range 0 <= a <= 0.5"
+            }
+          ],
+          "else": [
+            {
+              "output": "det(S) = 0 (sheet reports 1.4e-14)\nA = (B + C) / 2: the columns are dependent; rank 2"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "finding": "Every valid recipe is on one line; cost picks the point."
+            }
+          ],
+          "else": [
+            {
+              "finding": "Stock A is the average of B and C, so the matrix is singular; the 'inverse' is rounding noise. The system is consistent with infinitely many solutions."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Change how the recipe is found",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "rref",
+              "label": "Row-reduce, describe the solution line, keep it nonnegative, and choose the cheapest point (50% A, 50% B)"
+            },
+            {
+              "value": "pinv",
+              "label": "Use the pseudo-inverse's minimum-norm solution"
+            },
+            {
+              "value": "round",
+              "label": "Round the inverse's output and clip negatives"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: {f}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "check": {
+      "label": "Check the recipe's analysis, nonnegativity and cost",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"rref\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "15-5-10 met exactly; cost $360/t; all fractions >= 0\n2 passed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"pinv\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "15-5-10 met; cost $376.70/t\n1 passed, 1 failed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"round\"",
+              "then": [
+                {
+                  "output": "blend analysis 31-0-15\n1 failed"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "fractions in the quadrillions\n1 failed"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Send the recipe to the mixing plant",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "if": "correct",
+          "then": [
+            {
+              "output": "Sent: 50% A, 50% B; 15-5-10 at $360/t."
+            }
+          ],
+          "else": [
+            {
+              "output": "Sent: a recipe that misses the analysis."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why the sheet gave nonsense",
+              "options": [
+                {
+                  "value": "c0",
+                  "label": "Stock A is a combination of B and C, so the matrix is singular and has no inverse; the system has a line of solutions"
+                },
+                {
+                  "value": "c1",
+                  "label": "The order was mistyped"
+                },
+                {
+                  "value": "c2",
+                  "label": "The spreadsheet is broken"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know the recipe is right",
+              "options": [
+                {
+                  "value": "k0",
+                  "label": "It meets 15-5-10 exactly, all fractions are nonnegative, and it is the cheapest point on the solution line"
+                },
+                {
+                  "value": "k1",
+                  "label": "The numbers look normal"
+                },
+                {
+                  "value": "k2",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "10:00: the mixing plant ran the recipe as it stood.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the plant manager: why the sheet failed, what you did, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Stock A's analysis equals the average of B and C, so the columns are dependent, the matrix has rank 2 and no inverse; the computed inverse is rounding noise.",
+          "modelAnswer": "Singular matrix, rank 2."
+        },
+        {
+          "label": "What you did",
+          "criteria": "Row reduction shows a consistent system with one free variable; restrict to nonnegative fractions and pick the cheapest: a = 0.5, b = 0.5, c = 0; minimum-norm is valid but arbitrary; clipping noise misses the analysis.",
+          "modelAnswer": "50% A, 50% B."
+        },
+        {
+          "label": "How you know",
+          "criteria": "The blend meets 15-5-10 exactly with nonnegative fractions at $360/t.",
+          "modelAnswer": "Analysis met; $360/t."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-333)",
+          "checkedAt": "2026-11-17",
+          "note": "The case's deadline; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Shipping nothing ships nothing wrong, but the deadline passes without the fix.",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "wrongSent": {
+      "label": "Wrong recipe sent",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "Growers receive fertilizer with the wrong analysis."
+    },
+    "notSent": {
+      "label": "Nothing shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "The plant waited for a recipe."
+    },
+    "right": {
+      "label": "Right, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and fixed and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "The order is mixed to analysis at the lowest cost."
+    },
+    "gaps": {
+      "label": "Right, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The result is right, but it went late, unchecked, before you looked, or with a weaker fix."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Checked the matrix's rank before trusting the inverse",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked before acting."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Solved the system by elimination and chose among its solutions",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed",
+            "score": "met",
+            "why": "Row reduction, the full solution set, and a choice by cost."
+          },
+          {
+            "when": "fix == \"pinv\"",
+            "score": "partial",
+            "why": "A valid recipe (a = 1/3), but chosen by an arbitrary rule: $16.70 a tonne more than the cheapest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{fix == \"round\" ? \"Clipped noise is not a solution: the analysis comes out wrong.\" : \"The sheet still inverts a singular matrix.\"}"
+          }
+        ]
+      },
+      {
+        "id": "shipped",
+        "label": "Shipped nothing wrong",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sentAs != \"wrong\"",
+            "score": "met",
+            "why": "Nothing wrong shipped."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Shipped a wrong result."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Analysis, signs and cost checked after the last change, before sending",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "Checked after the last change, before shipping."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Checked, but it failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"c0\" and checkDoc == \"k0\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"c0\" or checkDoc == \"k0\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rightK",
+        "label": "Right result shipped",
+        "value": "sentAs == \"right\" ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "altered",
+        "label": "Rows changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until shipped",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 14"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "Rank 2; A = (B + C)/2."
+      },
+      {
+        "at": "4-9 min",
+        "text": "Row-reduce; line of solutions; cheapest point."
+      },
+      {
+        "at": "9-12 min",
+        "text": "Analysis and cost checked."
+      },
+      {
+        "at": "12-14 min",
+        "text": "Send."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: eliminate, don't invert",
+        "body": "Gaussian elimination shows whether a system has none, one or infinitely many solutions. A singular matrix has no inverse to trust."
+      },
+      "gaps": {
+        "headline": "Right, with gaps",
+        "body": "The result is right; it went late, unchecked, before you looked, or with a weaker fix than the cause called for."
+      },
+      "wrongSent": {
+        "headline": "Wrong recipe",
+        "body": "Rounding noise from a singular inverse is not a recipe."
+      },
+      "notSent": {
+        "headline": "Nothing shipped",
+        "body": "Safe, but the deadline passed without the fix."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "Amounts in the quadrillions mean the matrix is singular. Stock A (10-10-10) is the average of B (20-0-10) and C (0-20-10), so the columns are dependent and the rank is 2. Row reduction shows the system is consistent with one free variable: a free, b = 0.75 - a/2, c = 0.25 - a/2, and nonnegativity gives 0 <= a <= 0.5. Cost falls as a rises, so 50% A and 50% B at $360/t. The minimum-norm solution is valid but costs more; clipping the noisy inverse misses the analysis."
+  }
+}

@@ -126,6 +126,14 @@ export const DEPTH_ACADEMIC: readonly DepthAcademicEntry[] = [
   { course: "MSHI", slug: "mshi-eye-exam-recall-left-join", screen: "data", profile: "data", kind: "scenario", steps: "mshi-recall" },
   { course: "MSHI", slug: "mshi-ed-registration-rework-loop", screen: "data", profile: "data", kind: "scenario", steps: "mshi-mining" },
   { course: "MSHI", slug: "mshi-telehealth-vendor-weights", screen: "data", profile: "data", kind: "scenario", steps: "mshi-vendor" },
+  { course: "CMPCBS", slug: "cmpcbs-order-quantity-derivative", screen: "data", profile: "data", kind: "scenario", steps: "cmp-eoq" },
+  { course: "CMPCBS", slug: "cmpcbs-lifetime-value-diverging-series", screen: "data", profile: "data", kind: "scenario", steps: "cmp-series" },
+  { course: "CMPCBS", slug: "cmpcbs-depot-saddle-point", screen: "data", profile: "data", kind: "scenario", steps: "cmp-saddle" },
+  { course: "CMPCBS", slug: "cmpcbs-pool-flush-first-order", screen: "data", profile: "data", kind: "scenario", steps: "cmp-mixing" },
+  { course: "CMPCBS", slug: "cmpcbs-member-id-check-digit", screen: "data", profile: "data", kind: "scenario", steps: "cmp-checkdigit" },
+  { course: "CMPCBS", slug: "cmpcbs-fertilizer-blend-singular-system", screen: "data", profile: "data", kind: "scenario", steps: "cmp-gauss" },
+  { course: "CMPCBS", slug: "cmpcbs-access-rule-de-morgan", screen: "data", profile: "data", kind: "scenario", steps: "cmp-logic" },
+  { course: "MSCS", slug: "access-rule-de-morgan-mscs", screen: "data", profile: "data", kind: "band", steps: "da-mscs-access-rule-de-morgan-mscs", base: "CMPCBS/cmpcbs-access-rule-de-morgan" },
 ];
 
 // The day this round read its sources; every document's first source carries it.

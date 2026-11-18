@@ -1,0 +1,906 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cmpcbs-pool-flush-first-order",
+  "title": "One tank volume replaced, so reopen?",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "flush_plan.xlsx, the community pool after a dosing error, Maple Grove Recreation Center (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Facility manager, Andre Okafor",
+          "text": "A dosing pump overdosed a pool chemical this morning. We've been flushing with fresh water since 08:00, and by 18:00 we'll have replaced one full pool volume, so I'll announce an 18:00 reopening at 16:00.",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "seen",
+          "label": "Pattern",
+          "text": "The plan assumes the old water leaves as a block.",
+          "when": "not isNull(lookAt) and not fixed",
+          "severity": "warning"
+        },
+        {
+          "id": "lock",
+          "label": "Announcement",
+          "text": "16:00: the reopening time was announced as it stood.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [],
+      "code": [
+        {
+          "id": "code",
+          "label": "flush_plan.xlsx",
+          "language": "text",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "Reopen when 600 m3 has been replaced: 600 / 60 = 10 h -> 18:00",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c1",
+              "text": "dC/dt = -(60 / 600) C  ->  C(t) = 4.0 e^(-t/10);  C = 1.0 at t = 10 ln 4 = 13.9 h -> about 21:55; confirm with a test before opening",
+              "when": "fix == \"ode\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c2",
+              "text": "Announce 'reopening after a passing test', no time given",
+              "when": "fix == \"test\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c3",
+              "text": "Straight line through 08:00 and 12:00: reaches 1.0 at 17:14",
+              "when": "fix == \"line\"",
+              "mark": "\"warning\""
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Announcement",
+          "value": "16:00"
+        }
+      ]
+    }
+  },
+  "objective": "First-order differential equations",
+  "secondaryObjectives": [
+    "Applications: population growth, mechanical vibrations, and circuits"
+  ],
+  "sources": [
+    {
+      "cite": "Robert Israel, University of British Columbia (Math 215), Mixing Problems",
+      "checkedAt": "2026-11-17",
+      "url": "https://personal.math.ubc.ca/~israel/m215/mixing",
+      "note": "Read 2026-11-17 through a summarizing fetch. 'the change in the amount of salt in the tank comes from the balance between what enters and what leaves'; with a well-mixed tank the outflow term is Q/(V/r) and the solution is exponential, e.g. Q(t) = 200 - 100 exp(-t/500). With clean water flowing in, the same balance gives C(t) = C0 exp(-rt/V) (author's application)."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Every organization, person, count and deadline is invented teaching data; tool output is an authored rendering in the tool style."
+    }
+  ],
+  "brief": {
+    "situation": "You help the facility team at Maple Grove Recreation Center (fictional). After a dosing error the pool's chemical level was 4.0 times the operating limit (invented scale: limit = 1.0). Since 08:00, fresh water flows in at 60 m3/h and mixed pool water flows out at the same rate; the pool holds 600 m3 and the circulation keeps it well mixed. The manager plans to announce an 18:00 reopening at 16:00. It is 15:05.",
+    "handover": [
+      "Readings: 08:00 4.0; 12:00 2.7; 15:00 2.0 (times the limit)."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: look, change, check or ship. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "15:05",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "The deadline is an invented teaching value."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "ode",
+        "test",
+        "line"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "c0",
+        "c1",
+        "c2"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "k0",
+        "k1",
+        "k2"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "(fix == \"ode\")"
+    },
+    "correct": {
+      "expr": "(fix == \"ode\" or fix == \"test\")"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "look",
+        "change",
+        "check",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "look": {
+      "label": "Fit the readings: compare a straight line, plug flow and a well-mixed (exponential) model",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "output": "C(t) = 4.0 e^(-t/10); limit reached about 21:55"
+            }
+          ],
+          "else": [
+            {
+              "output": "plug flow: 0 at 18:00\nstraight line: 1.0 at 17:14\nexponential, rate 0.1 per hour: 4.0, 2.68, 1.99 at 08, 12, 15 (fits all three)\npredicted at 18:00: 1.47"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "finding": "The model fits the readings and gives a time to the limit."
+            }
+          ],
+          "else": [
+            {
+              "finding": "In a well-mixed pool the outflow carries the current concentration, so the level falls in proportion to itself: exponential decay, not one volume and done."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Change the reopening plan",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "ode",
+              "label": "Model the first-order decay, plan for about 22:00 (open next morning), and confirm with a test"
+            },
+            {
+              "value": "test",
+              "label": "Announce 'after a passing test' with no time"
+            },
+            {
+              "value": "line",
+              "label": "Draw a straight line through the first two readings"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: {f}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "check": {
+      "label": "Fit the model to all three readings and predict 18:00",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"ode\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "model fits 3 readings within 1%; 18:00 prediction 1.47 (above the limit)\n2 passed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"test\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "no time; 18:00 test predicted 1.47\n1 passed, 1 failed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"line\"",
+              "then": [
+                {
+                  "output": "line says 17:14; the 15:00 reading of 2.0 is already off the line (1.73)\n1 failed"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "plug flow predicts 0 at 18:00; model predicts 1.47\n1 failed"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Announce the reopening plan",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "if": "correct",
+          "then": [
+            {
+              "output": "Announced: reopening tomorrow 07:00, after a passing test."
+            }
+          ],
+          "else": [
+            {
+              "output": "Announced: reopening at 18:00 above the limit."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why one volume is not enough",
+              "options": [
+                {
+                  "value": "c0",
+                  "label": "A well-mixed pool loses chemical in proportion to its concentration, so it decays exponentially; one volume leaves e^-1, about 37%"
+                },
+                {
+                  "value": "c1",
+                  "label": "The pump is still dosing"
+                },
+                {
+                  "value": "c2",
+                  "label": "The readings are wrong"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know the new time is right",
+              "options": [
+                {
+                  "value": "k0",
+                  "label": "The exponential model fits all three readings and is confirmed by a test before opening"
+                },
+                {
+                  "value": "k1",
+                  "label": "It is later"
+                },
+                {
+                  "value": "k2",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "16:00: the reopening time was announced as it stood.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the facility manager: why 18:00 was wrong, what you planned, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "A well-mixed tank with clean inflow obeys dC/dt = -(r/V)C; the solution decays exponentially, so after one volume about 37% remains, not zero.",
+          "modelAnswer": "Exponential decay, not plug flow."
+        },
+        {
+          "label": "What you planned",
+          "criteria": "C(t) = 4.0 e^(-t/10) reaches 1.0 at t = 10 ln 4, about 13.9 h, so after about 22:00; reopen next morning after a passing test; a straight line is hours early.",
+          "modelAnswer": "About 22:00; reopen after a test."
+        },
+        {
+          "label": "How you know",
+          "criteria": "The model fits all three readings and predicts 1.47 at 18:00.",
+          "modelAnswer": "Fits within 1%."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-333)",
+          "checkedAt": "2026-11-17",
+          "note": "The case's deadline; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Shipping nothing ships nothing wrong, but the deadline passes without the fix.",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "wrongSent": {
+      "label": "Unsafe reopening announced",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "The pool would open with the chemical still above the limit."
+    },
+    "notSent": {
+      "label": "Nothing shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "No announcement; the public phoned all evening."
+    },
+    "right": {
+      "label": "Right, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and fixed and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "The pool reopens once the level is under the limit, on a time people can plan around."
+    },
+    "gaps": {
+      "label": "Right, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The result is right, but it went late, unchecked, before you looked, or with a weaker fix."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Compared models against the readings before deciding",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked before acting."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Planned from a first-order decay model",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed",
+            "score": "met",
+            "why": "A first-order model fitted to the readings."
+          },
+          {
+            "when": "fix == \"test\"",
+            "score": "partial",
+            "why": "Safe, but staff and the public get no plan, and an 18:00 test would just fail."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{fix == \"line\" ? \"Exponential decay slows down; a line predicts the limit hours too early.\" : \"The plan still assumes one volume flushes everything.\"}"
+          }
+        ]
+      },
+      {
+        "id": "shipped",
+        "label": "Shipped nothing wrong",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sentAs != \"wrong\"",
+            "score": "met",
+            "why": "Nothing wrong shipped."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Shipped a wrong result."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Model fitted and checked after the last change, before announcing",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "Checked after the last change, before shipping."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Checked, but it failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"c0\" and checkDoc == \"k0\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"c0\" or checkDoc == \"k0\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rightK",
+        "label": "Right result shipped",
+        "value": "sentAs == \"right\" ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "altered",
+        "label": "Rows changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until shipped",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 14"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "Exponential fits; 1.47 at 18:00."
+      },
+      {
+        "at": "4-9 min",
+        "text": "t = 10 ln 4."
+      },
+      {
+        "at": "9-12 min",
+        "text": "Fit checked."
+      },
+      {
+        "at": "12-14 min",
+        "text": "Announce."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: set up the balance, then solve",
+        "body": "Rate in minus rate out gives a first-order equation; in a mixed tank it decays exponentially."
+      },
+      "gaps": {
+        "headline": "Right, with gaps",
+        "body": "The result is right; it went late, unchecked, before you looked, or with a weaker fix than the cause called for."
+      },
+      "wrongSent": {
+        "headline": "Unsafe plan",
+        "body": "A straight line through decaying data predicts too early."
+      },
+      "notSent": {
+        "headline": "Nothing shipped",
+        "body": "Safe, but the deadline passed without the fix."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "The plan treats the pool like a pipe: replace one volume and the old water is gone. But the pool is well mixed, so outflow carries the current concentration: dC/dt = -(60/600)C, C(t) = 4.0 e^(-t/10). The three readings fit this curve, and it predicts 1.47 at 18:00; the level reaches 1.0 at t = 10 ln 4, about 13.9 hours, near 22:00. Plan to reopen next morning after a passing test. A straight line through the first readings is hours too early."
+  }
+}

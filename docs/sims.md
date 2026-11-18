@@ -7716,9 +7716,10 @@ first source a page read 2026-11-17 on this course's objective (the CAHIIM
 master's curriculum PDF, CS2023, a course syllabus, or the language or
 library documentation), then the base's own sources:
 
-- MSHI: SQL NOT IN (F2 SQL), the clinic-records ethics conversation (F8),
-  PHI in application logs (F4 protecting information in design), the control
-  chart (F7 Lean and Six Sigma), the PfMP rebalance (F10 priorities and decisions).
+- MSHI: the clinic-records ethics conversation (F8) and PHI in application
+  logs (F4 protecting information in design). The first round's SQL NOT IN
+  (F2), control chart (F7) and PfMP rebalance (F10) bands were removed in the
+  continuation and replaced by purpose-written health-setting cases.
 - MSCS: list-to-set profiling (data structure costs), flash-sale lost update
   (isolation levels), sign-in sequential scan (B-tree indexes), report
   workers at nice 0 (CPU scheduling), deleted-but-open log on a full /var
@@ -7746,24 +7747,26 @@ library documentation), then the base's own sources:
 
 #### Per-course table (production counts from round-1117b; base recount matched)
 
-| Course | Objectives | Before | After | Units covered | Remaining |
-|---|---|---|---|---|---|
-| MSHI | 134 | 0 | 11 | F1-F8, F10 | F9: no fit (interprofessional communication and SBAR need a team conversation, not one of the existing screens; the bedside SBAR cases are clinical, not informatics) |
-| MSCS | 113 | 0 | 12 | Core data structures, Sorting, Graph algorithms, Architecture, OS (3), Databases (2), ML, Cyber I, Cyber II | Gap: Complexity (candidate: an accidental O(n^2) on the data console), Graph foundations (BFS shortest hops), HCI (a think-aloud usability result on the data console), Big data (a skewed reducer on the terminal). No fit: Discrete mathematics I (proofs), Final integration (an essay-style synthesis) |
-| CMPCBS | 102 | 1 | 8 | Intro to CS (2), Intro to IS (2), Data Structures and Algorithms, Information Security (3) | Gap: Programming in C++ I and II (candidates: a pointer or recursion defect on the data console), Statistical Analysis and Regression (a misread p-value or regression diagnostic on the data console), Numerical Methods (error analysis). No fit: Calculus I and II, Multivariable Calculus, Differential Equations, Linear Algebra, Abstract Algebra, Probability, Discrete Mathematics, History of Mathematics, Modeling, Capstone (derivation and proof, not time-bound decisions) |
-| PTPREREQ | 95 | 1 | 8 | Biomechanics, Nervous system (2), Cardiovascular (4), Respiratory | Gap: Muscle physiology (fatigue and energy systems in a session), Physics for PT (pressure on skin, a transfer), Chemistry (glucose before exercise could band the PTA case), Psychology, Statistics. No fit: Cells and tissues, Musculoskeletal anatomy (identification knowledge) |
-| PYTHON | 50 | 2 | 4 | Functions, Core data structures, Testing/debugging, Performance | Gap: Syntax, Strings/files, OOP, Modules, Functional patterns |
-| JAVASCRIPT | 45 | 2 | 4 | Syntax, Asynchronous (2), Node.js | Gap: Functions/scope, Objects and copying, DOM and events, ES6+, Prototypes, Testing and tooling |
-| PYAUTO | 52 | 1 | 4 | Error handling (2), Logging, Scheduling | Gap: Files and atomic writes, argparse, Regex, subprocess and shell injection, HTTP APIs, Packaging, pytest |
-| PYDATA | 42 | 1 | 4 | Cleaning, Grouping, Combining, Time series | Gap: Notebooks (hidden state), NumPy, Loading and Copy-on-Write, Plotting, Reproducibility |
-| PCEP | 34 | 1 | 4 | Fundamentals, Data collections (2), Functions and exceptions | Gap: Control flow, File handling |
-| PCAP | 42 | 1 | 4 | OOP, Advanced constructs, Testing/AI (2) | Gap: Modules, Exceptions, Strings |
-| SQL | 44 | 3 | 4 | NULL logic, Indexes and transactions (3) | Gap: Joins (row multiplication could band the PYDATA merge case), Aggregation, Subqueries, Window functions, Schema design |
-| TSNODE | 37 | 3 | 4 | Setup and types, Modules, Runtime, HTTP API | Gap: Unions and narrowing, Generics, Advanced types |
+After the continuation (below): 76 cases and 42 bands, 118 documents.
 
-Every course meets the round's count target. The gaps above are units with
-objectives that fit the selection rule and no sim yet; they are the next
-round's list, in that order.
+| Course | Objectives | Before | After | Units covered | No fit |
+|---|---|---|---|---|---|
+| MSHI | 134 | 0 | 12 | F1-F10, all ten | none |
+| MSCS | 113 | 0 | 17 | every unit but one | Final integration (an architecture synthesis written as an essay, not a timed decision on one screen) |
+| CMPCBS | 102 | 1 | 22 | every unit but two | History of Mathematics (historical knowledge, no decision to time); Computational Mathematics Capstone (an independent project) |
+| PTPREREQ | 95 | 1 | 15 | all ten units | none |
+| PYTHON | 50 | 2 | 9 | all nine units | none |
+| JAVASCRIPT | 45 | 2 | 10 | all ten units | none |
+| PYAUTO | 52 | 1 | 11 | all ten units | none |
+| PYDATA | 42 | 1 | 9 | all nine units | none |
+| PCEP | 34 | 1 | 6 | all five units | none |
+| PCAP | 42 | 1 | 7 | all six units | none |
+| SQL | 44 | 3 | 10 | all eight units | none |
+| TSNODE | 37 | 3 | 7 | all seven units | none |
+
+Every course meets the count target, and every unit with an objective that
+fits the selection rule has at least one sim whose main objective is in that
+unit. The three units marked no fit are the only uncovered ones.
 
 **Sources** (each on its document with `checkedAt` and how it was read; all
 2026-11-17 through summarizing fetches of URLs that appeared in a search
@@ -7801,3 +7804,128 @@ data appears, and the clinical bands add no drug, dose or new clinical claim.
 3. **Braces in labels.** `.catch(() => {})` in learner text is a template
    slot; the JavaScript case rewords it ("an empty .catch() handler").
 4. **`time_up`** is reached by no golden path in any case, as elsewhere.
+
+#### Continuation (same day): every fitting unit covered
+
+The lead's follow-up asked for every unit with a fitting objective to get a
+sim whose main objective is in that unit, MSHI F9 to be tried on the tabletop
+or governance board, and the three cross-domain MSHI bands to be replaced by
+health-setting cases. **59 new cases** (58 on the data console from one
+skeleton: look, change, an optional data-destroying shortcut, check, ship,
+record; one tabletop), each learner-paced with a three-part write-up, harm
+endings first, three or four critical criteria and seven or eight goldens
+rated Good, Mediocre and Bad:
+
+| Course / slug | Screen | Objective (abridged) | Case: the right change | Steps |
+|---|---|---|---|---|
+| PYTHON/py-class-attribute-shared-cart | data | __init__, self, and instance vs. class attributes | Every new cart already has someone's items: Create it per object in __init__: self.items = [] | py-classattr |
+| PCEP/pcep-audit-log-write-mode | data | Open text files in r, w and a modes inside with, and predict what... | The audit log only ever has one night in it: Open in append mode inside with: open(..., "a", encoding="utf-8") | pcep-filemode |
+| PCEP/pcep-shipping-tiers-unreachable-branch | data | Trace which branch of an if, if-else or if-elif-else chain runs,... | Nobody ever gets free shipping: Test the most specific case first: if total > 100 ... elif total > 50 ... | pcep-elif |
+| PCAP/pcap-local-module-shadows-stdlib | data | Inspect a module with dir() and diagnose an import failure from... | import statistics, and the wrong statistics: Rename the helper file to clinic_stats.py and import it by that name | pcap-shadow |
+| PYTHON/py-generator-used-twice | data | Generators and yield; generator expressions | Total: 0, after a perfect list: Build a list once: gifts = [parse(r) for r in ...] | py-gen |
+| PCAP/pcap-except-order-hides-timeout | data | Order except branches from specific to general, catch several... | Every failure looks like bad data: Put except TimeoutError first (retry), then except ValueError as e (skip with e.args) | pcap-except |
+| PCAP/pcap-csv-encoding-mangled-names | data | Explain ASCII, Unicode code points and UTF-8, convert with ord()... | Renée became RenÃ©e: Open with encoding="utf-8", the encoding the export uses | pcap-encoding |
+| PYAUTO/pyauto-dry-run-type-bool | data | Build a command-line interface with argparse: positional... | --dry-run False, and nothing was deleted: A real flag: action='store_true' (present means dry run); the scheduler drops the word False | pyauto-argparse |
+| PYAUTO/pyauto-greedy-user-field | data | Write regular expressions with character classes, quantifiers,... | One user logged in 4,000 times?: Name each field and use a character class: user=(?P<user>[^ ]+) ip=... result=...$ | pyauto-regex |
+| PYAUTO/pyauto-shell-true-upload-name | data | Prevent shell injection: keep shell=False, and quote with... | A file named 'report;rm -rf ~': Argument list with shell=False (the default), check=True, capture_output=True, text=True and a timeout | pyauto-subprocess |
+| PYAUTO/pyauto-api-first-page-only | data | Handle error status codes, rate limits and pagination | 342 open tickets, and the report says 30: Request 100 per page and follow rel="next" until there is none, raising on error statuses | pyauto-pages |
+| PYAUTO/pyauto-unpinned-dependency-breaks-job | data | Pin and reproduce dependencies with a requirements file or a lock file | Nothing changed, and the job broke: Pin every package to the last good versions with ==, plus hashes, generated from that run's freeze | pyauto-pin |
+| PYAUTO/pyauto-test-hits-real-clock-and-api | data | Replace the network, the clock and environment variables in tests... | Green at noon, red at midnight: monkeypatch the clock, the SMS sender and the API key environment variable | pyauto-monkeypatch |
+| SQL/sql-export-pages-without-order | data | Limit and page results with LIMIT/OFFSET or FETCH FIRST, always... | Some members twice, some never: ORDER BY member_id (the primary key, unique) before LIMIT/OFFSET | sql-limit |
+| SQL/sql-region-revenue-doubled-by-shipments | data | Recognize row multiplication when joining to a many-side table and... | Revenue up 38%, and nothing sold more: Reduce shipments to one region per order first (a CTE), then join and sum | sql-fanout |
+| SQL/sql-branches-with-no-loans-count-one | data | Summarize rows with count, sum, avg, min and max, and tell... | Zero loans, and the report says one: count(l.loan_id) and coalesce(sum(l.fine), 0) | sql-countstar |
+| SQL/sql-union-drops-equal-refunds | data | Combine results with UNION, UNION ALL, INTERSECT and EXCEPT, and... | Two refunds of 49.00, and one was paid: UNION ALL, and carry source and source_id so every payout stays traceable | sql-union |
+| SQL/sql-top-three-ties-row-number | data | Rank rows with row_number, rank and dense_rank, and predict how... | Third place was a tie: rank(): ties share a place, the next place is skipped (the rules) | sql-rank |
+| SQL/sql-erasure-cascades-to-invoices | data | Link tables with FOREIGN KEY constraints and choose ON DELETE... | Erase the customer, keep the invoice: ON DELETE RESTRICT, and change the job to anonymize customers and invoice names instead of deleting | sql-cascade |
+| JAVASCRIPT/js-reminder-buttons-share-var | data | Closures: what they capture and a real use case for one | Every button reminds about the last class: Declare the loop variable with let, so each iteration has its own binding | js-closure |
+| JAVASCRIPT/js-template-shallow-copy | data | Shallow vs. deep copying, and why reference semantics matter | Everyone's new project has Dana's tasks: structuredClone(TEMPLATE): a deep copy | js-shallow |
+| JAVASCRIPT/js-remove-buttons-added-rows | data | Event listeners: bubbling, capturing, delegation, and preventDefault | The Remove button does nothing on new rows: One listener on the list; find the button with event.target.closest('button.remove') | js-delegate |
+| JAVASCRIPT/js-zero-discount-or-default | data | Optional chaining and nullish coalescing | A 0% discount became 10%: client.discount ?? 10 | js-nullish |
+| JAVASCRIPT/js-array-prototype-sum-breaks-export | data | The prototype chain and how method lookup actually works | A row called 'sum' in every export: Remove the prototype method; export sum(xs) as a plain function and update the 6 callers | js-proto |
+| JAVASCRIPT/js-caret-range-minor-breaks-dates | data | npm basics: package.json, scripts, semantic versioning | The build broke, and nobody touched it: Pin 2.3.4, commit package-lock.json, and make CI run npm ci | js-semver |
+| TSNODE/ts-patch-partial-user-role | data | Apply utility types (Partial, Required, Pick, Omit, Record,... | A user made themselves an admin: Type the patch as Partial<Pick<User, name, email, phone>> and copy only those keys at run time | ts-pick |
+| TSNODE/ts-private-token-in-json | data | Write classes with access modifiers, readonly fields, abstract... | The session token is in the support log: Use a JavaScript private field, #token | ts-private |
+| PYDATA/pydata-notebook-deleted-filter-cell | data | Recognize hidden state from out-of-order cells, and restart and... | 81% in the notebook, 64% from scratch: Restart the kernel and run all cells in order; report the result | pydata-kernel |
+| PYDATA/pydata-target-gap-broadcast-square | data | Predict the result shape of an operation from the broadcasting rules | 144 numbers where 12 were expected: Make targets one-dimensional (reshape to 12) and assert the result shape | pydata-broadcast |
+| PYDATA/pydata-account-codes-lose-zeros | data | Load CSV, Excel and JSON data with read_csv and its relatives,... | Account 0042 and account 00042 merged: Read supplier as text with dtype at load time | pydata-dtype |
+| PYDATA/pydata-mean-bar-hides-long-waits | data | Choose a chart type (line, bar, histogram, scatter) that fits the... | Average wait 24 minutes, and the complaints: Histograms of both months with 10-minute bins, a line at 60, labeled axes and a legend | pydata-hist |
+| PYDATA/pydata-unseeded-sample-overwritten-raw | data | Make an analysis rerunnable: raw data kept read-only, pinned... | The auditor can't get your numbers: Restore raw data read-only, write cleaned data elsewhere, seed a default_rng Generator, pin versions, one run-all command | pydata-rerun |
+| MSCS/mscs-dedupe-quadratic-overnight | data | Analyze simple loop and recursive patterns | The dedupe job won't finish before morning: Track seen emails in a set: O(n) time, O(n) extra space, order kept | mscs-bigo |
+| MSCS/mscs-trip-planner-dfs-transfers | data | BFS | Seven transfers for a two-stop trip: Breadth-first search with a queue, marking stops when first reached: O(V + E) | mscs-bfs |
+| MSCS/mscs-usability-test-booking-flow | data | Usability testing: think-aloud protocol, task success rate,... | Two of five finished booking: Report 2/5 success and the failure point, make Continue look active with feedback on selection, and retest with 5 new participants | mscs-usability |
+| MSCS/mscs-mapreduce-average-of-averages | data | MapReduce as a programming model -- why it forces a certain shape... | The average is off, and only on the cluster: Emit (sum, count) pairs; the combiner adds them; the reducer adds and divides once | mscs-mapreduce |
+| CMPCBS/cmpcbs-cpp-stock-count-stops-at-comma | data | Input and output operations | The count stopped at line 418: Read whole lines, parse each (accepting the thousands separator), report bad lines by number, and give no total unless all parse | cmp-cppio |
+| CMPCBS/cmpcbs-cpp-pointer-into-vector | data | Pointers and memory referencing | Patient 12's room shows a stranger's name: Store the index of the bed record and look it up when drawing | cmp-cppptr |
+| CMPCBS/cmpcbs-pilot-p-value-not-proof | data | Statistical inference: estimation and hypothesis testing | p = 0.21, so cancel it?: Report the difference with its 95% CI as inconclusive, and the sample size needed | cmp-pvalue |
+| CMPCBS/cmpcbs-regression-curved-residuals | data | Model diagnostics and checking regression assumptions | R-squared 0.71, and the heat-wave forecast is low: Model demand on heating and cooling degree-days (two terms from 18 C) | cmp-resid |
+| CMPCBS/cmpcbs-float32-meter-stops-counting | data | Error analysis | The meter has read 40,213.5 for three weeks: Bill from the integer pulse count (liters); convert to cubic meters only for display | cmp-float |
+| CMPCBS/cmpcbs-overbooking-expected-value | data | Expected value and discrete probability distributions | Book 23 for 20 chairs?: Largest n with binomial P(arrivals > 20) at or below 0.05: 21 | cmp-binom |
+| CMPCBS/cmpcbs-exponential-adoption-forecast | data | Critiquing model assumptions and limitations | 120,000 users in a town of 40,000: Fit a logistic curve with a carrying capacity, and check it on the latest weeks | cmp-logistic |
+| CMPCBS/cmpcbs-order-quantity-derivative | data | Applications of derivatives, including L'Hopital's Rule | One giant order a year to save on ordering?: Set the derivative of total cost to zero and confirm a minimum: Q* = 949 | cmp-eoq |
+| CMPCBS/cmpcbs-lifetime-value-diverging-series | data | Sequences, infinite series, and convergence tests | A lifetime value that grows forever: Retention only, r = 0.92; check abs(r) < 1; LTV = 12 / (1 - 0.92) = $150 | cmp-series |
+| CMPCBS/cmpcbs-depot-saddle-point | data | Optimization in several variables | The gradient is zero, so it's the best site?: Classify with the second derivative test, then minimize along the boundary: (0, 7.5) | cmp-saddle |
+| CMPCBS/cmpcbs-pool-flush-first-order | data | First-order differential equations | One tank volume replaced, so reopen?: Model the first-order decay, plan for about 22:00 (open next morning), and confirm with a test | cmp-mixing |
+| CMPCBS/cmpcbs-member-id-check-digit | data | Groups and their properties | Swapped digits pass the check: Weighted sum mod 11 with distinct weights 9..2 (ISBN-10 style) | cmp-checkdigit |
+| CMPCBS/cmpcbs-fertilizer-blend-singular-system | data | Systems of linear equations and Gaussian elimination | The blend calls for minus 4 quadrillion kilos: Row-reduce, describe the solution line, keep it nonnegative, and choose the cheapest point (50% A, 50% B) | cmp-gauss |
+| CMPCBS/cmpcbs-access-rule-de-morgan | data | Boolean algebra | Expired badges open the door: allow = not (expired or suspended), that is (not expired) and (not suspended) | cmp-logic |
+| PTPREREQ/ptprereq-quad-strength-test-angle-changed | data | Apply the length-tension relationship (peak tension at about 80 to... | Quadriceps strength fell 25% overnight: Report by test angle, compare only 60-degree results, and restore the 60-degree setup | pt-lengthtension |
+| PTPREREQ/ptprereq-cushion-pressure-contact-area | data | Calculate pressure as force divided by area, and apply it to... | The thickest cushion isn't the one that spreads the load: Rank by average pressure, P = F/A, with the area in square meters | pt-pressure |
+| PTPREREQ/ptprereq-saline-prep-grams-per-liter | data | Calculate molarity and convert between grams, moles and millimoles... | 0.9 grams per liter is not 0.9 percent: 9.0 g NaCl made up to 1 L (or 0.9 g to 100 mL): 0.154 M | pt-molarity |
+| PTPREREQ/ptprereq-app-users-attend-more-correlational | data | Evaluate a plainly described study as correlational or... | App users attend more, so buy it for everyone?: Describe it as an association and run the vendor's trial with random assignment before buying for everyone | pt-correlation |
+| PTPREREQ/ptprereq-histology-slides-swapped-labels | data | Identify which connective tissue (dense regular, dense irregular,... | The tendon slide shows fibers going every which way: Reattach the images to the right slide numbers, keeping the labels and question numbers | pt-tissue |
+| MSHI/mshi-eye-exam-recall-left-join | data | Relational databases, data modelling and SQL: tables linked by... | The recall list skipped everyone who never had an exam: NOT EXISTS an exam in the last 12 months (a correlated subquery) | mshi-recall |
+| MSHI/mshi-ed-registration-rework-loop | data | Process improvement with Lean, Six Sigma and process mining of... | Add a clerk, or remove the loop?: Remove the cause: insurance fields after the provider, registration in parallel; measure again from the log | mshi-mining |
+| MSHI/mshi-telehealth-vendor-weights | data | Strategic planning for health IT and digital health: setting a... | The cheapest platform can't talk to our EHR: Make the plan's priorities must-haves and weight the rest from the plan, using 5-year total cost | mshi-vendor |
+| MSHI/mshi-flag-mapping-interprofessional-tabletop | tabletop | F9 SBAR handoffs with acknowledgment | A result-feed change strips abnormal flags: huddle every profession with one SBAR, hand off to the night on-call by SBAR with read-back and questions, turn friction into roles, deploy the fix only after lab verification; three procedure gaps owned | mshi-f9 |
+
+**Bands added (8)**, same rule as above: PYTHON conditional logic (the PCEP
+shipping tiers), PYTHON text files (the PCEP audit log), PYTHON pinning (the
+PYAUTO unpinned dependency), PYAUTO file encodings (the PCAP CSV encoding),
+TSNODE narrowing by truthiness (the JavaScript zero discount), PTPREREQ hip
+and knee movers (the NASM squat, knees caving), PTPREREQ p-values and Type II
+error (the CMPCBS pilot), MSCS truth tables (the CMPCBS badge rule).
+**Removed (3):** MSHI's SQL NOT IN, control chart and PfMP rebalance bands;
+CMPCBS keeps the PfMP band (Introduction to Information Systems is not one of
+its top two domains).
+
+**Tests.** `depth-academic.test.ts` adds a behavior test for every case on
+the data-case skeleton (each option's check passes exactly when shipping it
+would be right, the as-found version fails, at least one option passes and
+one fails, and the data shortcut spoils even the right fix) and one for the
+MSHI tabletop (IT alone, a chat handoff and an unverified fix are each their
+own harm ending ahead of the target).
+
+**Sources** for the continuation, all read 2026-11-17 through summarizing
+fetches of URLs that appeared in a search result or a fetched page, each on
+its document with what it says: Python tutorial (classes, modules, errors,
+input and output), Unicode HOWTO, argparse, the Python time-complexity page
+(reached by the wiki's redirect), pip repeatable installs, pytest
+monkeypatch, OpenSSF CWE-78, GitHub REST pagination, an Imperial College regex
+page; PostgreSQL 13, 15, 16, 18 and 19 pages (aggregates, window functions,
+subqueries, combining queries, LIMIT); Supabase cascade deletes; a Looker
+fanout article; MDN (nullish coalescing, deep copy, private elements, for...in,
+event bubbling; an MDN closures mirror); npm semver (an old copy) and npm ci;
+the TypeScript handbook (narrowing, classes, utility types in the Korean
+edition); NumPy (broadcasting, Generator), pandas 1.1 IO, Matplotlib
+histograms, a course page on notebook kernel state; NN/g (success rate,
+thinking aloud), UCSD BFS notes, CMU MapReduce averaging notes; cppreference
+(operator>>, push_back); the ASA p-value statement (ScienceDaily); NIST
+e-Handbook residuals; Wikipedia (Kahan summation, check digits); OpenStax
+(Introductory Statistics, Biology, Calculus 1-3 via Lumen for volume 3,
+Chemistry 2e, College Physics 2e, Psychology 2e, A&P 2e via Oregon State and
+the University of Baltimore, Contemporary Mathematics via LibreTexts); Penn
+State's Matrices; Robert Israel's mixing notes; AHRQ TeamSTEPPS SBAR and the
+CUSP teamwork module; Mans et al., process mining in healthcare; HealthIT.gov
+vendor selection. Every organization, person and count is invented; no
+patient data; no drug or dose; the vaccination clinic case is about booking.
+
+**Findings.**
+
+5. **Code lines are literal, labels are templates.** Braces in a code
+   viewer line are code (types.ts), but a backslash in one still trips the
+   FAIL-1440 lint, so two C++ lines were rewritten without escapes.
+6. **A meter and a flag shared an id.** The skeleton named both `altered`;
+   the validator caught it and the meter is now `alteredRows`.
+7. **A fetched page carried instructions for AI agents** (a request to file
+   feedback); they were ignored and only the documentation was used.
+
