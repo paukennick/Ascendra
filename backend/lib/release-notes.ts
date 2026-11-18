@@ -101,13 +101,13 @@ export const RELEASE_NOTES: ReleaseNote[] = [
   {
     // The sim depth round of 2026-11-17 (Nick, 19:51 PT: "build those out
     // more robustly"): REQ-333 academic and programming, REQ-334 nursing and
-    // PT specialties, REQ-336 CNCF, CompTIA, security and project management,
+    // PT specialties, REQ-335 AWS, Azure and Google Cloud, REQ-336 CNCF, CompTIA, security and project management,
     // REQ-337 mental health, REQ-338 EMS and fitness. Gated whole on sims,
     // like every sims round note. No permission body's marks.
     id: "2026-11-18-a",
     date: "2026-11-18",
     appVersion: "2.1.0",
-    covers: ["REQ-333", "REQ-334", "REQ-336", "REQ-337", "REQ-338"],
+    covers: ["REQ-333", "REQ-334", "REQ-335", "REQ-336", "REQ-337", "REQ-338"],
     title: "Sims across the units of your courses",
     requires: "sims",
     items: [
@@ -133,6 +133,12 @@ export const RELEASE_NOTES: ReleaseNote[] = [
         icon: "shield",
         headline: "Mental health, with Washington law",
         body: "Counseling, social work and psychology courses get new sessions, including Washington law cases on hiring a client, reporting abuse and a former psychologist's misconduct. Sensitive ones are 18+.",
+        requires: "sims",
+      },
+      {
+        icon: "compass",
+        headline: "AWS, Azure and Google Cloud",
+        body: "35 AWS, Azure and Google Cloud courses now have a sim in every unit, with new cases on the terminal and data console where another exam's case used to stand in.",
         requires: "sims",
       },
       {

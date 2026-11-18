@@ -54,6 +54,12 @@ export function driver(doc: ScenarioDoc) {
   };
 }
 
+// FAIL-2540: documents whose course outline a later round re-read, with the
+// exact date it was read again.
+const OUTLINE_REREAD: Readonly<Record<string, string>> = {
+  "bigquery-dashboard-bill-ace": "2026-11-18",
+};
+
 describe("IT sims wave 4 (REQ-316)", () => {
   test("every document is registered by slug, valid, learner-paced, engine 1.2 with an ending order, on its screen and profile", () => {
     assert.ok(WAVE4.length > 0);
@@ -80,7 +86,10 @@ describe("IT sims wave 4 (REQ-316)", () => {
       for (const k of Object.keys(d.endings)) assert.ok(d.scoring.debrief[k], `${w.slug}: debrief for ${k}`);
       assert.deepEqual(secondsUnitProblems(d), [], w.slug);
       assert.deepEqual(backslashEscapeProblems(d), [], w.slug);
-      assert.equal(d.sources[0].checkedAt, "2026-11-16", `${w.slug}: this course's outline, read for this wave`);
+      // FAIL-2540: REQ-335 (FAIL-2504) re-read the ACE outline from Google's
+      // exam guide PDF on 2026-11-18 and moved this band's first source to it;
+      // every other document keeps this wave's read date.
+      assert.equal(d.sources[0].checkedAt, OUTLINE_REREAD[w.slug] ?? "2026-11-16", `${w.slug}: this course's outline, read for this wave`);
     }
   });
 

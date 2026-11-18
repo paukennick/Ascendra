@@ -19553,6 +19553,29 @@
       "prevention_rules": [],
       "prevention_notes": "tsc runs before handoff for any change to test files.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2540",
+      "date": "2026-11-18",
+      "title": "it-wave4 pins the GCPACE band's outline read date after REQ-335 re-read that outline",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "lib/sim/it-wave4.test.ts 'every document is registered by slug ...' failed on feature/depth-cloud b311d98f and on the wave after merging it: 'bigquery-dashboard-bill-ace: this course's outline, read for this wave' expected 2026-11-16, got 2026-11-18. The cloud builder reported it as a SECPLUS shared-objective failure; that assertion passes (FAIL-2125 already allows ransomware-recovery-site-secplus and flood-continuity-tabletop-secplus to share the objective), on origin/master 92040786 (12/12) and on the wave.",
+      "how_detected": "the coordinator relayed the cloud builder's lib/sim failure; integrator-3 ran it-wave4.test.ts on origin/master (pass), on origin/feature/depth-cloud (fail) and on the merged wave",
+      "root_cause": "REQ-335 (FAIL-2504, commit 3675c96f) replaced the ACE band's first source, the stale HTML outline read 2026-11-16, with Google's exam guide PDF read 2026-11-18; it-wave4.test.ts asserts that every wave-4 document's first source was read on 2026-11-16. The branch's depth-cloud.test.ts was run, it-wave4.test.ts was misread.",
+      "requirement": "REQ-335",
+      "affected": [
+        "backend/lib/sim/it-wave4.test.ts"
+      ],
+      "fix_summary": "An exact per-slug re-read date (OUTLINE_REREAD: bigquery-dashboard-bill-ace 2026-11-18); every other wave-4 document still must be 2026-11-16. No assertion loosened; no document's objective changed.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/it-wave4.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A round that re-reads an earlier wave's source updates that wave's pinned date with the exact new one, in the same commit.",
+      "recurrence_of": ""
     }
   ]
 }
