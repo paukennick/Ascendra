@@ -12086,7 +12086,50 @@
       ],
       "risk_notes": [
         "Changes the runtime fingerprint once: merge only together with a store build",
-        "Not run: the fingerprint tool itself"
+        "Verified 2026-11-17 (REQ-330) with expo-updates runtimeversion:resolve and real node_modules: with the config, 2.0.0 and 2.1.0 give the same runtime on Android and iOS; without it they differ"
+      ]
+    },
+    {
+      "id": "REQ-330",
+      "category": "release",
+      "title": "Store build 2.1.0: integration branch, version bump and release steps",
+      "description": "Nick 2026-11-17 16:52 PT approved the next store build. release/store-2.1 merges #190 (REQ-302, version out of the runtime fingerprint), #125 (REQ-221 M8, Android asset_statements), #194 (expo 57.0.33) and #195 (mobile minor/patch group; react, react-dom, react-native-safe-area-context and react-native-screens kept on the versions Expo SDK 57.0.33 expects, expo-crypto ~57.0.4). The app version goes from 2.0.0 to 2.1.0 (minor: a new native capability, docs/versioning.md section 6) in the four places appVersion.test.ts keeps equal; store build numbers stay with EAS (appVersionSource remote, production autoIncrement). The CHANGELOG is cut into 2.1.0 and 2.0.0 sections. docs/next-store-build-plan.md records the build and submit steps and Nick's console steps.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "mobile/app.json",
+        "mobile/package.json",
+        "mobile/package-lock.json",
+        "mobile/src/lib/appVersion.ts",
+        "backend/lib/release-notes.ts",
+        "CHANGELOG.md",
+        "docs/next-store-build-plan.md",
+        "docs/versioning.md"
+      ],
+      "acceptance_criteria": [
+        "app.json, APP_VERSION, package.json and package-lock.json all say 2.1.0",
+        "npx expo install --check reports dependencies up to date",
+        "the runtime fingerprint is the same for 2.0.0 and 2.1.0 on this branch",
+        "a What's new note with appVersion 2.1.0 covers REQ-330 and REQ-221",
+        "the build and submit steps name the production profile and channel"
+      ],
+      "validation_required": [
+        "mobile npm test and npx tsc --noEmit",
+        "npx expo export --platform web and npx expo config --type public",
+        "mobile audit gate",
+        "backend release-notes, ship-notes, client-version and app-runtime tests",
+        "python3 omni gate",
+        "EAS update workflow dry run on the merged commit (lead)"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "docs/next-store-build-plan.md",
+        "docs/versioning.md"
+      ],
+      "risk_notes": [
+        "New runtime: installed 2.0.0 binaries get no OTA update carrying this code; learners need the store build",
+        "The Play app signing SHA-256 must be added to backend/public/.well-known/assetlinks.json or autofill association works only for internal (EAS-signed) installs",
+        "Release notes written after this merges must use appVersion 2.1.0 (release-notes.test.ts: never decreasing)"
       ]
     }
   ]

@@ -99,6 +99,40 @@ export const RELEASE_NOTE_LIMITS = {
 // Newest first.
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    // REQ-330 (Nick, 2026-11-17 16:52 PT): store build 2.1.0. Carries REQ-221
+    // M8 (the app declares the website, so Android can offer a saved web
+    // password) and REQ-302 (a version change alone no longer needs a store
+    // download). The Play item is true for Play installs only once the Play
+    // app signing SHA-256 is in backend/public/.well-known/assetlinks.json.
+    id: "2026-11-17-i",
+    date: "2026-11-17",
+    appVersion: "2.1.0",
+    covers: ["REQ-330", "REQ-221"],
+    title: "Ascendra 2.1.0 for your phone",
+    items: [
+      {
+        icon: "smartphone",
+        headline: "A new app build",
+        body: "Version 2.1.0 is a new build of the phone app. When your app store offers the update, install it so the app keeps receiving its updates.",
+      },
+      {
+        icon: "shield",
+        headline: "Saved passwords on Android",
+        body: "After the update, Android can offer the password you saved for ascendra-learn.com when you sign in to the app, so you don't have to type it.",
+      },
+      {
+        icon: "rotate-ccw",
+        headline: "Fewer trips to the store",
+        body: "More future updates can install inside the app on their own, even when the version number changes.",
+      },
+      {
+        icon: "info",
+        headline: "Check your version",
+        body: "Settings, then About, shows the version you have. Your progress stays with your account whichever version you use.",
+      },
+    ],
+  },
+  {
     // REQ-329 (Nick, 2026-11-17 09:18 PT): the sims on sensitive objectives
     // held back until the per-sim 18+ gate (REQ-327). Gated whole on sims.
     // Pattern level only, like the sims themselves: no method, means or

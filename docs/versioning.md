@@ -86,11 +86,11 @@ receives the newer JavaScript. That is what makes the minimum version
 (section 5) work: an old-runtime binary falls below it and is sent to the
 store; a current-runtime binary below it fetches the update.
 
-**Open point.** Whether `expo.version` itself is part of the fingerprint
-was not verified (section 11). If it is, changing `app.json` `version`
-changes the runtime and a version bump is a store build; if it is not, it
-is an OTA. Run the workflow's dry run on the bump commit and read its
-answer before publishing. Never run `eas build` or `eas submit` from an
+**The version and the runtime.** By default `expo.version` is part of the
+fingerprint; `mobile/fingerprint.config.js` (REQ-302, shipped in the 2.1.0
+store build) leaves it out, so from 2.1.0 on a version bump alone is an OTA
+(verified 2026-11-17, section 11). Still run the workflow's dry run on the
+bump commit and read its answer before publishing. Never run `eas build` or `eas submit` from an
 agent session; Nick or the lead does.
 
 ## 4. The headers a request carries
@@ -293,10 +293,26 @@ For a behavior, endpoint or old-app accommodation that is to go away:
   a bare version bump would change the runtime and strand installed apps'
   over-the-air updates. `mobile/fingerprint.config.js` skips them (approved);
   it changes the fingerprint once, so it ships with the next store build.
-  Until then, don't change the version.
+  **Verified 2026-11-17 (REQ-330)** by running the tool EAS uses,
+  `npx expo-updates runtimeversion:resolve`, in a full clone of
+  `release/store-2.1` with real node_modules (`@expo/fingerprint` 0.20.16;
+  the app config now loads, and its `expoConfig` source is in the hash). With
+  `fingerprint.config.js`, versions 2.0.0 and 2.1.0 give the same runtime
+  (Android `77d87bb4`, iOS `f59c3258`) and the hashed config has no
+  `version`; with the file removed, the version is hashed and 2.0.0 and 2.1.0
+  give different runtimes on both platforms. From the 2.1.0 store build on, a
+  version bump alone can ship over the air; anything native still cannot.
+- **2.1.0 (REQ-330).** The store build that carries the file is version
+  2.1.0 (section 6: a new native capability is a minor bump). Store build
+  numbers stay with EAS (`appVersionSource: remote`, production
+  `autoIncrement`); nothing in the repo sets them.
 - **30 days in the stores before raising the minimum** (section 5): approved.
 - **First tag:** `v2.0.0` on the production commit f4b9c645 (2026-11-14):
   approved. The cloud session can't create tags (its GitHub proxy refuses
   tag writes); create it from GitHub's Releases page or a local clone.
+  It had not been created as of 2026-11-17 (`git ls-remote --tags origin`
+  listed none). Create it before `v2.1.0`, then tag 2.1.0 on the master
+  commit the 2.1.0 store build was made from (section 8), once the build is
+  accepted in the stores.
 - **iOS store link.** `IOS_APP_STORE_URL` is not set until the iOS app is in
   the App Store; the iOS update screen has no button until then.
