@@ -142,4 +142,5 @@ export const DEPTH_CLOUD: readonly CloudEntry[] = [
   { course: "AWSANS", slug: "vpn-large-responses-hang-pmtud-blocked", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "ans-pmtud" },
   { course: "AZ400", slug: "storage-key-in-history-before-open-source", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "az400-scrub" },
   { course: "AWSSCS", slug: "miner-instance-evidence-before-scale-in", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "scs-forensics" },
+  { course: "AWSDOP", slug: "miner-instance-evidence-before-scale-in-dop", screen: "terminal", profile: "infrastructure", kind: "band", steps: "dc-awsdop-miner-instance-evidence-before-scale-in-dop", base: "AWSSCS/miner-instance-evidence-before-scale-in" },
 ];

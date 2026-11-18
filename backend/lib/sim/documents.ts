@@ -677,6 +677,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("AWSANS", "vpn-large-responses-hang-pmtud-blocked"),
   entry("AZ400", "storage-key-in-history-before-open-source"),
   entry("AWSSCS", "miner-instance-evidence-before-scale-in"),
+  band("AWSDOP", "miner-instance-evidence-before-scale-in-dop"),
   // ---- end REQ-335 ----
   // ---- REQ-323 (docs/sims.md 22.32): health breadth and nursing depth of the
   // 2026-11-17 round. Bands first, then new cases. Keep these together. ----
