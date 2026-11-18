@@ -1,0 +1,875 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "psa-range-full-before-launch",
+  "title": "Launch day: the new database cannot be created because the private services range is full",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "neteng@cloudshell:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "13:10 pipeline loyalty-launch: Cloud SQL create FAILED, Memorystore create FAILED (no free IP range); deadline 15:00",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "15:00: launch postponed",
+          "when": "not isNull(missAt)",
+          "at": "timeAt(missAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "15:00: launch pipeline complete",
+          "when": "not isNull(okAt)",
+          "at": "timeAt(okAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "vpc",
+          "label": "prod-vpc (shared VPC)",
+          "spokenLabel": "the production VPC",
+          "kind": "Interconnect to on-premises",
+          "status": "{fixed and not harmed ? \"on-premises routes 10.0.0.0/12\" : \"on-premises routes 10.0.0.0/12\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "psa",
+          "label": "Private services access connection",
+          "spokenLabel": "the private services connection",
+          "kind": "servicenetworking peering",
+          "status": "{harmed ? \"psa-2 10.10.0.0/16 overlaps on-premises\" : fixed ? \"psa-1 and psa-2 10.48.0.0/20\" : \"psa-1 10.40.0.0/24, full\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "svc",
+          "label": "New Cloud SQL and Memorystore",
+          "spokenLabel": "the new managed services",
+          "kind": "loyalty launch",
+          "status": "{fixed and not harmed ? \"created on private IP\" : \"cannot be created\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "vpc",
+          "to": "psa",
+          "label": "peering",
+          "status": "{fixed and not harmed ? \"room\" : \"no room\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Planning connectivity to managed services: private services access, Private Service Connect, Serverless VPC Access",
+  "secondaryObjectives": [
+    "Designing IP address space across on-premises and cloud environments, avoiding overlaps"
+  ],
+  "sources": [
+    {
+      "cite": "Google Cloud, Professional Cloud Network Engineer certification exam guide (April 2026): designing and planning a VPC network ~21%, VPC network implementation ~20%, managed network services ~16%, hybrid and multicloud interconnectivity ~16%, network operations ~14%, cloud network security ~13%",
+      "checkedAt": "2026-11-17",
+      "url": "https://services.google.com/fh/files/misc/042426_professional_cloud_network_engineer_exam_guide_english.pdf",
+      "note": "Read through a summarizing fetch on 2026-11-17. Bullet quoted there under 1.1: 'Planning for Google Kubernetes Engine (GKE) networking (e.g., secondary ranges, scale potential based on IP address space'. The objective wording is the course seed's. (read for this round by an earlier pass on 2026-11-17) (read for this round by an earlier pass on 2026-11-17) (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "Google Cloud documentation, AlloyDB: Increase private services access address space",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.cloud.google.com/alloydb/docs/private-ip-space-increase",
+      "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: when the allocated space is too small, creating an instance fails; allocate a new range with 'gcloud compute addresses create ... --global --purpose=VPC_PEERING --prefix-length=16 ... --network', list the ranges already on the connection (reservedPeeringRanges), then 'gcloud services vpc-peerings update --service=servicenetworking.googleapis.com --ranges=RESERVED_RANGE_NAME,EXISTING_RANGES_LIST'. The same private services access connection serves Cloud SQL and Memorystore; the exact creation error text and that an overlap with routes learned from on-premises breaks reachability are from memory (to verify)."
+    }
+  ],
+  "brief": {
+    "situation": "You are the network engineer at Fennick Outdoor. The loyalty launch needs a Cloud SQL instance and a Memorystore instance on private IP in the shared VPC prod-vpc. Both creations fail. The launch's deployment pipeline must finish by 15:00 for the 15:30 announcement.",
+    "handover": [
+      "prod-vpc's private services access connection has one allocated range, psa-1 (10.40.0.0/24), from 2023.",
+      "On-premises networks reach prod-vpc over Interconnect and advertise 10.0.0.0/12 and 172.16.0.0/16; the IPAM sheet lists 10.48.0.0/16 as free for Google Cloud."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows prod-vpc, the private services access peering and its allocated ranges, and on-premises routes.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "13:10",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineAt": {
+      "value": 6600,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "The launch pipeline must finish by 15:00, 110 minutes after the failure; the instances take about 20 minutes to create once there is room."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "harmed": {
+      "type": "bool",
+      "init": false
+    },
+    "tried": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "errAt": {
+      "type": "time",
+      "init": null
+    },
+    "rangesAt": {
+      "type": "time",
+      "init": null
+    },
+    "onpremAt": {
+      "type": "time",
+      "init": null
+    },
+    "ipamAt": {
+      "type": "time",
+      "init": null
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "missAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "full",
+        "quota",
+        "iam"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "err",
+        "ranges",
+        "onprem",
+        "ipam",
+        "alloc",
+        "record",
+        "overlap",
+        "retry",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "err": {
+      "label": "Read the failed operations",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(errAt)",
+          "then": [
+            {
+              "set": "errAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@cloudshell:~$ gcloud sql operations list --instance loyalty-db --limit 1 --format='value(error.errors[0].message)'\n{fixed and not harmed ? \"(succeeded)\" : \"Couldn't find free blocks in allocated IP ranges. Please allocate new ranges for this service provider.\"}"
+        },
+        {
+          "finding": "The managed services cannot find free addresses in the private services range."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "ranges": {
+      "label": "gcloud services vpc-peerings list (reservedPeeringRanges) and the range's usage",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(rangesAt)",
+          "then": [
+            {
+              "set": "rangesAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@cloudshell:~$ gcloud services vpc-peerings list --service=servicenetworking.googleapis.com --network=prod-vpc --format='value(reservedPeeringRanges)'\n{harmed ? \"psa-1;psa-2\" : fixed ? \"psa-1;psa-2\" : \"psa-1\"}\nneteng@cloudshell:~$ gcloud compute addresses describe psa-1 --global --format='value(address,prefixLength)'\n10.40.0.0  24  (in use by 9 Cloud SQL and 3 Memorystore instances)"
+        },
+        {
+          "finding": "One /24 serves every managed service in prod-vpc, and it is full."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "onprem": {
+      "label": "Routes learned from on-premises over Interconnect",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(onpremAt)",
+          "then": [
+            {
+              "set": "onpremAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@cloudshell:~$ gcloud compute routers get-status cr-prod --region us-east1 --format='value(result.bestRoutes[].destRange)'\n10.0.0.0/12  172.16.0.0/16"
+        },
+        {
+          "finding": "On-premises owns 10.0.0.0 to 10.15.255.255: any new range there would overlap."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "ipam": {
+      "label": "Check the IPAM sheet for a free block",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(ipamAt)",
+          "then": [
+            {
+              "set": "ipamAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@cloudshell:~$ grep -E 'free|GCP' ipam.csv | head -3\n10.48.0.0/16, free, reserved for Google Cloud\n10.40.0.0/24, psa-1\n10.10.0.0/16, on-premises (Lyon plant)"
+        },
+        {
+          "finding": "10.48.0.0/16 is free and outside on-premises space; 10.10.0.0/16 belongs to a plant."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "alloc": {
+      "label": "Allocate psa-2 = 10.48.0.0/20 and update the connection with psa-1 AND psa-2; re-run the pipeline",
+      "group": "Fix",
+      "available": "not busy and (not fixed and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "fixed",
+          "to": "true"
+        },
+        {
+          "output": "neteng@cloudshell:~$ gcloud compute addresses create psa-2 --global --purpose=VPC_PEERING --addresses=10.48.0.0 --prefix-length=20 --network=prod-vpc\nneteng@cloudshell:~$ gcloud services vpc-peerings update --service=servicenetworking.googleapis.com --ranges=psa-1,psa-2 --network=prod-vpc\nOperation finished successfully.\nneteng@cloudshell:~$ ./pipeline rerun loyalty-launch\n(Cloud SQL and Memorystore creating, about 20 min)"
+        },
+        {
+          "log": "The connection keeps psa-1 for the existing instances and gains a /20 from the space reserved for Google Cloud, which on-premises does not use.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "25min"
+        }
+      ]
+    },
+    "record": {
+      "label": "Record psa-2 in the IPAM sheet, export it to on-premises over Interconnect, and alert on the range's usage",
+      "group": "Fix",
+      "available": "not busy and (not planned and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "neteng@cloudshell:~$ (ipam.csv: 10.48.0.0/20 psa-2, prod-vpc private services access)\nneteng@cloudshell:~$ gcloud compute routers update-bgp-peer cr-prod ... --advertisement-mode custom --set-advertisement-ranges=...,10.48.0.0/20\n(monitoring: alert at 80% of allocated private services addresses)"
+        },
+        {
+          "log": "The range is on record, on-premises can reach the new services, and the next exhaustion is seen before a launch.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "overlap": {
+      "label": "Allocate psa-2 = 10.10.0.0/16 (a big round block) and update the connection",
+      "group": "Fix",
+      "available": "not busy and (not harmed)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "harmed",
+          "to": "true"
+        },
+        {
+          "output": "neteng@cloudshell:~$ gcloud compute addresses create psa-2 --global --purpose=VPC_PEERING --addresses=10.10.0.0 --prefix-length=16 --network=prod-vpc\nneteng@cloudshell:~$ gcloud services vpc-peerings update ... --ranges=psa-1,psa-2 ...\nOperation finished successfully."
+        },
+        {
+          "log": "10.10.0.0/16 is the Lyon plant's network: new services there are unreachable from the plant, and the overlap confuses routing between on-premises and prod-vpc.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "retry": {
+      "label": "Retry the pipeline",
+      "group": "Fix",
+      "available": "not busy and (not harmed and not tried)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tried",
+          "to": "true"
+        },
+        {
+          "output": "neteng@cloudshell:~$ ./pipeline rerun loyalty-launch\nCloud SQL create FAILED: Couldn't find free blocks in allocated IP ranges."
+        },
+        {
+          "log": "Nothing changed: the range is still full.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Check both new instances' private IPs and reach them from on-premises",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@cloudshell:~$ gcloud sql instances describe loyalty-db --format='value(ipAddresses[0].ipAddress)'; from lyon-jump: nc -vz <ip> 5432\n{harmed ? \"10.10.0.5\nlyon-jump: connection timed out (overlaps the local network)\" : fixed ? \"10.48.0.3\nConnection succeeded\" : \"(instance not created)\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "full",
+                  "label": "The private services access range (one /24) had no free addresses"
+                },
+                {
+                  "value": "quota",
+                  "label": "The project's Cloud SQL quota was reached"
+                },
+                {
+                  "value": "iam",
+                  "label": "The pipeline lacked permission"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-335)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "15:00: the loyalty services are up on private IP; the launch is on time.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "missAt",
+              "to": "t"
+            },
+            {
+              "log": "15:00: no database; the announcement is postponed.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why the services could not be created, which range you added and why that one, and what you recorded.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Reads the error.",
+          "modelAnswer": "'Couldn't find free blocks in allocated IP ranges': prod-vpc's private services connection had one /24, psa-1, fully used by 12 managed instances."
+        },
+        {
+          "label": "Range",
+          "criteria": "Non-overlapping, from the plan.",
+          "modelAnswer": "Allocated psa-2 = 10.48.0.0/20 from the block reserved for Google Cloud and updated the connection with psa-1 and psa-2. 10.10.0.0/16 would have overlapped the Lyon plant."
+        },
+        {
+          "label": "Recorded",
+          "criteria": "Keeps the plan true.",
+          "modelAnswer": "psa-2 is in the IPAM sheet, advertised to on-premises, and alerted at 80% use."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The launch pipeline must finish by 15:00, 110 minutes after the failure; the instances take about 20 minutes to create once there is room."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: The new range overlapped an on-premises network."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed and not harmed",
+      "class": "harm",
+      "rationale": "Closing with the range still full postpones the launch.",
+      "source": {
+        "cite": "Google Cloud documentation, AlloyDB: Increase private services access address space",
+        "checkedAt": "2026-11-17",
+        "url": "https://docs.cloud.google.com/alloydb/docs/private-ip-space-increase",
+        "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: when the allocated space is too small, creating an instance fails; allocate a new range with 'gcloud compute addresses create ... --global --purpose=VPC_PEERING --prefix-length=16 ... --network', list the ranges already on the connection (reservedPeeringRanges), then 'gcloud services vpc-peerings update --service=servicenetworking.googleapis.com --ranges=RESERVED_RANGE_NAME,EXISTING_RANGES_LIST'. The same private services access connection serves Cloud SQL and Memorystore; the exact creation error text and that an overlap with routes learned from on-premises breaks reachability are from memory (to verify)."
+      }
+    }
+  },
+  "endings": {
+    "overlap": {
+      "label": "New services overlap the plant's network",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and harmed",
+      "narrative": "Allocating 10.10.0.0/16 put the new services inside the Lyon plant's address space."
+    },
+    "launchPostponed": {
+      "label": "Launch postponed",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(missAt)",
+      "narrative": "At 15:00 the services still could not be created."
+    },
+    "expanded": {
+      "label": "Range added from the plan, services up, recorded",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(errAt) and not isNull(rangesAt) and not isNull(verifiedAt) and causeDoc == \"full\"",
+      "narrative": "A /20 from the reserved block was added to the connection; the services came up and are reachable from on-premises."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The services are up, but the IPAM record, the route advertisement, the check or the record was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "overlap",
+    "launchPostponed",
+    "expanded",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Read the error, the allocated ranges and on-premises routes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(errAt) and not isNull(rangesAt)",
+            "score": "met",
+            "why": "The key evidence, read before changing anything."
+          },
+          {
+            "when": "not isNull(errAt) or not isNull(rangesAt) or not isNull(onpremAt) or not isNull(ipamAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Services created by 15:00 with no overlap",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and not harmed and isNull(missAt)",
+            "score": "met",
+            "why": "The right change, in time, without harm."
+          },
+          {
+            "when": "fixed or harmed",
+            "score": "partial",
+            "why": "{harmed ? \"The new range overlapped an on-premises network.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never removed."
+          }
+        ]
+      },
+      {
+        "id": "lasting",
+        "label": "Range recorded, advertised and alerted; reachability verified",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The lasting step taken and the result checked."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"full\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record names the wrong cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes that caused harm",
+        "value": "harmed ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "13:10-13:14",
+        "text": "Error: no free blocks; psa-1 /24 full; on-premises owns 10.0.0.0/12; IPAM: 10.48.0.0/16 free."
+      },
+      {
+        "at": "13:14-13:39",
+        "text": "psa-2 10.48.0.0/20; update with both ranges; re-run; record, advertise, alert."
+      },
+      {
+        "at": "13:39-13:41",
+        "text": "Instances on 10.48.0.x; reachable from Lyon."
+      }
+    ],
+    "debrief": {
+      "overlap": {
+        "headline": "Free in the VPC is not free in the company",
+        "body": "Private services ranges must not overlap on-premises space. Take the block your IP plan reserves for Google Cloud."
+      },
+      "launchPostponed": {
+        "headline": "Managed services need room in the peering",
+        "body": "Private services access hands out addresses only from allocated ranges. Allocate another range and add it to the connection alongside the existing one."
+      },
+      "expanded": {
+        "headline": "Good: capacity added without collisions",
+        "body": "You read the error and the range's use, checked on-premises routes and the IP plan, added a non-overlapping range alongside the existing one, verified reachability, and recorded and advertised it."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the evidence before the change, the lasting step, the check, or the cause in the record."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The managed services cannot find free addresses because the only private services range, a /24, is full. Allocate another range and add it to the connection together with the existing one. Choose it from the block the IP plan reserves for Google Cloud, not from on-premises space such as 10.10.0.0/16, which would overlap a plant. Retrying changes nothing. Record, advertise and monitor the new range."
+  }
+}
