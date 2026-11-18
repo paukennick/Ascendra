@@ -1,0 +1,1000 @@
+{
+  "slug": "drain-bad-region-from-global-lb-cdl",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Errors by backend, capacity, backends, budget; drain; stepped return; verify",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "errs",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "cap",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "bs",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 3,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "burn",
+          "seq": 7,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 4,
+          "seq": 8,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "drain",
+          "seq": 9,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 7,
+          "seq": 10,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "review",
+          "seq": 11,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 9,
+          "seq": 12,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "verify",
+          "seq": 13,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 11,
+          "seq": 14,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 15,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 16,
+          "seq": 16,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 17,
+          "tick": 16
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 21,
+          "seq": 18,
+          "tick": 16
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 19,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 26,
+          "seq": 20,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 26,
+          "seq": 21,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 22,
+          "tick": 26
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 23,
+          "tick": 26
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "region"
+          },
+          "seq": 24,
+          "tick": 26
+        }
+      ],
+      "expect": {
+        "ending": "drained",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "diagnose": "met",
+          "fix": "met",
+          "lasting": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "faults": 0
+        },
+        "stateHash": "09e4c1775c09adcc"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "harm",
+      "title": "Deletes the east instance group",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "errs",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "delete",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 4,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "verify",
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 6,
+          "seq": 6,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 7,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 11,
+          "seq": 8,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 9,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 16,
+          "seq": 10,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 11,
+          "tick": 16
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 21,
+          "seq": 12,
+          "tick": 16
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 13,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 26,
+          "seq": 14,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 26,
+          "seq": 15,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 16,
+          "tick": 26
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 17,
+          "tick": 26
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "region"
+          },
+          "seq": 18,
+          "tick": 26
+        }
+      ],
+      "expect": {
+        "ending": "regionDeleted",
+        "class": "harm",
+        "rating": "bad",
+        "score": 40,
+        "criteria": {
+          "diagnose": "partial",
+          "fix": "partial",
+          "lasting": "missed",
+          "record": "met"
+        },
+        "kpis": {
+          "faults": 1
+        },
+        "stateHash": "09d410e24e092541"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "noop",
+      "title": "Restarts the east instances",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "errs",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "restart",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 4,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "verify",
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 6,
+          "seq": 6,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 7,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 11,
+          "seq": 8,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 9,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 16,
+          "seq": 10,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 11,
+          "tick": 16
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 21,
+          "seq": 12,
+          "tick": 16
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 13,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 26,
+          "seq": 14,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 26,
+          "seq": 15,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 16,
+          "tick": 26
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 17,
+          "tick": 26
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "region"
+          },
+          "seq": 18,
+          "tick": 26
+        }
+      ],
+      "expect": {
+        "ending": "sloBreached",
+        "class": "harm",
+        "rating": "bad",
+        "score": 40,
+        "criteria": {
+          "diagnose": "partial",
+          "fix": "missed",
+          "lasting": "missed",
+          "record": "met"
+        },
+        "kpis": {
+          "faults": 0
+        },
+        "stateHash": "1fe077889042e7f4"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "fixOnly",
+      "title": "Reads errors and capacity, drains, verifies",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "errs",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "cap",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "drain",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 5,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "verify",
+          "seq": 7,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 7,
+          "seq": 8,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 9,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 12,
+          "seq": 10,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 11,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 17,
+          "seq": 12,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 13,
+          "tick": 17
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 22,
+          "seq": 14,
+          "tick": 17
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 15,
+          "tick": 22
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 27,
+          "seq": 16,
+          "tick": 22
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 27,
+          "seq": 17,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 18,
+          "tick": 27
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 19,
+          "tick": 27
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "region"
+          },
+          "seq": 20,
+          "tick": 27
+        }
+      ],
+      "expect": {
+        "ending": "gaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 80,
+        "criteria": {
+          "diagnose": "met",
+          "fix": "met",
+          "lasting": "partial",
+          "record": "met"
+        },
+        "kpis": {
+          "faults": 0
+        },
+        "stateHash": "2aae4677cf857e20"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "late",
+      "title": "Waits, drains after 12:30",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "errs",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 6,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 5,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 11,
+          "seq": 6,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 7,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 16,
+          "seq": 8,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 9,
+          "tick": 16
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 21,
+          "seq": 10,
+          "tick": 16
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 11,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 26,
+          "seq": 12,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 26,
+          "seq": 13,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "drain",
+          "seq": 14,
+          "tick": 26
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 29,
+          "seq": 15,
+          "tick": 26
+        },
+        {
+          "type": "act",
+          "action": "verify",
+          "seq": 16,
+          "tick": 29
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 31,
+          "seq": 17,
+          "tick": 29
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 18,
+          "tick": 31
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 36,
+          "seq": 19,
+          "tick": 31
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 20,
+          "tick": 36
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 21,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "region"
+          },
+          "seq": 22,
+          "tick": 36
+        }
+      ],
+      "expect": {
+        "ending": "sloBreached",
+        "class": "harm",
+        "rating": "bad",
+        "score": 60,
+        "criteria": {
+          "diagnose": "partial",
+          "fix": "partial",
+          "lasting": "partial",
+          "record": "met"
+        },
+        "kpis": {
+          "faults": 0
+        },
+        "stateHash": "ae176697714771d8"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "blind",
+      "title": "Drains without looking and blames the load balancer",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "drain",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 8,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 5,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 13,
+          "seq": 6,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 7,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 18,
+          "seq": 8,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 9,
+          "tick": 18
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 23,
+          "seq": 10,
+          "tick": 18
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 11,
+          "tick": 23
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 28,
+          "seq": 12,
+          "tick": 23
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 28,
+          "seq": 13,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 14,
+          "tick": 28
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 15,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "lb"
+          },
+          "seq": 16,
+          "tick": 28
+        }
+      ],
+      "expect": {
+        "ending": "gaps",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 20,
+        "criteria": {
+          "diagnose": "missed",
+          "fix": "met",
+          "lasting": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "faults": 0
+        },
+        "stateHash": "ff92d5f14d09c07e"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    }
+  ]
+}

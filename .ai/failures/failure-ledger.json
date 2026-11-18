@@ -18827,7 +18827,7 @@
       "title": "Short course name kept the new 'Exam Prep for' title prefix",
       "status": "fixed",
       "severity": "low",
-      "symptom": "With REQ-324 titles, shortCourseName's title fallback (no credential name) would print 'Exam Prep for CISSP®' cut to 18 characters in reminder and countdown emails.",
+      "symptom": "With REQ-324 titles, shortCourseName's title fallback (no credential name) would print 'Exam Prep for CISSP\u00ae' cut to 18 characters in reminder and countdown emails.",
       "how_detected": "review of title readers during REQ-324",
       "root_cause": "VENDOR_PREFIX listed the old 'Prep for' prefix only; a title-format change did not look at the readers that strip title prefixes.",
       "requirement": "REQ-324",
@@ -18850,7 +18850,7 @@
       "title": "Reminder short name cut a long credential name to its first words",
       "status": "fixed",
       "severity": "low",
-      "symptom": "With names on again, reminder and countdown emails for CISSP would call the course 'Information…' (the credential name without 'Certified', cut to 18 characters).",
+      "symptom": "With names on again, reminder and countdown emails for CISSP would call the course 'Information\u2026' (the credential name without 'Certified', cut to 18 characters).",
       "how_detected": "lib/unbranded.test.ts (REQ-324 short-name test)",
       "root_cause": "shortCourseName fell back to the exam code or an ellipsis; CISSP and similar exams have no code and are known by the acronym at the end of their name. REQ-319 had hidden it by nulling the names.",
       "requirement": "REQ-324",
@@ -19205,6 +19205,58 @@
         ".ai/checklists/pre-completion.md"
       ],
       "prevention_notes": "Test checks the plugin output shape, app.json registration and that the website still lists the app with the existing fingerprint; README explains both halves and which fingerprints matter",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2500",
+      "date": "2026-11-17",
+      "title": "A sim action id equal to a server-only key name fails the client-leak check",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "documents.test.ts: 'client document leaks nothing server-only' failed for AWSDEA/athena-todays-partition-missing: client document has key \"parts\"",
+      "how_detected": "milestone run of lib/sim/documents.test.ts",
+      "root_cause": "The case factory used the look id 'parts' (SHOW PARTITIONS) as an action id; clientDocument keeps actions keyed by id, and the leak check rejects any key named like a server-only field (parts holds reasoning model answers), so a harmless id looked like a leaked rubric. The depth-cloud test only checked that client.scoring was absent, not the full key set.",
+      "requirement": "REQ-335",
+      "affected": [
+        "backend/supabase/seed/sims/AWSDEA/athena-todays-partition-missing.sim.json",
+        "backend/lib/sim/depth-cloud.test.ts"
+      ],
+      "fix_summary": "Renamed the action to 'showparts' (and its state key), regenerated goldens; the builder's factory now refuses an action id in the server-only key set",
+      "fix_commits": [
+        "cccb0f79"
+      ],
+      "regression_tests": [
+        "backend/lib/sim/depth-cloud.test.ts::no action or state id is a server-only key name",
+        "so the client document's keys stay clean (FAIL-2500)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Regression test over every REQ-335 document; factory assertion.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2501",
+      "date": "2026-11-17",
+      "title": "Literal braces in a terminal command (awk '{print $1}') parsed as a template expression",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "sim:golden: invalid document: actions.dest.effects[1].output: unexpected character \"$\" (at 6) for AZ700/snat-exhaustion-carrier-api-before-cutoff",
+      "how_detected": "golden generation and depth-cloud.test.ts lint check before commit",
+      "root_cause": "Effect output strings are templates where {expr} interpolates; the case spec wrote an awk program with single braces outside the factory's esc() helper, so the engine read '{print $1}' as an expression.",
+      "requirement": "REQ-335",
+      "affected": [
+        "backend/supabase/seed/sims/AZ700/snat-exhaustion-carrier-api-before-cutoff.sim.json"
+      ],
+      "fix_summary": "Wrapped the command in esc() (doubled braces) before the first commit of the case",
+      "fix_commits": [
+        "2d5839f1"
+      ],
+      "regression_tests": [
+        "backend/lib/sim/depth-cloud.test.ts::no lint error; terminal commands are bounded; nothing waits at the start; the client document drops the rubric"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "The existing lint test caught it before commit; the case was never committed broken.",
       "recurrence_of": ""
     }
   ]

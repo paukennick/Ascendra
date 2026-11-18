@@ -1,0 +1,33 @@
+{
+  "band": "dva",
+  "label": "AWS Developer Associate (DVA-C03)",
+  "base": {
+    "course": "AWSDEA",
+    "slug": "kinesis-poison-record-blocks-shard"
+  },
+  "slug": "kinesis-poison-record-blocks-shard-dva",
+  "patch": {
+    "objective": "Managing streaming data with AWS services such as Amazon Kinesis and Amazon Data Firehose",
+    "secondaryObjectives": [],
+    "sources": [
+      {
+        "cite": "Tutorials Dojo, 'What's new with the AWS Certified Developer Associate DVA-C03': Development with AWS Services 30%, Security 26%, Testing and Deployment 22%, Troubleshooting and Optimization 22%",
+        "checkedAt": "2026-11-17",
+        "url": "https://tutorialsdojo.com/whats-new-with-the-aws-certified-developer-associate-dva-c03/",
+        "note": "Read through a summarizing fetch on 2026-11-17 (a third-party page, not AWS). It gives the four DVA-C03 domains and weights (matching the course seed), registration from October 27, 2026, the last DVA-C02 exam on November 30, 2026, and general availability on December 1, 2026. The official DVA-C03 guide was not read; the objective wording is the course seed's (to verify)."
+      },
+      {
+        "cite": "AWS Lambda Developer Guide, Lambda parameters for Amazon Kinesis Data Streams event source mappings",
+        "checkedAt": "2026-11-17",
+        "url": "https://docs.aws.amazon.com/lambda/latest/dg/services-kinesis-parameters.html",
+        "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: MaximumRetryAttempts default -1, '-1 means infinite: failed records are retried until the record expires'; MaximumRecordAgeInSeconds default -1; BisectBatchOnFunctionError default false; StartingPosition AT_TIMESTAMP, TRIM_HORIZON or LATEST; FunctionResponseTypes ReportBatchItemFailures. That LATEST reads only new records is general knowledge (to verify)."
+      },
+      {
+        "cite": "AWS Lambda Developer Guide, Retaining discarded batch records for a Kinesis Data Streams event source in Lambda",
+        "checkedAt": "2026-11-17",
+        "url": "https://docs.aws.amazon.com/de_de/lambda/latest/dg/kinesis-on-failure-destination.md",
+        "note": "Read directly on 2026-11-17 (German machine translation of the English page). Relevant text: when the function returns an error Lambda retries until the records expire, exceed MaximumRecordAgeInSeconds or reach MaximumRetryAttempts; BisectBatchOnFunctionError splits a failed batch in two to isolate bad records and splitting does not use up retries; 'with the default settings a bad record can block processing on the affected shard for up to one week'; an on-failure destination can be an SNS topic, SQS queue, S3 bucket or Kafka; for SQS and SNS Lambda sends only metadata (shardId, start and end sequence numbers), so the records must be read from the stream before they expire; for S3 it also sends the whole invocation record as payload."
+      }
+    ]
+  }
+}
