@@ -1,0 +1,1134 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "agile-team-conflict-root-cause",
+  "title": "Conflict on an agile team: tests thrown over the wall, a heated retrospective and a team that stops talking",
+  "screen": {
+    "type": "project-dashboard",
+    "level": 1,
+    "dashboard": {
+      "mode": "sprint",
+      "heading": "Iteration 9 of the booking platform",
+      "commitments": [
+        {
+          "id": "goal",
+          "label": "Iteration goal",
+          "text": "Group bookings can be paid in installments."
+        },
+        {
+          "id": "dod",
+          "label": "Definition of done",
+          "text": "Tested, reviewed, deployed behind a flag."
+        }
+      ],
+      "columns": [
+        {
+          "id": "todo",
+          "label": "To do"
+        },
+        {
+          "id": "blocked",
+          "label": "Off course"
+        },
+        {
+          "id": "done",
+          "label": "Handled"
+        }
+      ],
+      "items": [
+        {
+          "id": "wLevel",
+          "label": "Conflict assessment",
+          "column": "level == \"diagnose\" ? \"done\" : level == \"wait\" ? \"blocked\" : level == \"blameOne\" ? \"blocked\" : \"todo\"",
+          "when": "true",
+          "flag": "level == \"blameOne\""
+        },
+        {
+          "id": "wCollab",
+          "label": "Team working agreement",
+          "column": "collab == \"collaborate\" ? \"done\" : collab == \"compromise\" ? \"blocked\" : collab == \"force\" ? \"blocked\" : \"todo\"",
+          "when": "true",
+          "flag": "collab == \"force\""
+        },
+        {
+          "id": "wFollow",
+          "label": "Follow-up",
+          "column": "follow == \"retro\" ? \"done\" : follow == \"trust\" ? \"blocked\" : follow == \"punish\" ? \"blocked\" : \"todo\"",
+          "when": "true",
+          "flag": "follow == \"punish\""
+        }
+      ],
+      "issues": [
+        {
+          "id": "iLevel",
+          "label": "Blame between developers and testers",
+          "when": "p >= 1",
+          "at": "86400",
+          "status": "{level == \"diagnose\" ? \"Framed as a workflow problem\" : level == \"wait\" ? \"Waiting\" : level == \"blameOne\" ? \"One person blamed\" : \"Due\"}",
+          "open": "level == \"none\""
+        },
+        {
+          "id": "iCollab",
+          "label": "Last-day testing crunch",
+          "when": "p >= 2",
+          "at": "172800",
+          "status": "{collab == \"collaborate\" ? \"Collaborative agreement owned by the team\" : collab == \"compromise\" ? \"Compromise on testing start\" : collab == \"force\" ? \"Rule imposed\" : \"Due\"}",
+          "open": "collab == \"none\""
+        },
+        {
+          "id": "iFollow",
+          "label": "Agreement not sustained",
+          "when": "p >= 3",
+          "at": "259200",
+          "status": "{follow == \"retro\" ? \"Inspected at the retrospective; coaching continues\" : follow == \"trust\" ? \"Assumed fixed\" : follow == \"punish\" ? \"Threat of reporting\" : \"Due\"}",
+          "open": "follow == \"none\""
+        }
+      ],
+      "people": [
+        {
+          "id": "sQa",
+          "label": "Test specialists",
+          "spokenLabel": "the test specialists' trust",
+          "value": "qa",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sDevs",
+          "label": "Developers",
+          "spokenLabel": "the developers' trust",
+          "value": "devs",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sPo",
+          "label": "Product owner",
+          "spokenLabel": "the product owner's trust",
+          "value": "po",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "events": [
+        {
+          "id": "mLevel",
+          "label": "Daily stand-up, day 1",
+          "at": "86400",
+          "status": "{level == \"diagnose\" ? \"Framed as a workflow problem\" : level == \"wait\" ? \"Waiting\" : level == \"blameOne\" ? \"One person blamed\" : \"Ahead\"}"
+        },
+        {
+          "id": "mCollab",
+          "label": "Facilitated session",
+          "at": "172800",
+          "status": "{collab == \"collaborate\" ? \"Collaborative agreement owned by the team\" : collab == \"compromise\" ? \"Compromise on testing start\" : collab == \"force\" ? \"Rule imposed\" : \"Ahead\"}"
+        },
+        {
+          "id": "mFollow",
+          "label": "Iteration retrospective",
+          "at": "259200",
+          "status": "{follow == \"retro\" ? \"Inspected at the retrospective; coaching continues\" : follow == \"trust\" ? \"Assumed fixed\" : follow == \"punish\" ? \"Threat of reporting\" : \"Ahead\"}"
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Sprint day",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Facilitating conflict management: identifying a conflict's root cause and level, and promoting a collaborative resolution approach",
+  "secondaryObjectives": [
+    "Empowering teams: building trust and transparent communication, coaching and mentoring, and applying emotional intelligence to resolve conflict and support team members"
+  ],
+  "sources": [
+    {
+      "cite": "PMI, PMI Agile Certified Practitioner (PMI-ACP) Examination Content Outline (March 2026): Mindset 28%, Leadership 25%, Product 19%, Delivery 28%",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/agile-certified-exam-outline.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch of PMI's PDF. Relevant text: Domain IV Task 1 'Seek early feedback' ('Deliver work in small increments'; 'Collect and incorporate stakeholders' feedback on a regular basis'); Task 3 'Manage impediments and risk' ('Proactively identify risks and impediments'; 'Prioritize impediment removal and risk mitigation activities'); Domain I Task 7 'Embrace Change' ('Embrace process adaptation by responding to changing requirements and priorities'; 'Adapt to product needs based on the learning and feedback'). The objective wording here is the course seed's. Reused for REQ-336 from this course's sprint-release-before-review-pmiacp (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The company, the product, the team and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the agile coach for a team at Seabright Travel, a fictional travel company. Developers and test specialists have started blaming each other: testers say code arrives untested on the last day; developers say testers block releases.",
+    "handover": [
+      "Testing happens in the last two days of each iteration.",
+      "Last retrospective ended with raised voices."
+    ],
+    "howItWorks": [
+      "The board shows the Sprint's commitments, the work, the impediments, the people's support and the Scrum events.",
+      "Move on a day at a time. A decision comes to you at each Daily Scrum; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-05-03T09:00",
+    "tick": "1h",
+    "maxDuration": "20d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "qa": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "devs": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "po": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "level": {
+      "type": "enum",
+      "values": [
+        "none",
+        "diagnose",
+        "wait",
+        "blameOne"
+      ],
+      "init": "none"
+    },
+    "levelAt": {
+      "type": "time",
+      "init": null
+    },
+    "collab": {
+      "type": "enum",
+      "values": [
+        "none",
+        "collaborate",
+        "compromise",
+        "force"
+      ],
+      "init": "none"
+    },
+    "collabAt": {
+      "type": "time",
+      "init": null
+    },
+    "follow": {
+      "type": "enum",
+      "values": [
+        "none",
+        "retro",
+        "trust",
+        "punish"
+      ],
+      "init": "none"
+    },
+    "followAt": {
+      "type": "time",
+      "init": null
+    },
+    "listenAt": {
+      "type": "time",
+      "init": null
+    },
+    "flowAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(qa, devs), po)"
+    },
+    "missCount": {
+      "expr": "((level == \"blameOne\") ? 1 : 0) + ((collab == \"force\") ? 1 : 0) + ((follow == \"punish\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(level == \"none\" or (level == \"blameOne\") ? 1 : 0) + (collab == \"none\" or (collab == \"force\") ? 1 : 0) + (follow == \"none\" or (follow == \"punish\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The iteration",
+      "clock": "turns",
+      "actions": [
+        "listen",
+        "flow"
+      ]
+    },
+    "close": {
+      "label": "Coaching notes",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "listen": {
+      "label": "Talk one to one with two developers and two testers",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(listenAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "listenAt",
+          "to": "t"
+        },
+        {
+          "log": "You listen to both sides.",
+          "kind": "act"
+        },
+        {
+          "finding": "Both sides want fewer last-day crises; developers don't know what testers need early, and testers aren't invited to refinement."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2h"
+        }
+      ]
+    },
+    "flow": {
+      "label": "Look at the board's flow over three iterations",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(flowAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "flowAt",
+          "to": "t"
+        },
+        {
+          "log": "You read the flow.",
+          "kind": "act"
+        },
+        {
+          "finding": "Work sits 'in development' for 8 days and then floods testing on days 9 and 10 every iteration."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2h"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the coaching notes",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the notes say",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "The conflict's level and workflow cause, the team's own agreement, and follow-up through inspection and coaching"
+                },
+                {
+                  "value": "summary",
+                  "label": "Conflict resolved"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next working day",
+      "wait": {
+        "skipLabel": "Go to the next day"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "level == \"blameOne\"",
+              "then": [
+                {
+                  "log": "Day 2: the lead tester hears of it and asks to leave the team; testing knowledge leaves with her.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "collab == \"force\"",
+              "then": [
+                {
+                  "log": "Day 3: developers test superficially to meet the rule; a payment bug ships.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "follow == \"punish\"",
+              "then": [
+                {
+                  "log": "Day 4: a tester spots a risk but says nothing for fear of 'breaking the agreement'; it reaches production.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "1d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The iteration ends.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "1d"
+        }
+      ]
+    },
+    {
+      "id": "t_level",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 1: two people refuse to pair.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "levelPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_collab",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 2: the facilitated session.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "collabPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_follow",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 3: a week after the agreement.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "followPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "levelPrompt": {
+      "title": "How serious is this?",
+      "context": "It is moving from problem-solving to blame between two groups.",
+      "choices": [
+        {
+          "id": "diagnose",
+          "label": "Name it as a growing conflict between groups over a broken workflow, not personalities; plan a facilitated session focused on the shared problem",
+          "effects": [
+            {
+              "set": "level",
+              "to": "\"diagnose\""
+            },
+            {
+              "set": "levelAt",
+              "to": "t"
+            },
+            {
+              "add": "qa",
+              "by": "10"
+            },
+            {
+              "log": "You frame the conflict around the workflow.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Identifying the level and root cause points the resolution at the process, not at people."
+        },
+        {
+          "id": "wait",
+          "label": "Let it settle by itself over the iteration",
+          "effects": [
+            {
+              "set": "level",
+              "to": "\"wait\""
+            },
+            {
+              "set": "levelAt",
+              "to": "t"
+            },
+            {
+              "add": "qa",
+              "by": "-15"
+            },
+            {
+              "log": "You wait.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Conflicts at the blame stage tend to escalate when ignored."
+        },
+        {
+          "id": "blameOne",
+          "label": "Tell the manager the lead tester is the problem",
+          "effects": [
+            {
+              "set": "level",
+              "to": "\"blameOne\""
+            },
+            {
+              "set": "levelAt",
+              "to": "t"
+            },
+            {
+              "add": "qa",
+              "by": "-25"
+            },
+            {
+              "log": "You escalate about one person.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Personalizing a process conflict escalates it and destroys trust."
+        }
+      ]
+    },
+    "collabPrompt": {
+      "title": "Choosing a resolution approach",
+      "context": "Both groups attend.",
+      "choices": [
+        {
+          "id": "collaborate",
+          "label": "Facilitate: shared goal first, the flow data on the wall, both sides propose changes; they agree testers join refinement and work is tested as each story finishes",
+          "effects": [
+            {
+              "set": "collab",
+              "to": "\"collaborate\""
+            },
+            {
+              "set": "collabAt",
+              "to": "t"
+            },
+            {
+              "add": "devs",
+              "by": "10"
+            },
+            {
+              "log": "The team agrees its own changes.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Collaboration addresses both sides' interests and gives the team ownership of the fix."
+        },
+        {
+          "id": "compromise",
+          "label": "Split the difference: testing starts on day 7 instead of day 9",
+          "effects": [
+            {
+              "set": "collab",
+              "to": "\"compromise\""
+            },
+            {
+              "set": "collabAt",
+              "to": "t"
+            },
+            {
+              "add": "devs",
+              "by": "-15"
+            },
+            {
+              "log": "A compromise is set.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Better, but nobody's real interest is met and stories still flood late."
+        },
+        {
+          "id": "force",
+          "label": "Decide for them: developers must test their own code, testers only sign off",
+          "effects": [
+            {
+              "set": "collab",
+              "to": "\"force\""
+            },
+            {
+              "set": "collabAt",
+              "to": "t"
+            },
+            {
+              "add": "devs",
+              "by": "-25"
+            },
+            {
+              "log": "You impose the rule.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Forcing a solution builds resentment and removes the testers' expertise."
+        }
+      ]
+    },
+    "followPrompt": {
+      "title": "Making it stick",
+      "context": "The new agreement is a week old.",
+      "choices": [
+        {
+          "id": "retro",
+          "label": "Put the agreement on the board, and at the retrospective let the team inspect the flow data and adjust; coach the two people who clashed one to one",
+          "effects": [
+            {
+              "set": "follow",
+              "to": "\"retro\""
+            },
+            {
+              "set": "followAt",
+              "to": "t"
+            },
+            {
+              "add": "po",
+              "by": "10"
+            },
+            {
+              "log": "The team inspects and adjusts its agreement.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Transparency and inspection let the team keep improving; coaching rebuilds trust."
+        },
+        {
+          "id": "trust",
+          "label": "Assume it's fixed",
+          "effects": [
+            {
+              "set": "follow",
+              "to": "\"trust\""
+            },
+            {
+              "set": "followAt",
+              "to": "t"
+            },
+            {
+              "add": "po",
+              "by": "-15"
+            },
+            {
+              "log": "No follow-up.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Without inspection, old habits come back."
+        },
+        {
+          "id": "punish",
+          "label": "Warn that anyone breaking the agreement will be reported",
+          "effects": [
+            {
+              "set": "follow",
+              "to": "\"punish\""
+            },
+            {
+              "set": "followAt",
+              "to": "t"
+            },
+            {
+              "add": "po",
+              "by": "-25"
+            },
+            {
+              "log": "A warning is issued.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Threats replace trust with fear; people stop raising problems."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write your coaching notes: what the conflict was really about, how it was resolved, and how it will be kept resolved.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Cause",
+          "criteria": "A group conflict at the blame stage caused by end-of-iteration testing.",
+          "modelAnswer": "It was a workflow conflict: work flooded testing on the last two days, and both groups blamed each other."
+        },
+        {
+          "label": "Resolution",
+          "criteria": "Facilitated collaboration; testers in refinement; test as stories finish; inspected at retrospectives.",
+          "modelAnswer": "In a facilitated session the team agreed testers join refinement and stories are tested as they finish; the retrospective inspects it."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "scrum",
+    "thresholds": {
+      "undoneShown": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Nothing undone released or presented as done (Scrum Guide 2020)."
+        }
+      },
+      "trustTarget": {
+        "value": 60,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Every team and stakeholder gauge at 60 of 100 or more at the end."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (level == \"wait\") and (collab == \"compromise\") and (follow == \"trust\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "PMI, PMI Agile Certified Practitioner (PMI-ACP) Examination Content Outline (March 2026): Mindset 28%, Leadership 25%, Product 19%, Delivery 28%",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/agile-certified-exam-outline.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch of PMI's PDF. Relevant text: Domain IV Task 1 'Seek early feedback' ('Deliver work in small increments'; 'Collect and incorporate stakeholders' feedback on a regular basis'); Task 3 'Manage impediments and risk' ('Proactively identify risks and impediments'; 'Prioritize impediment removal and risk mitigation activities'); Domain I Task 7 'Embrace Change' ('Embrace process adaptation by responding to changing requirements and priorities'; 'Adapt to product needs based on the learning and feedback'). The objective wording here is the course seed's. Reused for REQ-336 from this course's sprint-release-before-review-pmiacp (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "levelHarm": {
+      "label": "Trust broken",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and level == \"blameOne\"",
+      "narrative": "Blaming one person drove the lead tester to leave the team."
+    },
+    "collabHarm": {
+      "label": "Imposed rules, worse quality",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and collab == \"force\"",
+      "narrative": "The imposed rule produced superficial testing and a shipped payment bug."
+    },
+    "followHarm": {
+      "label": "Problems hidden",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and follow == \"punish\"",
+      "narrative": "Under threat of reporting, a tester hid a risk and it reached production."
+    },
+    "target": {
+      "label": "A conflict resolved at its cause",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (level == \"diagnose\") and (collab == \"collaborate\") and (follow == \"retro\") and record == \"honest\" and missCount <= undoneShown and minSupport >= trustTarget",
+      "narrative": "Developers and testers work together again, and the last-day crunch is gone."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "levelHarm",
+    "collabHarm",
+    "followHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "levelCrit",
+        "label": "Assessed the conflict's level and root cause before acting",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "level == \"diagnose\"",
+            "score": "met",
+            "why": "Diagnosed."
+          },
+          {
+            "when": "level == \"wait\"",
+            "score": "partial",
+            "why": "Passive."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Blamed a person."
+          }
+        ]
+      },
+      {
+        "id": "collabCrit",
+        "label": "Facilitated a collaborative resolution that both sides own",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "collab == \"collaborate\"",
+            "score": "met",
+            "why": "Collaborative."
+          },
+          {
+            "when": "collab == \"compromise\"",
+            "score": "partial",
+            "why": "Compromise."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Forced."
+          }
+        ]
+      },
+      {
+        "id": "followCrit",
+        "label": "Followed up through the team's own inspection",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "follow == \"retro\"",
+            "score": "met",
+            "why": "Sustained."
+          },
+          {
+            "when": "follow == \"trust\"",
+            "score": "partial",
+            "why": "No follow-up."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Fear."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(listenAt) and not isNull(flowAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(listenAt) or not isNull(flowAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 100)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "70 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Listen to each side privately and look at the flow of work first."
+      },
+      {
+        "at": "Day 1",
+        "text": "Assess the level and frame the root cause as the workflow."
+      },
+      {
+        "at": "Day 2",
+        "text": "Facilitate a data-based session where the team agrees its own changes."
+      },
+      {
+        "at": "Day 3",
+        "text": "Make the agreement visible and let the team inspect it at the retrospective."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "levelHarm": {
+        "headline": "Find the root cause",
+        "body": "Diagnose the conflict's level and cause before acting."
+      },
+      "collabHarm": {
+        "headline": "Collaborate",
+        "body": "A facilitated, collaborative resolution the team owns works on the root cause."
+      },
+      "followHarm": {
+        "headline": "Build trust",
+        "body": "Follow up through transparency and coaching, not threats."
+      },
+      "target": {
+        "headline": "Good: a conflict resolved at its cause",
+        "body": "Diagnosed, collaboratively resolved and followed up."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Conflict management starts with the conflict's level (from a problem to solve, through disagreement, to contest and crusade) and its root cause, here a workflow that pushed all testing to the end. Collaborative resolution, facilitated with data and owned by the team, addresses both sides' interests; forcing or blaming escalates. Follow-up comes through transparency, the team's own retrospectives and coaching."
+  }
+}
