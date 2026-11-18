@@ -1,0 +1,876 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "storage-key-in-history-before-open-source",
+  "title": "Open-sourcing at 16:00: a storage account key sits in the repository's history",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "devops@build01:~/carrier-sdk$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "13:20 secret scan: AccountKey for stmarlowtrack in history (commit 4e1a9c0, March); public mirror at 16:00",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "16:00: mirror public, key exposed",
+          "when": "not isNull(missAt)",
+          "at": "timeAt(missAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "16:00: mirror public, clean",
+          "when": "not isNull(okAt)",
+          "at": "timeAt(okAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "repo",
+          "label": "Azure Repos carrier-sdk",
+          "spokenLabel": "the repository",
+          "kind": "main and 2 PRs",
+          "status": "{fixed and not harmed ? \"history rewritten, key gone\" : \"key in history\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "key",
+          "label": "stmarlowtrack key1",
+          "spokenLabel": "the storage key",
+          "kind": "used by tracking",
+          "status": "{harmed ? \"both keys regenerated: tracking down\" : fixed ? \"rotated; old value dead\" : \"exposed in history\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "pub",
+          "label": "Public GitHub mirror (16:00)",
+          "spokenLabel": "the public mirror",
+          "kind": "not yet created",
+          "status": "{fixed and not harmed ? \"publishes clean history\" : \"would publish the key\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "repo",
+          "to": "pub",
+          "label": "mirror at 16:00",
+          "status": "{fixed and not harmed ? \"clean\" : \"carries the key\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Removing specific data from source control",
+  "secondaryObjectives": [
+    "Configuring permissions in the source control repository",
+    "Recovering specific data using Git commands"
+  ],
+  "sources": [
+    {
+      "cite": "Microsoft Learn, Study guide for Exam AZ-400: Designing and Implementing Microsoft DevOps Solutions (page last updated 2026-10-30): processes and communications 10-15%, source control strategy 10-15%, build and release pipelines 50-55%, security and compliance plan 10-15%, instrumentation strategy 5-10%",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-400",
+      "note": "Read through a summarizing fetch on 2026-11-17. Bullets quoted there: 'Design a deployment strategy, including blue-green, canary, ring, progressive exposure, feature flags, and A/B testing'; 'Implement feature flags by using Azure App Configuration Feature Manager'; 'Plan for minimizing downtime during deployments by using load balancing, rolling deployments, and deployment slot usage and swap'. The objective wording is the course seed's. (read for this round by an earlier pass on 2026-11-17) (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "git-filter-repo documentation (mintlify mirror of newren/git-filter-repo), Removing sensitive data",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.mintlify.com/newren/git-filter-repo/use-cases/removing-sensitive-data",
+      "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: 'Rotate any exposed credentials immediately'; files are removed with git filter-repo --invert-paths --path <file> and strings redacted with --replace-text; 'Force pushing rewrites history. Coordinate with your team before doing this'; team members should re-clone: 'Do not use git pull - it will bring back the old history!'; contact the hosting provider for server-side cleanup if needed. That Azure Repos needs the 'Force push (rewrite history and delete branches)' permission and that storage account keys are regenerated one at a time (switch clients to key2, regenerate key1) are from memory of Microsoft Learn (to verify)."
+    }
+  ],
+  "brief": {
+    "situation": "You are the DevOps engineer at Marlow Logistics. The carrier SDK repository in Azure Repos is to be mirrored to a public GitHub repository at 16:00, announced to partners. A pre-release secret scan found a storage account key in config/local.settings.json, committed in March and deleted in a later commit. The key still works: the tracking service in production uses it.",
+    "handover": [
+      "Production's tracking service reads key1 of storage account stmarlowtrack from Key Vault.",
+      "Four developers have local clones; two open pull requests target main."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the repository's history, the storage account key it holds, and the public mirror due at 16:00.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "13:20",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineAt": {
+      "value": 9600,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "The public mirror is announced for 16:00, 160 minutes after the scan."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "harmed": {
+      "type": "bool",
+      "init": false
+    },
+    "tried": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "histAt": {
+      "type": "time",
+      "init": null
+    },
+    "liveAt": {
+      "type": "time",
+      "init": null
+    },
+    "usersAt": {
+      "type": "time",
+      "init": null
+    },
+    "permAt": {
+      "type": "time",
+      "init": null
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "missAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "history",
+        "scanner",
+        "mirror"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "hist",
+        "live",
+        "users",
+        "perm",
+        "scrub",
+        "guard",
+        "both",
+        "delete",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "hist": {
+      "label": "Find every commit that touched the file, and whether the key is in any ref",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(histAt)",
+          "then": [
+            {
+              "set": "histAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "devops@build01:~/carrier-sdk$ git log --all --oneline -- config/local.settings.json; git grep -c 'AccountKey=' $(git rev-list --all) | wc -l\n{fixed and not harmed ? \"(no commits)\n0\" : \"9d2b113 remove local settings\n4e1a9c0 add local settings for tracking tests\n37\"}"
+        },
+        {
+          "finding": "The key was added in one commit and deleted later; it is still in 37 historical versions reachable from the refs."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "live": {
+      "label": "Is the key live? Compare it with the storage account's keys",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(liveAt)",
+          "then": [
+            {
+              "set": "liveAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "devops@build01:~/carrier-sdk$ az storage account keys list -n stmarlowtrack --query '[].keyName' -o tsv; (fingerprint of committed key vs key1)\n{fixed and not harmed ? \"key1  (fingerprint differs from the committed key)\nkey2\" : \"key1  (fingerprint matches the committed key)\nkey2\"}"
+        },
+        {
+          "finding": "The committed key is key1, which production uses now."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "users": {
+      "label": "Who reads key1 today?",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(usersAt)",
+          "then": [
+            {
+              "set": "usersAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "devops@build01:~/carrier-sdk$ az keyvault secret show --vault-name kv-marlow -n track-storage-key --query 'tags'\nconsumer: tracking-api (prod), rotation: manual"
+        },
+        {
+          "finding": "Only the tracking service, through Key Vault: it can be pointed at key2 before key1 is regenerated."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "perm": {
+      "label": "Repository permissions for force push",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(permAt)",
+          "then": [
+            {
+              "set": "permAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "devops@build01:~/carrier-sdk$ az devops security permission show --namespace-id <git> --subject devops@marlow --token repoV2/... | grep -i 'force push'\nForce push (rewrite history and delete branches): Not set (inherited deny)"
+        },
+        {
+          "finding": "A history rewrite needs force push, granted for this change and removed after."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "scrub": {
+      "label": "Switch tracking to key2, regenerate key1, then remove the file from all history with git filter-repo and force-push (force-push permission granted for the change)",
+      "group": "Fix",
+      "available": "not busy and (not fixed and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "fixed",
+          "to": "true"
+        },
+        {
+          "output": "devops@build01:~/carrier-sdk$ az keyvault secret set --vault-name kv-marlow -n track-storage-key --value <key2> && az webapp restart -n tracking-api\naz storage account keys renew -n stmarlowtrack --key key1\ndevops@build01:~/carrier-sdk$ git filter-repo --invert-paths --path config/local.settings.json\ndevops@build01:~/carrier-sdk$ git push --force --all && git push --force --tags"
+        },
+        {
+          "log": "The exposed key no longer works, production kept running on key2, and the file is gone from every commit of every branch and tag. The two pull requests are recreated from the rewritten main.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "30min"
+        }
+      ]
+    },
+    "guard": {
+      "label": "Have the four developers re-clone, remove the force-push grant, and turn on push protection for secrets",
+      "group": "Fix",
+      "available": "not busy and (not planned and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "devops@build01:~/carrier-sdk$ (team notice: delete local clones and re-clone; do not pull into old clones)\ndevops@build01:~/carrier-sdk$ az devops security permission update ... --deny-bit 'Force push'\n(repository setting: secret push protection on)"
+        },
+        {
+          "log": "No old clone can push the history back, the force-push right is closed again, and a key cannot be pushed in the first place.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "both": {
+      "label": "Regenerate both storage account keys right away",
+      "group": "Fix",
+      "available": "not busy and (not harmed)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "harmed",
+          "to": "true"
+        },
+        {
+          "output": "devops@build01:~/carrier-sdk$ az storage account keys renew -n stmarlowtrack --key key1 && az storage account keys renew -n stmarlowtrack --key key2\n(both renewed)"
+        },
+        {
+          "log": "Both keys change before anything is switched over: production tracking loses storage access and fails.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "delete": {
+      "label": "Commit a deletion of config/local.settings.json and push",
+      "group": "Fix",
+      "available": "not busy and (not harmed and not tried)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tried",
+          "to": "true"
+        },
+        {
+          "output": "devops@build01:~/carrier-sdk$ git rm config/local.settings.json && git commit -m 'remove secrets' && git push\nerror: pathspec did not match any files (already deleted in 9d2b113)"
+        },
+        {
+          "log": "The file was already deleted; the key stays in history, which the mirror will publish.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Scan the rewritten history and try the old key",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "devops@build01:~/carrier-sdk$ git grep -c 'AccountKey=' $(git rev-list --all) | wc -l; az storage container list --account-name stmarlowtrack --account-key <old key1> -o none\n{harmed ? \"0\nAuthenticationFailed\n(tracking-api: storage 403 since 13:4x)\" : fixed ? \"0\nAuthenticationFailed: the old key is rejected\" : \"37\n(listed containers: the old key still works)\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "history",
+                  "label": "A live storage key stayed in history after a later commit deleted the file"
+                },
+                {
+                  "value": "scanner",
+                  "label": "The secret scanner raised a false positive"
+                },
+                {
+                  "value": "mirror",
+                  "label": "The mirror job copies secrets from Key Vault"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-335)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "16:00: the mirror goes public with clean history and a dead key behind it.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "missAt",
+              "to": "t"
+            },
+            {
+              "log": "16:00: the mirror goes public with a working key in its history.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: where the key was, what you changed in what order, and what stops it coming back.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Where",
+          "criteria": "History, not the tree.",
+          "modelAnswer": "The key was added in 4e1a9c0 and deleted in 9d2b113, so it sat in 37 historical versions; it matched key1, which production's tracking service used through Key Vault."
+        },
+        {
+          "label": "Order",
+          "criteria": "Rotate, then rewrite.",
+          "modelAnswer": "Tracking moved to key2, key1 was regenerated, then filter-repo removed the file from every commit and the branches and tags were force-pushed. Regenerating both keys would have cut production off; a deletion commit changes nothing."
+        },
+        {
+          "label": "Prevention",
+          "criteria": "Clones, rights, protection.",
+          "modelAnswer": "Developers re-clone instead of pulling, the force-push grant is removed, and secret push protection blocks a key at push time."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The public mirror is announced for 16:00, 160 minutes after the scan."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: Both keys were regenerated before the tracking service was moved to the new one."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed and not harmed",
+      "class": "harm",
+      "rationale": "Closing with the key still in history publishes it at 16:00.",
+      "source": {
+        "cite": "git-filter-repo documentation (mintlify mirror of newren/git-filter-repo), Removing sensitive data",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.mintlify.com/newren/git-filter-repo/use-cases/removing-sensitive-data",
+        "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: 'Rotate any exposed credentials immediately'; files are removed with git filter-repo --invert-paths --path <file> and strings redacted with --replace-text; 'Force pushing rewrites history. Coordinate with your team before doing this'; team members should re-clone: 'Do not use git pull - it will bring back the old history!'; contact the hosting provider for server-side cleanup if needed. That Azure Repos needs the 'Force push (rewrite history and delete branches)' permission and that storage account keys are regenerated one at a time (switch clients to key2, regenerate key1) are from memory of Microsoft Learn (to verify)."
+      }
+    }
+  },
+  "endings": {
+    "trackingDown": {
+      "label": "Production lost its storage key",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and harmed",
+      "narrative": "Regenerating both keys at once cut the tracking service off from storage."
+    },
+    "keyPublished": {
+      "label": "A live key published",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(missAt)",
+      "narrative": "At 16:00 the public mirror carried a working storage key in its history."
+    },
+    "scrubbed": {
+      "label": "Key dead, history clean, guarded",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(histAt) and not isNull(liveAt) and not isNull(verifiedAt) and causeDoc == \"history\"",
+      "narrative": "The key was rotated without an outage, the history rewritten, clones replaced, and push protection turned on."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The history is clean, but the re-clones, the permission reset, push protection, the check or the record was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "trackingDown",
+    "keyPublished",
+    "scrubbed",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Read the history and whether the key is live",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(histAt) and not isNull(liveAt)",
+            "score": "met",
+            "why": "The key evidence, read before changing anything."
+          },
+          {
+            "when": "not isNull(histAt) or not isNull(liveAt) or not isNull(usersAt) or not isNull(permAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Key rotated and history clean by 16:00, tracking up",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and not harmed and isNull(missAt)",
+            "score": "met",
+            "why": "The right change, in time, without harm."
+          },
+          {
+            "when": "fixed or harmed",
+            "score": "partial",
+            "why": "{harmed ? \"Both keys were regenerated before the tracking service was moved to the new one.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never removed."
+          }
+        ]
+      },
+      {
+        "id": "lasting",
+        "label": "Re-clones, permission reset, push protection; scan checked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The lasting step taken and the result checked."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"history\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record names the wrong cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes that caused harm",
+        "value": "harmed ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "13:20-13:24",
+        "text": "Key in 37 versions; it is key1, used by tracking via Key Vault; force push needs a grant."
+      },
+      {
+        "at": "13:24-13:54",
+        "text": "Tracking to key2; regenerate key1; filter-repo; force push; re-clone notice, permission reset, push protection."
+      },
+      {
+        "at": "13:54-13:56",
+        "text": "History scan 0; old key rejected."
+      }
+    ],
+    "debrief": {
+      "trackingDown": {
+        "headline": "Rotate one key at a time",
+        "body": "Move consumers to the other key, then regenerate the exposed one. Regenerating both at once is an outage."
+      },
+      "keyPublished": {
+        "headline": "Deleting the file is not removing it",
+        "body": "A later deletion leaves every earlier commit intact. Rotate the secret, then rewrite history, before the repository goes public."
+      },
+      "scrubbed": {
+        "headline": "Good: rotate, rewrite, prevent",
+        "body": "You found every commit with the key, confirmed it was live and who used it, rotated it one key at a time, removed it from all history with filter-repo, verified, and closed the path back in."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the evidence before the change, the lasting step, the check, or the cause in the record."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The key is still in history even though a later commit deleted the file, and it is live: production uses key1. Move tracking to key2, regenerate key1, then remove the file from every commit with git filter-repo and force-push, so the mirror publishes clean history behind a dead key. Regenerating both keys at once is an outage; a deletion commit leaves history unchanged. Then have everyone re-clone, remove the force-push grant and turn on push protection."
+  }
+}
