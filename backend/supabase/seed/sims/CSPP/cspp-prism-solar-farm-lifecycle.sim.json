@@ -1,0 +1,1092 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cspp-prism-solar-farm-lifecycle",
+  "title": "A community solar farm through its life cycle: planning beyond handover, opportunities as well as risks, and sustainable procurement",
+  "screen": {
+    "type": "governance-board",
+    "level": 1,
+    "governance": {
+      "risks": [
+        {
+          "id": "rLife",
+          "label": "End of life unplanned",
+          "spokenLabel": "End of life unplanned",
+          "owner": "\"Project manager\"",
+          "rating": "life == \"full\" ? \"low\" : life == \"ops\" ? \"medium\" : life == \"handover\" ? \"critical\" : p >= 1 ? \"high\" : \"medium\"",
+          "appetite": "life == \"full\" ? \"within\" : life == \"ops\" ? \"within\" : life == \"handover\" ? \"above\" : p >= 1 ? \"above\" : \"within\"",
+          "status": "{life == \"full\" ? \"Whole life cycle planned\" : life == \"ops\" ? \"Operation only\" : life == \"handover\" ? \"Ends at commissioning\" : \"Open\"}"
+        },
+        {
+          "id": "rOpp",
+          "label": "Opportunities missed",
+          "spokenLabel": "Opportunities missed",
+          "owner": "\"Project manager\"",
+          "rating": "opp == \"both\" ? \"low\" : opp == \"note\" ? \"medium\" : opp == \"herbicide\" ? \"critical\" : p >= 2 ? \"high\" : \"medium\"",
+          "appetite": "opp == \"both\" ? \"within\" : opp == \"note\" ? \"within\" : opp == \"herbicide\" ? \"above\" : p >= 2 ? \"above\" : \"within\"",
+          "status": "{opp == \"both\" ? \"Opportunities planned\" : opp == \"note\" ? \"Ideas noted\" : opp == \"herbicide\" ? \"Herbicide planned\" : \"Open\"}"
+        },
+        {
+          "id": "rProc",
+          "label": "Supply chain risk",
+          "spokenLabel": "Supply chain risk",
+          "owner": "\"Project manager\"",
+          "rating": "proc == \"criteria\" ? \"low\" : proc == \"cheapCheck\" ? \"medium\" : proc == \"cheapest\" ? \"critical\" : p >= 3 ? \"high\" : \"medium\"",
+          "appetite": "proc == \"criteria\" ? \"within\" : proc == \"cheapCheck\" ? \"within\" : proc == \"cheapest\" ? \"above\" : p >= 3 ? \"above\" : \"within\"",
+          "status": "{proc == \"criteria\" ? \"Traceable, take-back supplier\" : proc == \"cheapCheck\" ? \"Cheapest, audit later\" : proc == \"cheapest\" ? \"Cheapest, untraceable\" : \"Open\"}"
+        }
+      ],
+      "stakeholders": [
+        {
+          "id": "sSpon",
+          "label": "Sponsor",
+          "spokenLabel": "the sponsor's support",
+          "value": "spon",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sComm",
+          "label": "Community representatives",
+          "spokenLabel": "the community's support",
+          "value": "comm",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sTeam",
+          "label": "Project team",
+          "spokenLabel": "the team's support",
+          "value": "team",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "docket": [
+        {
+          "id": "dLife",
+          "kind": "Life cycle",
+          "label": "Week 1: scope",
+          "status": "{life == \"full\" ? \"Whole life cycle planned\" : life == \"ops\" ? \"Operation only\" : life == \"handover\" ? \"Ends at commissioning\" : \"Due\"}",
+          "when": "p >= 1",
+          "flag": "p >= 1 and life == \"none\""
+        },
+        {
+          "id": "dOpp",
+          "kind": "Opportunities",
+          "label": "Week 2: register",
+          "status": "{opp == \"both\" ? \"Opportunities planned\" : opp == \"note\" ? \"Ideas noted\" : opp == \"herbicide\" ? \"Herbicide planned\" : \"Due\"}",
+          "when": "p >= 2",
+          "flag": "p >= 2 and opp == \"none\""
+        },
+        {
+          "id": "dProc",
+          "kind": "Procurement",
+          "label": "Week 3: panels",
+          "status": "{proc == \"criteria\" ? \"Traceable, take-back supplier\" : proc == \"cheapCheck\" ? \"Cheapest, audit later\" : proc == \"cheapest\" ? \"Cheapest, untraceable\" : \"Due\"}",
+          "when": "p >= 3",
+          "flag": "p >= 3 and proc == \"none\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Week",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Applying PRiSM life cycle phases to a scenario: staffing, deliverables, risk/opportunity management, cost/finance, and scheduling",
+  "secondaryObjectives": [
+    "Identifying core PRiSM concepts and principles: how PRiSM relates to traditional project management, and the PRiSM Project Life Cycle's features and key deliverables"
+  ],
+  "sources": [
+    {
+      "cite": "PMI, Certified Sustainable Project Professional (CSPP) bundle and exam page: P5 Standard: Sustainability and Impact Analysis 24% (the largest domain with PRiSM Life Cycle Approach 23% and Project Management Considerations 23%)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.pmi.org/certifications/cspp-bundle-exam-course",
+      "note": "Read 2026-11-17 directly (summarizing fetch of pmi.org/certifications/cspp-bundle-exam-course). The page lists six domains: Foundations of Sustainable Project Work 12%, PRiSM Life Cycle Approach 23%, P5 Standard: Sustainability and Impact Analysis 24%, Developing a Sustainability Management Plan 12%, ESG & Sustainability Reporting, Governance, and Project Communications 7%, Project Management Considerations 23% (they add to 101%). It says the P5 Standard evaluates project impacts on 'people, planet, and prosperity', and a prep module practices 'a P5 Impact Analysis' to 'identify, assess and mitigate sustainability impacts'. The course seed's five domains and weights (P5 36%) differ from this page; the P5 domain is the largest either way. The objective wording is the course seed's. Reused for REQ-336 from this course's cspp-school-laptop-p5-review (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the project, the figures and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You manage a fictional cooperative's community solar farm. The plan stops at commissioning; the panels will run 30 years and then need decommissioning.",
+    "handover": [
+      "Budget covers build only.",
+      "The cooperative's members want local benefit."
+    ],
+    "howItWorks": [
+      "The board shows the risk register against the appetite, each stakeholder's support in words and the docket.",
+      "Move on a week at a time. A decision comes to you at each review; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-03-15T09:00",
+    "tick": "1d",
+    "maxDuration": "84d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "spon": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "comm": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "team": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "life": {
+      "type": "enum",
+      "values": [
+        "none",
+        "full",
+        "ops",
+        "handover"
+      ],
+      "init": "none"
+    },
+    "lifeAt": {
+      "type": "time",
+      "init": null
+    },
+    "opp": {
+      "type": "enum",
+      "values": [
+        "none",
+        "both",
+        "note",
+        "herbicide"
+      ],
+      "init": "none"
+    },
+    "oppAt": {
+      "type": "time",
+      "init": null
+    },
+    "proc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "criteria",
+        "cheapCheck",
+        "cheapest"
+      ],
+      "init": "none"
+    },
+    "procAt": {
+      "type": "time",
+      "init": null
+    },
+    "planAt": {
+      "type": "time",
+      "init": null
+    },
+    "membersAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(spon, comm), team)"
+    },
+    "missCount": {
+      "expr": "((life == \"handover\") ? 1 : 0) + ((opp == \"herbicide\") ? 1 : 0) + ((proc == \"cheapest\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(life == \"none\" or (life == \"handover\") ? 1 : 0) + (opp == \"none\" or (opp == \"herbicide\") ? 1 : 0) + (proc == \"none\" or (proc == \"cheapest\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Life-cycle planning",
+      "clock": "turns",
+      "actions": [
+        "plan",
+        "members"
+      ]
+    },
+    "close": {
+      "label": "Plan record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "plan": {
+      "label": "Read the current plan's scope",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(planAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "planAt",
+          "to": "t"
+        },
+        {
+          "log": "Read the current plan's scope.",
+          "kind": "act"
+        },
+        {
+          "finding": "The plan ends at commissioning; nothing covers operation, end of life or panel recycling."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "members": {
+      "label": "Read the members' survey",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(membersAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "membersAt",
+          "to": "t"
+        },
+        {
+          "log": "Read the members' survey.",
+          "kind": "act"
+        },
+        {
+          "finding": "Members want local maintenance jobs and a community fund from surplus revenue."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Whole-life deliverables with a decommissioning fund, opportunities planned, and traceable suppliers with take-back"
+                },
+                {
+                  "value": "summary",
+                  "label": "Plan approved"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next review",
+      "wait": {
+        "skipLabel": "Go to the next review"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "life == \"handover\"",
+              "then": [
+                {
+                  "log": "Week 2: the bank's due diligence asks for a decommissioning provision; financing is delayed.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "opp == \"herbicide\"",
+              "then": [
+                {
+                  "log": "Week 3: members vote against the herbicide plan at the AGM and the maintenance contract must be re-tendered.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "proc == \"cheapest\"",
+              "then": [
+                {
+                  "log": "Week 4: the supplier's panels are detained at the border under forced-labor import rules; the build stops for months.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "7d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The life-cycle plan is approved.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "7d"
+        }
+      ]
+    },
+    {
+      "id": "t_life",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 1: scope.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "lifePrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_opp",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 2: risk and opportunity review.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "oppPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_proc",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 3: panel procurement.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "procPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "lifePrompt": {
+      "title": "Where the project's thinking ends",
+      "context": "The plan stops at commissioning.",
+      "choices": [
+        {
+          "id": "full",
+          "label": "Extend the deliverables to operation, maintenance and decommissioning, with a recycling plan and a decommissioning fund in the finance model",
+          "effects": [
+            {
+              "set": "life",
+              "to": "\"full\""
+            },
+            {
+              "set": "lifeAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "1"
+            },
+            {
+              "log": "The plan covers the whole life.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A life-cycle approach plans beyond handover to operation and end of life."
+        },
+        {
+          "id": "ops",
+          "label": "Add operation but not end of life",
+          "effects": [
+            {
+              "set": "life",
+              "to": "\"ops\""
+            },
+            {
+              "set": "lifeAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-1"
+            },
+            {
+              "log": "Operation added.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Decommissioning is still unfunded."
+        },
+        {
+          "id": "handover",
+          "label": "Keep the plan to commissioning",
+          "effects": [
+            {
+              "set": "life",
+              "to": "\"handover\""
+            },
+            {
+              "set": "lifeAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-2"
+            },
+            {
+              "log": "Scope unchanged.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Who removes and recycles the panels in 30 years is unknown."
+        }
+      ]
+    },
+    "oppPrompt": {
+      "title": "Only threats?",
+      "context": "The register lists threats only.",
+      "choices": [
+        {
+          "id": "both",
+          "label": "Add opportunities: sheep grazing under panels for vegetation management and a pollinator meadow, with owners and value",
+          "effects": [
+            {
+              "set": "opp",
+              "to": "\"both\""
+            },
+            {
+              "set": "oppAt",
+              "to": "t"
+            },
+            {
+              "add": "comm",
+              "by": "1"
+            },
+            {
+              "log": "Opportunities are planned.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Risk management covers opportunities to create value, not just threats."
+        },
+        {
+          "id": "note",
+          "label": "Note ideas for later",
+          "effects": [
+            {
+              "set": "opp",
+              "to": "\"note\""
+            },
+            {
+              "set": "oppAt",
+              "to": "t"
+            },
+            {
+              "add": "comm",
+              "by": "-1"
+            },
+            {
+              "log": "Ideas noted.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Unplanned opportunities rarely happen."
+        },
+        {
+          "id": "herbicide",
+          "label": "Plan herbicide for vegetation as cheapest",
+          "effects": [
+            {
+              "set": "opp",
+              "to": "\"herbicide\""
+            },
+            {
+              "set": "oppAt",
+              "to": "t"
+            },
+            {
+              "add": "comm",
+              "by": "-2"
+            },
+            {
+              "log": "Herbicide is planned.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "It harms soil and members object; an opportunity is lost."
+        }
+      ]
+    },
+    "procPrompt": {
+      "title": "Which panel supplier?",
+      "context": "The cheapest supplier can't show where its polysilicon comes from.",
+      "choices": [
+        {
+          "id": "criteria",
+          "label": "Score bids on cost, supply-chain traceability, take-back for recycling and local maintenance, and pick the best value",
+          "effects": [
+            {
+              "set": "proc",
+              "to": "\"criteria\""
+            },
+            {
+              "set": "procAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "1"
+            },
+            {
+              "log": "A traceable supplier with take-back wins.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Sustainable procurement weighs supply chain and end of life with cost."
+        },
+        {
+          "id": "cheapCheck",
+          "label": "Pick the cheapest and ask for an audit later",
+          "effects": [
+            {
+              "set": "proc",
+              "to": "\"cheapCheck\""
+            },
+            {
+              "set": "procAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "-1"
+            },
+            {
+              "log": "Cheapest picked.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The audit comes after the commitment."
+        },
+        {
+          "id": "cheapest",
+          "label": "Pick the cheapest",
+          "effects": [
+            {
+              "set": "proc",
+              "to": "\"cheapest\""
+            },
+            {
+              "set": "procAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "-2"
+            },
+            {
+              "log": "Cheapest picked.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Untraceable supply chains can include forced labor."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the life-cycle plan summary for the cooperative board.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Life cycle",
+          "criteria": "Operation, maintenance and decommissioning planned and funded.",
+          "modelAnswer": "The plan now runs to decommissioning, with a recycling plan and a fund."
+        },
+        {
+          "label": "Opportunities and procurement",
+          "criteria": "Grazing and meadow; traceable supplier with take-back.",
+          "modelAnswer": "Sheep grazing and a pollinator meadow are planned opportunities; the supplier is traceable and takes panels back."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "governance",
+    "thresholds": {
+      "aboveAppetite": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No risk above appetite at the close without a treatment."
+        }
+      },
+      "supportTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Each key stakeholder at 6 of 10 or more at the close."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (life == \"ops\") and (opp == \"note\") and (proc == \"cheapCheck\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "PMI, Certified Sustainable Project Professional (CSPP) bundle and exam page: P5 Standard: Sustainability and Impact Analysis 24% (the largest domain with PRiSM Life Cycle Approach 23% and Project Management Considerations 23%)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.pmi.org/certifications/cspp-bundle-exam-course",
+        "note": "Read 2026-11-17 directly (summarizing fetch of pmi.org/certifications/cspp-bundle-exam-course). The page lists six domains: Foundations of Sustainable Project Work 12%, PRiSM Life Cycle Approach 23%, P5 Standard: Sustainability and Impact Analysis 24%, Developing a Sustainability Management Plan 12%, ESG & Sustainability Reporting, Governance, and Project Communications 7%, Project Management Considerations 23% (they add to 101%). It says the P5 Standard evaluates project impacts on 'people, planet, and prosperity', and a prep module practices 'a P5 Impact Analysis' to 'identify, assess and mitigate sustainability impacts'. The course seed's five domains and weights (P5 36%) differ from this page; the P5 domain is the largest either way. The objective wording is the course seed's. Reused for REQ-336 from this course's cspp-school-laptop-p5-review (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "lifeHarm": {
+      "label": "Financing delayed",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and life == \"handover\"",
+      "narrative": "With no decommissioning provision, the bank delayed financing."
+    },
+    "oppHarm": {
+      "label": "Members object",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and opp == \"herbicide\"",
+      "narrative": "Members voted down the herbicide plan; maintenance had to be re-tendered."
+    },
+    "procHarm": {
+      "label": "Panels detained",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and proc == \"cheapest\"",
+      "narrative": "The untraceable panels were detained at the border; the build stopped."
+    },
+    "target": {
+      "label": "Planned for the whole life",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (life == \"full\") and (opp == \"both\") and (proc == \"criteria\") and record == \"honest\" and openCount <= aboveAppetite and minSupport >= supportTarget",
+      "narrative": "The farm is planned, financed and sourced for 30 years and what comes after."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "lifeHarm",
+    "oppHarm",
+    "procHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "lifeCrit",
+        "label": "Planned across the asset's whole life cycle, including end of life",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "life == \"full\"",
+            "score": "met",
+            "why": "Whole life."
+          },
+          {
+            "when": "life == \"ops\"",
+            "score": "partial",
+            "why": "Partial."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Short-term."
+          }
+        ]
+      },
+      {
+        "id": "oppCrit",
+        "label": "Managed opportunities as well as threats",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "opp == \"both\"",
+            "score": "met",
+            "why": "Both."
+          },
+          {
+            "when": "opp == \"note\"",
+            "score": "partial",
+            "why": "Passive."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Missed and harmful."
+          }
+        ]
+      },
+      {
+        "id": "procCrit",
+        "label": "Applied sustainable procurement criteria",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "proc == \"criteria\"",
+            "score": "met",
+            "why": "Sustainable."
+          },
+          {
+            "when": "proc == \"cheapCheck\"",
+            "score": "partial",
+            "why": "Late check."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Unsustainable."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(planAt) and not isNull(membersAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(planAt) or not isNull(membersAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 10)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the plan's scope and the members' goals first."
+      },
+      {
+        "at": "Week 1",
+        "text": "Extend deliverables and finance to operation and decommissioning."
+      },
+      {
+        "at": "Week 2",
+        "text": "Register and plan opportunities with owners."
+      },
+      {
+        "at": "Week 3",
+        "text": "Score suppliers on traceability, take-back and local maintenance with cost."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "lifeHarm": {
+        "headline": "Plan the whole life",
+        "body": "Operation and end of life are part of the project's thinking."
+      },
+      "oppHarm": {
+        "headline": "Seek opportunities",
+        "body": "Manage opportunities as well as threats."
+      },
+      "procHarm": {
+        "headline": "Procure sustainably",
+        "body": "Traceability and take-back are criteria, not extras."
+      },
+      "target": {
+        "headline": "Good: planned for the whole life",
+        "body": "Life cycle, opportunities and sustainable procurement."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A sustainable life-cycle approach extends project thinking beyond handover to operation and end of life, manages opportunities as well as threats, and uses sustainable procurement (traceability, take-back) alongside cost."
+  }
+}
