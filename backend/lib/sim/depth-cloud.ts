@@ -36,4 +36,7 @@ export const DEPTH_CLOUD: readonly CloudEntry[] = [
   { course: "DP300", slug: "log-backup-job-failing-expired-sas", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "dp300-agentjob" },
   { course: "DP300", slug: "lrs-cutover-tail-backup-not-restored", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "dp300-lrs" },
   { course: "AZ140", slug: "stale-udr-to-retired-nva-az140", screen: "terminal", profile: "infrastructure", kind: "band", steps: "dc-az140-stale-udr-to-retired-nva-az140", base: "AZ700/stale-udr-to-retired-nva" },
+  { course: "DP300", slug: "deploy-script-truncates-rates-table", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "dp300-pitr" },
+  { course: "DP300", slug: "managed-identity-login-fails-new-database", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "dp300-entra" },
+  { course: "AZ140", slug: "ca-policy-targets-arm-provider-feed-fails", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "az140-condaccess" },
 ];
