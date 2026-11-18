@@ -356,4 +356,21 @@ describe("what each new depth cloud case teaches (REQ-335)", () => {
     assert.equal(ok.value("missAt"), null);
     assert.equal(ok.value("okAt") !== null, true);
   });
+  test("AZ120 hana-log-writes-slow-no-write-accelerator: accelerating the data disks shares the limit with the log; Accelerated Networking changes nothing; Write Accelerator on the log disks restores commits", () => {
+    const d = docOf("hana-log-writes-slow-no-write-accelerator");
+    const h = driver(d);
+    h.act("allwa");
+    assert.equal(h.value("harmed"), true, "allwa causes harm");
+    until(h, 121);
+    assert.notEqual(h.value("missAt"), null);
+    const n = driver(d);
+    n.act("accnet");
+    until(n, 121);
+    assert.notEqual(n.value("missAt"), null, "accnet changes nothing");
+    const ok = driver(d);
+    ok.act("enable");
+    until(ok, 121);
+    assert.equal(ok.value("missAt"), null);
+    assert.equal(ok.value("okAt") !== null, true);
+  });
 });

@@ -20,4 +20,5 @@ export const DEPTH_CLOUD: readonly CloudEntry[] = [
   { course: "AWSSAP", slug: "dynamodb-backfill-throttles-checkout-sap", screen: "terminal", profile: "infrastructure", kind: "band", steps: "dc-awssap-dynamodb-backfill-throttles-checkout-sap", base: "AWSDEA/dynamodb-backfill-throttles-checkout" },
   { course: "AZ120", slug: "fence-agent-lost-role-before-maintenance", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "az120-fence" },
   { course: "AZ120", slug: "migration-wave-blocked-by-vm-family-quota", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "az120-quota" },
+  { course: "AZ120", slug: "hana-log-writes-slow-no-write-accelerator", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "az120-writeacc" },
 ];
