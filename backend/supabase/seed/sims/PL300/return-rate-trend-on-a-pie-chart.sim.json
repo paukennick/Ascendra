@@ -1,0 +1,919 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "return-rate-trend-on-a-pie-chart",
+  "title": "Ops review: is the return rate rising? The page answers with a pie chart",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "Returns page, Operations report (Power BI Desktop), Harbor & Pine Furniture (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Head of operations, Marcus Lindqvist",
+          "text": "Is our return rate rising month over month, and in which region? I need one visual for the 11:00 ops review.",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "seen",
+          "label": "Pattern",
+          "text": "The visual cannot show change over time.",
+          "when": "not isNull(lookAt) and not fixed",
+          "severity": "warning"
+        },
+        {
+          "id": "lock",
+          "label": "Ops review",
+          "text": "11:00: the ops review started without the visual.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [],
+      "code": [
+        {
+          "id": "code",
+          "label": "Returns page: visual settings",
+          "language": "Power BI visual",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "Visual: Pie chart; Legend: Region; Values: Sum of Stores[ReturnRate]",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c1",
+              "text": "Measure: Return rate = DIVIDE(SUM(Returns[Units]), SUM(Sales[Units]))",
+              "when": "fix == \"line\" or fix == \"columns\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c2",
+              "text": "Visual: Line chart; X-axis: Date[Month] (continuous); Y-axis: Return rate; Legend: Region",
+              "when": "fix == \"line\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c3",
+              "text": "Visual: Clustered column chart; X-axis: Date[Month]; Y-axis: Return rate; Legend: Region",
+              "when": "fix == \"columns\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c4",
+              "text": "Visual: Line chart; X-axis: Date[Month]; Y-axis: Sum of Stores[ReturnRate]; Legend: Region",
+              "when": "fix == \"sumline\"",
+              "mark": "\"warning\""
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Ops review",
+          "value": "11:00"
+        }
+      ]
+    }
+  },
+  "objective": "Picking the visual type that fits a comparison, trend, composition or distribution question",
+  "secondaryObjectives": [
+    "Formatting visuals and applying a report theme and conditional formatting"
+  ],
+  "sources": [
+    {
+      "cite": "Microsoft Learn, Study guide for Exam PL-300: Microsoft Power BI Data Analyst (skills measured as of April 20, 2026; page updated 2026-10-30): prepare the data 25-30%, model the data 25-30%, visualize and analyze the data 25-30%, manage and secure Power BI 15-20%",
+      "checkedAt": "2026-11-18",
+      "url": "https://learn.microsoft.com/certifications/resources/study-guides/pl-300",
+      "note": "Read through a summarizing fetch on 2026-11-18. Bullets quoted: 'Merge and append queries'; 'Resolve inconsistencies, unexpected or null values, and data quality issues'; 'Select an appropriate visual'. The objective wording is the course seed's."
+    },
+    {
+      "cite": "Microsoft Learn (Power BI), Line charts in Power BI",
+      "checkedAt": "2026-11-18",
+      "url": "https://learn.microsoft.com/en-us/power-bi/visuals/power-bi-line-chart",
+      "note": "Read through a summarizing fetch on 2026-11-18. 'Line charts display continuous data as points connected by lines, making them ideal for visualizing trends over time'; a field in the Legend well makes one line per value; small multiples give one chart per category; a continuous X-axis plots dates proportionally. That summing a per-store rate column does not give a region's rate (a ratio of sums does) is arithmetic, stated as the author's."
+    },
+    {
+      "cite": "Author's scenario (REQ-335)",
+      "checkedAt": "2026-11-18",
+      "note": "Every organization, person, count and deadline is invented teaching data; tool output is an authored rendering in the tool style."
+    }
+  ],
+  "brief": {
+    "situation": "You own the Operations report at Harbor & Pine Furniture (fictional). The Returns page has one visual: a pie chart of ReturnRate by Region. The head of operations asks whether the return rate is rising month over month and where. The ops review is at 11:00. It is 10:05.",
+    "handover": [
+      "ReturnRate is a column on the Stores table: each store's return rate for the last 12 months, a percentage.",
+      "Returns[Units] and Sales[Units] are by date and store; the Date table is marked as a date table."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: look, change, check or ship. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "10:05",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-335)",
+        "checkedAt": "2026-11-18",
+        "note": "The deadline is an invented teaching value."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "line",
+        "columns",
+        "sumline"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "c0",
+        "c1",
+        "c2"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "k0",
+        "k1",
+        "k2"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "(fix == \"line\")"
+    },
+    "correct": {
+      "expr": "(fix == \"line\" or fix == \"columns\")"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "look",
+        "change",
+        "check",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "look": {
+      "label": "Read the question against the visual: what the pie shows, and what Sum of ReturnRate adds up",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "output": "Line: one line per region by month; North 3.1% in May rising to 5.6% in October; others flat near 2.4%"
+            }
+          ],
+          "else": [
+            {
+              "output": "Pie: North 31%, Coastal 27%, Inland 22%, Metro 20% (shares of a summed rate, no time axis)\nSum of ReturnRate for North: 412% (23 stores' rates added)"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "finding": "Time on the X-axis and a ratio measure answer the question directly."
+            }
+          ],
+          "else": [
+            {
+              "finding": "A pie shows parts of a whole at one moment: it cannot show a trend, and adding store percentages gives a number that is not a rate."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Change the measure and visual",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "line",
+              "label": "A Return rate measure (returned units over sold units) on a line chart by month, one line per region"
+            },
+            {
+              "value": "columns",
+              "label": "The same measure on a clustered column chart by month and region"
+            },
+            {
+              "value": "sumline",
+              "label": "A line chart by month of Sum of ReturnRate by region"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: {f}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "check": {
+      "label": "Compare the visual's values for October with the warehouse's returns sheet, and read the trend",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"line\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "North: 3.1% May, 3.6%, 4.2%, 4.9%, 5.6% October\nCoastal, Inland, Metro: 2.2% to 2.6%, flat\nMeasure matches the warehouse's monthly returns sheet"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"columns\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "48 columns; values match the returns sheet\nNorth's rise is visible only by reading labels"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"sumline\"",
+              "then": [
+                {
+                  "output": "North: 398% to 431% by month\nDoes not match the returns sheet (5.6% in October)"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "Pie shows no months; North 31% of a summed rate"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Publish the Returns page for the ops review",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "if": "correct",
+          "then": [
+            {
+              "output": "Published: North's return rate rising since May; the others flat."
+            }
+          ],
+          "else": [
+            {
+              "output": "Published a visual that does not answer the question correctly."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why the page could not answer",
+              "options": [
+                {
+                  "value": "c0",
+                  "label": "A pie shows composition at one time, and summed store rates are not a rate"
+                },
+                {
+                  "value": "c1",
+                  "label": "The data was a month old"
+                },
+                {
+                  "value": "c2",
+                  "label": "The region names were wrong"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know it is right",
+              "options": [
+                {
+                  "value": "k0",
+                  "label": "Values match the returns sheet and the trend reads directly"
+                },
+                {
+                  "value": "k1",
+                  "label": "It looks clearer"
+                },
+                {
+                  "value": "k2",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-335)",
+        "checkedAt": "2026-11-18",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "11:00: the ops review started without the visual.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the head of operations: why the old visual could not answer, what you changed, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "A pie shows parts of a whole at one point in time; the question is a trend over months. Summing a per-store percentage does not give a rate.",
+          "modelAnswer": "No time axis; Sum of ReturnRate 412%."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "A Return rate measure that divides returned units by sold units, on a line chart with months on the X-axis and one line per region; columns work but hide the trend; a line of summed rates shows wrong numbers.",
+          "modelAnswer": "DIVIDE measure; line chart by month, legend Region."
+        },
+        {
+          "label": "How you know",
+          "criteria": "October's values match the returns sheet, and North's rise reads directly.",
+          "modelAnswer": "North 3.1% to 5.6%."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-335)",
+          "checkedAt": "2026-11-18",
+          "note": "The case's deadline; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Shipping nothing ships nothing wrong, but the deadline passes without the fix.",
+      "source": {
+        "cite": "Author's scenario (REQ-335)",
+        "checkedAt": "2026-11-18",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "wrongSent": {
+      "label": "Wrong rates shown",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "The review discusses return rates of over 400%."
+    },
+    "notSent": {
+      "label": "Nothing shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "Nothing wrong went out, but the review had no visual."
+    },
+    "right": {
+      "label": "Right, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and fixed and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "The review sees North's return rate rising since May and asks why."
+    },
+    "gaps": {
+      "label": "Right, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The result is right, but it went late, unchecked, before you looked, or with a weaker fix."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Read what the visual and its values actually showed before changing it",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked before acting."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Used a ratio measure on a line chart by month",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed",
+            "score": "met",
+            "why": "A ratio measure on a line chart by month."
+          },
+          {
+            "when": "fix == \"columns\"",
+            "score": "partial",
+            "why": "The numbers are right, but 48 bars make the rise in one region hard to see."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{fix == \"sumline\" ? \"Summing store percentages gives numbers like 412% that are not a return rate.\" : \"A pie of summed rates shows no trend and no real rate.\"}"
+          }
+        ]
+      },
+      {
+        "id": "shipped",
+        "label": "Shipped nothing wrong",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sentAs != \"wrong\"",
+            "score": "met",
+            "why": "Nothing wrong shipped."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Shipped a wrong result."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Values matched the returns sheet after the last change, before publishing",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "Checked after the last change, before shipping."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Checked, but it failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"c0\" and checkDoc == \"k0\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"c0\" or checkDoc == \"k0\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rightK",
+        "label": "Right result shipped",
+        "value": "sentAs == \"right\" ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "altered",
+        "label": "Rows changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until shipped",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 14"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "Pie has no time; summed rates are 412%."
+      },
+      {
+        "at": "4-9 min",
+        "text": "Ratio measure; line chart by month and region."
+      },
+      {
+        "at": "9-12 min",
+        "text": "Values match the returns sheet."
+      },
+      {
+        "at": "12-14 min",
+        "text": "Publish."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: the visual follows the question",
+        "body": "Trend questions want time on the X-axis; rates want a ratio of sums, not a sum of ratios."
+      },
+      "gaps": {
+        "headline": "Right, with gaps",
+        "body": "The result is right; it went late, unchecked, before you looked, or with a weaker fix than the cause called for."
+      },
+      "wrongSent": {
+        "headline": "Wrong rates",
+        "body": "A line chart is right for a trend, but summing a percentage column produces numbers that are not rates."
+      },
+      "notSent": {
+        "headline": "Nothing shipped",
+        "body": "Safe, but the deadline passed without the fix."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "The question is a trend over time by region, so the visual needs months on the X-axis and one series per region: a line chart. The value must be a rate, so compute returned units divided by sold units as a measure instead of adding store percentages. Check the October values against the returns sheet. A pie shows composition at one moment; clustered columns are right but hard to read for a trend; a line of summed rates shows numbers over 400%."
+  }
+}
