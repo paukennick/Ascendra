@@ -99,6 +99,51 @@ export const RELEASE_NOTE_LIMITS = {
 // Newest first.
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    // The sim depth round of 2026-11-17 (Nick, 19:51 PT: "build those out
+    // more robustly"): REQ-333 academic and programming, REQ-334 nursing and
+    // PT specialties, REQ-336 CNCF, CompTIA, security and project management,
+    // REQ-337 mental health, REQ-338 EMS and fitness. Gated whole on sims,
+    // like every sims round note. No permission body's marks.
+    id: "2026-11-18-a",
+    date: "2026-11-18",
+    appVersion: "2.1.0",
+    covers: ["REQ-333", "REQ-334", "REQ-336", "REQ-337", "REQ-338"],
+    title: "Sims across the units of your courses",
+    requires: "sims",
+    items: [
+      {
+        icon: "book-open",
+        headline: "Sims across the degree courses",
+        body: "MS Health Informatics and MS CS Foundations now have sims in their units, from an EHR downtime exercise to a deadlock, and every programming and Python course has at least four.",
+        requires: "sims",
+      },
+      {
+        icon: "zap",
+        headline: "EMS cases for every level",
+        body: "Every unit of the EMR, EMT, AEMT and paramedic courses now has a sim inside that level's scope, and the personal trainer, nutrition and strength courses get new client cases.",
+        requires: "sims",
+      },
+      {
+        icon: "eye",
+        headline: "More bedside and therapy cases",
+        body: "The ADN, BSN, LPN/VN and neonatal and pediatric critical care courses now have eight or more sims each, and every physical therapy specialty course has at least four.",
+        requires: "sims",
+      },
+      {
+        icon: "shield",
+        headline: "Mental health, with Washington law",
+        body: "Counseling, social work and psychology courses get new sessions, including Washington law cases on hiring a client, reporting abuse and a former psychologist's misconduct. Sensitive ones are 18+.",
+        requires: "sims",
+      },
+      {
+        icon: "flag",
+        headline: "Cloud native, CompTIA, security, projects",
+        body: "41 cloud native (CNCF), CompTIA, security and project management courses now have at least four sims each, with a case in every unit where one fits.",
+        requires: "sims",
+      },
+    ],
+  },
+  {
     // REQ-330 (Nick, 2026-11-17 16:52 PT): store build 2.1.0. Carries REQ-221
     // M8 (the app declares the website, so Android can offer a saved web
     // password) and REQ-302 (a version change alone no longer needs a store
