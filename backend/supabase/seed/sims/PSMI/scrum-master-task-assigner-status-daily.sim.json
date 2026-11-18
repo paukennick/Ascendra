@@ -1,0 +1,1135 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "scrum-master-task-assigner-status-daily",
+  "title": "Three Scrum anti-patterns in one Sprint: the Scrum Master assigning tasks, a status-report Daily Scrum, and a 'stabilization Sprint'",
+  "screen": {
+    "type": "project-dashboard",
+    "level": 1,
+    "dashboard": {
+      "mode": "sprint",
+      "heading": "Sprint 3 with a new Scrum Master",
+      "commitments": [
+        {
+          "id": "sgoal",
+          "label": "Sprint Goal",
+          "text": "Members can book a class and get a reminder."
+        },
+        {
+          "id": "dod",
+          "label": "Definition of Done",
+          "text": "Reviewed, tested, deployed to production behind a flag."
+        }
+      ],
+      "columns": [
+        {
+          "id": "todo",
+          "label": "To do"
+        },
+        {
+          "id": "blocked",
+          "label": "Off course"
+        },
+        {
+          "id": "done",
+          "label": "Handled"
+        }
+      ],
+      "items": [
+        {
+          "id": "wTasks",
+          "label": "Who plans the Sprint's work",
+          "column": "tasks == \"selfManage\" ? \"done\" : tasks == \"hybrid\" ? \"blocked\" : tasks == \"assign\" ? \"blocked\" : \"todo\"",
+          "when": "true",
+          "flag": "tasks == \"assign\""
+        },
+        {
+          "id": "wDaily",
+          "label": "Daily Scrum format",
+          "column": "daily == \"purpose\" ? \"done\" : daily == \"shorter\" ? \"blocked\" : daily == \"manager\" ? \"blocked\" : \"todo\"",
+          "when": "true",
+          "flag": "daily == \"manager\""
+        },
+        {
+          "id": "wStab",
+          "label": "Stabilization Sprint proposal",
+          "column": "stab == \"dod\" ? \"done\" : stab == \"bugBudget\" ? \"blocked\" : stab == \"schedule\" ? \"blocked\" : \"todo\"",
+          "when": "true",
+          "flag": "stab == \"schedule\""
+        }
+      ],
+      "issues": [
+        {
+          "id": "iTasks",
+          "label": "Team dependent on assigned tasks",
+          "when": "p >= 1",
+          "at": "86400",
+          "status": "{tasks == \"selfManage\" ? \"Developers plan their own work\" : tasks == \"hybrid\" ? \"Assigned once more\" : tasks == \"assign\" ? \"Scrum Master assigning tasks\" : \"Due\"}",
+          "open": "tasks == \"none\""
+        },
+        {
+          "id": "iDaily",
+          "label": "Daily Scrum as a status report",
+          "when": "p >= 2",
+          "at": "172800",
+          "status": "{daily == \"purpose\" ? \"15 minutes, about the Sprint Goal\" : daily == \"shorter\" ? \"Shorter status report\" : daily == \"manager\" ? \"Manager-run status meeting\" : \"Due\"}",
+          "open": "daily == \"none\""
+        },
+        {
+          "id": "iStab",
+          "label": "Undone work piling up",
+          "when": "p >= 3",
+          "at": "259200",
+          "status": "{stab == \"dod\" ? \"Definition of Done strengthened\" : stab == \"bugBudget\" ? \"20% bug budget\" : stab == \"schedule\" ? \"Stabilization Sprint planned\" : \"Due\"}",
+          "open": "stab == \"none\""
+        }
+      ],
+      "people": [
+        {
+          "id": "sDev",
+          "label": "Developers",
+          "spokenLabel": "the Developers' trust",
+          "value": "dev",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sMgr",
+          "label": "Engineering manager",
+          "spokenLabel": "the engineering manager's trust",
+          "value": "mgr",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sPo",
+          "label": "Product Owner",
+          "spokenLabel": "the Product Owner's trust",
+          "value": "po",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "events": [
+        {
+          "id": "mTasks",
+          "label": "Sprint Planning follow-up",
+          "at": "86400",
+          "status": "{tasks == \"selfManage\" ? \"Developers plan their own work\" : tasks == \"hybrid\" ? \"Assigned once more\" : tasks == \"assign\" ? \"Scrum Master assigning tasks\" : \"Ahead\"}"
+        },
+        {
+          "id": "mDaily",
+          "label": "Daily Scrum",
+          "at": "172800",
+          "status": "{daily == \"purpose\" ? \"15 minutes, about the Sprint Goal\" : daily == \"shorter\" ? \"Shorter status report\" : daily == \"manager\" ? \"Manager-run status meeting\" : \"Ahead\"}"
+        },
+        {
+          "id": "mStab",
+          "label": "Sprint Retrospective",
+          "at": "259200",
+          "status": "{stab == \"dod\" ? \"Definition of Done strengthened\" : stab == \"bugBudget\" ? \"20% bug budget\" : stab == \"schedule\" ? \"Stabilization Sprint planned\" : \"Ahead\"}"
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Sprint day",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Recognizing Scrum anti-patterns -- the Scrum Master as task assigner, a status-report Daily Scrum, a stabilization Sprint -- and responding to them",
+  "secondaryObjectives": [
+    "Supporting a self-managing team: when the Scrum Master steps in and when the team decides",
+    "Causing the removal of impediments to the team's progress without solving everything for them"
+  ],
+  "sources": [
+    {
+      "cite": "Ken Schwaber and Jeff Sutherland, The Scrum Guide (November 2020)",
+      "url": "https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf",
+      "checkedAt": "2026-11-16",
+      "note": "Read 2026-11-16 directly (the PDF). Daily Scrum: 'The purpose of the Daily Scrum is to inspect progress toward the Sprint Goal and adapt the Sprint Backlog as necessary'; 'a 15-minute event for the Developers of the Scrum Team'. Reused for REQ-336 from this course's sprint-status-meeting-daily-scrum (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The company, the product, the team and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You have just become Scrum Master for a team at Peakform Gyms, a fictional fitness chain. The engineering manager expects you to 'run the team'. In this Sprint you meet three habits the previous Scrum Master left behind.",
+    "handover": [
+      "The previous Scrum Master assigned every task each morning.",
+      "The Daily Scrum is each developer reporting yesterday's work to the manager."
+    ],
+    "howItWorks": [
+      "The board shows the Sprint's commitments, the work, the impediments, the people's support and the Scrum events.",
+      "Move on a day at a time. A decision comes to you at each Daily Scrum; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-04-05T09:00",
+    "tick": "1h",
+    "maxDuration": "20d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "dev": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "mgr": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "po": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "tasks": {
+      "type": "enum",
+      "values": [
+        "none",
+        "selfManage",
+        "hybrid",
+        "assign"
+      ],
+      "init": "none"
+    },
+    "tasksAt": {
+      "type": "time",
+      "init": null
+    },
+    "daily": {
+      "type": "enum",
+      "values": [
+        "none",
+        "purpose",
+        "shorter",
+        "manager"
+      ],
+      "init": "none"
+    },
+    "dailyAt": {
+      "type": "time",
+      "init": null
+    },
+    "stab": {
+      "type": "enum",
+      "values": [
+        "none",
+        "dod",
+        "bugBudget",
+        "schedule"
+      ],
+      "init": "none"
+    },
+    "stabAt": {
+      "type": "time",
+      "init": null
+    },
+    "observeAt": {
+      "type": "time",
+      "init": null
+    },
+    "retrosAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(dev, mgr), po)"
+    },
+    "missCount": {
+      "expr": "((tasks == \"assign\") ? 1 : 0) + ((daily == \"manager\") ? 1 : 0) + ((stab == \"schedule\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(tasks == \"none\" or (tasks == \"assign\") ? 1 : 0) + (daily == \"none\" or (daily == \"manager\") ? 1 : 0) + (stab == \"none\" or (stab == \"schedule\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The Sprint",
+      "clock": "turns",
+      "actions": [
+        "observe",
+        "retros"
+      ]
+    },
+    "close": {
+      "label": "Sprint notes",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "observe": {
+      "label": "Observe the Daily Scrum without intervening",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(observeAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "observeAt",
+          "to": "t"
+        },
+        {
+          "log": "You observe the Daily Scrum.",
+          "kind": "act"
+        },
+        {
+          "finding": "Developers report to the manager in turn; nobody talks about the Sprint Goal or adapts the plan; it runs 35 minutes."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2h"
+        }
+      ]
+    },
+    "retros": {
+      "label": "Read the last three Retrospectives",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(retrosAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "retrosAt",
+          "to": "t"
+        },
+        {
+          "log": "You read the Retrospectives.",
+          "kind": "act"
+        },
+        {
+          "finding": "Each Retrospective lists 'too many bugs at the end'; the previous fix was to plan a 'stabilization Sprint' every fourth Sprint."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2h"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the Sprint notes",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the notes say",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Developers own their plan, the Daily Scrum is theirs and about the Goal, and quality is fixed through the Definition of Done"
+                },
+                {
+                  "value": "summary",
+                  "label": "Sprint done"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next working day",
+      "wait": {
+        "skipLabel": "Go to the next day"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "tasks == \"assign\"",
+              "then": [
+                {
+                  "log": "Day 2: a developer sits idle for half a day waiting for an assignment while a blocking item goes unnoticed.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "daily == \"manager\"",
+              "then": [
+                {
+                  "log": "Day 3: the developers hide a blocker to look good in front of the manager; the reminder service misses the Sprint.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "stab == \"schedule\"",
+              "then": [
+                {
+                  "log": "Day 4: knowing a stabilization Sprint is coming, the team skips tests; production defects double the next month.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "1d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The Sprint ends.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "1d"
+        }
+      ]
+    },
+    {
+      "id": "t_tasks",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 1: the developers wait for their tasks.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "tasksPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_daily",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 2: the Daily Scrum.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "dailyPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_stab",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 3: the manager schedules a stabilization Sprint.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "stabPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "tasksPrompt": {
+      "title": "The team waits to be assigned work",
+      "context": "The manager expects you to hand out tasks as before.",
+      "choices": [
+        {
+          "id": "selfManage",
+          "label": "Tell the team the Sprint Backlog plan is theirs; facilitate them choosing how to reach the Sprint Goal, and explain the change to the manager",
+          "effects": [
+            {
+              "set": "tasks",
+              "to": "\"selfManage\""
+            },
+            {
+              "set": "tasksAt",
+              "to": "t"
+            },
+            {
+              "add": "dev",
+              "by": "10"
+            },
+            {
+              "log": "The developers plan the work together.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Developers are accountable for the Sprint Backlog plan; a Scrum Master assigning tasks undermines self-management."
+        },
+        {
+          "id": "hybrid",
+          "label": "Assign tasks this Sprint and hand over next Sprint",
+          "effects": [
+            {
+              "set": "tasks",
+              "to": "\"hybrid\""
+            },
+            {
+              "set": "tasksAt",
+              "to": "t"
+            },
+            {
+              "add": "dev",
+              "by": "-15"
+            },
+            {
+              "log": "You assign tasks once more.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "It keeps the habit alive another Sprint."
+        },
+        {
+          "id": "assign",
+          "label": "Keep assigning tasks: the manager expects it",
+          "effects": [
+            {
+              "set": "tasks",
+              "to": "\"assign\""
+            },
+            {
+              "set": "tasksAt",
+              "to": "t"
+            },
+            {
+              "add": "dev",
+              "by": "-25"
+            },
+            {
+              "log": "You assign every task.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The team stops thinking about the Sprint Goal and waits for instructions."
+        }
+      ]
+    },
+    "dailyPrompt": {
+      "title": "A status meeting for the manager",
+      "context": "The event runs 35 minutes as a report to the manager.",
+      "choices": [
+        {
+          "id": "purpose",
+          "label": "Coach the Developers to run a 15-minute Daily Scrum about progress toward the Sprint Goal and adapting the plan; ask the manager to get status from the board",
+          "effects": [
+            {
+              "set": "daily",
+              "to": "\"purpose\""
+            },
+            {
+              "set": "dailyAt",
+              "to": "t"
+            },
+            {
+              "add": "mgr",
+              "by": "10"
+            },
+            {
+              "log": "The Daily Scrum is 12 minutes about the Goal.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "The Daily Scrum is for the Developers to inspect progress toward the Sprint Goal and adapt; it isn't a status report."
+        },
+        {
+          "id": "shorter",
+          "label": "Keep the format but cut it to 15 minutes",
+          "effects": [
+            {
+              "set": "daily",
+              "to": "\"shorter\""
+            },
+            {
+              "set": "dailyAt",
+              "to": "t"
+            },
+            {
+              "add": "mgr",
+              "by": "-15"
+            },
+            {
+              "log": "It's shorter.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Shorter, but still a report to the manager."
+        },
+        {
+          "id": "manager",
+          "label": "Ask the manager to run the Daily Scrum since he wants status",
+          "effects": [
+            {
+              "set": "daily",
+              "to": "\"manager\""
+            },
+            {
+              "set": "dailyAt",
+              "to": "t"
+            },
+            {
+              "add": "mgr",
+              "by": "-25"
+            },
+            {
+              "log": "The manager runs it.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Now the event belongs to the manager; the developers stop adapting their plan."
+        }
+      ]
+    },
+    "stabPrompt": {
+      "title": "A Sprint just for bugs",
+      "context": "Bugs pile up at each Sprint's end; the manager wants every fourth Sprint for fixing them.",
+      "choices": [
+        {
+          "id": "dod",
+          "label": "Raise it at the Retrospective: strengthen the Definition of Done (automated tests, review) so each Increment is releasable, instead of deferring quality",
+          "effects": [
+            {
+              "set": "stab",
+              "to": "\"dod\""
+            },
+            {
+              "set": "stabAt",
+              "to": "t"
+            },
+            {
+              "add": "po",
+              "by": "10"
+            },
+            {
+              "log": "The team strengthens its Definition of Done.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A stabilization Sprint means Increments weren't done; fix quality inside every Sprint."
+        },
+        {
+          "id": "bugBudget",
+          "label": "Reserve 20% of each Sprint for bug fixing",
+          "effects": [
+            {
+              "set": "stab",
+              "to": "\"bugBudget\""
+            },
+            {
+              "set": "stabAt",
+              "to": "t"
+            },
+            {
+              "add": "po",
+              "by": "-15"
+            },
+            {
+              "log": "20% is reserved.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Better than a separate Sprint, but the cause is still undone work."
+        },
+        {
+          "id": "schedule",
+          "label": "Schedule the stabilization Sprint",
+          "effects": [
+            {
+              "set": "stab",
+              "to": "\"schedule\""
+            },
+            {
+              "set": "stabAt",
+              "to": "t"
+            },
+            {
+              "add": "po",
+              "by": "-25"
+            },
+            {
+              "log": "A stabilization Sprint is planned.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "That institutionalizes releasing undone work and defers quality."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write a note for the engineering manager: the three anti-patterns you found and how the team responds now.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Anti-patterns",
+          "criteria": "Task assigning, a status-report Daily Scrum, a stabilization Sprint.",
+          "modelAnswer": "The previous Scrum Master assigned tasks, the Daily Scrum was a report to you, and quality was deferred to stabilization Sprints."
+        },
+        {
+          "label": "Responses",
+          "criteria": "Self-managed planning, a 15-minute Goal-focused Daily Scrum, a stronger Definition of Done.",
+          "modelAnswer": "The Developers plan their own work, run a 15-minute Daily Scrum about the Goal, and a stronger Definition of Done replaces stabilization Sprints."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "scrum",
+    "thresholds": {
+      "undoneShown": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Nothing undone released or presented as done (Scrum Guide 2020)."
+        }
+      },
+      "trustTarget": {
+        "value": 60,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Every team and stakeholder gauge at 60 of 100 or more at the end."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (tasks == \"hybrid\") and (daily == \"shorter\") and (stab == \"bugBudget\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "Ken Schwaber and Jeff Sutherland, The Scrum Guide (November 2020)",
+        "url": "https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf",
+        "checkedAt": "2026-11-16",
+        "note": "Read 2026-11-16 directly (the PDF). Daily Scrum: 'The purpose of the Daily Scrum is to inspect progress toward the Sprint Goal and adapt the Sprint Backlog as necessary'; 'a 15-minute event for the Developers of the Scrum Team'. Reused for REQ-336 from this course's sprint-status-meeting-daily-scrum (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "tasksHarm": {
+      "label": "A team waiting for orders",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and tasks == \"assign\"",
+      "narrative": "With tasks assigned, a blocking item went unnoticed and the Sprint Goal slipped."
+    },
+    "dailyHarm": {
+      "label": "A hidden blocker",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and daily == \"manager\"",
+      "narrative": "Reporting to the manager, developers hid a blocker; the Sprint Goal was missed."
+    },
+    "stabHarm": {
+      "label": "Quality deferred",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and stab == \"schedule\"",
+      "narrative": "With a stabilization Sprint planned, tests were skipped and production defects doubled."
+    },
+    "target": {
+      "label": "Anti-patterns replaced with Scrum",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (tasks == \"selfManage\") and (daily == \"purpose\") and (stab == \"dod\") and record == \"honest\" and missCount <= undoneShown and minSupport >= trustTarget",
+      "narrative": "The team plans its own work, inspects its progress daily and keeps every Increment releasable."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "tasksHarm",
+    "dailyHarm",
+    "stabHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "tasksCrit",
+        "label": "Let the Developers own their plan",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "tasks == \"selfManage\"",
+            "score": "met",
+            "why": "Self-management restored."
+          },
+          {
+            "when": "tasks == \"hybrid\"",
+            "score": "partial",
+            "why": "Delayed."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Task assigner."
+          }
+        ]
+      },
+      {
+        "id": "dailyCrit",
+        "label": "Restored the Daily Scrum's purpose for the Developers",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "daily == \"purpose\"",
+            "score": "met",
+            "why": "Purpose restored."
+          },
+          {
+            "when": "daily == \"shorter\"",
+            "score": "partial",
+            "why": "Shorter, same purpose."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Handed the event away."
+          }
+        ]
+      },
+      {
+        "id": "stabCrit",
+        "label": "Addressed the quality problem through the Definition of Done",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "stab == \"dod\"",
+            "score": "met",
+            "why": "Quality built in."
+          },
+          {
+            "when": "stab == \"bugBudget\"",
+            "score": "partial",
+            "why": "Treats symptoms."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Deferred quality."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(observeAt) and not isNull(retrosAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(observeAt) or not isNull(retrosAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 100)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "70 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Observe the team and read the last retrospectives first."
+      },
+      {
+        "at": "Day 1",
+        "text": "Hand the plan back to the Developers and explain it to the manager."
+      },
+      {
+        "at": "Day 2",
+        "text": "Coach a 15-minute, Goal-focused Daily Scrum and redirect the manager to the board."
+      },
+      {
+        "at": "Day 3",
+        "text": "Strengthen the Definition of Done at the Retrospective."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "tasksHarm": {
+        "headline": "Developers own the plan",
+        "body": "The Scrum Master serves self-management; the Developers plan the work."
+      },
+      "dailyHarm": {
+        "headline": "The Daily Scrum is the Developers'",
+        "body": "It inspects progress toward the Sprint Goal; status comes from transparency elsewhere."
+      },
+      "stabHarm": {
+        "headline": "Done every Sprint",
+        "body": "A strong Definition of Done keeps every Increment releasable."
+      },
+      "target": {
+        "headline": "Good: anti-patterns replaced with Scrum",
+        "body": "Self-management, a real Daily Scrum and quality inside every Sprint."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A Scrum Master serves a self-managing team: assigning tasks makes the team wait for orders. The Daily Scrum is the Developers' 15-minute event to inspect progress toward the Sprint Goal and adapt their plan, not a status report to a manager. A 'stabilization Sprint' signals Increments that weren't done; the response is a stronger Definition of Done so every Increment is releasable."
+  }
+}
