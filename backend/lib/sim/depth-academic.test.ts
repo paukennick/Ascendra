@@ -40,7 +40,8 @@ describe("REQ-333: sim depth for the academic and programming courses", () => {
       assert.equal(d.outcome.profile, w.profile, w.slug);
       assert.equal(d.engine.minor, 2);
       assert.ok(d.endingOrder && d.endingOrder.length >= 2, `${w.slug}: ending order`);
-      assert.ok(!Object.values(d.phases).some((p) => p.clock === "running"), `${w.slug}: learner-paced`);
+      // the new cases are learner-paced; a band keeps its base clinical case's clock
+      if (w.kind === "scenario") assert.ok(!Object.values(d.phases).some((p) => p.clock === "running"), `${w.slug}: learner-paced`);
       const fam = safetyFamilyOf(d);
       if (fam === "general") assert.equal(pacingEligible(d, "general"), false);
       const classes = new Set(Object.values(d.endings).filter((x) => x.terminal).map((x) => x.class));
@@ -233,6 +234,24 @@ describe("REQ-333: the new cases behave as taught", () => {
     assert.equal(s16(u16(0xf8, 0xc6)) / 100, -18.5, "C6 F8 little-endian two's complement");
     assert.equal(u16(0xc6, 0xf8) / 100, 509.36, "the same bytes big-endian unsigned");
     assert.equal(s16(u16(0xfd, 0x94)) / 100, -6.2);
+  });
+
+  test("PYTHON mutable default: only a None default passes both tests; clearing the list breaks a caller's own list", () => {
+    const S = "py-packing-slips-mutable-default";
+    const pass = (f?: string) => {
+      const d = driver(S);
+      if (f) d.act("change", { f });
+      d.act("pytest");
+      return d.v("testPassed");
+    };
+    assert.equal(pass("none"), true);
+    assert.equal(pass("copy"), false);
+    assert.equal(pass("clear"), false);
+    assert.equal(pass(), false);
+    const shared = (acc: string[] = []) => (x: string) => (acc.push(x), [...acc]);
+    const f = shared();
+    f("lemons");
+    assert.deepEqual(f("rice"), ["lemons", "rice"], "one default list, shared by every call");
   });
 });
 

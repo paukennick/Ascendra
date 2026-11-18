@@ -23,7 +23,6 @@ import { LFCS_SIM_OBJECTIVES } from "../../supabase/seed/tracks/linux";
 import { isPerformanceObjective } from "../../scripts/generate-labs-lib.ts";
 import { selectionFor } from "./generator/selection.ts";
 
-const LFCS = ALL_DOCUMENTS.filter((e) => e.course === "LFCS" || e.course === "LINUXFUND" || e.course === "PYAUTO");
 // Nick (2026-11-14): sims follow coverage, not a count -- one per objective
 // that fits the selection rule (docs/sims-coverage-depth.md).
 const EXPECTED = [
@@ -38,6 +37,10 @@ const EXPECTED = [
   "LINUXFUND/nightly-backup-missing",
   "PYAUTO/debug-log-fills-var",
 ];
+// FAIL-2480 (a recurrence of FAIL-2002): selected by course and slug, not by
+// course code, so another round's PYAUTO, LFCS or LINUXFUND sims (REQ-333's
+// bands) do not join this set.
+const LFCS = ALL_DOCUMENTS.filter((e) => EXPECTED.includes(`${e.course}/${e.slug}`));
 const docOf = (slug: string): ScenarioDoc => loadDocument(LFCS.find((e) => e.slug === slug)!);
 
 function driver(doc: ScenarioDoc) {

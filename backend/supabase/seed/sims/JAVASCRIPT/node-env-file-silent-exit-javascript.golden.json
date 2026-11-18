@@ -1,0 +1,850 @@
+{
+  "slug": "node-env-file-silent-exit-javascript",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "status (exit 0), journal (SMTP_URL missing), unit and /etc/notifier show the renamed file; --env-file, daemon-reload, restart, queue drains; 3.8.1 exits 1 on a missing setting",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "status",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "journal",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "catUnit",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 3,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "lsEtc",
+          "seq": 7,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 4,
+          "seq": 8,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "editEnvFile",
+          "seq": 9,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 5,
+          "seq": 10,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "reload",
+          "seq": 11,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 6,
+          "seq": 12,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "restart",
+          "seq": 13,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 7,
+          "seq": 14,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "depth",
+          "seq": 15,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 8,
+          "seq": 16,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "grepCode",
+          "seq": 17,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 9,
+          "seq": 18,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "patchExit",
+          "seq": 19,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 17,
+          "seq": 20,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 21,
+          "tick": 17
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 22,
+          "tick": 17
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "envName",
+            "prevent": "loud"
+          },
+          "seq": 23,
+          "tick": 17
+        }
+      ],
+      "expect": {
+        "ending": "restored",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "readWhy": "met",
+          "noLoss": "met",
+          "restoredFast": "met",
+          "loudNext": "met",
+          "foundFile": "met",
+          "verified": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToRestore": 6,
+          "restartsK": 0,
+          "faultsK": 0
+        },
+        "stateHash": "c8a13f0ee30f51cb"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "quietFix",
+      "title": "Restarts blind first, then reads the journal, fixes the file name but keeps --env-file-if-exists, forgets daemon-reload once; mail flows, still silent next time",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "restart",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "journal",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "lsEtc",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 3,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "editIfExists",
+          "seq": 7,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 4,
+          "seq": 8,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "restart",
+          "seq": 9,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 5,
+          "seq": 10,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "reload",
+          "seq": 11,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 6,
+          "seq": 12,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "restart",
+          "seq": 13,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 7,
+          "seq": 14,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "depth",
+          "seq": 15,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 8,
+          "seq": 16,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 17,
+          "tick": 8
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 18,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "envName",
+            "prevent": "restartAlways"
+          },
+          "seq": 19,
+          "tick": 8
+        }
+      ],
+      "expect": {
+        "ending": "restoredGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 63,
+        "criteria": {
+          "readWhy": "partial",
+          "noLoss": "met",
+          "restoredFast": "met",
+          "loudNext": "missed",
+          "foundFile": "partial",
+          "verified": "met",
+          "record": "partial"
+        },
+        "kpis": {
+          "minToRestore": 6,
+          "restartsK": 2,
+          "faultsK": 0
+        },
+        "stateHash": "a8cca72a2865db83"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "purge",
+      "title": "Purges the 'stuck' queue, then finds and fixes the file",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "status",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "purgeQueue",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "journal",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 3,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "catUnit",
+          "seq": 7,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 4,
+          "seq": 8,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "lsEtc",
+          "seq": 9,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 5,
+          "seq": 10,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "editEnvFile",
+          "seq": 11,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 6,
+          "seq": 12,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "reload",
+          "seq": 13,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 7,
+          "seq": 14,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "restart",
+          "seq": 15,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 8,
+          "seq": 16,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 17,
+          "tick": 8
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 18,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "smtpDown",
+            "prevent": "nothing"
+          },
+          "seq": 19,
+          "tick": 8
+        }
+      ],
+      "expect": {
+        "ending": "purgedQueue",
+        "class": "harm",
+        "rating": "bad",
+        "score": 44,
+        "criteria": {
+          "readWhy": "met",
+          "noLoss": "missed",
+          "restoredFast": "met",
+          "loudNext": "partial",
+          "foundFile": "met",
+          "verified": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "minToRestore": 7,
+          "restartsK": 0,
+          "faultsK": 1
+        },
+        "stateHash": "f897beec97a3ac99"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "blindRestarts",
+      "title": "Restarts twice, blames the SMTP relay and closes with the notifier stopped",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "restart",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "restart",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "status",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 3,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 7,
+          "tick": 3
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 8,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "smtpDown",
+            "prevent": "nothing"
+          },
+          "seq": 9,
+          "tick": 3
+        }
+      ],
+      "expect": {
+        "ending": "stillDown",
+        "class": "harm",
+        "rating": "bad",
+        "score": 13,
+        "criteria": {
+          "readWhy": "missed",
+          "noLoss": "met",
+          "restoredFast": "missed",
+          "loudNext": "missed",
+          "foundFile": "missed",
+          "verified": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "minToRestore": -1,
+          "restartsK": 2,
+          "faultsK": 0
+        },
+        "stateHash": "c48e90679198df1f"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "slowPatch",
+      "title": "Reads everything, ships the exit-code patch first and waits on it; 15:02 passes before the unit is fixed",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "status",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "journal",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "grepCode",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 3,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "patchExit",
+          "seq": 7,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 11,
+          "seq": 8,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 9,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 21,
+          "seq": 10,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 11,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 31,
+          "seq": 12,
+          "tick": 21
+        },
+        {
+          "type": "act",
+          "action": "catUnit",
+          "seq": 13,
+          "tick": 31
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 32,
+          "seq": 14,
+          "tick": 31
+        },
+        {
+          "type": "act",
+          "action": "lsEtc",
+          "seq": 15,
+          "tick": 32
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 33,
+          "seq": 16,
+          "tick": 32
+        },
+        {
+          "type": "act",
+          "action": "editEnvFile",
+          "seq": 17,
+          "tick": 33
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 34,
+          "seq": 18,
+          "tick": 33
+        },
+        {
+          "type": "act",
+          "action": "reload",
+          "seq": 19,
+          "tick": 34
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 35,
+          "seq": 20,
+          "tick": 34
+        },
+        {
+          "type": "act",
+          "action": "restart",
+          "seq": 21,
+          "tick": 35
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 36,
+          "seq": 22,
+          "tick": 35
+        },
+        {
+          "type": "act",
+          "action": "depth",
+          "seq": 23,
+          "tick": 36
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 12,
+          "to": 37,
+          "seq": 24,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 25,
+          "tick": 37
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 26,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "envName",
+            "prevent": "loud"
+          },
+          "seq": 27,
+          "tick": 37
+        }
+      ],
+      "expect": {
+        "ending": "expired",
+        "class": "harm",
+        "rating": "bad",
+        "score": 81,
+        "criteria": {
+          "readWhy": "met",
+          "noLoss": "partial",
+          "restoredFast": "partial",
+          "loudNext": "met",
+          "foundFile": "met",
+          "verified": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToRestore": 35,
+          "restartsK": 0,
+          "faultsK": 0
+        },
+        "stateHash": "3f27b38085fb6dc9"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "band": "pydata",
+  "label": "Python for Data Analysis",
+  "base": {
+    "course": "PYTHON",
+    "slug": "py-import-crash-traceback"
+  },
+  "slug": "import-amounts-as-text-pydata",
+  "patch": {
+    "objective": "Convert columns to the right dtypes, including numbers stored as text and dates",
+    "secondaryObjectives": [
+      "Check cleaned data with assertions on row counts, ranges and uniqueness"
+    ],
+    "sources": [
+      {
+        "cite": "8. Errors and Exceptions, The Python Tutorial, Python 3.15 documentation (3.15.2)",
+        "checkedAt": "2026-11-17",
+        "url": "https://docs.python.org/3/tutorial/errors.html",
+        "note": "Read 2026-11-17 through a summarizing fetch: 'The last line of the error message indicates what happened'; handle the specific exception you expect. The case's cause is a number stored as text with a thousands separator ('1,234.50'); converting it means removing the separator before the numeric conversion, and checking that no row was dropped or zeroed against the file's control total. In pandas the same step is pd.to_numeric after str.replace (the pandas page was not read for this round)."
+      },
+      {
+        "cite": "8. Errors and Exceptions, The Python Tutorial, Python 3.15 documentation",
+        "checkedAt": "2026-11-16",
+        "url": "https://docs.python.org/3/tutorial/errors.html",
+        "note": "Read through a summarizing fetch 2026-11-16. Relevant text: 'The last line of the error message indicates what happened. Exceptions come in different types, and the type is printed as part of the message'; 'A try statement may have more than one except clause, to specify handlers for different exceptions. At most one handler will be executed'; 'Exception can be used as a wildcard that catches (almost) everything. However, it is good practice to be as specific as possible with the types of exceptions that we intend to handle, and to allow any unexpected exceptions to propagate on'; the common pattern is to 'print or log the exception and then re-raise it'. The tutorial does not discuss a bare except: as such; the case's bare-except trap rests on the same advice. The traceback and error text in the case are authored renderings in CPython's style."
+      }
+    ]
+  }
+}
