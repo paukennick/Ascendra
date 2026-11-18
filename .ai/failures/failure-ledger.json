@@ -18827,7 +18827,7 @@
       "title": "Short course name kept the new 'Exam Prep for' title prefix",
       "status": "fixed",
       "severity": "low",
-      "symptom": "With REQ-324 titles, shortCourseName's title fallback (no credential name) would print 'Exam Prep for CISSP®' cut to 18 characters in reminder and countdown emails.",
+      "symptom": "With REQ-324 titles, shortCourseName's title fallback (no credential name) would print 'Exam Prep for CISSP\u00ae' cut to 18 characters in reminder and countdown emails.",
       "how_detected": "review of title readers during REQ-324",
       "root_cause": "VENDOR_PREFIX listed the old 'Prep for' prefix only; a title-format change did not look at the readers that strip title prefixes.",
       "requirement": "REQ-324",
@@ -18850,7 +18850,7 @@
       "title": "Reminder short name cut a long credential name to its first words",
       "status": "fixed",
       "severity": "low",
-      "symptom": "With names on again, reminder and countdown emails for CISSP would call the course 'Information…' (the credential name without 'Certified', cut to 18 characters).",
+      "symptom": "With names on again, reminder and countdown emails for CISSP would call the course 'Information\u2026' (the credential name without 'Certified', cut to 18 characters).",
       "how_detected": "lib/unbranded.test.ts (REQ-324 short-name test)",
       "root_cause": "shortCourseName fell back to the exam code or an ellipsis; CISSP and similar exams have no code and are known by the acronym at the end of their name. REQ-319 had hidden it by nulling the names.",
       "requirement": "REQ-324",
@@ -19206,6 +19206,32 @@
       ],
       "prevention_notes": "Test checks the plugin output shape, app.json registration and that the website still lists the app with the existing fingerprint; README explains both halves and which fingerprints matter",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2520",
+      "date": "2026-11-17",
+      "title": "EPPP, ASWB and WAJP session sets selected by course break when the course gets another sim",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "EPPP_SESSION_DOCUMENTS, ASWB_SESSION_DOCUMENTS and WAJP_SESSION_DOCUMENTS filtered ALL_DOCUMENTS by course code, so registering any later sim in those courses (REQ-337) would fail session.test.ts (length 3), aswb-session.test.ts (keys equal the set) and the WAJP single-band assertion.",
+      "how_detected": "review before registering the first REQ-337 sim",
+      "root_cause": "Recurrence of FAIL-2002 and FAIL-2240: test fixtures defined as 'every sim of course X' instead of the first set by slug; the NBCC set was fixed in FAIL-2240 but these three were left course-filtered.",
+      "requirement": "REQ-337",
+      "affected": [
+        "backend/lib/sim/documents.ts"
+      ],
+      "fix_summary": "Each set now filters by an explicit slug list (EPPP_FIRST_SET, ASWB_FIRST_SET, the WAJP band slug).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/session.test.ts",
+        "backend/lib/sim/aswb-session.test.ts",
+        "backend/lib/sim/objectives.test.ts",
+        "backend/lib/sim/mh-depth.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Sim test sets are named by slug; mh-depth.test.ts lists its own documents and checks they match the registry block.",
+      "recurrence_of": "FAIL-2002"
     }
   ]
 }
