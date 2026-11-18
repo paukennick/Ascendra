@@ -1,0 +1,876 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "miner-instance-evidence-before-scale-in",
+  "title": "Evidence: a compromised web instance is due to be scaled in at 22:00",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "secops@ir-bastion:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "21:15 GuardDuty CryptoCurrency:EC2/BitcoinTool.B!DNS on i-0a7e (booking-asg); scale-in to 3 at 22:00",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "22:00: instance terminated, evidence lost",
+          "when": "not isNull(missAt)",
+          "at": "timeAt(missAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "22:00: scale-in, evidence kept",
+          "when": "not isNull(okAt)",
+          "at": "timeAt(okAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "inst",
+          "label": "i-0a7e (booking web)",
+          "spokenLabel": "the compromised instance",
+          "kind": "in service",
+          "status": "{harmed ? \"terminated\" : fixed ? \"isolated, protected, evidence taken\" : \"talking to a mining pool\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "asg",
+          "label": "booking-asg",
+          "spokenLabel": "the Auto Scaling group",
+          "kind": "scale-in 6 to 3 at 22:00",
+          "status": "{fixed and not harmed ? \"i-0a7e in standby\" : \"will terminate i-0a7e\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "ev",
+          "label": "Evidence bucket (object lock)",
+          "spokenLabel": "the evidence bucket",
+          "kind": "empty",
+          "status": "{fixed and not harmed ? \"snapshots, memory and logs stored\" : \"nothing captured\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "asg",
+          "to": "inst",
+          "label": "manages",
+          "status": "{fixed and not harmed ? \"standby, not terminated\" : \"next to scale in\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Capturing and storing system and application logs as forensic artifacts",
+  "secondaryObjectives": [
+    "Containing and eradicating threats, then recovering: network containment controls and restoring backups",
+    "Validating findings from AWS security services to assess scope and impact"
+  ],
+  "sources": [
+    {
+      "cite": "AWS Certified Security - Specialty (SCS-C03) exam guide: Detection 16%, Incident Response 14%, Infrastructure Security 18%, Identity and Access Management 20%, Data Protection 18%, Security Foundations and Governance 14%",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.aws.amazon.com/aws-certification/latest/security-specialty-03/security-specialty-03.md",
+      "note": "Overview and the Domain 4 page read directly (markdown) on 2026-11-17. Domain weights as above; Skill 4.2.3 'Design, interpret, and implement IAM policies by following the principle of least privilege (for example, permission boundaries, session policies)'; 4.2.5 'Investigate and correct unintended permissions'. Domains 1, 3 and 5 wording is the course seed's; those pages were not re-read. (read for this round by an earlier pass on 2026-11-17) (read for this round by an earlier pass on 2026-11-17) (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "AWS Security Blog, How to automate incident response in the AWS Cloud for EC2 instances",
+      "checkedAt": "2026-11-17",
+      "url": "https://aws.amazon.com/blogs/security/how-to-automate-incident-response-in-aws-cloud-for-ec2-instances",
+      "note": "Read through a summarizing fetch on 2026-11-17. The described order: capture the instance metadata to an S3 bucket before making changes; capture the console view; start snapshots of all EBS volumes; 'Set the Amazon EC2 termination protection flag on the instance'; detach the instance profile; if Systems Manager manages the instance, run OS-level gathering 'such as memory captures'; then 'Create a quarantine security group that lacks both ingress and egress rules' and move the instance into it; notify. The post does not cover Auto Scaling: that termination protection does not stop an Auto Scaling scale-in, and that standby or scale-in protection does, are from memory of the Amazon EC2 Auto Scaling user guide (to verify)."
+    }
+  ],
+  "brief": {
+    "situation": "You are the security engineer on call at Corran Travel. GuardDuty reports one web instance in the booking Auto Scaling group talking to a known cryptocurrency mining pool. The group's scheduled action scales in from 6 to 3 instances at 22:00, and scale-in removes the oldest instances first: this one is the oldest. Legal wants evidence kept for the insurer.",
+    "handover": [
+      "The instance has a root volume and a data volume; its logs are only on the instance (no log shipping for this tier yet).",
+      "The instance is managed by Systems Manager."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the compromised instance, its Auto Scaling group, its volumes and logs, and the evidence bucket.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "21:15",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineAt": {
+      "value": 2700,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "The scheduled scale-in runs at 22:00, 45 minutes after the finding, and would terminate the instance with its local logs and memory."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "harmed": {
+      "type": "bool",
+      "init": false
+    },
+    "tried": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "findingAt": {
+      "type": "time",
+      "init": null
+    },
+    "schedAt": {
+      "type": "time",
+      "init": null
+    },
+    "procsAt": {
+      "type": "time",
+      "init": null
+    },
+    "logsAt": {
+      "type": "time",
+      "init": null
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "missAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "web",
+        "fp",
+        "asg"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "finding",
+        "sched",
+        "procs",
+        "logs",
+        "preserve",
+        "ship",
+        "terminate",
+        "reboot",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "finding": {
+      "label": "GuardDuty finding details",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(findingAt)",
+          "then": [
+            {
+              "set": "findingAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "secops@ir-bastion:~$ aws guardduty get-findings --detector-id d1 --finding-ids f9 --query 'Findings[0].[Type,Resource.InstanceDetails.InstanceId,Service.Count,Service.EventFirstSeen]' --output text\n{fixed and not harmed ? \"CryptoCurrency:EC2/BitcoinTool.B!DNS  i-0a7e  412  2026-11-17T19:02Z (archived after capture)\" : \"CryptoCurrency:EC2/BitcoinTool.B!DNS  i-0a7e  412  2026-11-17T19:02Z\"}"
+        },
+        {
+          "finding": "One instance, mining-pool lookups since 19:02, 412 times."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "sched": {
+      "label": "Auto Scaling: scheduled actions and termination policy",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(schedAt)",
+          "then": [
+            {
+              "set": "schedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "secops@ir-bastion:~$ aws autoscaling describe-scheduled-actions --auto-scaling-group-name booking-asg --query 'ScheduledUpdateGroupActions[].[StartTime,DesiredCapacity]' --output text; aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names booking-asg --query 'AutoScalingGroups[0].TerminationPolicies'\n{fixed and not harmed ? \"2026-11-17T22:00Z 3\n[OldestInstance]  (i-0a7e in Standby)\" : \"2026-11-17T22:00Z 3\n[OldestInstance]  (i-0a7e is the oldest)\"}"
+        },
+        {
+          "finding": "At 22:00 the group terminates the oldest instances, and i-0a7e is the oldest."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "procs": {
+      "label": "Systems Manager Run Command: the top processes and outbound connections",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(procsAt)",
+          "then": [
+            {
+              "set": "procsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "secops@ir-bastion:~$ aws ssm send-command --instance-ids i-0a7e --document-name AWS-RunShellScript --parameters commands='ps aux --sort=-%cpu | head -3; ss -tnp state established' ...\nwww-data  4120 389%  /tmp/.x/kworkerd -o pool.example:3333\nESTAB 10.1.4.22:51544 -> 203.0.113.80:3333 users:(kworkerd)"
+        },
+        {
+          "finding": "A disguised miner runs as the web user from /tmp; the compromise came through the web tier."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "logs": {
+      "label": "Where are this instance's logs?",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(logsAt)",
+          "then": [
+            {
+              "set": "logsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "secops@ir-bastion:~$ aws ssm send-command ... commands='du -sh /var/log/nginx /var/log/app; ls /etc/amazon/amazon-cloudwatch-agent* 2>&1'\n1.9G /var/log/nginx  610M /var/log/app\nls: cannot access ... No such file or directory"
+        },
+        {
+          "finding": "The access logs that show how the attacker got in exist only on this instance's disk."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "preserve": {
+      "label": "Put i-0a7e in standby, turn on termination protection, capture memory and logs to the evidence bucket, snapshot both volumes, then move it to a quarantine security group",
+      "group": "Fix",
+      "available": "not busy and (not fixed and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "fixed",
+          "to": "true"
+        },
+        {
+          "output": "secops@ir-bastion:~$ aws autoscaling enter-standby --auto-scaling-group-name booking-asg --instance-ids i-0a7e --should-decrement-desired-capacity\naws ec2 modify-instance-attribute --instance-id i-0a7e --disable-api-termination\naws ssm send-command ... (memory capture with AVML; tar of /var/log/nginx and /var/log/app; upload to s3://corran-ir-evidence/i-0a7e/)\naws ec2 create-snapshots --instance-specification InstanceId=i-0a7e --tag-specifications 'ResourceType=snapshot,Tags=[Key=case,Value=IR-0117]'\naws ec2 modify-instance-attribute --instance-id i-0a7e --groups sg-quarantine"
+        },
+        {
+          "log": "The instance leaves the group's scale-in, cannot be terminated by accident, and its memory, logs and volumes are stored with hashes in an object-locked bucket before it is cut off from the network.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "25min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Ship the web tier's logs to CloudWatch Logs, and add a runbook step: on a compromise finding, standby before anything else",
+      "group": "Fix",
+      "available": "not busy and (not planned and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "secops@ir-bastion:~$ aws ssm send-command --document-name AmazonCloudWatch-ManageAgent ... (all booking-asg instances)\n(runbook IR-EC2: 1 standby + termination protection, 2 capture, 3 snapshot, 4 quarantine)"
+        },
+        {
+          "log": "Logs no longer exist only on a disk that scale-in can delete, and the runbook puts preservation first.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "terminate": {
+      "label": "Terminate i-0a7e now and let the group replace it",
+      "group": "Fix",
+      "available": "not busy and (not harmed)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "harmed",
+          "to": "true"
+        },
+        {
+          "output": "secops@ir-bastion:~$ aws ec2 terminate-instances --instance-ids i-0a7e\nCurrentState: shutting-down"
+        },
+        {
+          "log": "The miner stops, and so does the investigation: memory, the only copy of the access logs and the disk are gone.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "reboot": {
+      "label": "Reboot the instance to kill the miner",
+      "group": "Fix",
+      "available": "not busy and (not harmed and not tried)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tried",
+          "to": "true"
+        },
+        {
+          "output": "secops@ir-bastion:~$ aws ec2 reboot-instances --instance-ids i-0a7e\n(rebooted; miner restarted by a cron entry at 21:3x)"
+        },
+        {
+          "log": "Memory evidence is wiped, the miner comes back from cron, and the instance is still first in line for scale-in.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Check standby, protection, the evidence bucket and the quarantine",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "secops@ir-bastion:~$ aws autoscaling describe-auto-scaling-instances --instance-ids i-0a7e --query 'AutoScalingInstances[0].LifecycleState'; aws s3 ls s3://corran-ir-evidence/i-0a7e/\n{harmed ? \"(instance not found)\n(empty)\" : fixed ? \"Standby\nmem.lime  nginx-logs.tgz  app-logs.tgz  sha256sums  (object lock: compliance)\" : \"InService\n(empty)\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "web",
+                  "label": "The web tier was compromised and a miner runs as the web user; scale-in at 22:00 would delete the evidence"
+                },
+                {
+                  "value": "fp",
+                  "label": "GuardDuty raised a false positive"
+                },
+                {
+                  "value": "asg",
+                  "label": "Auto Scaling launched a bad image"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-335)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "22:00: scale-in removes other instances; the evidence is safe.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "missAt",
+              "to": "t"
+            },
+            {
+              "log": "22:00: scale-in terminates i-0a7e; its memory and local logs are gone.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: what you preserved and why first, how you contained the instance, and what changes.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Preserved",
+          "criteria": "Before scale-in.",
+          "modelAnswer": "i-0a7e was the oldest instance and scale-in at 22:00 terminates the oldest; its access logs existed only on its disk. Standby and termination protection first, then memory, logs and snapshots to the object-locked evidence bucket with hashes."
+        },
+        {
+          "label": "Contained",
+          "criteria": "Quarantine, not delete.",
+          "modelAnswer": "After capture the instance moved to a security group with no rules. Terminating would have destroyed the evidence; a reboot wiped memory and the miner came back from cron."
+        },
+        {
+          "label": "Changes",
+          "criteria": "Logs and runbook.",
+          "modelAnswer": "The web tier now ships logs to CloudWatch Logs, and the runbook puts standby and capture before containment."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 2700,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The scheduled scale-in runs at 22:00, 45 minutes after the finding, and would terminate the instance with its local logs and memory."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: The instance was terminated before any evidence was taken."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed and not harmed",
+      "class": "harm",
+      "rationale": "Closing without preserving the instance leaves the evidence to scale-in at 22:00.",
+      "source": {
+        "cite": "AWS Security Blog, How to automate incident response in the AWS Cloud for EC2 instances",
+        "checkedAt": "2026-11-17",
+        "url": "https://aws.amazon.com/blogs/security/how-to-automate-incident-response-in-aws-cloud-for-ec2-instances",
+        "note": "Read through a summarizing fetch on 2026-11-17. The described order: capture the instance metadata to an S3 bucket before making changes; capture the console view; start snapshots of all EBS volumes; 'Set the Amazon EC2 termination protection flag on the instance'; detach the instance profile; if Systems Manager manages the instance, run OS-level gathering 'such as memory captures'; then 'Create a quarantine security group that lacks both ingress and egress rules' and move the instance into it; notify. The post does not cover Auto Scaling: that termination protection does not stop an Auto Scaling scale-in, and that standby or scale-in protection does, are from memory of the Amazon EC2 Auto Scaling user guide (to verify)."
+      }
+    }
+  },
+  "endings": {
+    "evidenceGone": {
+      "label": "Evidence destroyed",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and harmed",
+      "narrative": "Terminating the instance stopped the miner and erased memory, logs and disk."
+    },
+    "scaledIn": {
+      "label": "Scale-in took the evidence",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(missAt)",
+      "narrative": "At 22:00 scale-in terminated the compromised instance with its memory and logs."
+    },
+    "preserved": {
+      "label": "Evidence kept, instance contained",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(findingAt) and not isNull(schedAt) and not isNull(verifiedAt) and causeDoc == \"web\"",
+      "narrative": "The instance is in standby and quarantined, with memory, logs and snapshots in the evidence bucket."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The evidence is safe, but log shipping, the runbook, the check or the record was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "evidenceGone",
+    "scaledIn",
+    "preserved",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Read the finding and the scale-in schedule",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(findingAt) and not isNull(schedAt)",
+            "score": "met",
+            "why": "The key evidence, read before changing anything."
+          },
+          {
+            "when": "not isNull(findingAt) or not isNull(schedAt) or not isNull(procsAt) or not isNull(logsAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Evidence captured before 22:00, nothing terminated",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and not harmed and isNull(missAt)",
+            "score": "met",
+            "why": "The right change, in time, without harm."
+          },
+          {
+            "when": "fixed or harmed",
+            "score": "partial",
+            "why": "{harmed ? \"The instance was terminated before any evidence was taken.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never removed."
+          }
+        ]
+      },
+      {
+        "id": "lasting",
+        "label": "Log shipping and runbook; evidence checked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The lasting step taken and the result checked."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"web\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record names the wrong cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes that caused harm",
+        "value": "harmed ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "21:15-21:19",
+        "text": "Miner on i-0a7e since 19:02; oldest instance, scale-in at 22:00; miner from /tmp as www-data; logs only on disk."
+      },
+      {
+        "at": "21:19-21:44",
+        "text": "Standby, termination protection, memory and logs, snapshots, quarantine; log shipping and runbook."
+      },
+      {
+        "at": "21:44-21:46",
+        "text": "Standby; evidence objects present under object lock."
+      }
+    ],
+    "debrief": {
+      "evidenceGone": {
+        "headline": "Preserve, then contain",
+        "body": "Capture memory, logs and snapshots and protect the instance from termination first; isolate it with a quarantine group, not by deleting it."
+      },
+      "scaledIn": {
+        "headline": "Auto Scaling does not wait for forensics",
+        "body": "Take a compromised instance out of the group's control (standby or scale-in protection) before the next scaling event."
+      },
+      "preserved": {
+        "headline": "Good: preserve first, then isolate",
+        "body": "You read the finding and the scale-in schedule, saw the logs existed only on the instance, took it out of scale-in, captured memory, logs and volumes, quarantined it, and fixed log shipping."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the evidence before the change, the lasting step, the check, or the cause in the record."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "GuardDuty points at one instance, which is the oldest in a group that scales in at 22:00, and the logs that show the entry point exist only on its disk. Put it in standby and turn on termination protection, capture memory and logs to the evidence bucket, snapshot the volumes, then quarantine it with an empty security group. Terminating destroys the evidence; a reboot wipes memory and the miner returns. Then ship the tier's logs and put preservation first in the runbook."
+  }
+}
