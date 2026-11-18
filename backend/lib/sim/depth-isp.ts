@@ -29,4 +29,8 @@ export const DEPTH_ISP: readonly DepthIspEntry[] = [
   { course: "OTCA", slug: "otel-collector-oom-fanout-pii", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "isp-otca-collector" },
   { course: "OTCA", slug: "otel-instrumentation-plan-checkout", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "isp-otca-instrument" },
   { course: "OTCA", slug: "otel-missing-traces-pipeline-debug", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "isp-otca-debug" },
+  { course: "PCA", slug: "prometheus-relabel-drops-targets-cardinality", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "isp-pca-scrape" },
+  { course: "PCA", slug: "checkout-dashboard-misleading-latency-alert", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "isp-pca-dashboards" },
+  { course: "PCA", slug: "metrics-naming-route-label-review", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "isp-pca-instrument" },
+  { course: "KCNA", slug: "checkout-dashboard-misleading-latency-alert-kcna", screen: "terminal", profile: "infrastructure", kind: "band", steps: "isp-kcna-checkout-dashboard-misleading-latency-alert-kcna", base: "PCA/checkout-dashboard-misleading-latency-alert" },
 ];

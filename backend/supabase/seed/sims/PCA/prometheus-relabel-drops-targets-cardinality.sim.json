@@ -1,0 +1,1011 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "prometheus-relabel-drops-targets-cardinality",
+  "title": "A relabel rule that dropped every Pod target, and a label that grew to two million series",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "mon@fernhill:~$",
+      "lines": [
+        {
+          "id": "firstLine",
+          "text": "prometheus: up == 0 for 0 targets; job kubernetes-pods has 0 active targets (was 412)",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "lineRelabel",
+          "text": "{relabel == \"fixRegex\" ? \"Regex fixed; 412 targets up\" : relabel == \"revert\" ? \"Reverted: every Pod scraped\" : relabel == \"static\" ? \"Static list of today's Pod IPs\" : \"\"}",
+          "when": "relabel != \"none\"",
+          "at": "timeAt(relabelAt)",
+          "error": "relabel == \"static\""
+        },
+        {
+          "id": "lineLabel",
+          "text": "{label == \"dropLabel\" ? \"Label dropped at ingestion; source fix queued\" : label == \"moreMemory\" ? \"More memory, shorter retention\" : label == \"deleteMetric\" ? \"All tracking API series deleted\" : \"\"}",
+          "when": "label != \"none\"",
+          "at": "timeAt(labelAt)",
+          "error": "label == \"deleteMetric\""
+        },
+        {
+          "id": "lineTiming",
+          "text": "{timing == \"fit\" ? \"30 s interval, 20 s timeout, fewer collectors\" : timing == \"ignoreFlap\" ? \"Alerts silenced; scrapes still fail\" : timing == \"timeoutLong\" ? \"Timeout longer than interval\" : \"\"}",
+          "when": "timing != \"none\"",
+          "at": "timeAt(timingAt)",
+          "error": "timing == \"timeoutLong\""
+        }
+      ],
+      "nodes": [
+        {
+          "id": "nRelabel",
+          "label": "job kubernetes-pods relabel_configs",
+          "spokenLabel": "job kubernetes-pods relabel_configs",
+          "kind": "scrape job",
+          "status": "{relabel == \"fixRegex\" ? \"Regex fixed; 412 targets up\" : relabel == \"revert\" ? \"Reverted: every Pod scraped\" : relabel == \"static\" ? \"Static list of today's Pod IPs\" : \"Waiting\"}",
+          "tone": "relabel == \"fixRegex\" ? \"up\" : relabel == \"revert\" ? \"degraded\" : relabel == \"static\" ? \"down\" : p >= 1 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nLabel",
+          "label": "tracking_requests_total series",
+          "spokenLabel": "tracking_requests_total series",
+          "kind": "metric",
+          "status": "{label == \"dropLabel\" ? \"Label dropped at ingestion; source fix queued\" : label == \"moreMemory\" ? \"More memory, shorter retention\" : label == \"deleteMetric\" ? \"All tracking API series deleted\" : \"Waiting\"}",
+          "tone": "label == \"dropLabel\" ? \"up\" : label == \"moreMemory\" ? \"degraded\" : label == \"deleteMetric\" ? \"down\" : p >= 2 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nTiming",
+          "label": "job node-exporter scrape settings",
+          "spokenLabel": "job node-exporter scrape settings",
+          "kind": "scrape job",
+          "status": "{timing == \"fit\" ? \"30 s interval, 20 s timeout, fewer collectors\" : timing == \"ignoreFlap\" ? \"Alerts silenced; scrapes still fail\" : timing == \"timeoutLong\" ? \"Timeout longer than interval\" : \"Waiting\"}",
+          "tone": "timing == \"fit\" ? \"up\" : timing == \"ignoreFlap\" ? \"degraded\" : timing == \"timeoutLong\" ? \"down\" : p >= 3 ? \"degraded\" : \"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "link0",
+          "from": "nRelabel",
+          "to": "nLabel",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        },
+        {
+          "id": "link1",
+          "from": "nLabel",
+          "to": "nTiming",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Check-in",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Configuration and scraping: prometheus.yml global settings, scrape_configs, scrape_interval and timeout, relabel_configs and metric_relabel_configs, and target health",
+  "secondaryObjectives": [
+    "Data model and labels: metric names, labels and the time series they identify, sample values and timestamps, and how cardinality grows",
+    "Understanding Prometheus limitations: single-node storage, no long-term durability by default, cardinality, no cross-server queries without federation or remote write, and what remote write and Thanos/Cortex-style systems add"
+  ],
+  "sources": [
+    {
+      "cite": "CNCF Prometheus Certified Associate (PCA) curriculum: PromQL 28%, Prometheus Fundamentals 20%, Observability Concepts 18%, Alerting & Dashboarding 18%, Instrumentation and Exporters 16%",
+      "checkedAt": "2026-11-17",
+      "url": "https://kube-dojo.github.io/k8s/pca",
+      "note": "On 2026-11-17 the weights were confirmed through a third-party study page (kube-dojo.github.io/k8s/pca, summarizing fetch), which cites no curriculum version; the official curriculum (cncf/curriculum, read by the course builder for backend/supabase/seed/tracks/cncf-ecosystem.ts) was not re-read. The objective wording is the course seed's. Reused for REQ-336 from this course's canary-gate-wrong-p99-query (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "PromLabs blog, 'Avoid These 6 Mistakes When Getting Started With Prometheus' (2022-12-11)",
+      "checkedAt": "2026-11-17",
+      "url": "https://promlabs.com/blog/2022/12/11/avoid-these-6-mistakes-when-getting-started-with-prometheus",
+      "note": "Found by search 2026-11-17 and read only through the search listing (title and address); to verify against the page. Used for: cardinality bombs from unbounded label values, rate windows too short for the scrape interval, and other beginner mistakes."
+    },
+    {
+      "cite": "GrokDevOps wiki, Prometheus deep dive: footguns",
+      "checkedAt": "2026-11-17",
+      "url": "https://grokdatum.github.io/grokdevops-wiki/library/topics/prometheus-deep-dive/footguns",
+      "note": "Found by search 2026-11-17 and read only through the search listing (title and address); to verify against the page. Used for: relabeling that drops every target, high-cardinality labels and averaging quantiles."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The company, the services, the metrics and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You run monitoring at Fernhill Logistics, a fictional parcel carrier. After a config change at 09:40 the dashboards for every Kubernetes service went blank. Separately, Prometheus memory has doubled this week and it restarted twice.",
+    "handover": [
+      "The change added a relabel rule to the kubernetes-pods job 'to keep only annotated Pods'.",
+      "A new release of the tracking API added a tracking_number label to its request counter."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the map shows each component and its status in words.",
+      "Move on a check-in at a time. A decision comes to you at each check-in; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-02-15T10:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "relabel": {
+      "type": "enum",
+      "values": [
+        "none",
+        "fixRegex",
+        "revert",
+        "static"
+      ],
+      "init": "none"
+    },
+    "relabelAt": {
+      "type": "time",
+      "init": null
+    },
+    "label": {
+      "type": "enum",
+      "values": [
+        "none",
+        "dropLabel",
+        "moreMemory",
+        "deleteMetric"
+      ],
+      "init": "none"
+    },
+    "labelAt": {
+      "type": "time",
+      "init": null
+    },
+    "timing": {
+      "type": "enum",
+      "values": [
+        "none",
+        "fit",
+        "ignoreFlap",
+        "timeoutLong"
+      ],
+      "init": "none"
+    },
+    "timingAt": {
+      "type": "time",
+      "init": null
+    },
+    "targetsAt": {
+      "type": "time",
+      "init": null
+    },
+    "cardAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((relabel == \"static\") ? 1 : 0) + ((label == \"deleteMetric\") ? 1 : 0) + ((timing == \"timeoutLong\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(relabel == \"none\" or (relabel == \"static\") ? 1 : 0) + (label == \"none\" or (label == \"deleteMetric\") ? 1 : 0) + (timing == \"none\" or (timing == \"timeoutLong\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The scrape fix",
+      "clock": "turns",
+      "actions": [
+        "targets",
+        "card"
+      ]
+    },
+    "close": {
+      "label": "Change record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "targets": {
+      "label": "promtool check config prometheus.yml; curl -s localhost:9090/api/v1/targets?state=dropped | jq length",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(targetsAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "targetsAt",
+          "to": "t"
+        },
+        {
+          "output": "SUCCESS: prometheus.yml is valid\ndropped targets: 412"
+        },
+        {
+          "log": "You check the config and the dropped targets.",
+          "kind": "act"
+        },
+        {
+          "finding": "The config is valid but all 412 Pod targets are dropped by relabeling: the new keep rule tests the annotation's value against the regex 'true ' (with a trailing space), which nothing matches."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "card": {
+      "label": "curl -s localhost:9090/api/v1/status/tsdb | jq .data.seriesCountByMetricName[:3]",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(cardAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "cardAt",
+          "to": "t"
+        },
+        {
+          "output": "tracking_requests_total: 2,104,388\nhttp_request_duration_seconds_bucket: 61,220\nnode_cpu_seconds_total: 9,800"
+        },
+        {
+          "log": "You read the TSDB status.",
+          "kind": "act"
+        },
+        {
+          "finding": "tracking_requests_total has two million series: one per tracking_number, an unbounded label. Each new parcel adds series that never repeat."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the change record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "The keep regex fixed and targets verified, the unbounded label dropped at ingestion and queued for removal at source, and the scrape timing fitted to the interval"
+                },
+                {
+                  "value": "summary",
+                  "label": "Monitoring restored"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next check-in",
+      "wait": {
+        "skipLabel": "Go to the next check-in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "relabel == \"static\"",
+              "then": [
+                {
+                  "log": "Check-in 2: after a node rotation, half the static IPs belong to other Pods; dashboards show the wrong services' numbers.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "label == \"deleteMetric\"",
+              "then": [
+                {
+                  "log": "Check-in 3: the tracking API's monthly SLO report has no data; the cardinality is back within an hour.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "timing == \"timeoutLong\"",
+              "then": [
+                {
+                  "log": "Check-in 4: the reload fails on the invalid timeout; the fixes from earlier never load after the next restart, and dashboards go blank again.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "10min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The change window closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "10min"
+        }
+      ]
+    },
+    {
+      "id": "t_relabel",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 1: dashboards are still blank.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "relabelPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_label",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 2: memory is still climbing.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "labelPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_timing",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 3: some node targets flap.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "timingPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "relabelPrompt": {
+      "title": "Every Pod target dropped",
+      "context": "The keep rule's regex has a trailing space.",
+      "choices": [
+        {
+          "id": "fixRegex",
+          "label": "Fix the keep rule's regex to true, reload, and confirm on the targets page that the Pods are back and up == 1",
+          "effects": [
+            {
+              "set": "relabel",
+              "to": "\"fixRegex\""
+            },
+            {
+              "set": "relabelAt",
+              "to": "t"
+            },
+            {
+              "log": "412 targets are active and up again.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Relabeling decides which discovered targets are scraped; the targets page and the dropped list show its effect."
+        },
+        {
+          "id": "revert",
+          "label": "Revert the whole change and scrape every Pod again, annotated or not",
+          "effects": [
+            {
+              "set": "relabel",
+              "to": "\"revert\""
+            },
+            {
+              "set": "relabelAt",
+              "to": "t"
+            },
+            {
+              "log": "The change is reverted.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Dashboards return, but you scrape hundreds of Pods with no metrics endpoint, filling the targets page with errors."
+        },
+        {
+          "id": "static",
+          "label": "Replace Kubernetes discovery with a static_configs list of today's Pod IPs",
+          "effects": [
+            {
+              "set": "relabel",
+              "to": "\"static\""
+            },
+            {
+              "set": "relabelAt",
+              "to": "t"
+            },
+            {
+              "log": "Today's 412 Pod IPs are listed statically.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Pod IPs change on every reschedule; the static list goes stale within hours and scrapes the wrong things."
+        }
+      ]
+    },
+    "labelPrompt": {
+      "title": "Two million series",
+      "context": "Each tracking number creates new series.",
+      "choices": [
+        {
+          "id": "dropLabel",
+          "label": "Add a metric_relabel_configs labeldrop for tracking_number on that job now, and ask the team to remove the label from the counter in their next release",
+          "effects": [
+            {
+              "set": "label",
+              "to": "\"dropLabel\""
+            },
+            {
+              "set": "labelAt",
+              "to": "t"
+            },
+            {
+              "log": "New samples no longer carry tracking_number; the fix is queued at the source.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "metric_relabel_configs act on scraped samples before storage; the lasting fix is in the instrumentation."
+        },
+        {
+          "id": "moreMemory",
+          "label": "Give Prometheus 64 GiB and shorten retention to 7 days",
+          "effects": [
+            {
+              "set": "label",
+              "to": "\"moreMemory\""
+            },
+            {
+              "set": "labelAt",
+              "to": "t"
+            },
+            {
+              "log": "Memory up, retention down.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Buys time, but series keep growing with every parcel, and the history you cut is gone."
+        },
+        {
+          "id": "deleteMetric",
+          "label": "Delete all series of every metric from the tracking API with the admin API to free memory",
+          "effects": [
+            {
+              "set": "label",
+              "to": "\"deleteMetric\""
+            },
+            {
+              "set": "labelAt",
+              "to": "t"
+            },
+            {
+              "log": "Every tracking API series is deleted.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "You delete the history of every tracking API metric, including the SLO counters; the label keeps coming back with every scrape."
+        }
+      ]
+    },
+    "timingPrompt": {
+      "title": "Timeouts on large nodes",
+      "context": "Large nodes take 12 seconds to answer; the job has scrape_interval 15s and scrape_timeout 10s.",
+      "choices": [
+        {
+          "id": "fit",
+          "label": "Set scrape_interval 30s and scrape_timeout 20s for that job, and disable the expensive collectors the dashboards don't use",
+          "effects": [
+            {
+              "set": "timing",
+              "to": "\"fit\""
+            },
+            {
+              "set": "timingAt",
+              "to": "t"
+            },
+            {
+              "log": "The job scrapes every 30 s with 20 s to answer; fewer collectors run.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "The timeout must be no longer than the interval; trimming collectors makes scrapes cheaper."
+        },
+        {
+          "id": "ignoreFlap",
+          "label": "Silence the flapping alerts for those nodes",
+          "effects": [
+            {
+              "set": "timing",
+              "to": "\"ignoreFlap\""
+            },
+            {
+              "set": "timingAt",
+              "to": "t"
+            },
+            {
+              "log": "The alerts are silenced.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The noise stops, and so does monitoring of those nodes whenever a scrape times out."
+        },
+        {
+          "id": "timeoutLong",
+          "label": "Set scrape_timeout to 60s and keep the 15s interval",
+          "effects": [
+            {
+              "set": "timing",
+              "to": "\"timeoutLong\""
+            },
+            {
+              "set": "timingAt",
+              "to": "t"
+            },
+            {
+              "log": "The timeout is set longer than the interval.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Prometheus rejects a timeout greater than the interval; the reload fails and the whole configuration stays on the old version."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the change record: why the targets disappeared, why memory doubled, and what each fix changed.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Targets",
+          "criteria": "A keep rule with a trailing-space regex dropped every Pod target; fixed and verified on the targets page.",
+          "modelAnswer": "The keep rule's regex had a trailing space, so relabeling dropped all 412 Pods; we fixed it and checked the targets are up."
+        },
+        {
+          "label": "Series and timing",
+          "criteria": "tracking_number made 2 million series; dropped by metric_relabel_configs and fixed at source; timeout within interval.",
+          "modelAnswer": "Each tracking number was a new series; we drop the label at ingestion and the team removes it. The node job now has a 30 s interval and 20 s timeout."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Service restored and the work closed within 60 minutes of the first report."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No fault introduced by the response itself."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (relabel == \"revert\") and (label == \"moreMemory\") and (timing == \"ignoreFlap\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CNCF Prometheus Certified Associate (PCA) curriculum: PromQL 28%, Prometheus Fundamentals 20%, Observability Concepts 18%, Alerting & Dashboarding 18%, Instrumentation and Exporters 16%",
+        "checkedAt": "2026-11-17",
+        "url": "https://kube-dojo.github.io/k8s/pca",
+        "note": "On 2026-11-17 the weights were confirmed through a third-party study page (kube-dojo.github.io/k8s/pca, summarizing fetch), which cites no curriculum version; the official curriculum (cncf/curriculum, read by the course builder for backend/supabase/seed/tracks/cncf-ecosystem.ts) was not re-read. The objective wording is the course seed's. Reused for REQ-336 from this course's canary-gate-wrong-p99-query (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "relabelHarm": {
+      "label": "Wrong numbers on the dashboards",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and relabel == \"static\"",
+      "narrative": "The static IP list went stale after a node rotation; dashboards showed other services' metrics as if they were real."
+    },
+    "labelHarm": {
+      "label": "History deleted, cause kept",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and label == \"deleteMetric\"",
+      "narrative": "Deleting the tracking API's series wiped its SLO history; the unbounded label returned within an hour."
+    },
+    "timingHarm": {
+      "label": "An invalid configuration",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and timing == \"timeoutLong\"",
+      "narrative": "A timeout longer than the interval failed the reload; after the next restart, the earlier fixes did not load and dashboards went blank."
+    },
+    "target": {
+      "label": "Scraping healthy and bounded",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (relabel == \"fixRegex\") and (label == \"dropLabel\") and (timing == \"fit\") and record == \"honest\" and missCount <= newFaults and timeAt(doneAt) <= restoreWindow",
+      "narrative": "Every Pod target is back, series counts are bounded, and the large nodes scrape cleanly."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "relabelHarm",
+    "labelHarm",
+    "timingHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "relabelCrit",
+        "label": "Fixed the relabel rule and verified target health",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "relabel == \"fixRegex\"",
+            "score": "met",
+            "why": "Fixed and verified."
+          },
+          {
+            "when": "relabel == \"revert\"",
+            "score": "partial",
+            "why": "Rolled back the intent too."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Hard-coded a dynamic world."
+          }
+        ]
+      },
+      {
+        "id": "labelCrit",
+        "label": "Removed the unbounded label at ingestion and fixed it at the source",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "label == \"dropLabel\"",
+            "score": "met",
+            "why": "Stopped at ingestion, fixed at source."
+          },
+          {
+            "when": "label == \"moreMemory\"",
+            "score": "partial",
+            "why": "Paid for the cardinality."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Deleted history, kept the cause."
+          }
+        ]
+      },
+      {
+        "id": "timingCrit",
+        "label": "Set a timeout that fits within the interval",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "timing == \"fit\"",
+            "score": "met",
+            "why": "Timing fits."
+          },
+          {
+            "when": "timing == \"ignoreFlap\"",
+            "score": "partial",
+            "why": "Hid the problem."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Invalid configuration."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(targetsAt) and not isNull(cardAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(targetsAt) or not isNull(cardAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Check the dropped targets and the top series by metric before changing anything."
+      },
+      {
+        "at": "Check-in 1",
+        "text": "Fix the regex, reload, and confirm the targets are active and up."
+      },
+      {
+        "at": "Check-in 2",
+        "text": "Drop the label with metric_relabel_configs and fix the instrumentation."
+      },
+      {
+        "at": "Check-in 3",
+        "text": "Raise the interval and timeout together and disable unused collectors."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "relabelHarm": {
+        "headline": "Fix the relabel rule, keep discovery",
+        "body": "Service discovery keeps targets current; relabeling chooses among them."
+      },
+      "labelHarm": {
+        "headline": "Drop the label, not the history",
+        "body": "Use metric_relabel_configs to drop an unbounded label and fix it in the code."
+      },
+      "timingHarm": {
+        "headline": "Timeout within the interval",
+        "body": "scrape_timeout cannot exceed scrape_interval; check the config with promtool before reloading."
+      },
+      "target": {
+        "headline": "Good: scraping healthy and bounded",
+        "body": "Relabeling fixed and verified, cardinality stopped at ingestion and source, and timing that fits."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "relabel_configs act on discovered targets before the scrape: a keep rule whose regex matches nothing drops every target, which the targets page's dropped list shows. Each unique label set is a series, so an unbounded label such as a tracking number grows series without limit; metric_relabel_configs can drop it from scraped samples before storage, and the instrumentation should stop emitting it. scrape_timeout may not exceed scrape_interval, and promtool checks a configuration before reload."
+  }
+}

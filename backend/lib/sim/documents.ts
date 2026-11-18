@@ -682,6 +682,10 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("OTCA", "otel-collector-oom-fanout-pii"),
   entry("OTCA", "otel-instrumentation-plan-checkout"),
   entry("OTCA", "otel-missing-traces-pipeline-debug"),
+  entry("PCA", "prometheus-relabel-drops-targets-cardinality"),
+  entry("PCA", "checkout-dashboard-misleading-latency-alert"),
+  entry("PCA", "metrics-naming-route-label-review"),
+  band("KCNA", "checkout-dashboard-misleading-latency-alert-kcna"),
   // ---- end REQ-336 ----
 ];
 
