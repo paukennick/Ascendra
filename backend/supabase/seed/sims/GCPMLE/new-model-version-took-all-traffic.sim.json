@@ -1,0 +1,884 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "new-model-version-took-all-traffic",
+  "title": "Release: a new fraud model took 100% of traffic and blocks good payments",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "mle@cloudshell:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "11:20 payments: block rate 6.4% (baseline 0.8%) since 11:00; complaints rising; lunch peak at 12:00",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "12:00: lunch peak, good payments blocked",
+          "when": "not isNull(missAt)",
+          "at": "timeAt(missAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "12:00: lunch peak, block rate normal",
+          "when": "not isNull(okAt)",
+          "at": "timeAt(okAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "ep",
+          "label": "Endpoint fraud-ep",
+          "spokenLabel": "the production endpoint",
+          "kind": "traffic split",
+          "status": "{harmed ? \"no traffic split: rejecting requests\" : fixed ? \"v8 90%, v9 10%\" : \"v9 100%, v8 0%\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "v8",
+          "label": "Deployed model v8 (dm-4410)",
+          "spokenLabel": "model v8",
+          "kind": "2 replicas",
+          "status": "{fixed and not harmed ? \"90%\" : \"0%, idle\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "v9",
+          "label": "Deployed model v9 (dm-5127)",
+          "spokenLabel": "model v9",
+          "kind": "2 replicas",
+          "status": "{fixed and not harmed ? \"10% canary\" : \"100%, over-blocking\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "ep",
+          "to": "v9",
+          "label": "traffic",
+          "status": "{fixed and not harmed ? \"10%\" : \"100%\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "l2",
+          "from": "ep",
+          "to": "v8",
+          "label": "traffic",
+          "status": "{fixed and not harmed ? \"90%\" : \"0%\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Implementing model rollout strategies -- A/B testing, canary deployments -- to compare model versions",
+  "secondaryObjectives": [
+    "Organizing and versioning models in the Model Registry",
+    "Deploying models for batch and online inference using the right service: Agent Platform, Model Garden, Cloud Run, GKE"
+  ],
+  "sources": [
+    {
+      "cite": "Google Cloud, Professional Machine Learning Engineer certification exam guide (as of June 1, 2026): low-code AI ~13%, collaborating on data and models ~16%, scaling prototypes into ML models ~21%, serving and scaling ~20%, automating pipelines ~18%, monitoring ~13%",
+      "checkedAt": "2026-11-17",
+      "url": "https://services.google.com/fh/files/misc/professional_machine_learning_engineer_exam_guide_english_new.pdf",
+      "note": "Read through a summarizing fetch on 2026-11-17. Bullets quoted there under section 3: 'Troubleshooting ML model training failures', 'Evaluation of compute and accelerator options (e.g., CPU, GPU, and TPU)'. The guide names 'Agent Platform' (Gemini Enterprise Agent Platform), not Vertex AI; the gcloud ai commands in the scenario are from memory of the CLI (to verify). (read for this round by an earlier pass on 2026-11-17) (read for this round by an earlier pass on 2026-11-17) (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "Google Cloud SDK reference, gcloud ai endpoints update",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.cloud.google.com/sdk/gcloud/reference/ai/endpoints/update",
+      "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: --traffic-split 'List of pairs of deployed model id and value to set as traffic split' ([DEPLOYED_MODEL_ID=VALUE,...]); --clear-traffic-split 'Clears the traffic split map. If the map is empty, the endpoint is to not accept any traffic at the moment.' That a deploy with 100% traffic sends everything to the new model, and the monitoring numbers, are the author's scenario (the console's name for the platform follows the course seed: Agent Platform)."
+    }
+  ],
+  "brief": {
+    "situation": "You are the ML engineer at Brisk Pay, a fictional payments company. At 11:00 a teammate deployed fraud model v9 to the production endpoint fraud-ep, meaning to canary it at 10%, but the deploy command set its traffic to 100%. Since then the share of payments blocked as fraud rose from 0.8% to 6.4%, almost all of them good customers. The lunch peak starts at 12:00.",
+    "handover": [
+      "Model v8 is still deployed on fraud-ep with 0% traffic; it has been stable for two months.",
+      "The release plan for v9: 10% canary for two days, compared on precision at the fixed threshold."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the endpoint, the two deployed model versions and how traffic is split between them.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "11:20",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineAt": {
+      "value": 2400,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "The lunch peak starts at 12:00, 40 minutes after the page."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "harmed": {
+      "type": "bool",
+      "init": false
+    },
+    "tried": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "splitAt": {
+      "type": "time",
+      "init": null
+    },
+    "metricsAt": {
+      "type": "time",
+      "init": null
+    },
+    "deployAt": {
+      "type": "time",
+      "init": null
+    },
+    "registryAt": {
+      "type": "time",
+      "init": null
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "missAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "split",
+        "data",
+        "latency"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "split",
+        "metrics",
+        "deploy",
+        "registry",
+        "canary",
+        "gate",
+        "clear",
+        "replicas",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "split": {
+      "label": "gcloud ai endpoints describe fraud-ep (traffic split)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(splitAt)",
+          "then": [
+            {
+              "set": "splitAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "mle@cloudshell:~$ gcloud ai endpoints describe fraud-ep --region us-central1 --format='yaml(trafficSplit,deployedModels[].id,deployedModels[].model)'\n{harmed ? \"trafficSplit: (empty)\" : fixed ? \"trafficSplit:\n  '4410': 90\n  '5127': 10\" : \"trafficSplit:\n  '4410': 0\n  '5127': 100\"}"
+        },
+        {
+          "finding": "Model v9 has all the traffic; v8 is still deployed and idle."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "metrics": {
+      "label": "Monitoring: block rate and v9's score distribution since 11:00",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(metricsAt)",
+          "then": [
+            {
+              "set": "metricsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "mle@cloudshell:~$ gcloud monitoring ... custom.googleapis.com/fraud/block_rate (5-min)\n{fixed and not harmed ? \"11:3x  1.1%\" : \"10:55  0.8%\n11:05  6.1%\n11:15  6.4%\"}\nv9 score median 0.41 (v8: 0.12) at the shared threshold 0.35"
+        },
+        {
+          "finding": "Since 11:00 the block rate is eight times normal: v9's scores are shifted up, so the shared threshold blocks far more."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "deploy": {
+      "label": "Read the deploy command the teammate ran",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(deployAt)",
+          "then": [
+            {
+              "set": "deployAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "mle@cloudshell:~$ history | grep deploy-model\ngcloud ai endpoints deploy-model fraud-ep --model=fraud-v9 --display-name=v9 --traffic-split=0=100 ..."
+        },
+        {
+          "finding": "The '0=100' sent all traffic to the newly deployed model instead of 10."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "registry": {
+      "label": "Model Registry: v9's evaluation versus v8",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(registryAt)",
+          "then": [
+            {
+              "set": "registryAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "mle@cloudshell:~$ gcloud ai models describe fraud-v9 ... evaluation: precision@0.35 = 0.71 (v8: 0.93), recall 0.96 (v8: 0.88)"
+        },
+        {
+          "finding": "v9 catches more fraud and blocks many more good payments at this threshold: it needed the canary."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "canary": {
+      "label": "Set the traffic split to v8 90%, v9 10% (the planned canary)",
+      "group": "Fix",
+      "available": "not busy and (not fixed and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "fixed",
+          "to": "true"
+        },
+        {
+          "output": "mle@cloudshell:~$ gcloud ai endpoints update fraud-ep --region us-central1 --traffic-split=4410=90,5127=10\nUpdated endpoint [fraud-ep]."
+        },
+        {
+          "log": "Most payments go back to the stable model at once; v9 keeps the 10% canary the plan called for, so the comparison can continue on a small share.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "gate": {
+      "label": "Add a block-rate alert per deployed model, and make the release pipeline set the canary split explicitly",
+      "group": "Fix",
+      "available": "not busy and (not planned and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "mle@cloudshell:~$ gcloud alpha monitoring policies create --policy-from-file=fraud-block-rate-by-model.yaml\nmle@cloudshell:~$ git commit -am 'release: deploy-model with --traffic-split=0=10,<current>=90; refuse 0=100 for fraud-ep'"
+        },
+        {
+          "log": "A model that over-blocks pages someone within minutes, and the pipeline cannot send a new version all the traffic by default.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "clear": {
+      "label": "gcloud ai endpoints update fraud-ep --clear-traffic-split, to stop v9",
+      "group": "Fix",
+      "available": "not busy and (not harmed)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "harmed",
+          "to": "true"
+        },
+        {
+          "output": "mle@cloudshell:~$ gcloud ai endpoints update fraud-ep --region us-central1 --clear-traffic-split\nUpdated endpoint [fraud-ep]."
+        },
+        {
+          "log": "With an empty traffic split the endpoint accepts no traffic at all: every payment now fails its fraud check.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "replicas": {
+      "label": "Raise v9's minimum replicas from 2 to 6",
+      "group": "Fix",
+      "available": "not busy and (not harmed and not tried)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tried",
+          "to": "true"
+        },
+        {
+          "output": "mle@cloudshell:~$ gcloud ai endpoints ... --min-replica-count=6 (redeploy v9)\n(deploying)"
+        },
+        {
+          "log": "More replicas serve the same over-blocking predictions faster.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Check the split, the block rate and v9's canary share",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "mle@cloudshell:~$ gcloud ai endpoints describe fraud-ep ... trafficSplit; block rate (last 10 min)\n{harmed ? \"(empty)\nprediction errors: 100%, payments failing closed\" : fixed ? \"4410: 90  5127: 10\nblock rate 1.1% (v8 0.8%, v9 3.9% on its 10%)\" : \"5127: 100\nblock rate 6.4%\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "split",
+                  "label": "The deploy sent 100% of traffic to v9, whose scores over-block at the shared threshold"
+                },
+                {
+                  "value": "data",
+                  "label": "Fraud really increased at 11:00"
+                },
+                {
+                  "value": "latency",
+                  "label": "The endpoint was overloaded"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-335)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "12:00: the lunch peak runs with a normal block rate.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "missAt",
+              "to": "t"
+            },
+            {
+              "log": "12:00: the lunch peak blocks thousands of good payments.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why good payments were blocked, what you changed, and how the next rollout is protected.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Connects the block rate to the split.",
+          "modelAnswer": "The 11:00 deploy used --traffic-split=0=100, so v9 took all traffic. v9's scores sit higher (median 0.41 vs 0.12) at the same 0.35 threshold, and the block rate went from 0.8% to 6.4%."
+        },
+        {
+          "label": "Change",
+          "criteria": "Restores the planned canary.",
+          "modelAnswer": "Split 90% to v8 and 10% to v9, as the release plan intended. Clearing the split would have stopped the endpoint taking any traffic; more replicas change nothing."
+        },
+        {
+          "label": "Protected",
+          "criteria": "Pipeline and alert.",
+          "modelAnswer": "The pipeline now sets the canary split explicitly and refuses 0=100 for this endpoint, and a per-model block-rate alert pages within minutes."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 2400,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The lunch peak starts at 12:00, 40 minutes after the page."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: Clearing the traffic split made the endpoint reject every request."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed and not harmed",
+      "class": "harm",
+      "rationale": "Closing with v9 on all traffic leaves the lunch peak blocking good payments.",
+      "source": {
+        "cite": "Google Cloud SDK reference, gcloud ai endpoints update",
+        "checkedAt": "2026-11-17",
+        "url": "https://docs.cloud.google.com/sdk/gcloud/reference/ai/endpoints/update",
+        "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: --traffic-split 'List of pairs of deployed model id and value to set as traffic split' ([DEPLOYED_MODEL_ID=VALUE,...]); --clear-traffic-split 'Clears the traffic split map. If the map is empty, the endpoint is to not accept any traffic at the moment.' That a deploy with 100% traffic sends everything to the new model, and the monitoring numbers, are the author's scenario (the console's name for the platform follows the course seed: Agent Platform)."
+      }
+    }
+  },
+  "endings": {
+    "endpointDark": {
+      "label": "Endpoint accepting no traffic",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and harmed",
+      "narrative": "Clearing the split left fraud-ep with no traffic map; every payment's fraud check failed."
+    },
+    "peakBlocked": {
+      "label": "Good payments blocked at the peak",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(missAt)",
+      "narrative": "At 12:00 v9 still had all the traffic."
+    },
+    "canary": {
+      "label": "Canary restored, alerting and pipeline fixed",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(splitAt) and not isNull(metricsAt) and not isNull(verifiedAt) and causeDoc == \"split\"",
+      "narrative": "v8 serves 90%, v9 its planned 10%, and the release pipeline can no longer send a new version everything."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The block rate recovered, but the alert, the pipeline, the check or the record was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "endpointDark",
+    "peakBlocked",
+    "canary",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Read the traffic split and the block rate by model",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(splitAt) and not isNull(metricsAt)",
+            "score": "met",
+            "why": "The key evidence, read before changing anything."
+          },
+          {
+            "when": "not isNull(splitAt) or not isNull(metricsAt) or not isNull(deployAt) or not isNull(registryAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Normal block rate by 12:00 with the endpoint serving",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and not harmed and isNull(missAt)",
+            "score": "met",
+            "why": "The right change, in time, without harm."
+          },
+          {
+            "when": "fixed or harmed",
+            "score": "partial",
+            "why": "{harmed ? \"Clearing the traffic split made the endpoint reject every request.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never removed."
+          }
+        ]
+      },
+      {
+        "id": "lasting",
+        "label": "Per-model alert and pipeline fix; rates checked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The lasting step taken and the result checked."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"split\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record names the wrong cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes that caused harm",
+        "value": "harmed ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "11:20-11:24",
+        "text": "Split v9 100%; block rate 6.4% since 11:00; deploy used 0=100; v9 precision lower at this threshold."
+      },
+      {
+        "at": "11:24-11:27",
+        "text": "Split 90/10; alert per model; pipeline sets the canary explicitly."
+      },
+      {
+        "at": "11:27-11:29",
+        "text": "Block rate 1.1%; v9 on its 10%."
+      }
+    ],
+    "debrief": {
+      "endpointDark": {
+        "headline": "Move traffic, do not remove it",
+        "body": "An empty traffic split means the endpoint takes no traffic. Shift the split back to the stable version; it is still deployed."
+      },
+      "peakBlocked": {
+        "headline": "A canary that was not one",
+        "body": "A new version should get a small share first. When it takes everything by mistake, set the split back: the old version is still deployed and can take traffic immediately."
+      },
+      "canary": {
+        "headline": "Good: a real canary",
+        "body": "You read the split and the block rate, restored the planned canary instead of removing the model or the traffic, checked the rates, and fixed the release step and alerting."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the evidence before the change, the lasting step, the check, or the cause in the record."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The new model took all of the endpoint's traffic by mistake, and at the shared threshold it blocks many more good payments. The old model is still deployed, so set the traffic split back to the planned canary, 90% old and 10% new, and check the block rate. Clearing the split stops the endpoint taking traffic at all; more replicas serve the same bad predictions. Then alert per model and make the pipeline set the canary explicitly."
+  }
+}
