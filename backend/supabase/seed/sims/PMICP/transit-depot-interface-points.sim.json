@@ -1,0 +1,1160 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "transit-depot-interface-points",
+  "title": "Five contract packages and the gaps between them: interface points, their owners and a register that keeps up",
+  "screen": {
+    "type": "project-dashboard",
+    "level": 1,
+    "dashboard": {
+      "mode": "predictive",
+      "heading": "Light-rail depot, week {p}",
+      "commitments": [
+        {
+          "id": "out",
+          "label": "Commitment",
+          "text": "Depot ready for trains on the agreed date."
+        }
+      ],
+      "columns": [
+        {
+          "id": "open",
+          "label": "Open"
+        },
+        {
+          "id": "risk",
+          "label": "Off plan"
+        },
+        {
+          "id": "done",
+          "label": "Decided on plan"
+        }
+      ],
+      "items": [
+        {
+          "id": "wIps",
+          "label": "Interface register",
+          "column": "ips == \"register\" ? \"done\" : ips == \"weekly\" ? \"risk\" : ips == \"contractors\" ? \"risk\" : \"open\"",
+          "when": "true",
+          "flag": "ips == \"contractors\""
+        },
+        {
+          "id": "wClassify",
+          "label": "Interface classification",
+          "column": "classify == \"classified\" ? \"done\" : classify == \"equal\" ? \"risk\" : classify == \"ignoreSoft\" ? \"risk\" : \"open\"",
+          "when": "true",
+          "flag": "classify == \"ignoreSoft\""
+        },
+        {
+          "id": "wChange",
+          "label": "Slab rework",
+          "column": "change == \"contractual\" ? \"done\" : change == \"split\" ? \"risk\" : change == \"owner\" ? \"risk\" : \"open\"",
+          "when": "true",
+          "flag": "change == \"owner\""
+        }
+      ],
+      "issues": [
+        {
+          "id": "iIps",
+          "label": "Unmanaged interfaces",
+          "when": "p >= 1",
+          "at": "604800",
+          "status": "{ips == \"register\" ? \"Interface register with owners\" : ips == \"weekly\" ? \"Ad hoc discussion\" : ips == \"contractors\" ? \"Left to contractors\" : \"Due\"}",
+          "open": "ips == \"none\""
+        },
+        {
+          "id": "iClassify",
+          "label": "Critical interfaces missed",
+          "when": "p >= 2",
+          "at": "1209600",
+          "status": "{classify == \"classified\" ? \"Classified by type and criticality\" : classify == \"equal\" ? \"All equal, monthly\" : classify == \"ignoreSoft\" ? \"Physical only\" : \"Due\"}",
+          "open": "classify == \"none\""
+        },
+        {
+          "id": "iChange",
+          "label": "Rework dispute",
+          "when": "p >= 3",
+          "at": "1814400",
+          "status": "{change == \"contractual\" ? \"Settled by contract; register improved\" : change == \"split\" ? \"Even split\" : change == \"owner\" ? \"Absorbed silently\" : \"Due\"}",
+          "open": "change == \"none\""
+        }
+      ],
+      "people": [
+        {
+          "id": "sSpon",
+          "label": "Owner's director",
+          "spokenLabel": "the owner's director's support",
+          "value": "spon",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sPkg",
+          "label": "Package contractors",
+          "spokenLabel": "the package contractors' support",
+          "value": "pkg",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sTeam",
+          "label": "Project team",
+          "spokenLabel": "the project team's support",
+          "value": "team",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "events": [
+        {
+          "id": "mIps",
+          "label": "Interface workshop",
+          "at": "604800",
+          "status": "{ips == \"register\" ? \"Interface register with owners\" : ips == \"weekly\" ? \"Ad hoc discussion\" : ips == \"contractors\" ? \"Left to contractors\" : \"Due\"}"
+        },
+        {
+          "id": "mClassify",
+          "label": "Weekly interface review",
+          "at": "1209600",
+          "status": "{classify == \"classified\" ? \"Classified by type and criticality\" : classify == \"equal\" ? \"All equal, monthly\" : classify == \"ignoreSoft\" ? \"Physical only\" : \"Due\"}"
+        },
+        {
+          "id": "mChange",
+          "label": "Commercial meeting",
+          "at": "1814400",
+          "status": "{change == \"contractual\" ? \"Settled by contract; register improved\" : change == \"split\" ? \"Even split\" : change == \"owner\" ? \"Absorbed silently\" : \"Due\"}"
+        }
+      ],
+      "meters": [
+        {
+          "id": "mSpi",
+          "label": "SPI",
+          "value": "{spi}"
+        },
+        {
+          "id": "mCpi",
+          "label": "CPI",
+          "value": "{cpi}"
+        }
+      ]
+    }
+  },
+  "objective": "Implementing interface management: planning interface points (IPs) across packages, classifying interfaces on mega projects, and applying industry-leading frameworks",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "PMI, PMI Construction Professional (PMI-CP) Examination Content Outline (February 2024): Contracts Management 50%, Stakeholder Engagement 30%, Strategy and Scope Management 15%, Project Governance 5%",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.scribd.com/document/712650910/PMICP-Exam-Content-Outline",
+      "note": "Read 2026-11-17 through a summarizing fetch of a copy hosted on Scribd: the domain weights only; the task text was not shown. The objective wording is the course seed's, built from PMI's outline read on 2026-09-27 (backend/supabase/seed/tracks/pm.ts); the claims task text is to verify against PMI's PDF. Reused for REQ-336 from this course's clinic-fitout-claim-pmicp (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the project, the figures and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You manage interfaces on a fictional light-rail depot for Tidewater Transit, split into five contract packages: civil, track, systems, buildings and power.",
+    "handover": [
+      "The civil contractor poured a slab last week without the power package's duct banks.",
+      "There is no interface register; issues surface on site."
+    ],
+    "howItWorks": [
+      "The dashboard shows the commitments, the work items, the risks and issues, the people's support and the milestones.",
+      "Move on a week at a time. A decision comes to you at each status meeting; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-05-03T09:00",
+    "tick": "1d",
+    "maxDuration": "84d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "spon": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "pkg": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "team": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "ips": {
+      "type": "enum",
+      "values": [
+        "none",
+        "register",
+        "weekly",
+        "contractors"
+      ],
+      "init": "none"
+    },
+    "ipsAt": {
+      "type": "time",
+      "init": null
+    },
+    "classify": {
+      "type": "enum",
+      "values": [
+        "none",
+        "classified",
+        "equal",
+        "ignoreSoft"
+      ],
+      "init": "none"
+    },
+    "classifyAt": {
+      "type": "time",
+      "init": null
+    },
+    "change": {
+      "type": "enum",
+      "values": [
+        "none",
+        "contractual",
+        "split",
+        "owner"
+      ],
+      "init": "none"
+    },
+    "changeAt": {
+      "type": "time",
+      "init": null
+    },
+    "clashAt": {
+      "type": "time",
+      "init": null
+    },
+    "scopesAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(spon, pkg), team)"
+    },
+    "missCount": {
+      "expr": "((ips == \"contractors\") ? 1 : 0) + ((classify == \"ignoreSoft\") ? 1 : 0) + ((change == \"owner\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(ips == \"none\" or (ips == \"contractors\") ? 1 : 0) + (classify == \"none\" or (classify == \"ignoreSoft\") ? 1 : 0) + (change == \"none\" or (change == \"owner\") ? 1 : 0)"
+    },
+    "spi": {
+      "expr": "1 - ((ips == \"weekly\") ? 0.04 : (ips == \"contractors\") ? 0.09 : 0) - ((classify == \"equal\") ? 0.04 : (classify == \"ignoreSoft\") ? 0.09 : 0) - ((change == \"split\") ? 0.04 : (change == \"owner\") ? 0.09 : 0)"
+    },
+    "cpi": {
+      "expr": "1 - ((ips == \"weekly\") ? 0.03 : (ips == \"contractors\") ? 0.08 : 0) - ((classify == \"equal\") ? 0.03 : (classify == \"ignoreSoft\") ? 0.08 : 0) - ((change == \"split\") ? 0.03 : (change == \"owner\") ? 0.08 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Interface reviews",
+      "clock": "turns",
+      "actions": [
+        "clash",
+        "scopes"
+      ]
+    },
+    "close": {
+      "label": "Interface record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "clash": {
+      "label": "Read the slab clash report",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(clashAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "clashAt",
+          "to": "t"
+        },
+        {
+          "log": "Read the slab clash report.",
+          "kind": "act"
+        },
+        {
+          "finding": "Power duct banks were missing from civil's drawings; breaking out and recasting costs 140 thousand dollars and 3 weeks."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "scopes": {
+      "label": "Compare the five package scopes",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(scopesAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "scopesAt",
+          "to": "t"
+        },
+        {
+          "log": "Compare the five package scopes.",
+          "kind": "act"
+        },
+        {
+          "finding": "At least 40 physical and functional handovers between packages are named in no contract."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "An interface register with owners, interfaces classified with weekly review of critical points, and the rework settled with need dates added"
+                },
+                {
+                  "value": "summary",
+                  "label": "Interfaces managed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next status meeting",
+      "wait": {
+        "skipLabel": "Go to the next status meeting"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "ips == \"contractors\"",
+              "then": [
+                {
+                  "log": "Week 2: the track contractor installs rails over a systems cable route; another break-out is needed.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "classify == \"ignoreSoft\"",
+              "then": [
+                {
+                  "log": "Week 3: nobody owns the integrated signal test between systems and track; commissioning stalls.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "change == \"owner\"",
+              "then": [
+                {
+                  "log": "Week 4: a similar data gap on the buildings package costs another 90 thousand dollars from contingency.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "7d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The interface review closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "7d"
+        }
+      ]
+    },
+    {
+      "id": "t_ips",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 1: the gaps.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "ipsPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_classify",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 2: 40 points.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "classifyPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_change",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 3: who pays?",
+          "kind": "sys"
+        },
+        {
+          "prompt": "changePrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "ipsPrompt": {
+      "title": "Handovers nobody owns",
+      "context": "40 handovers sit between packages.",
+      "choices": [
+        {
+          "id": "register",
+          "label": "Build an interface register: each interface point with the two packages, the giving and receiving party, data needed, a need date and an owner, agreed at a joint workshop",
+          "effects": [
+            {
+              "set": "ips",
+              "to": "\"register\""
+            },
+            {
+              "set": "ipsAt",
+              "to": "t"
+            },
+            {
+              "add": "pkg",
+              "by": "10"
+            },
+            {
+              "log": "Forty interface points are registered and agreed.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Interface management plans each interface point between packages with owners and need dates."
+        },
+        {
+          "id": "weekly",
+          "label": "Discuss interfaces at the weekly site meeting as they come up",
+          "effects": [
+            {
+              "set": "ips",
+              "to": "\"weekly\""
+            },
+            {
+              "set": "ipsAt",
+              "to": "t"
+            },
+            {
+              "add": "pkg",
+              "by": "-15"
+            },
+            {
+              "log": "A standing agenda item is added.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Issues are found when they hit the site, as the slab was."
+        },
+        {
+          "id": "contractors",
+          "label": "Tell contractors to coordinate among themselves",
+          "effects": [
+            {
+              "set": "ips",
+              "to": "\"contractors\""
+            },
+            {
+              "set": "ipsAt",
+              "to": "t"
+            },
+            {
+              "add": "pkg",
+              "by": "-25"
+            },
+            {
+              "log": "A letter goes out.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Nobody owns the gaps; each contractor protects its own scope."
+        }
+      ]
+    },
+    "classifyPrompt": {
+      "title": "Which interfaces need the most attention",
+      "context": "Forty points cannot all get equal attention.",
+      "choices": [
+        {
+          "id": "classified",
+          "label": "Classify each point as physical, functional, contractual or organizational, and by criticality to the schedule, reviewing critical ones weekly",
+          "effects": [
+            {
+              "set": "classify",
+              "to": "\"classified\""
+            },
+            {
+              "set": "classifyAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "10"
+            },
+            {
+              "log": "Twelve critical points get weekly review.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "On large projects, interfaces are classified so critical ones get the closest control."
+        },
+        {
+          "id": "equal",
+          "label": "Review all 40 equally every month",
+          "effects": [
+            {
+              "set": "classify",
+              "to": "\"equal\""
+            },
+            {
+              "set": "classifyAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "-15"
+            },
+            {
+              "log": "A monthly review is set.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Critical handovers wait a month for attention."
+        },
+        {
+          "id": "ignoreSoft",
+          "label": "Track only physical clashes; drop the rest",
+          "effects": [
+            {
+              "set": "classify",
+              "to": "\"ignoreSoft\""
+            },
+            {
+              "set": "classifyAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "-25"
+            },
+            {
+              "log": "Only physical points are tracked.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Functional and contractual gaps, such as test responsibilities, are lost."
+        }
+      ]
+    },
+    "changePrompt": {
+      "title": "The duct bank rework",
+      "context": "Civil says power's data was late; power says civil never asked.",
+      "choices": [
+        {
+          "id": "contractual",
+          "label": "Treat the rework as a change under the contracts, determine responsibility from the record, and add a data-exchange need date to every related interface point",
+          "effects": [
+            {
+              "set": "change",
+              "to": "\"contractual\""
+            },
+            {
+              "set": "changeAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "10"
+            },
+            {
+              "log": "The change is settled; need dates are added.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Interface failures are settled through contract mechanisms, and the register is updated so the gap does not recur."
+        },
+        {
+          "id": "split",
+          "label": "Split the cost evenly between the two contractors",
+          "effects": [
+            {
+              "set": "change",
+              "to": "\"split\""
+            },
+            {
+              "set": "changeAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-15"
+            },
+            {
+              "log": "The cost is split.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Quick, but not based on the record and it teaches nothing."
+        },
+        {
+          "id": "owner",
+          "label": "Pay it from the owner's contingency and say nothing",
+          "effects": [
+            {
+              "set": "change",
+              "to": "\"owner\""
+            },
+            {
+              "set": "changeAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-25"
+            },
+            {
+              "log": "Contingency pays.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The cause stays unfixed and contingency shrinks."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the interface record for the owner's director.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Register",
+          "criteria": "40 interface points with owners and need dates; 12 critical reviewed weekly.",
+          "modelAnswer": "Every handover between the five packages is registered with giving and receiving parties, data needs, need dates and owners; 12 critical points are reviewed weekly."
+        },
+        {
+          "label": "The slab",
+          "criteria": "Settled under the contracts; need dates added.",
+          "modelAnswer": "The duct bank rework was settled under the contracts from the record, and every related interface now has a data-exchange need date."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "project",
+    "thresholds": {
+      "spiTarget": {
+        "value": 0.95,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "SPI at the close."
+        }
+      },
+      "cpiTarget": {
+        "value": 0.95,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "CPI at the close."
+        }
+      },
+      "stakeholderTarget": {
+        "value": 60,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Every stakeholder at 60 of 100 or more."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (ips == \"weekly\") and (classify == \"equal\") and (change == \"split\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "PMI, PMI Construction Professional (PMI-CP) Examination Content Outline (February 2024): Contracts Management 50%, Stakeholder Engagement 30%, Strategy and Scope Management 15%, Project Governance 5%",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.scribd.com/document/712650910/PMICP-Exam-Content-Outline",
+        "note": "Read 2026-11-17 through a summarizing fetch of a copy hosted on Scribd: the domain weights only; the task text was not shown. The objective wording is the course seed's, built from PMI's outline read on 2026-09-27 (backend/supabase/seed/tracks/pm.ts); the claims task text is to verify against PMI's PDF. Reused for REQ-336 from this course's clinic-fitout-claim-pmicp (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "ipsHarm": {
+      "label": "Another clash",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and ips == \"contractors\"",
+      "narrative": "Unmanaged interfaces caused a second rework."
+    },
+    "classifyHarm": {
+      "label": "A test gap",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and classify == \"ignoreSoft\"",
+      "narrative": "Dropping functional interfaces left an integrated test unowned."
+    },
+    "changeHarm": {
+      "label": "The gap repeats",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and change == \"owner\"",
+      "narrative": "Absorbing the rework silently let the same gap recur."
+    },
+    "target": {
+      "label": "No more surprises between packages",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (ips == \"register\") and (classify == \"classified\") and (change == \"contractual\") and record == \"honest\" and spi >= spiTarget and cpi >= cpiTarget and minSupport >= stakeholderTarget",
+      "narrative": "Handovers are planned, owned and watched, and the depot stays on schedule."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "ipsHarm",
+    "classifyHarm",
+    "changeHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "ipsCrit",
+        "label": "Planned interface points with owners and dates",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "ips == \"register\"",
+            "score": "met",
+            "why": "Owned."
+          },
+          {
+            "when": "ips == \"weekly\"",
+            "score": "partial",
+            "why": "Reactive."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Unowned."
+          }
+        ]
+      },
+      {
+        "id": "classifyCrit",
+        "label": "Classified interfaces by type and criticality",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "classify == \"classified\"",
+            "score": "met",
+            "why": "Prioritized."
+          },
+          {
+            "when": "classify == \"equal\"",
+            "score": "partial",
+            "why": "Too slow."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Incomplete."
+          }
+        ]
+      },
+      {
+        "id": "changeCrit",
+        "label": "Resolved the rework through the contract and fed the lesson back into the register",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "change == \"contractual\"",
+            "score": "met",
+            "why": "Resolved and prevented."
+          },
+          {
+            "when": "change == \"split\"",
+            "score": "partial",
+            "why": "Arbitrary."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Silent."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(clashAt) and not isNull(scopesAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(clashAt) or not isNull(scopesAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 100)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "70 or more"
+      },
+      {
+        "id": "spiK",
+        "label": "SPI at the close",
+        "value": "spi",
+        "format": "number",
+        "expert": "1.00"
+      },
+      {
+        "id": "cpiK",
+        "label": "CPI at the close",
+        "value": "cpi",
+        "format": "number",
+        "expert": "1.00"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the clash report and the package scopes first."
+      },
+      {
+        "at": "Week 1",
+        "text": "Register every interface point with owners and dates."
+      },
+      {
+        "at": "Week 2",
+        "text": "Classify by type and criticality."
+      },
+      {
+        "at": "Week 3",
+        "text": "Settle it under the contracts and add need dates to the register."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "ipsHarm": {
+        "headline": "Plan interface points",
+        "body": "Owners and need dates for each."
+      },
+      "classifyHarm": {
+        "headline": "Classify all interfaces",
+        "body": "Physical, functional, contractual and organizational."
+      },
+      "changeHarm": {
+        "headline": "Settle and learn",
+        "body": "Contract mechanisms and an updated register."
+      },
+      "target": {
+        "headline": "Good: no more surprises between packages",
+        "body": "Interface points, classification and contract settlement."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Interface management plans every interface point between contract packages, with giving and receiving parties, data needs, need dates and owners. Classify interfaces by type and criticality so the critical ones get close control, and settle interface failures through the contracts while feeding the lessons back into the register."
+  }
+}
