@@ -1,0 +1,1007 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "medic-chest-stab-pulse-lost",
+  "title": "A chest stab, and the pulse is gone",
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate on the monitor",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "low": 50
+          },
+          "announce": {
+            "bands": [
+              50,
+              130
+            ]
+          },
+          "colour": "ecg",
+          "hiddenUntil": "monOn"
+        },
+        {
+          "id": "etco2",
+          "label": "EtCO2",
+          "spokenLabel": "End-tidal carbon dioxide",
+          "value": "etco2",
+          "unit": "mmHg",
+          "alarm": {
+            "low": 15
+          },
+          "announce": {
+            "bands": [
+              20,
+              10
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "bvmOn"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              90,
+              80
+            ]
+          },
+          "colour": "spo2",
+          "hiddenUntil": "monOn and pulse"
+        }
+      ],
+      "infusions": "Pulse: {pulse ? \"present\" : \"none\"}. Chest: left {leftDone ? \"decompressed\" : \"not decompressed\"}, right {rightDone ? \"decompressed\" : \"not decompressed\"}. Wound: {sealed ? \"vented seal\" : \"open\"}. Ventilation: {bvmOn ? \"BVM\" : \"none\"}. {isNull(departAt) ? \"On scene\" : isNull(arrivedAt) ? \"En route\" : \"Arrived\"}.",
+      "banner": [
+        {
+          "when": "not pulse and isNull(arrivedAt)",
+          "text": "Darius, 24, on the sidewalk, a stab wound below the left nipple; he stopped talking a minute ago."
+        },
+        {
+          "when": "pulse",
+          "text": "A pulse is back; he is gasping."
+        }
+      ]
+    }
+  },
+  "objective": "Recognize traumatic cardiac arrest and treat its reversible causes",
+  "secondaryObjectives": [
+    "Manage chest trauma: tension pneumothorax, open pneumothorax and flail chest",
+    "Apply the field triage guideline to choose a destination for an injured patient"
+  ],
+  "sources": [
+    {
+      "cite": "National Registry of EMTs. Paramedic examination test plan",
+      "checkedAt": "2026-11-09",
+      "url": "https://www.nremt.org/getmedia/1f27af23-e889-4edc-8041-55d1854d66ed/Paramedic-Test-Plan_1July2024",
+      "note": "Relayed from the course seed (backend/supabase/seed/tracks/ems.ts and labs/ems-sources.ts, read in NREMT's own documents 2026-11-09); not re-read for this case. Trauma: recognize traumatic cardiac arrest and treat its reversible causes."
+    },
+    {
+      "cite": "NASEMSO. National Model EMS Clinical Guidelines, Version 3.0 (March 2022): Resuscitation in Traumatic Cardiac Arrest",
+      "checkedAt": "2026-11-17",
+      "url": "https://nasemso.org/?p=223",
+      "note": "Read 2026-11-17 in the full text Iowa HHS hosts (https://hhs.iowa.gov/media/198/download) through summarizing fetches with quotes; NASEMSO's own page, read the same day, still presents Version 3 (2022) as current and names no later version. Treat the reversible causes: 'Manage massive hemorrhage', a pelvic binder for blunt trauma, 'Perform bilateral, rapid chest decompression', volume and hemorrhage control en route; 'Evidence for the benefit of CPR in traumatic cardiac arrest is limited'; 'If CPR is performed at all, it should be performed en route to the hospital'; survival is best when arrival at a hospital is within minutes."
+    },
+    {
+      "cite": "American College of Surgeons Committee on Trauma, with NAEMSP and partners. National Guideline for the Field Triage of Injured Patients (2021)",
+      "checkedAt": "2026-11-17",
+      "url": "https://ww2.facs.org/media/2zdltley/field-triage-handout-vfinal-revise.pdf",
+      "note": "Read 2026-11-17 in ACS's handout through a summarizing fetch (REQ-241 read the same handout 2026-11-11): yellow criteria include 'Low-level falls in young children (age <= 5 years) or older adults (age >= 65 years) with significant head impact', 'Anticoagulant use', 'Pregnancy > 20 weeks' and 'If concerned, take to a trauma center'; a patient with yellow but no red criteria 'should be preferentially transported to a trauma center' that 'need not be the highest-level trauma center'; red includes 'Unable to follow commands (motor GCS < 6)'."
+    },
+    {
+      "cite": "NHTSA. National EMS Scope of Practice Model 2019: Including Change Notices 1.0 and 2.0 (DOT HS 813 151, 2021-08-01)",
+      "checkedAt": "2026-11-17",
+      "url": "https://rosap.ntl.bts.gov/view/dot/56917",
+      "note": "Read 2026-11-17: the record page (title, report number, date; the change notices add intramuscular injection, vaccination in a public health emergency and nasal swab collection at EMT and above) and the PDF's skill tables through a summarizing fetch whose table columns were partly unclear, so placement was checked against the course's own reading (backend/supabase/seed/labs/ems-sources.ts, 2026-11-09) and REQ-241's reading (2026-11-11). EMR: oxygen, BVM, naloxone (intranasal or auto-injector), unit-dose hazmat antidote auto-injectors, tourniquet, wound packing, emergency moves, manual stabilization; no pulse oximetry, glucose monitoring or transport. EMT adds pulse oximetry, glucose monitoring, oral glucose, aspirin, the patient's own nitroglycerin, an inhaled bronchodilator, CPAP, the epinephrine auto-injector. AEMT adds IV and IO access, non-medicated IV fluids, supraglottic airways, waveform capnography, sublingual nitroglycerin and a limited list of IV and IM drugs (dextrose, naloxone). Paramedic adds 12-lead interpretation, manual defibrillation, synchronized cardioversion, transcutaneous pacing, needle chest decompression, intubation and medicated infusions. No newer model was found on 2026-11-17."
+    },
+    {
+      "cite": "Ascendra NREMT Paramedic course catalog (backend/supabase/seed/tracks/ems.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Ascendra teaching model (REQ-338, authored)",
+      "checkedAt": "2026-11-17",
+      "note": "That the arrest is from a left tension pneumothorax (released by decompression) and that it becomes unrecoverable about 8 minutes after the pulse is lost without decompression are authored for the case; FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+    }
+  ],
+  "brief": {
+    "situation": "23:50. You are a paramedic with an EMT partner; police have secured the scene. Darius, 24, was stabbed once in the left chest. He was talking when the police arrived; he lost consciousness as you pulled up. Now he has no pulse.",
+    "handover": [
+      "You carry a monitor-defibrillator, BVM and airways, decompression needles, chest seals, IV and IO supplies and normal saline. Epinephrine is in the drug box.",
+      "A Level I trauma center is 12 minutes away."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated seconds per real second. Pause any time.",
+      "Every assessment and treatment takes the time it would on a real call. Scene time and the drive run on the clock.",
+      "Partway through you are asked to explain your decisions in writing. The case ends when care is handed over, then a debrief scores what you did."
+    ]
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice; follow your local protocols and medical direction.",
+  "clock": {
+    "start": "23:50",
+    "tick": "1s",
+    "maxDuration": "45min",
+    "calendar": "clock"
+  },
+  "params": {
+    "window": {
+      "value": 480,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (REQ-338, authored)",
+        "checkedAt": "2026-11-17",
+        "note": "FLAG: stands in for a number no guideline gives. Unrecoverable 8 minutes after the pulse is lost without decompression. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "needleTime": {
+      "value": 30,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each needle decompression: about 30 seconds. Authored for the case; real times vary."
+      }
+    },
+    "loadTime": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Scoop and load: about 2 minutes. Authored for the case; real times vary."
+      }
+    },
+    "driveTime": {
+      "value": 720,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "12 minutes to the trauma center. Authored for the case; real times vary."
+      }
+    },
+    "sceneGoal": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (REQ-338, authored)",
+        "checkedAt": "2026-11-17",
+        "note": "FLAG: stands in for a number no guideline gives. Scene time of 10 minutes or less; NASEMSO says arrival within minutes gives the best chance. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    }
+  },
+  "state": {
+    "pulse": {
+      "type": "bool",
+      "init": false
+    },
+    "monOn": {
+      "type": "bool",
+      "init": false
+    },
+    "bvmOn": {
+      "type": "bool",
+      "init": false
+    },
+    "leftDone": {
+      "type": "bool",
+      "init": false
+    },
+    "rightDone": {
+      "type": "bool",
+      "init": false
+    },
+    "sealed": {
+      "type": "bool",
+      "init": false
+    },
+    "lost": {
+      "type": "bool",
+      "init": false
+    },
+    "cprOn": {
+      "type": "bool",
+      "init": false
+    },
+    "nPending": {
+      "type": "bool",
+      "init": false
+    },
+    "epiN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "sceneCprMin": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 60
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "monAt": {
+      "type": "time",
+      "init": null
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "rightAt": {
+      "type": "time",
+      "init": null
+    },
+    "roscAt": {
+      "type": "time",
+      "init": null
+    },
+    "sealAt": {
+      "type": "time",
+      "init": null
+    },
+    "ioAt": {
+      "type": "time",
+      "init": null
+    },
+    "cprAt": {
+      "type": "time",
+      "init": null
+    },
+    "epiAt": {
+      "type": "time",
+      "init": null
+    },
+    "departAt": {
+      "type": "time",
+      "init": null
+    },
+    "arrivedAt": {
+      "type": "time",
+      "init": null
+    },
+    "notifyAt": {
+      "type": "time",
+      "init": null
+    },
+    "bvmAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "pulse ? 128 : 40",
+      "unit": "/min",
+      "precision": 0
+    },
+    "etco2": {
+      "expr": "pulse ? 32 : (cprOn ? 14 : 8)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "pulse ? 88 : 0",
+      "unit": "%",
+      "precision": 0
+    }
+  },
+  "processes": [
+    {
+      "id": "scene",
+      "when": "cprOn and isNull(departAt)",
+      "update": {
+        "sceneCprMin": "sceneCprMin + dt / 60"
+      }
+    }
+  ],
+  "phases": {
+    "call": {
+      "label": "On scene",
+      "clock": "running",
+      "actions": [
+        "look",
+        "monitor",
+        "bvm",
+        "left",
+        "right",
+        "seal",
+        "cpr",
+        "io",
+        "epi",
+        "transport",
+        "notify"
+      ]
+    }
+  },
+  "initialPhase": "call",
+  "actions": {
+    "look": {
+      "label": "Rapid assessment: pulse, breathing, the wound, the chest",
+      "group": "Assess",
+      "available": "isNull(lookAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "No carotid pulse; agonal breaths; a 2 cm wound below the left nipple; left chest hyperexpanded, no breath sounds on the left; neck veins full.",
+          "kind": "find"
+        }
+      ]
+    },
+    "monitor": {
+      "label": "Monitor",
+      "group": "Assess",
+      "available": "not monOn",
+      "why": "On.",
+      "effects": [
+        {
+          "set": "monOn",
+          "to": "true"
+        },
+        {
+          "if": "isNull(monAt)",
+          "then": [
+            {
+              "set": "monAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Organized narrow complexes at {hr} with no pulse: pulseless electrical activity.",
+          "kind": "find"
+        }
+      ]
+    },
+    "bvm": {
+      "label": "BVM with oxygen and an airway adjunct",
+      "group": "Airway",
+      "available": "not bvmOn",
+      "why": "On.",
+      "effects": [
+        {
+          "set": "bvmOn",
+          "to": "true"
+        },
+        {
+          "if": "isNull(bvmAt)",
+          "then": [
+            {
+              "set": "bvmAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Ventilating."
+        }
+      ]
+    },
+    "left": {
+      "label": "Needle decompression, left chest",
+      "group": "Reversible causes",
+      "available": "not leftDone and not nPending",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "nPending",
+          "to": "true"
+        },
+        {
+          "schedule": "leftT",
+          "after": "needleTime"
+        },
+        {
+          "log": "Needle into the left chest."
+        }
+      ]
+    },
+    "right": {
+      "label": "Needle decompression, right chest",
+      "group": "Reversible causes",
+      "available": "not rightDone and not nPending",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "nPending",
+          "to": "true"
+        },
+        {
+          "schedule": "rightT",
+          "after": "needleTime"
+        },
+        {
+          "log": "Needle into the right chest."
+        }
+      ]
+    },
+    "seal": {
+      "label": "Vented chest seal over the wound",
+      "group": "Reversible causes",
+      "available": "not sealed",
+      "why": "On.",
+      "effects": [
+        {
+          "set": "sealed",
+          "to": "true"
+        },
+        {
+          "if": "isNull(sealAt)",
+          "then": [
+            {
+              "set": "sealAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Vented seal on."
+        }
+      ]
+    },
+    "cpr": {
+      "label": "Start chest compressions",
+      "group": "Resuscitation",
+      "available": "not cprOn and not pulse",
+      "why": "Not now.",
+      "effects": [
+        {
+          "set": "cprOn",
+          "to": "true"
+        },
+        {
+          "if": "isNull(cprAt)",
+          "then": [
+            {
+              "set": "cprAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Compressions started."
+        }
+      ]
+    },
+    "io": {
+      "label": "IO access and normal saline",
+      "group": "Resuscitation",
+      "available": "isNull(ioAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(ioAt)",
+          "then": [
+            {
+              "set": "ioAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Humeral IO; saline running."
+        }
+      ]
+    },
+    "epi": {
+      "label": "Epinephrine 1 mg IV/IO, as in a medical arrest",
+      "group": "Resuscitation",
+      "available": "not isNull(ioAt) and not pulse and epiN < 4",
+      "why": "Needs access; not with a pulse.",
+      "effects": [
+        {
+          "add": "epiN",
+          "by": "1"
+        },
+        {
+          "if": "isNull(epiAt)",
+          "then": [
+            {
+              "set": "epiAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Epinephrine 1 mg."
+        }
+      ]
+    },
+    "transport": {
+      "label": "Scoop and go to the trauma center, treating en route",
+      "group": "Transport",
+      "available": "isNull(departAt)",
+      "why": "Moving.",
+      "effects": [
+        {
+          "if": "isNull(departAt)",
+          "then": [
+            {
+              "set": "departAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "schedule": "arriveT",
+          "after": "loadTime + driveTime"
+        },
+        {
+          "log": "Loading."
+        }
+      ]
+    },
+    "notify": {
+      "label": "Notify the trauma center: penetrating chest, traumatic arrest, decompressed, ETA",
+      "group": "Transport",
+      "available": "not isNull(departAt) and isNull(notifyAt)",
+      "why": "Once moving.",
+      "effects": [
+        {
+          "if": "isNull(notifyAt)",
+          "then": [
+            {
+              "set": "notifyAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Trauma team activated.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "leftT": {
+      "label": "left needle",
+      "wait": {
+        "skipLabel": "the left decompression"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 30 seconds. Authored for the case; real times vary."
+      },
+      "effects": [
+        {
+          "set": "nPending",
+          "to": "false"
+        },
+        {
+          "set": "leftDone",
+          "to": "true"
+        },
+        {
+          "if": "isNull(leftAt)",
+          "then": [
+            {
+              "set": "leftAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not lost",
+          "then": [
+            {
+              "set": "pulse",
+              "to": "true"
+            },
+            {
+              "set": "cprOn",
+              "to": "false"
+            },
+            {
+              "if": "isNull(roscAt)",
+              "then": [
+                {
+                  "set": "roscAt",
+                  "to": "t"
+                }
+              ]
+            },
+            {
+              "log": "A rush of air from the left; within seconds there is a carotid pulse.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "log": "Air rushes out, but no pulse returns.",
+              "kind": "bad"
+            }
+          ]
+        }
+      ]
+    },
+    "rightT": {
+      "label": "right needle",
+      "wait": {
+        "skipLabel": "the right decompression"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 30 seconds. Authored for the case; real times vary."
+      },
+      "effects": [
+        {
+          "set": "nPending",
+          "to": "false"
+        },
+        {
+          "set": "rightDone",
+          "to": "true"
+        },
+        {
+          "if": "isNull(rightAt)",
+          "then": [
+            {
+              "set": "rightAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "No air from the right."
+        }
+      ]
+    },
+    "arriveT": {
+      "label": "arrival",
+      "wait": {
+        "skipLabel": "arrival"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Load and drive. Authored for the case; real times vary."
+      },
+      "effects": [
+        {
+          "if": "isNull(arrivedAt)",
+          "then": [
+            {
+              "set": "arrivedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "At the trauma center; the team takes over.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lost",
+      "when": "not pulse and not lost and t >= window",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lost",
+          "to": "true"
+        },
+        {
+          "log": "Eight minutes without a pulse; his electrical activity is slowing and widening.",
+          "kind": "alarm"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "why": {
+      "trigger": "not isNull(departAt) and t >= timeAt(departAt) + 60",
+      "question": "Why did you treat this differently from a medical cardiac arrest?",
+      "parts": [
+        {
+          "label": "Reversible causes",
+          "criteria": "Traumatic arrest from a chest stab: treat the reversible causes first: bilateral needle decompression for tension pneumothorax (absent left breath sounds, full neck veins), hemorrhage control, ventilation, volume; CPR benefit is limited and should not delay these.",
+          "modelAnswer": "A stab to the left chest with no breath sounds and full neck veins: tension pneumothorax until proven otherwise. Bilateral decompression came before compressions or drugs."
+        },
+        {
+          "label": "Time and place",
+          "criteria": "Minimal scene time; CPR, if any, en route; a Level I trauma center with notification; epinephrine is not the priority in traumatic arrest.",
+          "modelAnswer": "On scene only for the decompressions, out within minutes to the trauma center, notified on the way; drugs were not the answer."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "not isNull(arrivedAt) and not pulse",
+      "class": "harm",
+      "rationale": "He reached the trauma center still without a pulse.",
+      "source": {
+        "cite": "NASEMSO. National Model EMS Clinical Guidelines, Version 3.0 (March 2022): Resuscitation in Traumatic Cardiac Arrest",
+        "checkedAt": "2026-11-17",
+        "url": "https://nasemso.org/?p=223",
+        "note": "Read 2026-11-17 in the full text Iowa HHS hosts (https://hhs.iowa.gov/media/198/download) through summarizing fetches with quotes; NASEMSO's own page, read the same day, still presents Version 3 (2022) as current and names no later version. Treat the reversible causes: 'Manage massive hemorrhage', a pelvic binder for blunt trauma, 'Perform bilateral, rapid chest decompression', volume and hemorrhage control en route; 'Evidence for the benefit of CPR in traumatic cardiac arrest is limited'; 'If CPR is performed at all, it should be performed en route to the hospital'; survival is best when arrival at a hospital is within minutes."
+      }
+    }
+  },
+  "endings": {
+    "noRosc": {
+      "label": "No pulse returned",
+      "class": "harm",
+      "terminal": true,
+      "when": "lost and (not isNull(arrivedAt) or t >= window + 600)",
+      "narrative": "Without decompression in the first minutes, his heart could not recover; the trauma team could not bring him back."
+    },
+    "rosc": {
+      "label": "Pulse back, to the trauma center",
+      "class": "target",
+      "terminal": true,
+      "when": "not isNull(arrivedAt) and pulse and not isNull(leftAt) and timeAt(leftAt) <= 180 and not isNull(rightAt) and timeAt(departAt) <= sceneGoal and epiN == 0 and not isNull(notifyAt) and sealed",
+      "narrative": "{timeAt(arrivedAt)|clock}: Darius arrives with a pulse and goes straight to the operating room."
+    },
+    "arrived": {
+      "label": "Pulse back, by a slower route",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not isNull(arrivedAt)",
+      "narrative": "{timeAt(arrivedAt)|clock}: he arrives with a pulse, but {timeAt(departAt) > sceneGoal ? \"the scene took too long\" : epiN > 0 ? \"time went to a medical-arrest drug\" : isNull(rightAt) ? \"only one side was decompressed\" : \"the decompression or the notification came late\"}."
+    },
+    "time_up": {
+      "label": "45 minutes",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "Forty-five minutes."
+    }
+  },
+  "endingOrder": [
+    "noRosc",
+    "rosc",
+    "arrived"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "decomp",
+        "label": "Left decompression within 3 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(leftAt) and timeAt(leftAt) <= 180",
+            "score": "met",
+            "why": "At {timeAt(leftAt)|clock}."
+          },
+          {
+            "when": "not isNull(leftAt) and not lost",
+            "score": "partial",
+            "why": "Late, but in time."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Too late or never."
+          }
+        ]
+      },
+      {
+        "id": "both",
+        "label": "Bilateral decompression",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(leftAt) and not isNull(rightAt)",
+            "score": "met",
+            "why": "Both sides."
+          },
+          {
+            "when": "not isNull(leftAt)",
+            "score": "partial",
+            "why": "Left only."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "None."
+          }
+        ]
+      },
+      {
+        "id": "scene",
+        "label": "Scene time 10 minutes or less",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(departAt) and timeAt(departAt) <= sceneGoal",
+            "score": "met",
+            "why": "Scene {timeAt(departAt)|duration}."
+          },
+          {
+            "when": "not isNull(departAt)",
+            "score": "partial",
+            "why": "Too long."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never left."
+          }
+        ]
+      },
+      {
+        "id": "noEpi",
+        "label": "No medical-arrest drug before the reversible causes",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "epiN == 0",
+            "score": "met",
+            "why": "None."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Epinephrine given."
+          }
+        ]
+      },
+      {
+        "id": "seal",
+        "label": "Vented seal on the wound",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "sealed",
+            "score": "met",
+            "why": "Sealed."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Open."
+          }
+        ]
+      },
+      {
+        "id": "notify",
+        "label": "Trauma center notified",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(notifyAt)",
+            "score": "met",
+            "why": "Notified."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not notified."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: traumatic arrest",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toNeedle",
+        "label": "Arrival to the left decompression",
+        "value": "isNull(leftAt) ? -1 : timeAt(leftAt)",
+        "format": "duration",
+        "expert": "under 2 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "23:50",
+        "text": "No pulse, stab to the left chest, no left breath sounds, full neck veins: traumatic arrest, likely tension pneumothorax."
+      },
+      {
+        "at": "23:51",
+        "text": "BVM; left then right needle decompression: pulse back. Vented seal."
+      },
+      {
+        "at": "23:53",
+        "text": "Scoop and go to the Level I center; IO and fluid en route; notify."
+      }
+    ],
+    "debrief": {
+      "rosc": {
+        "headline": "Treat the cause, then go",
+        "body": "In traumatic arrest the reversible causes come first. Bilateral decompression gave him his pulse back, and a short scene got him to surgeons."
+      },
+      "arrived": {
+        "headline": "Pulse back, by a slower route",
+        "body": "Look at the scene time, both sides decompressed, and whether drugs took the place of the cause."
+      },
+      "noRosc": {
+        "headline": "The cause was in his chest",
+        "body": "Compressions and epinephrine do not fix a tension pneumothorax. Decompress both sides first."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Forty-five minutes."
+      }
+    },
+    "modelReasoning": "Traumatic cardiac arrest from a left chest stab: treat the reversible causes first (NASEMSO). Absent left breath sounds and full neck veins point to tension pneumothorax: bilateral needle decompression at once, ventilation, a vented seal, hemorrhage control and volume en route. CPR has limited benefit and, if done, happens en route; epinephrine is not the priority. Keep the scene short and take him to the Level I trauma center with notification."
+  },
+  "chapters": [
+    {
+      "id": "rosc",
+      "label": "Pulse back",
+      "when": "pulse"
+    }
+  ],
+  "teaching": {
+    "first": {
+      "during": "leftT",
+      "ask": "As the needle goes in: what comes first in a traumatic arrest like this one?",
+      "choices": [
+        {
+          "id": "cause",
+          "label": "Treating the reversible cause: decompress both sides"
+        },
+        {
+          "id": "epi",
+          "label": "Epinephrine every 3-5 minutes"
+        },
+        {
+          "id": "cpr",
+          "label": "Twenty minutes of CPR on scene"
+        }
+      ],
+      "expect": "cause",
+      "explain": "NASEMSO: in traumatic arrest, perform bilateral rapid chest decompression and manage hemorrhage; evidence for CPR is limited, and if done it should be en route.",
+      "source": {
+        "cite": "NASEMSO. National Model EMS Clinical Guidelines, Version 3.0 (March 2022): Resuscitation in Traumatic Cardiac Arrest",
+        "checkedAt": "2026-11-17",
+        "url": "https://nasemso.org/?p=223",
+        "note": "Read 2026-11-17 in the full text Iowa HHS hosts (https://hhs.iowa.gov/media/198/download) through summarizing fetches with quotes; NASEMSO's own page, read the same day, still presents Version 3 (2022) as current and names no later version. Treat the reversible causes: 'Manage massive hemorrhage', a pelvic binder for blunt trauma, 'Perform bilateral, rapid chest decompression', volume and hemorrhage control en route; 'Evidence for the benefit of CPR in traumatic cardiac arrest is limited'; 'If CPR is performed at all, it should be performed en route to the hospital'; survival is best when arrival at a hospital is within minutes."
+      }
+    }
+  }
+}
