@@ -1,0 +1,883 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cloud-nat-port-exhaustion-payment-api",
+  "title": "Flash sale: payments time out because Cloud NAT runs out of ports",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "neteng@cloudshell:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "17:15 load test: 4% payment calls timed out; Cloud NAT drops observed; flash sale at 18:00",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "18:00: sale, payments timing out",
+          "when": "not isNull(missAt)",
+          "at": "timeAt(missAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "18:00: sale, payments healthy",
+          "when": "not isNull(okAt)",
+          "at": "timeAt(okAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "nodes",
+          "label": "GKE nodes (24, no external IP)",
+          "spokenLabel": "the GKE nodes",
+          "kind": "checkout pods",
+          "status": "{harmed ? \"external IPs attached\" : fixed ? \"dynamic: 1,024 to 8,192 ports each\" : \"64 NAT ports each\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "nat",
+          "label": "Cloud NAT nat-east",
+          "spokenLabel": "Cloud NAT",
+          "kind": "manual IPs",
+          "status": "{fixed and not harmed ? \"3 IPs, dynamic allocation\" : \"1 IP, static 64 ports per VM\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "pay",
+          "label": "pay.provider.example:443",
+          "spokenLabel": "the payment API",
+          "kind": "one destination",
+          "status": "{fixed and not harmed ? \"connections accepted\" : \"connections dropped\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "nodes",
+          "to": "nat",
+          "label": "egress",
+          "status": "{fixed and not harmed ? \"ports available\" : \"ports exhausted\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "l2",
+          "from": "nat",
+          "to": "pay",
+          "label": "HTTPS",
+          "status": "{fixed and not harmed ? \"0% dropped\" : \"4% dropped\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Configuring static and dynamic port allocation for Cloud NAT",
+  "secondaryObjectives": [
+    "Monitoring networking metrics: Cloud VPN, Cloud Interconnect/VLAN attachments, Cloud Router, load balancers, Google Cloud Armor, Cloud NAT"
+  ],
+  "sources": [
+    {
+      "cite": "Google Cloud, Professional Cloud Network Engineer certification exam guide (April 2026): designing and planning a VPC network ~21%, VPC network implementation ~20%, managed network services ~16%, hybrid and multicloud interconnectivity ~16%, network operations ~14%, cloud network security ~13%",
+      "checkedAt": "2026-11-17",
+      "url": "https://services.google.com/fh/files/misc/042426_professional_cloud_network_engineer_exam_guide_english.pdf",
+      "note": "Read through a summarizing fetch on 2026-11-17. Bullet quoted there under 1.1: 'Planning for Google Kubernetes Engine (GKE) networking (e.g., secondary ranges, scale potential based on IP address space'. The objective wording is the course seed's. (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "Google Cloud documentation, Cloud NAT: Troubleshoot configuration",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.cloud.google.com/nat/docs/troubleshooting",
+      "note": "Read through a summarizing fetch on 2026-11-17. Quoted: 'If there aren't enough available NAT tuples, the dropped_sent_packets_count reason is OUT_OF_RESOURCES'; a five-tuple 'cannot be reused within the TCP TIME_WAIT timeout', so many connections to one destination exhaust tuples; fixes: 'adjust the minimum number of ports per VM', dynamic port allocation (doubles a VM's allocation when it is close to running out), 'Manually add more IP addresses'. That one NAT IP offers 64,512 ports and the gcloud flag names are from memory of 'IP addresses and ports' and the gcloud reference (to verify)."
+    }
+  ],
+  "brief": {
+    "situation": "You are the network engineer at Fennick Outdoor. The checkout service runs on GKE nodes with no external IPs; it calls the payment provider's single API endpoint through Cloud NAT nat-east (one manually assigned IP, static allocation, 64 ports per VM). In this afternoon's load test about 4% of payment calls timed out. The flash sale starts at 18:00 with twice the load.",
+    "handover": [
+      "Security policy: GKE nodes must not have external IP addresses.",
+      "The payment provider allowlists our egress IPs; adding one takes them 10 minutes after a ticket."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the GKE nodes, Cloud NAT's IPs and ports, and the single payment endpoint they all call.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "17:15",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineAt": {
+      "value": 2700,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "The flash sale starts at 18:00, 45 minutes after the report, with about twice the load test's traffic."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "harmed": {
+      "type": "bool",
+      "init": false
+    },
+    "tried": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "dropsAt": {
+      "type": "time",
+      "init": null
+    },
+    "configAt": {
+      "type": "time",
+      "init": null
+    },
+    "perpodAt": {
+      "type": "time",
+      "init": null
+    },
+    "budgetAt": {
+      "type": "time",
+      "init": null
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "missAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "ports",
+        "provider",
+        "dns"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "drops",
+        "config",
+        "perpod",
+        "budget",
+        "dpa",
+        "alert",
+        "extip",
+        "udp",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "drops": {
+      "label": "Monitoring: nat-east dropped_sent_packets_count by reason (load test window)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(dropsAt)",
+          "then": [
+            {
+              "set": "dropsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@cloudshell:~$ gcloud monitoring ... router.googleapis.com/nat/dropped_sent_packets_count group_by reason\n{fixed and not harmed ? \"OUT_OF_RESOURCES: 0\" : \"OUT_OF_RESOURCES: 18,402\nENDPOINT_INDEPENDENCE_CONFLICT: 0\"}"
+        },
+        {
+          "finding": "The drops are OUT_OF_RESOURCES: not enough NAT source IP and port tuples."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "config": {
+      "label": "gcloud compute routers nats describe nat-east",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(configAt)",
+          "then": [
+            {
+              "set": "configAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@cloudshell:~$ gcloud compute routers nats describe nat-east --router cr-east --region us-east1 --format='yaml(natIps,minPortsPerVm,enableDynamicPortAllocation,maxPortsPerVm)'\n{fixed and not harmed ? \"natIps: [nat-ip-1, nat-ip-2, nat-ip-3]\nminPortsPerVm: 1024\nenableDynamicPortAllocation: true\nmaxPortsPerVm: 8192\" : \"natIps: [nat-ip-1]\nminPortsPerVm: 64\nenableDynamicPortAllocation: false\"}"
+        },
+        {
+          "finding": "Each VM gets only 64 ports, and every checkout pod on a node calls the same destination: 64 tuples per node to one IP and port, reused only after TIME_WAIT."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "perpod": {
+      "label": "How many connections does a node open to the payment API at peak?",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(perpodAt)",
+          "then": [
+            {
+              "set": "perpodAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@cloudshell:~$ kubectl top ... ; ss -tan dst <provider-ip> | wc -l (on one node, load test peak)\n410 connections (12 pods x about 34)"
+        },
+        {
+          "finding": "A node needs hundreds of tuples to one destination at test load, and more at sale load."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "budget": {
+      "label": "Port budget for 24 nodes",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(budgetAt)",
+          "then": [
+            {
+              "set": "budgetAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@cloudshell:~$ 1 IP x 64,512 ports = 64,512 tuples available\n24 nodes x 2,048 ports (sale peak) = 49,152 needed -> 1 IP is close; 3 IPs leave headroom"
+        },
+        {
+          "finding": "Raising ports per VM needs more NAT IPs to stay within the budget as the node pool scales."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "dpa": {
+      "label": "Ask the provider to allowlist two new NAT IPs, then enable dynamic port allocation (min 1,024, max 8,192) with three IPs on nat-east",
+      "group": "Fix",
+      "available": "not busy and (not fixed and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "fixed",
+          "to": "true"
+        },
+        {
+          "output": "neteng@cloudshell:~$ (provider ticket PAY-55190: allowlist 34.23.10.2, 34.23.10.3; confirmed 17:27)\nneteng@cloudshell:~$ gcloud compute routers nats update nat-east --router cr-east --region us-east1 --nat-external-ip-pool nat-ip-1,nat-ip-2,nat-ip-3 --enable-dynamic-port-allocation --min-ports-per-vm 1024 --max-ports-per-vm 8192\nUpdated [nat-east]."
+        },
+        {
+          "log": "Each node starts with 1,024 ports and can grow to 8,192 when it needs more; three IPs give the pool room to do that. The provider allowlisted the new IPs first, so no call leaves from an address it would refuse.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "12min"
+        }
+      ]
+    },
+    "alert": {
+      "label": "Alert on OUT_OF_RESOURCES drops and on NAT port usage above 80%, and add the port budget to the capacity plan",
+      "group": "Fix",
+      "available": "not busy and (not planned and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "neteng@cloudshell:~$ gcloud alpha monitoring policies create --policy-from-file=nat-east-drops.yaml   (OUT_OF_RESOURCES > 0 for 1 min)\n(capacity plan: NAT tuples per destination per node at 2x peak; review before each sale)"
+        },
+        {
+          "log": "Exhaustion is seen when it starts, not in customer complaints, and the next scale-up checks the port budget.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "extip": {
+      "label": "Attach external IPs to the GKE nodes so they skip NAT",
+      "group": "Fix",
+      "available": "not busy and (not harmed)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "harmed",
+          "to": "true"
+        },
+        {
+          "output": "neteng@cloudshell:~$ gcloud container node-pools update pool-checkout ... --enable-private-nodes=false\n(nodes recreated with external IPs)"
+        },
+        {
+          "log": "Every node is now reachable from the internet against policy, and the provider has not allowlisted 24 new addresses: payments fail outright.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "udp": {
+      "label": "Raise Cloud NAT's UDP idle timeout from 30 to 120 seconds",
+      "group": "Fix",
+      "available": "not busy and (not harmed and not tried)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tried",
+          "to": "true"
+        },
+        {
+          "output": "neteng@cloudshell:~$ gcloud compute routers nats update nat-east ... --udp-idle-timeout 120s\nUpdated [nat-east]."
+        },
+        {
+          "log": "The payment calls are TCP: a UDP timeout changes nothing about the exhausted TCP tuples.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Run a 5-minute load test at sale level and check drops",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@cloudshell:~$ ./loadtest --rps 2x --minutes 5; NAT drops OUT_OF_RESOURCES; payment timeouts\n{harmed ? \"NAT not used\npayments: 100% refused by the provider allowlist\" : fixed ? \"drops: 0\ntimeouts: 0.02% (provider-side)\" : \"drops: 51,200\ntimeouts: 9.8%\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "ports",
+                  "label": "Cloud NAT's 64 static ports per VM were exhausted by many connections to one destination"
+                },
+                {
+                  "value": "provider",
+                  "label": "The payment provider was slow"
+                },
+                {
+                  "value": "dns",
+                  "label": "DNS resolution of the provider failed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-335)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "18:00: payments succeed through the sale.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "missAt",
+              "to": "t"
+            },
+            {
+              "log": "18:00: at twice the load, one payment in ten times out.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why payment calls timed out, what you changed and in what order, and how it is watched.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Reads the drop reason.",
+          "modelAnswer": "dropped_sent_packets_count showed OUT_OF_RESOURCES. nat-east gave each node 64 ports with one IP, and each node opened hundreds of connections to the single payment endpoint, so tuples ran out."
+        },
+        {
+          "label": "Order",
+          "criteria": "Allowlist, then expand.",
+          "modelAnswer": "The provider allowlisted two new NAT IPs first; then dynamic port allocation (1,024 to 8,192 per VM) with three IPs. External IPs on nodes would have broken policy and the allowlist."
+        },
+        {
+          "label": "Watched",
+          "criteria": "Alert and plan.",
+          "modelAnswer": "An alert fires on any OUT_OF_RESOURCES drop, and the capacity plan budgets NAT tuples per destination before each sale."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 2700,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The flash sale starts at 18:00, 45 minutes after the report, with about twice the load test's traffic."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: Nodes were given external IPs that the provider does not allow and policy forbids."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed and not harmed",
+      "class": "harm",
+      "rationale": "Closing with 64 ports per VM leaves payments timing out in the sale.",
+      "source": {
+        "cite": "Google Cloud documentation, Cloud NAT: Troubleshoot configuration",
+        "checkedAt": "2026-11-17",
+        "url": "https://docs.cloud.google.com/nat/docs/troubleshooting",
+        "note": "Read through a summarizing fetch on 2026-11-17. Quoted: 'If there aren't enough available NAT tuples, the dropped_sent_packets_count reason is OUT_OF_RESOURCES'; a five-tuple 'cannot be reused within the TCP TIME_WAIT timeout', so many connections to one destination exhaust tuples; fixes: 'adjust the minimum number of ports per VM', dynamic port allocation (doubles a VM's allocation when it is close to running out), 'Manually add more IP addresses'. That one NAT IP offers 64,512 ports and the gcloud flag names are from memory of 'IP addresses and ports' and the gcloud reference (to verify)."
+      }
+    }
+  },
+  "endings": {
+    "exposedNodes": {
+      "label": "Nodes exposed and payments refused",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and harmed",
+      "narrative": "External IPs bypassed NAT, exposed the nodes, and sent payments from addresses the provider refused."
+    },
+    "saleTimeouts": {
+      "label": "Payments timing out in the sale",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(missAt)",
+      "narrative": "At 18:00 each node still had 64 ports for one destination."
+    },
+    "ported": {
+      "label": "Dynamic ports, three allowlisted IPs, alert set",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(dropsAt) and not isNull(configAt) and not isNull(verifiedAt) and causeDoc == \"ports\"",
+      "narrative": "Nodes get ports as they need them from three allowlisted IPs; the sale-level test had no drops."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Payments are healthy, but the alert, the capacity plan, the test or the record was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "exposedNodes",
+    "saleTimeouts",
+    "ported",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Read the drop reason and the NAT allocation",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(dropsAt) and not isNull(configAt)",
+            "score": "met",
+            "why": "The key evidence, read before changing anything."
+          },
+          {
+            "when": "not isNull(dropsAt) or not isNull(configAt) or not isNull(perpodAt) or not isNull(budgetAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Payments healthy by 18:00, nodes still private",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and not harmed and isNull(missAt)",
+            "score": "met",
+            "why": "The right change, in time, without harm."
+          },
+          {
+            "when": "fixed or harmed",
+            "score": "partial",
+            "why": "{harmed ? \"Nodes were given external IPs that the provider does not allow and policy forbids.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never removed."
+          }
+        ]
+      },
+      {
+        "id": "lasting",
+        "label": "Alert and capacity plan; sale-level test run",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The lasting step taken and the result checked."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"ports\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record names the wrong cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes that caused harm",
+        "value": "harmed ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "17:15-17:19",
+        "text": "OUT_OF_RESOURCES drops; 1 IP, 64 ports per VM; 410 connections per node; port budget."
+      },
+      {
+        "at": "17:19-17:31",
+        "text": "Provider allowlists two IPs; dynamic allocation 1,024-8,192 with three IPs; alert and plan."
+      },
+      {
+        "at": "17:31-17:33",
+        "text": "Sale-level test: no drops."
+      }
+    ],
+    "debrief": {
+      "exposedNodes": {
+        "headline": "Give NAT more tuples, not the nodes public IPs",
+        "body": "The fix for port exhaustion is more ports per VM (dynamic allocation) and enough NAT IPs, allowlisted with the provider first."
+      },
+      "saleTimeouts": {
+        "headline": "OUT_OF_RESOURCES means tuples",
+        "body": "Many connections to one destination share one IP and port on the far side, so each node needs enough source ports. Raise the allocation and add IPs."
+      },
+      "ported": {
+        "headline": "Good: sized NAT for one busy destination",
+        "body": "You read the drop reason and the allocation, worked out the port budget, had the provider allowlist new IPs first, enabled dynamic allocation, tested at sale load, and alerted on drops."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the evidence before the change, the lasting step, the check, or the cause in the record."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The NAT drops are OUT_OF_RESOURCES: each node gets 64 ports and opens hundreds of connections to one payment endpoint. Get the provider to allowlist new NAT IPs first, then enable dynamic port allocation with a higher minimum and maximum across three IPs, and test at sale load. External IPs on the nodes break policy and the allowlist; a UDP timeout does nothing for TCP. Alert on drops and budget ports in capacity planning."
+  }
+}
