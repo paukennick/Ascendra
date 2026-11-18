@@ -515,6 +515,15 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
                          where table_schema = 'public' and table_name = 'account_access' and column_name = 'reviewer_added_access') as ok`,
   },
   {
+    // REQ-332: the reviewer and owner feedback routes select the quick-note
+    // columns (kind, quick_tag, context) on every read and write quick notes.
+    migration: "089_reviewer_quick_notes.sql",
+    what: "reviewer quick notes: reviewer_feedback.kind, quick_tag and context (where a note was sent from; in the account export)",
+    sql: `select exists(select 1 from pg_constraint where conname = 'reviewer_feedback_quick_089')
+             and exists(select 1 from information_schema.columns
+                         where table_schema = 'public' and table_name = 'reviewer_feedback' and column_name = 'context') as ok`,
+  },
+  {
     // REQ-262: GET/PUT /api/account/teach-order and every lesson open read it.
     migration: "082_teach_order.sql",
     what: "learner_teach_order (the Explain first / Example first order: the random assignment, the learner's own choice; in the account export)",

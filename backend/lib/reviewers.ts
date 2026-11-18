@@ -8,6 +8,9 @@ import {
   TEXTS,
   type FeedbackInput,
   type MarkInput,
+  type QuickContext,
+  type QuickNoteInput,
+  quickNoteAsFeedback,
   type RatingKey,
   type TextKey,
 } from "@/lib/reviewers-config";
@@ -176,6 +179,14 @@ export interface Feedback {
   texts: Record<TextKey, string | null>;
   recommend: string | null;
   followUp: boolean | null;
+  // REQ-332 (089): 'quick' for a quick note from the floating Feedback button,
+  // with its tag, where it was sent from, and the titles of the unit and
+  // lesson (objective) that context names, when they are in its course.
+  kind: "form" | "quick";
+  quickTag: string | null;
+  context: QuickContext | null;
+  unitTitle: string | null;
+  objectiveTitle: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -189,10 +200,19 @@ const FEEDBACK_COLS = `f.id, f.user_id, f.track_id, st.title as track_title, f.s
   f.reviewer_name, f.reviewer_role, f.reviewer_role_other, f.areas, f.tried,
   ${Object.values(RATINGS).map((c) => `f.${c}`).join(", ")},
   ${Object.values(TEXTS).map((c) => `f.${c}`).join(", ")},
-  f.recommend, f.follow_up, f.created_at, f.updated_at`;
+  f.recommend, f.follow_up, f.kind, f.quick_tag, f.context, cu.title as unit_title, o.title as objective_title,
+  f.created_at, f.updated_at`;
+// REQ-332: a quick note's unit and lesson titles come from the ids in its
+// context, and only when they belong to the note's own course.
 const FEEDBACK_FROM = `reviewer_feedback f
   left join subject_tracks st on st.id = f.track_id
-  left join sims s on s.id = f.sim_id`;
+  left join sims s on s.id = f.sim_id
+  left join objectives o on f.context ? 'objectiveId'
+        and (f.context->>'objectiveId') ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+        and o.id = (f.context->>'objectiveId')::uuid
+        and exists (select 1 from course_units ou where ou.id = o.unit_id and ou.track_id = f.track_id)
+  left join course_units cu on cu.track_id = f.track_id and cu.id = coalesce(o.unit_id,
+        case when (f.context->>'unitId') ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' then (f.context->>'unitId')::uuid end)`;
 
 type Row = Record<string, unknown>;
 
@@ -216,6 +236,11 @@ function toFeedback(r: Row): Feedback {
     texts,
     recommend: (r.recommend as string | null) ?? null,
     followUp: (r.follow_up as boolean | null) ?? null,
+    kind: r.kind === "quick" ? "quick" : "form",
+    quickTag: (r.quick_tag as string | null) ?? null,
+    context: (r.context as QuickContext | null) ?? null,
+    unitTitle: (r.unit_title as string | null) ?? null,
+    objectiveTitle: (r.objective_title as string | null) ?? null,
     createdAt: new Date(r.created_at as Date).toISOString(),
     updatedAt: new Date(r.updated_at as Date).toISOString(),
   };
@@ -300,8 +325,30 @@ export async function createFeedback(userId: string, input: FeedbackInput): Prom
   return (await getOwnFeedback(userId, row!.id))!;
 }
 
-// Only the reviewer's own row; null (a 404) for anyone else's.
+// REQ-332: a quick note -- a feedback row of kind 'quick' with its note in
+// other_comments, its tag and where it was sent from. Same course and sim
+// checks as the form.
+export async function createQuickNote(userId: string, q: QuickNoteInput): Promise<Feedback> {
+  const input = quickNoteAsFeedback(q);
+  const target = await resolveTarget(input, userId);
+  const cols = ["user_id", "track_id", "sim_id", ...VALUE_COLS, "kind", "quick_tag", "context"];
+  const params = [userId, target.trackId, target.simId, ...values(input), "quick", q.tag, q.context ? JSON.stringify(q.context) : null];
+  const row = await queryOne<{ id: string }>(
+    `insert into reviewer_feedback (${cols.join(", ")}) values (${cols.map((c, i) => (c === "context" ? `$${i + 1}::jsonb` : `$${i + 1}`)).join(", ")}) returning id`,
+    params
+  );
+  return (await getOwnFeedback(userId, row!.id))!;
+}
+
+export const QUICK_NOTE_NEEDS_TEXT = "A quick note keeps its note: write something under “Anything else?” before saving.";
+
+// Only the reviewer's own row; null (a 404) for anyone else's. Editing never
+// changes a quick note's kind, tag or context.
 export async function updateFeedback(userId: string, id: string, input: FeedbackInput): Promise<Feedback | null> {
+  if (input.texts.otherComments === null) {
+    const k = await queryOne<{ kind: string }>(`select kind from reviewer_feedback where id = $1 and user_id = $2`, [id, userId]);
+    if (k?.kind === "quick") throw new ReviewerError(QUICK_NOTE_NEEDS_TEXT, 400);
+  }
   const target = await resolveTarget(input, userId);
   const cols = ["track_id", "sim_id", ...VALUE_COLS];
   const params = [target.trackId, target.simId, ...values(input), id, userId];
