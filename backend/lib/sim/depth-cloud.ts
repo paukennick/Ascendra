@@ -139,4 +139,7 @@ export const DEPTH_CLOUD: readonly CloudEntry[] = [
   { course: "GCPDEVOPS", slug: "peered-vpc-no-route-to-onprem-devops", screen: "terminal", profile: "infrastructure", kind: "band", steps: "dc-gcpdevops-peered-vpc-no-route-to-onprem-devops", base: "GCPNET/peered-vpc-no-route-to-onprem" },
   { course: "GCPDEVOPS", slug: "service-account-key-on-public-repo-devops", screen: "terminal", profile: "infrastructure", kind: "band", steps: "dc-gcpdevops-service-account-key-on-public-repo-devops", base: "GCPSEC/service-account-key-on-public-repo" },
   { course: "GCPDEVOPS", slug: "cloud-run-exhausts-sql-connections-devops", screen: "terminal", profile: "infrastructure", kind: "band", steps: "dc-gcpdevops-cloud-run-exhausts-sql-connections-devops", base: "GCPDBE/cloud-run-exhausts-sql-connections" },
+  { course: "AWSANS", slug: "vpn-large-responses-hang-pmtud-blocked", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "ans-pmtud" },
+  { course: "AZ400", slug: "storage-key-in-history-before-open-source", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "az400-scrub" },
+  { course: "AWSSCS", slug: "miner-instance-evidence-before-scale-in", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "scs-forensics" },
 ];
