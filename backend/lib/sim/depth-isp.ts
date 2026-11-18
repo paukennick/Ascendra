@@ -6,8 +6,8 @@
 export interface DepthIspEntry { course: string; slug: string; screen: string; profile: string; kind: "scenario" | "band"; steps: string; base?: string }
 export const DEPTH_ISP: readonly DepthIspEntry[] = [
   { course: "CAPA", slug: "argocd-prune-moved-database", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "isp-capa-argocd-sync" },
-  { course: "CAPA", slug: "argo-events-upload-storm", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "isp-capa-events" },
   { course: "CAPA", slug: "rollouts-analysis-gate-passes-bad-canary", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "isp-capa-rollouts-analysis" },
+  { course: "CAPA", slug: "argo-events-upload-storm", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "isp-capa-events" },
   { course: "CBA", slug: "backstage-upgrade-mismatched-packages", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "isp-cba-devflow" },
   { course: "CBA", slug: "backstage-production-catalog-wiped", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "isp-cba-infra" },
   { course: "CBA", slug: "backstage-catalog-ingestion-gaps", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "isp-cba-catalog" },
@@ -101,4 +101,15 @@ export const DEPTH_ISP: readonly DepthIspEntry[] = [
   { course: "ITIL5FND", slug: "payroll-service-utility-warranty-sla", screen: "service-desk", profile: "service", kind: "scenario", steps: "isp-svc-terms" },
   { course: "ITIL5FND", slug: "hr-portal-rollout-four-dimensions", screen: "service-desk", profile: "service", kind: "scenario", steps: "isp-svc-dimensions" },
   { course: "ITIL5FND", slug: "booking-service-lifecycle-activities", screen: "service-desk", profile: "service", kind: "scenario", steps: "isp-svc-lifecycle" },
+  { course: "CSSGB", slug: "define-charter-dpmo-claims", screen: "data", profile: "data", kind: "scenario", steps: "isp-cssgb-define" },
+  { course: "CSSGB", slug: "fmea-dispatch-takt-lean", screen: "data", profile: "data", kind: "scenario", steps: "isp-cssgb-lean" },
+  { course: "PMICP", slug: "school-build-change-orders", screen: "project-dashboard", profile: "project", kind: "scenario", steps: "isp-pmicp-scope" },
+  { course: "PMICP", slug: "school-build-stakeholders-culture", screen: "governance-board", profile: "governance", kind: "scenario", steps: "isp-pmicp-stake" },
+  { course: "PMICPMAI", slug: "ai-triage-feasibility-risk", screen: "governance-board", profile: "governance", kind: "scenario", steps: "isp-cpmai-business" },
+  { course: "PMICPMAI", slug: "ai-model-selection-interpretability", screen: "governance-board", profile: "governance", kind: "scenario", steps: "isp-cpmai-model" },
+  { course: "PMICPMAI", slug: "ai-hiring-screener-compliance-cpmai", screen: "governance-board", profile: "governance", kind: "band", steps: "isp-pmicpmai-ai-hiring-screener-compliance-cpmai", base: "SECAIPLUS/ai-hiring-screener-compliance" },
+  { course: "CNPE", slug: "crossplane-database-claim-api", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "isp-cnpe-api" },
+  { course: "SECAIPLUS", slug: "ai-assistant-soc-triage-guardrails", screen: "security-console", profile: "security", kind: "scenario", steps: "isp-secai-assist" },
+  { course: "SECURITYX", slug: "devsecops-pipeline-iot-fleet-crypto", screen: "security-console", profile: "security", kind: "scenario", steps: "isp-secx-eng" },
+  { course: "CEH", slug: "authorized-recon-osint-exposure", screen: "security-console", profile: "security", kind: "scenario", steps: "isp-ceh-recon" },
 ];

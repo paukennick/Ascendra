@@ -1,0 +1,998 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "crossplane-database-claim-api",
+  "title": "A self-service database API for tenants: the CRD schema, the composition behind it, and its status",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "platform@quarrylane:~$",
+      "lines": [
+        {
+          "id": "firstLine",
+          "text": "tickets: 46 database requests waiting an average of 4 days",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "lineSchema",
+          "text": "{schema == \"validated\" ? \"Enum sizes, validation, defaults\" : schema == \"docsOnly\" ? \"Documented, unvalidated\" : schema == \"passthrough\" ? \"Unvalidated passthrough\" : \"\"}",
+          "when": "schema != \"none\"",
+          "at": "timeAt(schemaAt)",
+          "error": "schema == \"passthrough\""
+        },
+        {
+          "id": "lineStatus",
+          "text": "{status == \"cond\" ? \"Status conditions and secret reference\" : status == \"events\" ? \"Events only\" : status == \"noStatus\" ? \"No status\" : \"\"}",
+          "when": "status != \"none\"",
+          "at": "timeAt(statusAt)",
+          "error": "status == \"noStatus\""
+        },
+        {
+          "id": "lineVer",
+          "text": "{ver == \"v1beta2\" ? \"New version with conversion\" : ver == \"bothFields\" ? \"Both fields in one version\" : ver == \"rename\" ? \"Breaking rename in place\" : \"\"}",
+          "when": "ver != \"none\"",
+          "at": "timeAt(verAt)",
+          "error": "ver == \"rename\""
+        }
+      ],
+      "nodes": [
+        {
+          "id": "nSchema",
+          "label": "PostgresInstance CRD",
+          "spokenLabel": "PostgresInstance CRD",
+          "kind": "CRD",
+          "status": "{schema == \"validated\" ? \"Enum sizes, validation, defaults\" : schema == \"docsOnly\" ? \"Documented, unvalidated\" : schema == \"passthrough\" ? \"Unvalidated passthrough\" : \"Waiting\"}",
+          "tone": "schema == \"validated\" ? \"up\" : schema == \"docsOnly\" ? \"degraded\" : schema == \"passthrough\" ? \"down\" : p >= 1 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nStatus",
+          "label": "status subresource",
+          "spokenLabel": "status subresource",
+          "kind": "API",
+          "status": "{status == \"cond\" ? \"Status conditions and secret reference\" : status == \"events\" ? \"Events only\" : status == \"noStatus\" ? \"No status\" : \"Waiting\"}",
+          "tone": "status == \"cond\" ? \"up\" : status == \"events\" ? \"degraded\" : status == \"noStatus\" ? \"down\" : p >= 2 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nVer",
+          "label": "API versions",
+          "spokenLabel": "API versions",
+          "kind": "API",
+          "status": "{ver == \"v1beta2\" ? \"New version with conversion\" : ver == \"bothFields\" ? \"Both fields in one version\" : ver == \"rename\" ? \"Breaking rename in place\" : \"Waiting\"}",
+          "tone": "ver == \"v1beta2\" ? \"up\" : ver == \"bothFields\" ? \"degraded\" : ver == \"rename\" ? \"down\" : p >= 3 ? \"degraded\" : \"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "link0",
+          "from": "nSchema",
+          "to": "nStatus",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        },
+        {
+          "id": "link1",
+          "from": "nStatus",
+          "to": "nVer",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Check-in",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Design and create CustomResourceDefinitions for platform services: OpenAPI schemas, validation rules, defaults, status subresources and versions",
+  "secondaryObjectives": [
+    "Implement workflows for self-service provisioning using platform APIs: composite resources and compositions in Crossplane, or custom resources reconciled by operators"
+  ],
+  "sources": [
+    {
+      "cite": "CNCF Certified Cloud Native Platform Engineer (CNPE) curriculum, as the course seed records it: Platform Architecture and Infrastructure 15%, GitOps and Continuous Delivery 25%, Platform APIs and Self-Service Capabilities 25%, Observability and Operations 20%, Security and Policy Enforcement 15%",
+      "checkedAt": "2026-11-17",
+      "url": "https://github.com/cncf/curriculum/tree/0a8cc08a502710a894e5724c2bec7b88404e5a6b",
+      "note": "Weights and objective wording are the course seed's (backend/supabase/seed/tracks/cncf-ecosystem.ts). On 2026-11-17 a third-party page (golden-kubestronaut-learning.readthedocs.io/en/latest/cnpe, summarizing fetch) gave different domains (Platform Design 20%, Platform Implementation 30%, Platform Operations 25%, Security and Governance 15%, Developer Experience 10%) with 'GitOps implementation' under Platform Implementation. Which is current is not settled here: to verify against the official curriculum (finding for the verification pass). Reused for REQ-336 from this course's service-selector-no-endpoints-cnpe (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the systems and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You build the internal platform at Quarry Lane Media, a fictional publisher. Tenants open tickets for databases and wait four days. You are designing a PostgresInstance API that tenants create themselves and Crossplane reconciles.",
+    "handover": [
+      "Draft CRD: spec.size as a free string, no validation, no status.",
+      "The cloud account has a 2 TB storage policy per database."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the map shows each component and its status in words.",
+      "Move on a check-in at a time. A decision comes to you at each check-in; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-03-22T10:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "schema": {
+      "type": "enum",
+      "values": [
+        "none",
+        "validated",
+        "docsOnly",
+        "passthrough"
+      ],
+      "init": "none"
+    },
+    "schemaAt": {
+      "type": "time",
+      "init": null
+    },
+    "status": {
+      "type": "enum",
+      "values": [
+        "none",
+        "cond",
+        "events",
+        "noStatus"
+      ],
+      "init": "none"
+    },
+    "statusAt": {
+      "type": "time",
+      "init": null
+    },
+    "ver": {
+      "type": "enum",
+      "values": [
+        "none",
+        "v1beta2",
+        "bothFields",
+        "rename"
+      ],
+      "init": "none"
+    },
+    "verAt": {
+      "type": "time",
+      "init": null
+    },
+    "draftAt": {
+      "type": "time",
+      "init": null
+    },
+    "compAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((schema == \"passthrough\") ? 1 : 0) + ((status == \"noStatus\") ? 1 : 0) + ((ver == \"rename\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(schema == \"none\" or (schema == \"passthrough\") ? 1 : 0) + (status == \"none\" or (status == \"noStatus\") ? 1 : 0) + (ver == \"none\" or (ver == \"rename\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "API design",
+      "clock": "turns",
+      "actions": [
+        "draft",
+        "comp"
+      ]
+    },
+    "close": {
+      "label": "API record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "draft": {
+      "label": "Read the draft CRD and recent tickets",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(draftAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "draftAt",
+          "to": "t"
+        },
+        {
+          "output": "Tickets ask for sizes like 'big', '500GB' and '5 TB'; the draft accepts any string, and 5 TB breaks the storage policy."
+        },
+        {
+          "log": "Read the draft CRD and recent tickets.",
+          "kind": "act"
+        },
+        {
+          "finding": "Tickets ask for sizes like 'big', '500GB' and '5 TB'; the draft accepts any string, and 5 TB breaks the storage policy."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "comp": {
+      "label": "Read the draft Crossplane composition",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(compAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "compAt",
+          "to": "t"
+        },
+        {
+          "output": "The composition maps spec.size straight to the cloud disk size with no defaults or backups."
+        },
+        {
+          "log": "Read the draft Crossplane composition.",
+          "kind": "act"
+        },
+        {
+          "finding": "The composition maps spec.size straight to the cloud disk size with no defaults or backups."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "A validated schema with defaults, a status subresource with conditions, and a new version with conversion"
+                },
+                {
+                  "value": "summary",
+                  "label": "API designed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next check-in",
+      "wait": {
+        "skipLabel": "Go to the next check-in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "schema == \"passthrough\"",
+              "then": [
+                {
+                  "log": "Check-in 2: a tenant requests 5 TB; the provider creates it against policy and the monthly bill jumps.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "status == \"noStatus\"",
+              "then": [
+                {
+                  "log": "Check-in 3: tenants' apps start before their databases exist and crash-loop; the ticket queue is back.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "ver == \"rename\"",
+              "then": [
+                {
+                  "log": "Check-in 4: 60 existing database claims fail validation; Crossplane stops reconciling them.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "10min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The API review closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "10min"
+        }
+      ]
+    },
+    {
+      "id": "t_schema",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 1: the schema.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "schemaPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_status",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 2: status.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "statusPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_ver",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 3: a breaking change.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "verPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "schemaPrompt": {
+      "title": "What tenants may ask for",
+      "context": "Free strings reach the cloud provider.",
+      "choices": [
+        {
+          "id": "validated",
+          "label": "An enum size (small, medium, large mapped to 50, 200, 500 GB), CEL validation keeping storage under the 2 TB policy, defaults for version and backups, required fields",
+          "effects": [
+            {
+              "set": "schema",
+              "to": "\"validated\""
+            },
+            {
+              "set": "schemaAt",
+              "to": "t"
+            },
+            {
+              "log": "The schema validates and defaults requests.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A platform API's schema encodes the rules so bad requests are rejected at the API."
+        },
+        {
+          "id": "docsOnly",
+          "label": "Keep free strings and document the allowed values",
+          "effects": [
+            {
+              "set": "schema",
+              "to": "\"docsOnly\""
+            },
+            {
+              "set": "schemaAt",
+              "to": "t"
+            },
+            {
+              "log": "Docs are written.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Tenants still send 'big'; the composition fails later."
+        },
+        {
+          "id": "passthrough",
+          "label": "Pass any size through to the provider",
+          "effects": [
+            {
+              "set": "schema",
+              "to": "\"passthrough\""
+            },
+            {
+              "set": "schemaAt",
+              "to": "t"
+            },
+            {
+              "log": "Any size passes.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "A 5 TB request violates the storage policy and runs up cost."
+        }
+      ]
+    },
+    "statusPrompt": {
+      "title": "How tenants know it's ready",
+      "context": "Tenants can't tell whether provisioning finished.",
+      "choices": [
+        {
+          "id": "cond",
+          "label": "A status subresource with Ready and Synced conditions and a connection secret reference, written by the composition",
+          "effects": [
+            {
+              "set": "status",
+              "to": "\"cond\""
+            },
+            {
+              "set": "statusAt",
+              "to": "t"
+            },
+            {
+              "log": "Tenants see Ready and their secret.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A status subresource reports observed state separately from desired state."
+        },
+        {
+          "id": "events",
+          "label": "Rely on Kubernetes events",
+          "effects": [
+            {
+              "set": "status",
+              "to": "\"events\""
+            },
+            {
+              "set": "statusAt",
+              "to": "t"
+            },
+            {
+              "log": "Events only.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Events expire; tenants can't query readiness reliably."
+        },
+        {
+          "id": "noStatus",
+          "label": "No status: tenants can ask the platform team",
+          "effects": [
+            {
+              "set": "status",
+              "to": "\"noStatus\""
+            },
+            {
+              "set": "statusAt",
+              "to": "t"
+            },
+            {
+              "log": "No status.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Tenants deploy before the database exists and file tickets anyway."
+        }
+      ]
+    },
+    "verPrompt": {
+      "title": "Renaming a field",
+      "context": "The team wants to rename spec.size to spec.tier.",
+      "choices": [
+        {
+          "id": "v1beta2",
+          "label": "Add v1beta2 with spec.tier, keep v1beta1 served with conversion, and mark it deprecated with a date",
+          "effects": [
+            {
+              "set": "ver",
+              "to": "\"v1beta2\""
+            },
+            {
+              "set": "verAt",
+              "to": "t"
+            },
+            {
+              "log": "Both versions are served with conversion.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "CRDs evolve by adding versions and converting, not by breaking stored objects."
+        },
+        {
+          "id": "bothFields",
+          "label": "Accept both fields in v1beta1",
+          "effects": [
+            {
+              "set": "ver",
+              "to": "\"bothFields\""
+            },
+            {
+              "set": "verAt",
+              "to": "t"
+            },
+            {
+              "log": "Both accepted.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Works, but the API carries confusion forever."
+        },
+        {
+          "id": "rename",
+          "label": "Rename the field in place",
+          "effects": [
+            {
+              "set": "ver",
+              "to": "\"rename\""
+            },
+            {
+              "set": "verAt",
+              "to": "t"
+            },
+            {
+              "log": "Field renamed.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Existing claims become invalid; reconciliation of 60 databases fails."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the API record for tenants: what they can request, how they see readiness, and how the API will change.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Schema and status",
+          "criteria": "Enum sizes, CEL validation under 2 TB, defaults; Ready and Synced conditions and a secret reference.",
+          "modelAnswer": "Tenants choose small, medium or large; validation keeps storage under 2 TB; status shows Ready and points to the connection secret."
+        },
+        {
+          "label": "Versions",
+          "criteria": "v1beta2 with conversion; v1beta1 deprecated with a date.",
+          "modelAnswer": "spec.tier arrives in v1beta2; v1beta1 stays served with conversion until its deprecation date."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Service restored and the work closed within 60 minutes of the first report."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No fault introduced by the response itself."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (schema == \"docsOnly\") and (status == \"events\") and (ver == \"bothFields\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CNCF Certified Cloud Native Platform Engineer (CNPE) curriculum, as the course seed records it: Platform Architecture and Infrastructure 15%, GitOps and Continuous Delivery 25%, Platform APIs and Self-Service Capabilities 25%, Observability and Operations 20%, Security and Policy Enforcement 15%",
+        "checkedAt": "2026-11-17",
+        "url": "https://github.com/cncf/curriculum/tree/0a8cc08a502710a894e5724c2bec7b88404e5a6b",
+        "note": "Weights and objective wording are the course seed's (backend/supabase/seed/tracks/cncf-ecosystem.ts). On 2026-11-17 a third-party page (golden-kubestronaut-learning.readthedocs.io/en/latest/cnpe, summarizing fetch) gave different domains (Platform Design 20%, Platform Implementation 30%, Platform Operations 25%, Security and Governance 15%, Developer Experience 10%) with 'GitOps implementation' under Platform Implementation. Which is current is not settled here: to verify against the official curriculum (finding for the verification pass). Reused for REQ-336 from this course's service-selector-no-endpoints-cnpe (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "schemaHarm": {
+      "label": "Policy and cost broken",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and schema == \"passthrough\"",
+      "narrative": "A 5 TB database was created against policy."
+    },
+    "statusHarm": {
+      "label": "Apps before databases",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and status == \"noStatus\"",
+      "narrative": "Without status, apps started before databases existed."
+    },
+    "verHarm": {
+      "label": "Sixty claims broken",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and ver == \"rename\"",
+      "narrative": "The in-place rename made 60 claims invalid."
+    },
+    "target": {
+      "label": "A self-service API tenants can rely on",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (schema == \"validated\") and (status == \"cond\") and (ver == \"v1beta2\") and record == \"honest\" and missCount <= newFaults and timeAt(doneAt) <= restoreWindow",
+      "narrative": "Tenants get databases in minutes through an API that rejects bad requests and reports readiness."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "schemaHarm",
+    "statusHarm",
+    "verHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "schemaCrit",
+        "label": "Designed an OpenAPI schema with validation and defaults",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "schema == \"validated\"",
+            "score": "met",
+            "why": "Validated API."
+          },
+          {
+            "when": "schema == \"docsOnly\"",
+            "score": "partial",
+            "why": "Weak."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Unsafe."
+          }
+        ]
+      },
+      {
+        "id": "statusCrit",
+        "label": "Added a status subresource with conditions and connection details",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "status == \"cond\"",
+            "score": "met",
+            "why": "Observable."
+          },
+          {
+            "when": "status == \"events\"",
+            "score": "partial",
+            "why": "Partial."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Opaque."
+          }
+        ]
+      },
+      {
+        "id": "verCrit",
+        "label": "Versioned the API instead of breaking existing claims",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "ver == \"v1beta2\"",
+            "score": "met",
+            "why": "Versioned."
+          },
+          {
+            "when": "ver == \"bothFields\"",
+            "score": "partial",
+            "why": "Messy."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Broke tenants."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(draftAt) and not isNull(compAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(draftAt) or not isNull(compAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the draft and the ticket history first."
+      },
+      {
+        "at": "Check-in 1",
+        "text": "Validate with an enum, CEL rules and defaults."
+      },
+      {
+        "at": "Check-in 2",
+        "text": "Add status conditions and a connection secret reference."
+      },
+      {
+        "at": "Check-in 3",
+        "text": "Add a new version with conversion and deprecate the old one."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "schemaHarm": {
+        "headline": "Validate at the API",
+        "body": "Schema, CEL rules and defaults reject bad requests."
+      },
+      "statusHarm": {
+        "headline": "Report status",
+        "body": "A status subresource shows readiness."
+      },
+      "verHarm": {
+        "headline": "Version, don't break",
+        "body": "Add a version and convert."
+      },
+      "target": {
+        "headline": "Good: a self-service API tenants can rely on",
+        "body": "Validation, status and versioning."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A platform API is a CRD: its OpenAPI schema, CEL validation and defaults encode the platform's rules; a status subresource reports observed state and connection details; versions evolve with conversion rather than breaking stored objects. Crossplane compositions turn the claim into infrastructure."
+  }
+}

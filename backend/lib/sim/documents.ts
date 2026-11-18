@@ -659,8 +659,8 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   // ---- end REQ-329 ----
   // ---- REQ-336 (docs/sims.md 22.40): depth for the CNCF ecosystem, CompTIA, security and project-management courses (depth-infra-sec-pm). New cases and their bands; lib/sim/depth-isp.ts lists them by slug. Keep these entries together. ----
   entry("CAPA", "argocd-prune-moved-database"),
-  entry("CAPA", "argo-events-upload-storm"),
   entry("CAPA", "rollouts-analysis-gate-passes-bad-canary"),
+  entry("CAPA", "argo-events-upload-storm"),
   entry("CBA", "backstage-upgrade-mismatched-packages"),
   entry("CBA", "backstage-production-catalog-wiped"),
   entry("CBA", "backstage-catalog-ingestion-gaps"),
@@ -754,6 +754,17 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("ITIL5FND", "payroll-service-utility-warranty-sla"),
   entry("ITIL5FND", "hr-portal-rollout-four-dimensions"),
   entry("ITIL5FND", "booking-service-lifecycle-activities"),
+  entry("CSSGB", "define-charter-dpmo-claims"),
+  entry("CSSGB", "fmea-dispatch-takt-lean"),
+  entry("PMICP", "school-build-change-orders"),
+  entry("PMICP", "school-build-stakeholders-culture"),
+  entry("PMICPMAI", "ai-triage-feasibility-risk"),
+  entry("PMICPMAI", "ai-model-selection-interpretability"),
+  band("PMICPMAI", "ai-hiring-screener-compliance-cpmai"),
+  entry("CNPE", "crossplane-database-claim-api"),
+  entry("SECAIPLUS", "ai-assistant-soc-triage-guardrails"),
+  entry("SECURITYX", "devsecops-pipeline-iot-fleet-crypto"),
+  entry("CEH", "authorized-recon-osint-exposure"),
   // ---- end REQ-336 ----
 ];
 
