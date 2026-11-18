@@ -7885,11 +7885,10 @@ generation and the lint test before the case was first committed.
 
 **Findings to verify (from this round's reading).**
 
-- Google Cloud Associate Cloud Engineer: the current guide has five sections
-  where the seed has four units, and the guide's wording has no CMEK or Query
-  Insights item; the seed units were not changed (a catalog decision).
-- Google Cloud Digital Leader: the guide weights the six sections about 16-17%
-  each; the seed uses 18/18/18/18/18/10.
+- Google's HTML exam guide pages for Associate Cloud Engineer and Digital
+  Leader are stale: they show an older outline. The PDFs linked from the
+  certification pages (read 2026-11-18) are authoritative and match the seed,
+  so the seed is unchanged and the ACE and Digital Leader bands cite the PDFs.
 - AWS SAP-C03, DVA-C03, MLA-C02 and CLF-C02: the official AWS exam guides were
   not reached through search this round; the outline sources are third-party
   summaries (Tutorials Dojo, KodeKloud) with the seed's weights. CLF-C02's
@@ -7949,4 +7948,4 @@ still short of the target are listed in the table below.
 | AWSSAA | 6 | 10 | 8 | yes | 4/4 | every unit |
 | AWSSOA | 8 | 8 | 4 | yes | 5/5 | every unit |
 
-**Decisions for Nick.** (1) Whether the cross-family bands named above (Security+ and SecAI+ cases on AWS specialty and Azure AI courses; professional Google Cloud cases on Digital Leader and Generative AI Leader) are acceptable or should be replaced by purpose-written cases. (2) Whether Power BI (PL-300) needs a report-canvas view on the data console before its visualization unit can have sims. (3) The ACE and Digital Leader outline differences above (seed units and weights).
+**Decisions for Nick.** (1) Whether the cross-family bands named above (Security+ and SecAI+ cases on AWS specialty and Azure AI courses; professional Google Cloud cases on Digital Leader and Generative AI Leader) are acceptable or should be replaced by purpose-written cases. (2) Whether Power BI (PL-300) needs a report-canvas view on the data console before its visualization unit can have sims.
