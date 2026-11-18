@@ -1,0 +1,1032 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "ulnar-referral-droopy-eyelid-low-snap",
+  "title": "An ulnar referral with a droopy eyelid",
+  "objective": "Explain what each nerve conduction measure reflects: SNAP amplitude tracks the number of sensory axons, while CMAP amplitude reflects motor axons, muscle and the neuromuscular junction together",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "Specialist certification examination outline: clinical electrophysiology (the certifying board's published outline page)",
+      "checkedAt": "2026-11-08",
+      "url": "https://specialization.apta.org/become-a-specialist/clinical-electrophysiology/specialist-certification-examination-outline-clinical-electrophysiology",
+      "note": "Relayed from the clinical electrophysiology specialty course seed (backend/supabase/seed/tracks/pt-abpts.ts, outline pages read 2026-10-08 and 2026-11-04, OUTLINE_CHECKED_AT 2026-11-08), not re-read: Anatomy, neuroscience and physiology (21%) is a tested area. Scope only; no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra clinical electrophysiology specialty course catalog (backend/supabase/seed/tracks/pt-abpts.ts, track ABPTSECS)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Cooper MA, et al.. Electrodiagnostic Evaluation of Brachial Plexopathies. StatPearls (updated 2026-04-12), StatPearls Publishing",
+      "checkedAt": "2026-11-04",
+      "note": "Relayed from the course seed (tag SP-EDX-BP; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: SNAP amplitude tracks the number of sensory axons, while CMAP amplitude reflects motor axons, muscle and the neuromuscular junction together (the course objective's wording); a lesion distal to the dorsal root ganglion (plexus) lowers SNAPs, while a root lesion spares them."
+    },
+    {
+      "cite": "Roswell Park Comprehensive Cancer Center: Pancoast Tumors (no date shown)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.roswellpark.org/cancer/lung/about/pancoast-tumor",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: a Pancoast tumor 'arises in the very apex of the chest'; 'Chest pain and shoulder pain are common'; 'Numbness of the hand or inner arm', tingling in the fingers; 'Weakness or atrophy of the hand muscles'; 'Droopy eyelid and pupil constriction may occur in up to 40% of patients'; initial imaging is a chest X-ray or CT, then PET/CT or MRI and biopsy."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "09:00 in an electrodiagnostic laboratory. You are the physical therapist. Mr. Hale, 63, is referred by his primary care provider for 'probable right ulnar neuropathy at the elbow'. He has smoked a pack a day for 40 years and has lost 6 kg without trying.",
+    "handover": [
+      "You notice his right upper eyelid droops and his right pupil looks smaller.",
+      "Laboratory policy: findings that suggest a serious underlying cause are phoned to the referrer the same day."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "09:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.015,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A missed apical tumor progresses. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.002,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Imaging is on its way. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of apical tumor missed. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The referrer called within 5 minutes of the localizing result (laboratory policy: same day)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min to finish the study and arrange imaging."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "ulnarAt": {
+      "type": "time",
+      "init": null
+    },
+    "macAt": {
+      "type": "time",
+      "init": null
+    },
+    "emgAt": {
+      "type": "time",
+      "init": null
+    },
+    "eyeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "ulnar",
+        "mac",
+        "emg",
+        "eye"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "md",
+        "report"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "plexus",
+        "ulnar",
+        "c8"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "76",
+      "unit": "/min",
+      "precision": 0
+    },
+    "pain": {
+      "expr": "round(clamp(5 + 3 * max(0, prog - 0.5), 0, 10))",
+      "unit": "/10",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (route == \"md\" ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Mr. Hale, 63, referred for 'right ulnar neuropathy at the elbow'",
+        "presentation": "Right shoulder pain for 4 months, now numbness of the inner forearm and small finger and a weak grip; 40 pack-years."
+      },
+      "vitals": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "colour": "ecg",
+          "alarm": {
+            "high": 110
+          },
+          "announce": {
+            "bands": [
+              95,
+              110
+            ]
+          }
+        },
+        {
+          "id": "pain",
+          "label": "Pain",
+          "spokenLabel": "Pain, out of 10",
+          "value": "pain",
+          "unit": "/10",
+          "colour": "neutral",
+          "alarm": {
+            "high": 8
+          },
+          "announce": {
+            "bands": [
+              6,
+              8
+            ]
+          }
+        }
+      ],
+      "activity": "{not inClinic ? \"Gone home with an urgent imaging plan.\" : \"On the exam table.\"}",
+      "measures": [
+        {
+          "id": "ulnarResult",
+          "label": "Ulnar studies",
+          "result": "Low ulnar SNAP; low ulnar CMAP; no slowing or block across the elbow.",
+          "when": "not isNull(ulnarAt)"
+        },
+        {
+          "id": "macResult",
+          "label": "MAC SNAP",
+          "result": "Right medial antebrachial cutaneous SNAP absent; left normal.",
+          "when": "not isNull(macAt)",
+          "flag": "true"
+        },
+        {
+          "id": "emgResult",
+          "label": "Needle EMG",
+          "result": "Denervation in C8-T1 muscles of both ulnar and median nerves; paraspinals normal.",
+          "when": "not isNull(emgAt)"
+        },
+        {
+          "id": "eyeResult",
+          "label": "Eyes",
+          "result": "Right ptosis and miosis: Horner syndrome.",
+          "when": "not isNull(eyeAt)"
+        }
+      ],
+      "dosage": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "Medial antebrachial cutaneous SNAP tested",
+            "when": "not isNull(macAt)"
+          },
+          {
+            "label": "Referrer called",
+            "when": "route == \"md\""
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleRed",
+          "label": "Lower trunk plexopathy with Horner syndrome in a smoker",
+          "text": "Same-day call to the referrer for chest imaging.",
+          "met": "not isNull(macAt) and isNull(callAt)"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "ulnar": {
+      "label": "Ulnar motor and sensory studies across the elbow",
+      "group": "Examine",
+      "available": "not testPending and isNull(ulnarAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"ulnar\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "mac": {
+      "label": "Medial antebrachial cutaneous SNAP, both sides",
+      "group": "Examine",
+      "available": "not testPending and isNull(macAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"mac\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "emg": {
+      "label": "Needle EMG: ulnar and median C8-T1 muscles, paraspinals",
+      "group": "Examine",
+      "available": "not testPending and isNull(emgAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"emg\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "eye": {
+      "label": "Look at the eyelids and pupils",
+      "group": "Examine",
+      "available": "not testPending and isNull(eyeAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"eye\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Where is the lesion, and why does it matter?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "plexus",
+              "label": "A lower trunk brachial plexopathy (low ulnar and MAC SNAPs, C8-T1 denervation across nerves, normal paraspinals), with Horner syndrome in a smoker with weight loss: a possible Pancoast tumor"
+            },
+            {
+              "value": "ulnar",
+              "label": "Ulnar neuropathy at the elbow, as referred"
+            },
+            {
+              "value": "c8",
+              "label": "A C8 radiculopathy"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"plexus\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"plexus\""
+                },
+                {
+                  "log": "Lower trunk plexopathy; possible Pancoast tumor.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"ulnar\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"ulnar\""
+                },
+                {
+                  "log": "Read as ulnar neuropathy.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"c8\""
+                },
+                {
+                  "log": "Read as radiculopathy.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Report",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "md",
+              "label": "Call his provider today: not an ulnar neuropathy; lower trunk plexopathy with Horner syndrome in a 40-pack-year smoker with weight loss; recommend urgent chest imaging"
+            },
+            {
+              "value": "report",
+              "label": "Send the routine written report"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"md\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"md\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "His provider orders a chest CT this week with an urgent pulmonary referral.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"report\""
+                },
+                {
+                  "log": "Report queued.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Write the report with the localization and the call",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Report written.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "EMG laboratory",
+      "clock": "running",
+      "actions": [
+        "ulnar",
+        "mac",
+        "emg",
+        "eye",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the test",
+      "wait": {
+        "skipLabel": "the test result"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each test or question takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"ulnar\"",
+              "then": [
+                {
+                  "set": "ulnarAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Low ulnar sensory and motor amplitudes but no slowing or conduction block across the elbow: not a focal ulnar neuropathy at the elbow.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"mac\"",
+              "then": [
+                {
+                  "set": "macAt",
+                  "to": "t"
+                },
+                {
+                  "log": "The right medial antebrachial cutaneous sensory response is absent; the left is normal. The lesion is in the lower trunk or medial cord of the plexus, past the root ganglion.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"emg\"",
+              "then": [
+                {
+                  "set": "emgAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Fibrillations in C8-T1 muscles supplied by both the ulnar and median nerves; cervical paraspinals normal.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "eyeAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Right ptosis and a smaller right pupil: a Horner syndrome.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the end of the study",
+      "wait": {
+        "skipLabel": "the end of the study"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min to finish the study and arrange imaging."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "He leaves with a chest CT booked.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "Is this an ulnar neuropathy? What do the SNAPs tell you?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "No. SNAP amplitude counts sensory axons distal to the dorsal root ganglion, so low ulnar and medial antebrachial cutaneous SNAPs put the lesion in the plexus, not the root; CMAP reflects motor axons, muscle and junction together; C8-T1 denervation across ulnar and median muscles with normal paraspinals fits a lower trunk plexopathy.",
+          "modelAnswer": "Not ulnar. The low ulnar and MAC sensory responses mean the lesion's past the root ganglion, so it's plexus, not root. Denervation across ulnar and median C8-T1 muscles with normal paraspinals says lower trunk."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Calls the provider the same day with the localization and the Horner syndrome in a smoker with weight loss, recommending urgent chest imaging.",
+          "modelAnswer": "Call his provider today: lower trunk plexopathy with Horner in a heavy smoker who's losing weight. He needs chest imaging now."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "spo2Floor": {
+        "value": 88,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "escalateWindow": {
+        "value": 300,
+        "source": {
+          "cite": "Unit practice (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "The referrer called within 5 minutes of the localizing result (laboratory policy: same day)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "A localizing red flag unreported an hour on is harm here.",
+      "source": {
+        "cite": "Roswell Park Comprehensive Cancer Center: Pancoast Tumors (no date shown)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.roswellpark.org/cancer/lung/about/pancoast-tumor",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: a Pancoast tumor 'arises in the very apex of the chest'; 'Chest pain and shoulder pain are common'; 'Numbness of the hand or inner arm', tingling in the fingers; 'Weakness or atrophy of the hand muscles'; 'Droopy eyelid and pupil constriction may occur in up to 40% of patients'; initial imaging is a chest X-ray or CT, then PET/CT or MRI and biopsy."
+      }
+    }
+  },
+  "endings": {
+    "missed": {
+      "label": "Apical tumor missed",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "He is treated for ulnar neuropathy; four months later a Pancoast tumor is found, now more advanced."
+    },
+    "safe": {
+      "label": "Localized and flagged",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"md\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and (not isNull(macAt)) and (not isNull(eyeAt))",
+      "narrative": "{timeAt(leftAt)|clock}: chest imaging is booked this week."
+    },
+    "safeGaps": {
+      "label": "Flagged, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: imaging is booked, but late or without full localization."
+    },
+    "time_up": {
+      "label": "Undecided at 10:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "10:00 and no call."
+    }
+  },
+  "endingOrder": [
+    "missed",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "The referrer called within 5 minutes of the MAC SNAP",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"md\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"md\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "macC",
+        "label": "Tested the medial antebrachial cutaneous SNAP to localize beyond the ulnar nerve",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(macAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not tested."
+          }
+        ]
+      },
+      {
+        "id": "eyeC",
+        "label": "Linked the Horner syndrome to the findings",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(eyeAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not examined."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Completed the ulnar studies and needle EMG",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(ulnarAt) and not isNull(emgAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(ulnarAt) or not isNull(emgAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Localized to the lower trunk and flagged a possible apical lung tumor",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"plexus\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"ulnar\"",
+            "score": "missed",
+            "why": "No slowing at the elbow; the MAC SNAP and median-innervated muscles are also involved."
+          },
+          {
+            "when": "dxEnum == \"c8\"",
+            "score": "missed",
+            "why": "A root lesion spares the SNAPs; these are low."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Reported",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: SNAPs localize beyond the ganglion; lower trunk plexopathy; Horner in a smoker means image the apex",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Localizing result to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "09:00 to the MAC SNAP",
+        "value": "isNull(macAt) ? -1 : timeAt(macAt)",
+        "format": "duration",
+        "expert": "under 5 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "09:00",
+        "text": "Ulnar studies: low amplitudes, no slowing at the elbow."
+      },
+      {
+        "at": "~09:01",
+        "text": "MAC SNAP absent on the right."
+      },
+      {
+        "at": "~09:02",
+        "text": "Eyes: Horner syndrome; call his provider."
+      },
+      {
+        "at": "~09:05",
+        "text": "Needle EMG: C8-T1 across nerves; report."
+      }
+    ],
+    "debrief": {
+      "missed": {
+        "headline": "Apical tumor missed",
+        "body": "SNAPs tell you where the lesion is: low SNAPs mean a lesion beyond the root ganglion. A low MAC SNAP with C8-T1 denervation and Horner syndrome is a lower trunk plexopathy; in a smoker, image the lung apex."
+      },
+      "safe": {
+        "headline": "Localized and flagged",
+        "body": "You used the SNAPs to localize past the ulnar nerve to the lower trunk, linked the Horner syndrome and called within minutes. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Flagged, with gaps",
+        "body": "Check whether you tested the MAC SNAP and the eyes, and how soon you called."
+      },
+      "time_up": {
+        "headline": "Undecided at 10:00",
+        "body": "Call the same day."
+      }
+    },
+    "modelReasoning": "SNAP amplitude reflects the number of sensory axons; because the sensory cell body sits in the dorsal root ganglion, a root lesion spares the SNAP and a plexus or nerve lesion lowers it. CMAP amplitude reflects motor axons, muscle and the neuromuscular junction together. Mr. Hale has low ulnar and medial antebrachial cutaneous SNAPs, C8-T1 denervation across ulnar and median muscles and normal paraspinals: a lower trunk plexopathy. With Horner syndrome, shoulder pain, weight loss and heavy smoking, an apical (Pancoast) tumor must be imaged."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "pancQ": {
+      "during": "leaveT",
+      "ask": "While he leaves: which features suggest an apical lung tumor?",
+      "choices": [
+        {
+          "id": "p",
+          "label": "Shoulder pain, inner arm numbness, hand weakness, droopy eyelid and small pupil"
+        },
+        {
+          "id": "cough",
+          "label": "Only a cough"
+        },
+        {
+          "id": "none",
+          "label": "None"
+        }
+      ],
+      "expect": "p",
+      "explain": "Shoulder pain, numbness of the hand or inner arm, hand muscle weakness and a droopy eyelid with pupil constriction.",
+      "source": {
+        "cite": "Roswell Park Comprehensive Cancer Center: Pancoast Tumors (no date shown)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.roswellpark.org/cancer/lung/about/pancoast-tumor",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: a Pancoast tumor 'arises in the very apex of the chest'; 'Chest pain and shoulder pain are common'; 'Numbness of the hand or inner arm', tingling in the fingers; 'Weakness or atrophy of the hand muscles'; 'Droopy eyelid and pupil constriction may occur in up to 40% of patients'; initial imaging is a chest X-ray or CT, then PET/CT or MRI and biopsy."
+      }
+    },
+    "snapQ": {
+      "during": "testT",
+      "ask": "While you test: what does a low SNAP tell you about where the lesion is?",
+      "choices": [
+        {
+          "id": "post",
+          "label": "Distal to the dorsal root ganglion (plexus or nerve), not the root"
+        },
+        {
+          "id": "root",
+          "label": "At the root"
+        },
+        {
+          "id": "muscle",
+          "label": "In the muscle"
+        }
+      ],
+      "expect": "post",
+      "explain": "SNAP amplitude tracks sensory axons; a plexus lesion lowers SNAPs while a root lesion spares them.",
+      "source": {
+        "cite": "Cooper MA, et al.. Electrodiagnostic Evaluation of Brachial Plexopathies. StatPearls (updated 2026-04-12), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-EDX-BP; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: SNAP amplitude tracks the number of sensory axons, while CMAP amplitude reflects motor axons, muscle and the neuromuscular junction together (the course objective's wording); a lesion distal to the dorsal root ganglion (plexus) lowers SNAPs, while a root lesion spares them."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}
