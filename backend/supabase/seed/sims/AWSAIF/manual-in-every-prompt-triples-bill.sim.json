@@ -1,0 +1,923 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "manual-in-every-prompt-triples-bill",
+  "title": "Cost: the policy assistant's bill tripled since the manual went into every prompt",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "Policy assistant request builder (Amazon Bedrock), Lakeshore Utilities (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Finance partner, Owen Adeyemi",
+          "text": "The policy assistant cost 9,400 this month against a 3,000 budget, and staff say answers take 20 seconds. The monthly budget review is at 16:00 and I need a fix to report.",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "seen",
+          "label": "Pattern",
+          "text": "Every request carries the same huge input.",
+          "when": "not isNull(lookAt) and not fixed",
+          "severity": "warning"
+        },
+        {
+          "id": "lock",
+          "label": "Budget review",
+          "text": "16:00: the budget review ran with no fix to report.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [],
+      "code": [
+        {
+          "id": "code",
+          "label": "assistant.py: building the request",
+          "language": "Python",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "context = open('ops-manual.txt').read()   # whole manual, every request",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c1",
+              "text": "context = top_chunks(knowledge_base.retrieve(question), k=4)   # four relevant sections",
+              "when": "fix == \"chunks\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c2",
+              "text": "context = open('ops-manual.txt').read(); model = smaller_model",
+              "when": "fix == \"smaller\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c3",
+              "text": "context = open('ops-manual.txt').read(); inferenceConfig: maxTokens 150",
+              "when": "fix == \"maxout\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c4",
+              "text": "messages = [system(rules), user(context + question)]"
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Budget review",
+          "value": "16:00"
+        }
+      ]
+    }
+  },
+  "objective": "Token-based pricing, and how it drives both cost and inference performance",
+  "secondaryObjectives": [
+    "Tokens, chunking, embeddings, and vectors"
+  ],
+  "sources": [
+    {
+      "cite": "AWS Certified AI Practitioner (AIF-C01) exam guide: Fundamentals of AI and ML 20%, Fundamentals of Generative AI 24%, Applications of Foundation Models 28%, Guidelines for Responsible AI 14%, Security, Compliance, and Governance for AI Solutions 14%",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.aws.amazon.com/aws-certification/latest/examguides/ai-practitioner-01-domain3.html",
+      "note": "On 2026-11-17 a summarizing fetch of the AWS domain 3 page returned only page metadata, so the official text was not read. A third-party study guide (dennisk.neocities.org/aws_ai/domain3-study-guide.html, read the same day) gives Domain 3 as 28% and lists under Task 3.2 prompt injection or hijacking, jailbreaking, prompt poisoning and data exposure. The domain weights and objective wording are the course seed's (backend/supabase/seed/tracks/aws.ts). To verify against the AWS page. (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "Amazon Bedrock pricing page",
+      "checkedAt": "2026-11-18",
+      "url": "https://aws.amazon.com/bedrock/pricing/?nc1=h_ls",
+      "note": "Read through a summarizing fetch on 2026-11-18. On-demand pricing is per token with separate input and output prices that vary by model; the page's worked example: '11K tokens/1000 * $0.008 + 4K tokens/1000 * $0.024'. The case's prices and token counts are invented; that latency grows with prompt length is from memory of model documentation (stated as the author's)."
+    },
+    {
+      "cite": "AWS documentation, Amazon Bedrock API Reference, InferenceConfiguration",
+      "checkedAt": "2026-11-18",
+      "url": "https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_InferenceConfiguration.html",
+      "note": "Read through a summarizing fetch on 2026-11-18. temperature: 'A lower value makes the model more likely to choose higher-probability options, while a higher value makes the model more likely to choose lower-probability options' (range 0 to 1); maxTokens: 'The maximum number of tokens to allow in the generated response'; topP: 'The percentage of most-likely candidates that the model considers for the next token'; passed in inferenceConfig of a Converse call."
+    },
+    {
+      "cite": "Author's scenario (REQ-335)",
+      "checkedAt": "2026-11-18",
+      "note": "Every organization, person, count and deadline is invented teaching data; tool output is an authored rendering in the tool style."
+    }
+  ],
+  "brief": {
+    "situation": "You maintain the internal policy assistant at Lakeshore Utilities (fictional). To stop wrong answers, last month someone added the whole 60-page operations manual to every prompt. Answers are better, but the bill tripled and answers are slow. The budget review is at 16:00. It is 15:05.",
+    "handover": [
+      "Staff ask about 30,000 questions a month.",
+      "The manual is already split into sections and indexed in a knowledge base nobody wired in."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: look, change, check or ship. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "15:05",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-335)",
+        "checkedAt": "2026-11-18",
+        "note": "The deadline is an invented teaching value."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "chunks",
+        "smaller",
+        "maxout"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "c0",
+        "c1",
+        "c2"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "k0",
+        "k1",
+        "k2"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "(fix == \"chunks\")"
+    },
+    "correct": {
+      "expr": "(fix == \"chunks\" or fix == \"smaller\")"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "look",
+        "change",
+        "check",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "look": {
+      "label": "Read the usage report: input and output tokens per request, and latency",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "output": "Per request: 2,150 input tokens, 300 output tokens\np50 latency 3.1 s"
+            }
+          ],
+          "else": [
+            {
+              "output": "Per request: 46,200 input tokens, 310 output tokens\nInput is 99% of tokens and 94% of cost\np50 latency 19.8 s"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "finding": "Each request carries only the sections that answer it."
+            }
+          ],
+          "else": [
+            {
+              "finding": "Input tokens are billed per token too, and each request sends the whole manual: input, not output, drives cost and latency."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Change what each request sends",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "chunks",
+              "label": "Retrieve the four most relevant manual sections from the knowledge base and send only those"
+            },
+            {
+              "value": "smaller",
+              "label": "Keep the whole manual but switch to a smaller, cheaper model"
+            },
+            {
+              "value": "maxout",
+              "label": "Keep the whole manual and cap maxTokens at 150"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: {f}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "check": {
+      "label": "Replay yesterday's 1,000 questions: projected monthly cost, the 50-question answer set, and latency",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"chunks\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "Projected month: 1,180 (budget 3,000)\n50-question answer set: 47 correct (was 47)\np50 latency 3.1 s"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"smaller\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "Projected month: 2,900\n50-question answer set: 39 correct\np50 latency 12.4 s"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"maxout\"",
+              "then": [
+                {
+                  "output": "Projected month: 9,250\n50-question answer set: 41 correct (answers truncated)\np50 latency 19.1 s"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "Projected month: 9,400\n50-question answer set: 47 correct\np50 latency 19.8 s"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Deploy the change and report it to the budget review",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "if": "correct",
+          "then": [
+            {
+              "output": "Reported: projected 1,180 a month, same answer quality, 3-second answers."
+            }
+          ],
+          "else": [
+            {
+              "output": "Reported a change that does not fix the cost."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why the bill tripled",
+              "options": [
+                {
+                  "value": "c0",
+                  "label": "Every request sent the whole manual: 46,000 input tokens billed per request"
+                },
+                {
+                  "value": "c1",
+                  "label": "The model's price went up"
+                },
+                {
+                  "value": "c2",
+                  "label": "Staff asked more questions"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know the fix works",
+              "options": [
+                {
+                  "value": "k0",
+                  "label": "Replay shows cost under budget with the same answer quality"
+                },
+                {
+                  "value": "k1",
+                  "label": "The bill should go down"
+                },
+                {
+                  "value": "k2",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-335)",
+        "checkedAt": "2026-11-18",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "16:00: the budget review ran with no fix to report.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For finance: why the cost rose, what you changed, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "On-demand inference bills input and output tokens; each request sent about 46,000 input tokens of manual, 99% of the tokens, which also made answers slow.",
+          "modelAnswer": "Input tokens dominate cost and latency."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "Retrieve the few relevant sections from the knowledge base and send only those; a smaller model still sends the whole manual and answers worse; capping output barely changes the bill.",
+          "modelAnswer": "Top four sections per question."
+        },
+        {
+          "label": "How you know",
+          "criteria": "A replay of 1,000 questions projects 1,180 a month with the same answer set score and 3-second answers.",
+          "modelAnswer": "1,180; 47 of 50; 3.1 s."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-335)",
+          "checkedAt": "2026-11-18",
+          "note": "The case's deadline; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Shipping nothing ships nothing wrong, but the deadline passes without the fix.",
+      "source": {
+        "cite": "Author's scenario (REQ-335)",
+        "checkedAt": "2026-11-18",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "wrongSent": {
+      "label": "Fix that does not fix",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "Finance reports a fix and next month's bill is unchanged."
+    },
+    "notSent": {
+      "label": "Nothing shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "Nothing wrong was reported, but the review had no fix."
+    },
+    "right": {
+      "label": "Right, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and fixed and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "The assistant answers as well as before at about a ninth of the cost, in three seconds."
+    },
+    "gaps": {
+      "label": "Right, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The result is right, but it went late, unchecked, before you looked, or with a weaker fix."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Read where the tokens and cost came from before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked before acting."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Sent only retrieved sections instead of the whole manual",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed",
+            "score": "met",
+            "why": "Only the relevant sections go into each request."
+          },
+          {
+            "when": "fix == \"smaller\"",
+            "score": "partial",
+            "why": "Cheaper per token, but every request still sends 46,000 tokens, answers degrade and stay slow."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{fix == \"maxout\" ? \"Output is 1% of tokens; capping it barely changes cost and cuts answers short.\" : \"Every request still sends the whole manual.\"}"
+          }
+        ]
+      },
+      {
+        "id": "shipped",
+        "label": "Shipped nothing wrong",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sentAs != \"wrong\"",
+            "score": "met",
+            "why": "Nothing wrong shipped."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Shipped a wrong result."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Cost, quality and latency checked after the last change, before reporting",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "Checked after the last change, before shipping."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Checked, but it failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"c0\" and checkDoc == \"k0\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"c0\" or checkDoc == \"k0\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rightK",
+        "label": "Right result shipped",
+        "value": "sentAs == \"right\" ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "altered",
+        "label": "Rows changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until shipped",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 14"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "46,200 input tokens per request; input is 94% of cost."
+      },
+      {
+        "at": "4-9 min",
+        "text": "Send the top four retrieved sections."
+      },
+      {
+        "at": "9-12 min",
+        "text": "Replay: 1,180 a month, quality unchanged."
+      },
+      {
+        "at": "12-14 min",
+        "text": "Deploy and report."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: pay for the tokens that answer",
+        "body": "Input tokens cost money and time. Retrieval sends the context a question needs, not everything."
+      },
+      "gaps": {
+        "headline": "Right, with gaps",
+        "body": "The result is right; it went late, unchecked, before you looked, or with a weaker fix than the cause called for."
+      },
+      "wrongSent": {
+        "headline": "The bill stays",
+        "body": "Output length was never the cost; the input was."
+      },
+      "notSent": {
+        "headline": "Nothing shipped",
+        "body": "Safe, but the deadline passed without the fix."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "Read the usage before changing anything: each request sends about 46,000 input tokens and gets about 300 back, so input drives both cost and latency. Retrieve the few manual sections relevant to each question and send only those, then replay real questions to check cost, quality and latency. A smaller model still pays for the whole manual and answers worse; capping maxTokens trims the 1% that was output."
+  }
+}
