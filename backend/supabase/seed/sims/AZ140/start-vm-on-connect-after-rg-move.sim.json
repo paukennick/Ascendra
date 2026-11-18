@@ -1,0 +1,875 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "start-vm-on-connect-after-rg-move",
+  "title": "Morning: engineers' desktops stay off after the resource group move",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "vdiadmin@cloudshell:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "07:40 service desk: 14 engineers report 'could not connect' on their personal desktops; review at 08:30",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "08:30: design review without desktops",
+          "when": "not isNull(missAt)",
+          "at": "timeAt(missAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "08:30: design review, desktops up",
+          "when": "not isNull(okAt)",
+          "at": "timeAt(okAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "hp",
+          "label": "Host pool hp-engineers (personal)",
+          "spokenLabel": "the host pool",
+          "kind": "Start VM on Connect on",
+          "status": "{fixed and not harmed ? \"connections starting VMs\" : \"connections failing\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "vms",
+          "label": "60 session host VMs (rg-avd-eng-vms)",
+          "spokenLabel": "the engineers' desktops",
+          "kind": "deallocated nightly",
+          "status": "{fixed and not harmed ? \"start on connect\" : \"stay deallocated\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "sp",
+          "label": "Azure Virtual Desktop service principal",
+          "spokenLabel": "the AVD service principal",
+          "kind": "role assignments",
+          "status": "{harmed ? \"Contributor on the subscription\" : fixed ? \"Power On Contributor covers the VMs\" : \"Power On Contributor on the old resource group only\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "sp",
+          "to": "vms",
+          "label": "start",
+          "status": "{fixed and not harmed ? \"allowed\" : \"denied\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Implementing the Start VM on Connect feature",
+  "secondaryObjectives": [
+    "Planning and implementing Azure role-based access control (Azure RBAC) for Azure Virtual Desktop"
+  ],
+  "sources": [
+    {
+      "cite": "Microsoft Learn, Study guide for Exam AZ-140: Configuring and Operating Microsoft Azure Virtual Desktop (page last updated 2026-06-19; skills as of July 20, 2026): plan and implement an Azure Virtual Desktop infrastructure 40-45%, identity and security 15-20%, user environments and apps 20-25%, monitor and maintain 10-15%",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/credentials/certifications/resources/study-guides/az-140",
+      "note": "Read through a summarizing fetch on 2026-11-17. Bullets quoted there under 'Plan and implement storage for Azure Virtual Desktop user data': 'Implement storage for FSLogix components', 'Implement storage accounts for Azure Virtual Desktop', 'Implement file shares for Azure Virtual Desktop'. The az storage account update --default-share-permission flag is from memory of the CLI reference (to verify). (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "Microsoft Learn, 'Configure Start VM on Connect' (Azure Virtual Desktop)",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/azure/virtual-desktop/start-virtual-machine-connect",
+      "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: assign the 'Desktop Virtualization Power On Contributor' role to the Azure Virtual Desktop service principal (or a managed identity assigned to the host pool) 'at the appropriate scope containing the host pool and session host VMs'; lower scopes are fine 'as long as the assignment scope contains the target session host VMs'; for personal host pools it 'only powers on an existing session host VM that is already assigned'; connecting directly to a VM by IP or name does not start it. The connection error text users see in a personal pool and the activity-log wording are from memory (to verify)."
+    }
+  ],
+  "brief": {
+    "situation": "You are the AVD administrator at Calder Engineering, a fictional design firm. The 60 engineers use personal desktops in the host pool hp-engineers; an automation deallocates them every night, and Start VM on Connect powers each one on when its owner connects. Yesterday the platform team moved the session host VMs from rg-avd-eng to a new resource group, rg-avd-eng-vms. This morning nobody's desktop starts. The client design review begins at 08:30.",
+    "handover": [
+      "The platform team's move ticket lists the VMs, disks and NICs; nothing about role assignments.",
+      "Security policy: the AVD service principal gets only the roles AVD's documentation names."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the host pool, the session host VMs in their new resource group and the role that lets AVD start them.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "07:40",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineAt": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "The client design review starts at 08:30, 50 minutes after the first reports."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "harmed": {
+      "type": "bool",
+      "init": false
+    },
+    "tried": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "activityAt": {
+      "type": "time",
+      "init": null
+    },
+    "rbacAt": {
+      "type": "time",
+      "init": null
+    },
+    "hostpoolAt": {
+      "type": "time",
+      "init": null
+    },
+    "vmstateAt": {
+      "type": "time",
+      "init": null
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "missAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "scope",
+        "feature",
+        "vm"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "activity",
+        "rbac",
+        "hostpool",
+        "vmstate",
+        "assign",
+        "move",
+        "contrib",
+        "toggle",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "activity": {
+      "label": "Activity log on one desktop: failed start attempts",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(activityAt)",
+          "then": [
+            {
+              "set": "activityAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ az monitor activity-log list --resource-id .../rg-avd-eng-vms/providers/Microsoft.Compute/virtualMachines/eng-desk-17 --offset 2h --query \"[?operationName.value=='Microsoft.Compute/virtualMachines/start/action'].[eventTimestamp,status.value,caller]\" -o tsv\n{fixed and not harmed ? \"07:5x  Succeeded  Azure Virtual Desktop\" : \"07:31  Failed  Azure Virtual Desktop  (AuthorizationFailed)\n07:36  Failed  Azure Virtual Desktop  (AuthorizationFailed)\"}"
+        },
+        {
+          "finding": "AVD tried to start the VM and was refused: an authorization failure, not a VM fault."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "rbac": {
+      "label": "az role assignment list for the AVD service principal",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(rbacAt)",
+          "then": [
+            {
+              "set": "rbacAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ az role assignment list --assignee <AVD service principal> --all --query \"[].[roleDefinitionName,scope]\" -o tsv\n{harmed ? \"Desktop Virtualization Power On Contributor  /subscriptions/.../resourceGroups/rg-avd-eng\nContributor  /subscriptions/...\" : fixed ? \"Desktop Virtualization Power On Contributor  /subscriptions/.../resourceGroups/rg-avd-eng\nDesktop Virtualization Power On Contributor  /subscriptions/.../resourceGroups/rg-avd-eng-vms\" : \"Desktop Virtualization Power On Contributor  /subscriptions/.../resourceGroups/rg-avd-eng\"}"
+        },
+        {
+          "finding": "The role is assigned on the old resource group, which no longer contains the VMs."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "hostpool": {
+      "label": "az desktopvirtualization hostpool show hp-engineers --query startVMOnConnect",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(hostpoolAt)",
+          "then": [
+            {
+              "set": "hostpoolAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ az desktopvirtualization hostpool show -g rg-avd-eng -n hp-engineers --query \"[startVmOnConnect,hostPoolType]\" -o tsv\ntrue  Personal"
+        },
+        {
+          "finding": "The feature is on; the host pool itself is fine."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "vmstate": {
+      "label": "Power state of the 60 desktops",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(vmstateAt)",
+          "then": [
+            {
+              "set": "vmstateAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ az vm list -d -g rg-avd-eng-vms --query \"[].powerState\" -o tsv | sort | uniq -c\n{fixed and not harmed ? \"  41 VM deallocated\n  19 VM running\" : \"  60 VM deallocated\"}"
+        },
+        {
+          "finding": "Every desktop is still deallocated, including those whose owners tried to connect."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "assign": {
+      "label": "Assign Desktop Virtualization Power On Contributor to the AVD service principal on rg-avd-eng-vms",
+      "group": "Fix",
+      "available": "not busy and (not fixed and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "fixed",
+          "to": "true"
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ az role assignment create --assignee <AVD service principal> --role 'Desktop Virtualization Power On Contributor' --scope /subscriptions/.../resourceGroups/rg-avd-eng-vms\n{{ \"roleDefinitionName\": \"Desktop Virtualization Power On Contributor\", \"scope\": \".../rg-avd-eng-vms\" }}"
+        },
+        {
+          "log": "The scope now contains the VMs, with the one role AVD's documentation names. The next connection starts the owner's desktop; the service desk tells the engineers to retry.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "move": {
+      "label": "Add role assignments to the platform team's move checklist and put this one in the AVD Bicep with the resource group",
+      "group": "Fix",
+      "available": "not busy and (not planned and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ git commit -am 'avd-eng: Power On Contributor for the AVD service principal on rg-avd-eng-vms'\n(platform runbook 'Move resources' updated: list and re-create role assignments whose scope no longer contains the resources)"
+        },
+        {
+          "log": "The assignment lives with the resource group in code, and the next move re-creates the access it depends on.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "contrib": {
+      "label": "Give the AVD service principal Contributor on the subscription so it can start anything",
+      "group": "Fix",
+      "available": "not busy and (not harmed)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "harmed",
+          "to": "true"
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ az role assignment create --assignee <AVD service principal> --role Contributor --scope /subscriptions/...\n(created)"
+        },
+        {
+          "log": "Desktops start, and a service principal now has write access to every resource in the subscription, against the security policy.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "toggle": {
+      "label": "Turn Start VM on Connect off and on again on the host pool",
+      "group": "Fix",
+      "available": "not busy and (not harmed and not tried)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tried",
+          "to": "true"
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ az desktopvirtualization hostpool update -g rg-avd-eng -n hp-engineers --start-vm-on-connect false && ... --start-vm-on-connect true\nstartVmOnConnect: true"
+        },
+        {
+          "log": "The setting was never the problem; the service principal still cannot start VMs in the new resource group.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Ask one engineer to connect, then check the VM's start and the session",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ az monitor activity-log list ... start/action (last 10 min); az desktopvirtualization usersession list ... | length\n{harmed ? \"08:0x start/action Succeeded\nsessions: 1 (Contributor on the subscription)\" : fixed ? \"08:0x start/action Succeeded (Azure Virtual Desktop)\nsessions: 1 (eng-desk-17)\" : \"start/action Failed (AuthorizationFailed)\nsessions: 0\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "scope",
+                  "label": "The Power On role was on the old resource group, which no longer contains the VMs"
+                },
+                {
+                  "value": "feature",
+                  "label": "Start VM on Connect was turned off"
+                },
+                {
+                  "value": "vm",
+                  "label": "The VMs were damaged by the move"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-335)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "08:30: the engineers are on their desktops for the review.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "missAt",
+              "to": "t"
+            },
+            {
+              "log": "08:30: half the team cannot reach their desktops for the review.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why the desktops did not start, what you assigned, and how a move keeps it working.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Connects the failed start to the scope.",
+          "modelAnswer": "The activity log showed AVD's start attempts failing authorization. Its Power On Contributor role was assigned on rg-avd-eng, and yesterday's move put the VMs in rg-avd-eng-vms, outside that scope."
+        },
+        {
+          "label": "Assigned",
+          "criteria": "Documented role, smallest scope that works.",
+          "modelAnswer": "Desktop Virtualization Power On Contributor for the AVD service principal on rg-avd-eng-vms. Contributor on the subscription would also work but breaks least privilege."
+        },
+        {
+          "label": "Moves",
+          "criteria": "Fixes the process.",
+          "modelAnswer": "The assignment is in the AVD Bicep with the resource group, and the move runbook now re-creates assignments whose scope no longer contains the resources."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The client design review starts at 08:30, 50 minutes after the first reports."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: The AVD service principal got Contributor on the whole subscription."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed and not harmed",
+      "class": "harm",
+      "rationale": "Closing with the role still on the old scope leaves the desktops off.",
+      "source": {
+        "cite": "Microsoft Learn, 'Configure Start VM on Connect' (Azure Virtual Desktop)",
+        "checkedAt": "2026-11-17",
+        "url": "https://learn.microsoft.com/azure/virtual-desktop/start-virtual-machine-connect",
+        "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: assign the 'Desktop Virtualization Power On Contributor' role to the Azure Virtual Desktop service principal (or a managed identity assigned to the host pool) 'at the appropriate scope containing the host pool and session host VMs'; lower scopes are fine 'as long as the assignment scope contains the target session host VMs'; for personal host pools it 'only powers on an existing session host VM that is already assigned'; connecting directly to a VM by IP or name does not start it. The connection error text users see in a personal pool and the activity-log wording are from memory (to verify)."
+      }
+    }
+  },
+  "endings": {
+    "overPrivileged": {
+      "label": "Service principal over-privileged",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and harmed",
+      "narrative": "Contributor on the subscription let AVD start the VMs and gave it write access to everything."
+    },
+    "reviewWithout": {
+      "label": "Review without desktops",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(missAt)",
+      "narrative": "At 08:30 AVD still could not start VMs in the new resource group."
+    },
+    "starting": {
+      "label": "Role on the new scope, move checklist updated",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(activityAt) and not isNull(rbacAt) and not isNull(verifiedAt) and causeDoc == \"scope\"",
+      "narrative": "AVD can start the desktops in their new resource group, and the next move will carry the assignment."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Desktops start, but the code, the runbook, the check or the record was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "overPrivileged",
+    "reviewWithout",
+    "starting",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Read the failed start and the role assignment scope",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(activityAt) and not isNull(rbacAt)",
+            "score": "met",
+            "why": "The key evidence, read before changing anything."
+          },
+          {
+            "when": "not isNull(activityAt) or not isNull(rbacAt) or not isNull(hostpoolAt) or not isNull(vmstateAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Desktops start by 08:30 with the documented role only",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and not harmed and isNull(missAt)",
+            "score": "met",
+            "why": "The right change, in time, without harm."
+          },
+          {
+            "when": "fixed or harmed",
+            "score": "partial",
+            "why": "{harmed ? \"The AVD service principal got Contributor on the whole subscription.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never removed."
+          }
+        ]
+      },
+      {
+        "id": "lasting",
+        "label": "Assignment in code, move runbook fixed, connection checked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The lasting step taken and the result checked."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"scope\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record names the wrong cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes that caused harm",
+        "value": "harmed ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "07:40-07:44",
+        "text": "Failed start/action with AuthorizationFailed; Power On role only on the old resource group; feature on; all VMs deallocated."
+      },
+      {
+        "at": "07:44-07:48",
+        "text": "Assign the role on rg-avd-eng-vms; code and runbook updated."
+      },
+      {
+        "at": "07:48-07:50",
+        "text": "An engineer connects; the VM starts."
+      }
+    ],
+    "debrief": {
+      "overPrivileged": {
+        "headline": "The right role at the right scope",
+        "body": "Start VM on Connect needs Desktop Virtualization Power On Contributor at a scope that contains the session hosts. A broader role works too, and breaks least privilege."
+      },
+      "reviewWithout": {
+        "headline": "A role assignment does not follow a move",
+        "body": "A role assigned on a resource group covers what is in it. Move the VMs and the assignment no longer contains them."
+      },
+      "starting": {
+        "headline": "Good: least privilege, right scope",
+        "body": "You read the failed start in the activity log, found the assignment on the old scope, assigned the documented role on the new one, checked a real connection, and fixed the move process."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the evidence before the change, the lasting step, the check, or the cause in the record."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "AVD tried to start the desktops and was refused authorization. Its Power On role is assigned on the resource group the VMs left yesterday, so the scope no longer contains them. Assign Desktop Virtualization Power On Contributor on the new resource group, check a real connection, and make role assignments part of moves. Contributor on the subscription is far more than the feature needs; toggling the feature changes nothing."
+  }
+}

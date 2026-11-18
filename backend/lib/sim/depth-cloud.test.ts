@@ -424,4 +424,21 @@ describe("what each new depth cloud case teaches (REQ-335)", () => {
     assert.equal(ok.value("missAt"), null);
     assert.equal(ok.value("okAt") !== null, true);
   });
+  test("AZ140 start-vm-on-connect-after-rg-move: Contributor on the subscription over-privileges AVD; toggling the feature changes nothing; the Power On role on the new scope starts the desktops", () => {
+    const d = docOf("start-vm-on-connect-after-rg-move");
+    const h = driver(d);
+    h.act("contrib");
+    assert.equal(h.value("harmed"), true, "contrib causes harm");
+    until(h, 51);
+    assert.notEqual(h.value("missAt"), null);
+    const n = driver(d);
+    n.act("toggle");
+    until(n, 51);
+    assert.notEqual(n.value("missAt"), null, "toggle changes nothing");
+    const ok = driver(d);
+    ok.act("assign");
+    until(ok, 51);
+    assert.equal(ok.value("missAt"), null);
+    assert.equal(ok.value("okAt") !== null, true);
+  });
 });

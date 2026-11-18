@@ -561,6 +561,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   band("AZ120", "stale-udr-to-retired-nva-az120"),
   band("AZ120", "backup-vault-sabotage-az120"),
   entry("AZ140", "tls-inspection-breaks-session-hosts"),
+  entry("AZ140", "start-vm-on-connect-after-rg-move"),
   // ---- end REQ-335 ----
   // ---- REQ-323 (docs/sims.md 22.32): health breadth and nursing depth of the
   // 2026-11-17 round. Bands first, then new cases. Keep these together. ----
