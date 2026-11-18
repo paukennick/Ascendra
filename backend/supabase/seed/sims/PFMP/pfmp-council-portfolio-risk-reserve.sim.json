@@ -1,0 +1,1093 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pfmp-council-portfolio-risk-reserve",
+  "title": "A city's capital portfolio: dependencies between projects, a portfolio risk register and a management reserve sized to exposure",
+  "screen": {
+    "type": "governance-board",
+    "level": 1,
+    "governance": {
+      "risks": [
+        {
+          "id": "rDep",
+          "label": "Cross-project dependency cascade",
+          "spokenLabel": "Cross-project dependency cascade",
+          "owner": "\"Portfolio manager\"",
+          "rating": "dep == \"depRisk\" ? \"low\" : dep == \"tellPms\" ? \"medium\" : dep == \"projectOnly\" ? \"critical\" : p >= 1 ? \"high\" : \"medium\"",
+          "appetite": "dep == \"depRisk\" ? \"within\" : dep == \"tellPms\" ? \"within\" : dep == \"projectOnly\" ? \"above\" : p >= 1 ? \"above\" : \"within\"",
+          "status": "{dep == \"depRisk\" ? \"Dependency risk registered and monitored\" : dep == \"tellPms\" ? \"Informal coordination\" : dep == \"projectOnly\" ? \"Project registers only\" : \"Open\"}"
+        },
+        {
+          "id": "rReg",
+          "label": "Escalated risks not tracked",
+          "spokenLabel": "Escalated risks not tracked",
+          "owner": "\"Portfolio manager\"",
+          "rating": "reg == \"register\" ? \"low\" : reg == \"spreadsheet\" ? \"medium\" : reg == \"emails\" ? \"critical\" : p >= 2 ? \"high\" : \"medium\"",
+          "appetite": "reg == \"register\" ? \"within\" : reg == \"spreadsheet\" ? \"within\" : reg == \"emails\" ? \"above\" : p >= 2 ? \"above\" : \"within\"",
+          "status": "{reg == \"register\" ? \"Register tied to strategic goals\" : reg == \"spreadsheet\" ? \"Escalation list\" : reg == \"emails\" ? \"Escalations in email\" : \"Open\"}"
+        },
+        {
+          "id": "rRes",
+          "label": "No funding for portfolio risks",
+          "spokenLabel": "No funding for portfolio risks",
+          "owner": "\"Portfolio manager\"",
+          "rating": "res == \"reserve\" ? \"low\" : res == \"padEach\" ? \"medium\" : res == \"nothing\" ? \"critical\" : p >= 3 ? \"high\" : \"medium\"",
+          "appetite": "res == \"reserve\" ? \"within\" : res == \"padEach\" ? \"within\" : res == \"nothing\" ? \"above\" : p >= 3 ? \"above\" : \"within\"",
+          "status": "{res == \"reserve\" ? \"Reserve approved with release rules\" : res == \"padEach\" ? \"10% in every project\" : res == \"nothing\" ? \"No portfolio reserve\" : \"Open\"}"
+        }
+      ],
+      "stakeholders": [
+        {
+          "id": "sBoard",
+          "label": "Portfolio board chair",
+          "spokenLabel": "the board chair's support",
+          "value": "board",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sCfo",
+          "label": "CFO",
+          "spokenLabel": "the CFO's support",
+          "value": "cfo",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sPms",
+          "label": "Program and project managers",
+          "spokenLabel": "the managers' support",
+          "value": "pms",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "docket": [
+        {
+          "id": "dDep",
+          "kind": "Dependency risk",
+          "label": "Meeting 1: dependencies",
+          "status": "{dep == \"depRisk\" ? \"Dependency risk registered and monitored\" : dep == \"tellPms\" ? \"Informal coordination\" : dep == \"projectOnly\" ? \"Project registers only\" : \"Due\"}",
+          "when": "p >= 1",
+          "flag": "p >= 1 and dep == \"none\""
+        },
+        {
+          "id": "dReg",
+          "kind": "Risk register",
+          "label": "Meeting 2: register",
+          "status": "{reg == \"register\" ? \"Register tied to strategic goals\" : reg == \"spreadsheet\" ? \"Escalation list\" : reg == \"emails\" ? \"Escalations in email\" : \"Due\"}",
+          "when": "p >= 2",
+          "flag": "p >= 2 and reg == \"none\""
+        },
+        {
+          "id": "dRes",
+          "kind": "Management reserve",
+          "label": "Meeting 3: reserve",
+          "status": "{res == \"reserve\" ? \"Reserve approved with release rules\" : res == \"padEach\" ? \"10% in every project\" : res == \"nothing\" ? \"No portfolio reserve\" : \"Due\"}",
+          "when": "p >= 3",
+          "flag": "p >= 3 and res == \"none\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Meeting",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Recommending and obtaining approval for a portfolio management reserve based on aggregate risk exposure",
+  "secondaryObjectives": [
+    "Performing dependency analysis to identify and monitor risks across interdependent portfolio components",
+    "Maintaining a portfolio-level risk register tied to strategic goals and escalated component risks"
+  ],
+  "sources": [
+    {
+      "cite": "PMI, Portfolio Management Professional (PfMP) Examination Content Outline (PRA-206-2017, July 2017): Strategic Alignment 25%, Governance 20%, Portfolio Performance 25%, Portfolio Risk Management 15%, Communications Management 15%",
+      "checkedAt": "2026-11-17",
+      "url": "https://prothoughtssolutions.com/wp-content/uploads/2020/04/portfolio-management-professional-exam-outline.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch of a copy of PMI's PDF hosted by a training provider. Relevant text: Strategic Alignment Task 5 scenarios 'in order to evaluate and select viable options'; Task 6 'Recommend portfolio scenario(s) and related components, based on prioritization analysis/criteria'; Task 7 'Determine the impact to portfolio and portfolio components due to changes in strategic goals and objectives'; Portfolio Performance Task 6 'Balance portfolio and prioritize portfolio components, using established criteria and methods'; Task 7 'Analyze and optimize the consolidated allocation/reallocation of capacity'; Governance Task 5 'Make recommendations and obtain approval regarding portfolio decisions'. Whether PMI has a newer outline was not checked. The objective wording is the course seed's. Reused for REQ-336 from this course's pfmp-water-utility-rebalance (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the portfolio or program, the figures and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You manage the capital works portfolio of Eastmere City Council, a fictional council: 31 projects, 420 million dollars. Projects keep their own risk registers; there is no portfolio reserve.",
+    "handover": [
+      "Three transport projects share one contractor and one road closure permit.",
+      "Finance holds no portfolio-level reserve."
+    ],
+    "howItWorks": [
+      "The board shows the risk register against the appetite, each stakeholder's support in words and the docket.",
+      "Move on a fortnight at a time. A decision comes to you at each board meeting; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-03-15T09:00",
+    "tick": "1d",
+    "maxDuration": "168d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "board": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "cfo": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "pms": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "dep": {
+      "type": "enum",
+      "values": [
+        "none",
+        "depRisk",
+        "tellPms",
+        "projectOnly"
+      ],
+      "init": "none"
+    },
+    "depAt": {
+      "type": "time",
+      "init": null
+    },
+    "reg": {
+      "type": "enum",
+      "values": [
+        "none",
+        "register",
+        "spreadsheet",
+        "emails"
+      ],
+      "init": "none"
+    },
+    "regAt": {
+      "type": "time",
+      "init": null
+    },
+    "res": {
+      "type": "enum",
+      "values": [
+        "none",
+        "reserve",
+        "padEach",
+        "nothing"
+      ],
+      "init": "none"
+    },
+    "resAt": {
+      "type": "time",
+      "init": null
+    },
+    "depsAt": {
+      "type": "time",
+      "init": null
+    },
+    "exposureAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(board, cfo), pms)"
+    },
+    "missCount": {
+      "expr": "((dep == \"projectOnly\") ? 1 : 0) + ((reg == \"emails\") ? 1 : 0) + ((res == \"nothing\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(dep == \"none\" or (dep == \"projectOnly\") ? 1 : 0) + (reg == \"none\" or (reg == \"emails\") ? 1 : 0) + (res == \"none\" or (res == \"nothing\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Portfolio risk",
+      "clock": "turns",
+      "actions": [
+        "deps",
+        "exposure"
+      ]
+    },
+    "close": {
+      "label": "Board record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "deps": {
+      "label": "Map dependencies between components",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(depsAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "depsAt",
+          "to": "t"
+        },
+        {
+          "log": "Map dependencies between components.",
+          "kind": "act"
+        },
+        {
+          "finding": "The tram extension, the bridge repair and the bus depot share one contractor and one closure permit; a delay to one cascades to the others."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2d"
+        }
+      ]
+    },
+    "exposure": {
+      "label": "Aggregate component risk exposure",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(exposureAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "exposureAt",
+          "to": "t"
+        },
+        {
+          "log": "Aggregate component risk exposure.",
+          "kind": "act"
+        },
+        {
+          "finding": "Expected exposure across components is about 26 million dollars; the shared-contractor cascade adds about 9 million that no single project sees."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2d"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Record the board decisions",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "The dependency risk registered, a portfolio register tied to goals, and a 30 million dollar reserve approved with release rules"
+                },
+                {
+                  "value": "summary",
+                  "label": "Portfolio risks noted"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next board meeting",
+      "wait": {
+        "skipLabel": "Go to the next board meeting"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "dep == \"projectOnly\"",
+              "then": [
+                {
+                  "log": "Meeting 2: the bridge repair slips; the permit window moves and the tram and depot both lose their slots.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "reg == \"emails\"",
+              "then": [
+                {
+                  "log": "Meeting 3: an escalated flooding risk to the depot is lost in email; it materializes in the autumn storms.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "res == \"nothing\"",
+              "then": [
+                {
+                  "log": "Meeting 4: the storm damage hits two projects at once; with no reserve, the council pauses the tram extension mid-build.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "14d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The budget round closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "14d"
+        }
+      ]
+    },
+    {
+      "id": "t_dep",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Meeting 1: dependency risks.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "depPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_reg",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Meeting 2: the register.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "regPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_res",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Meeting 3: the budget round.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "resPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "depPrompt": {
+      "title": "Risks that no single project sees",
+      "context": "The shared contractor and permit link three projects.",
+      "choices": [
+        {
+          "id": "depRisk",
+          "label": "Register the shared-contractor and permit dependency as a portfolio risk with an owner, and monitor the three projects' milestones together",
+          "effects": [
+            {
+              "set": "dep",
+              "to": "\"depRisk\""
+            },
+            {
+              "set": "depAt",
+              "to": "t"
+            },
+            {
+              "add": "pms",
+              "by": "1"
+            },
+            {
+              "log": "A portfolio dependency risk is registered.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Dependency analysis finds risks that exist only between components."
+        },
+        {
+          "id": "tellPms",
+          "label": "Ask the three project managers to watch each other",
+          "effects": [
+            {
+              "set": "dep",
+              "to": "\"tellPms\""
+            },
+            {
+              "set": "depAt",
+              "to": "t"
+            },
+            {
+              "add": "pms",
+              "by": "-1"
+            },
+            {
+              "log": "They are asked to coordinate.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Nobody owns the cascade."
+        },
+        {
+          "id": "projectOnly",
+          "label": "Leave risk to the project registers",
+          "effects": [
+            {
+              "set": "dep",
+              "to": "\"projectOnly\""
+            },
+            {
+              "set": "depAt",
+              "to": "t"
+            },
+            {
+              "add": "pms",
+              "by": "-2"
+            },
+            {
+              "log": "Nothing changes.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The cascade isn't in any register."
+        }
+      ]
+    },
+    "regPrompt": {
+      "title": "A portfolio-level register",
+      "context": "Project risks above thresholds are escalated by email.",
+      "choices": [
+        {
+          "id": "register",
+          "label": "A portfolio risk register holding escalated component risks and portfolio risks, each linked to the strategic goal it threatens, reviewed at each board meeting",
+          "effects": [
+            {
+              "set": "reg",
+              "to": "\"register\""
+            },
+            {
+              "set": "regAt",
+              "to": "t"
+            },
+            {
+              "add": "board",
+              "by": "1"
+            },
+            {
+              "log": "The register links risks to goals.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A portfolio register shows which strategic goals are exposed."
+        },
+        {
+          "id": "spreadsheet",
+          "label": "Collect escalations in a spreadsheet",
+          "effects": [
+            {
+              "set": "reg",
+              "to": "\"spreadsheet\""
+            },
+            {
+              "set": "regAt",
+              "to": "t"
+            },
+            {
+              "add": "board",
+              "by": "-1"
+            },
+            {
+              "log": "A list of escalations.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "A list, but no link to goals or review cadence."
+        },
+        {
+          "id": "emails",
+          "label": "Keep escalations in email",
+          "effects": [
+            {
+              "set": "reg",
+              "to": "\"emails\""
+            },
+            {
+              "set": "regAt",
+              "to": "t"
+            },
+            {
+              "add": "board",
+              "by": "-2"
+            },
+            {
+              "log": "Nothing changes.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Escalated risks get lost."
+        }
+      ]
+    },
+    "resPrompt": {
+      "title": "No portfolio reserve",
+      "context": "Aggregate exposure is about 35 million dollars.",
+      "choices": [
+        {
+          "id": "reserve",
+          "label": "Recommend a 30 million dollar management reserve based on aggregate exposure and a Monte Carlo confidence of 80%, with release rules, for the board's approval",
+          "effects": [
+            {
+              "set": "res",
+              "to": "\"reserve\""
+            },
+            {
+              "set": "resAt",
+              "to": "t"
+            },
+            {
+              "add": "cfo",
+              "by": "1"
+            },
+            {
+              "log": "The board approves the reserve and its rules.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A portfolio reserve sized to aggregate exposure is cheaper than padding every project, and needs approval and rules."
+        },
+        {
+          "id": "padEach",
+          "label": "Ask each project to add 10% contingency",
+          "effects": [
+            {
+              "set": "res",
+              "to": "\"padEach\""
+            },
+            {
+              "set": "resAt",
+              "to": "t"
+            },
+            {
+              "add": "cfo",
+              "by": "-1"
+            },
+            {
+              "log": "Each project pads.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Padding everywhere costs more and is spent locally."
+        },
+        {
+          "id": "nothing",
+          "label": "No reserve: projects have their own contingencies",
+          "effects": [
+            {
+              "set": "res",
+              "to": "\"nothing\""
+            },
+            {
+              "set": "resAt",
+              "to": "t"
+            },
+            {
+              "add": "cfo",
+              "by": "-2"
+            },
+            {
+              "log": "No reserve.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The cascade and portfolio risks have no funding when they hit."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the portfolio risk note for the board: what links the projects, what the register shows, and why the reserve is the size it is.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Dependencies and register",
+          "criteria": "Shared contractor and permit as a portfolio risk; register tied to goals.",
+          "modelAnswer": "Three transport projects share a contractor and a permit; that dependency is a portfolio risk with an owner. The register links each risk to the goal it threatens."
+        },
+        {
+          "label": "Reserve",
+          "criteria": "About 35 million dollars of aggregate exposure; 30 million at 80% confidence with release rules.",
+          "modelAnswer": "Aggregate exposure is about 35 million dollars; you approved a 30 million reserve at 80% confidence, released by the board's rules."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "governance",
+    "thresholds": {
+      "aboveAppetite": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No risk above appetite at the close without a treatment."
+        }
+      },
+      "supportTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Each key stakeholder at 6 of 10 or more at the close."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (dep == \"tellPms\") and (reg == \"spreadsheet\") and (res == \"padEach\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "PMI, Portfolio Management Professional (PfMP) Examination Content Outline (PRA-206-2017, July 2017): Strategic Alignment 25%, Governance 20%, Portfolio Performance 25%, Portfolio Risk Management 15%, Communications Management 15%",
+        "checkedAt": "2026-11-17",
+        "url": "https://prothoughtssolutions.com/wp-content/uploads/2020/04/portfolio-management-professional-exam-outline.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch of a copy of PMI's PDF hosted by a training provider. Relevant text: Strategic Alignment Task 5 scenarios 'in order to evaluate and select viable options'; Task 6 'Recommend portfolio scenario(s) and related components, based on prioritization analysis/criteria'; Task 7 'Determine the impact to portfolio and portfolio components due to changes in strategic goals and objectives'; Portfolio Performance Task 6 'Balance portfolio and prioritize portfolio components, using established criteria and methods'; Task 7 'Analyze and optimize the consolidated allocation/reallocation of capacity'; Governance Task 5 'Make recommendations and obtain approval regarding portfolio decisions'. Whether PMI has a newer outline was not checked. The objective wording is the course seed's. Reused for REQ-336 from this course's pfmp-water-utility-rebalance (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "depHarm": {
+      "label": "A cascade nobody owned",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and dep == \"projectOnly\"",
+      "narrative": "The bridge slip cascaded through the shared permit to two more projects."
+    },
+    "regHarm": {
+      "label": "An escalated risk lost",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and reg == \"emails\"",
+      "narrative": "An escalated flooding risk was lost in email and materialized."
+    },
+    "resHarm": {
+      "label": "An unfunded hit",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and res == \"nothing\"",
+      "narrative": "Storm damage hit two projects; with no reserve, the tram extension paused mid-build."
+    },
+    "target": {
+      "label": "Portfolio risk managed at portfolio level",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (dep == \"depRisk\") and (reg == \"register\") and (res == \"reserve\") and record == \"honest\" and openCount <= aboveAppetite and minSupport >= supportTarget",
+      "narrative": "The council sees risks between projects and has a reserve to meet them."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "depHarm",
+    "regHarm",
+    "resHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "depCrit",
+        "label": "Identified and monitored cross-component dependency risks",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "dep == \"depRisk\"",
+            "score": "met",
+            "why": "Portfolio view."
+          },
+          {
+            "when": "dep == \"tellPms\"",
+            "score": "partial",
+            "why": "Unowned."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Unseen."
+          }
+        ]
+      },
+      {
+        "id": "regCrit",
+        "label": "Maintained a portfolio risk register tied to strategic goals",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "reg == \"register\"",
+            "score": "met",
+            "why": "Tied to strategy."
+          },
+          {
+            "when": "reg == \"spreadsheet\"",
+            "score": "partial",
+            "why": "Weak."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Lost risks."
+          }
+        ]
+      },
+      {
+        "id": "resCrit",
+        "label": "Recommended a management reserve sized to aggregate exposure and got approval",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "res == \"reserve\"",
+            "score": "met",
+            "why": "Sized and approved."
+          },
+          {
+            "when": "res == \"padEach\"",
+            "score": "partial",
+            "why": "Inefficient."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Unfunded."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(depsAt) and not isNull(exposureAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(depsAt) or not isNull(exposureAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 10)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Map dependencies and aggregate exposure first."
+      },
+      {
+        "at": "Meeting 1",
+        "text": "Register the cross-component dependency as a portfolio risk."
+      },
+      {
+        "at": "Meeting 2",
+        "text": "Keep a portfolio register linked to strategic goals."
+      },
+      {
+        "at": "Meeting 3",
+        "text": "Recommend a reserve sized to aggregate exposure with release rules."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "depHarm": {
+        "headline": "Analyze dependencies",
+        "body": "Portfolio risks live between components."
+      },
+      "regHarm": {
+        "headline": "Keep a portfolio register",
+        "body": "Track escalated and portfolio risks against goals."
+      },
+      "resHarm": {
+        "headline": "Reserve for aggregate exposure",
+        "body": "Size a management reserve from aggregate risk and get it approved."
+      },
+      "target": {
+        "headline": "Good: portfolio risk managed at portfolio level",
+        "body": "Dependencies analyzed, a register tied to strategy, and a reserve sized to exposure."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Portfolio risk management looks between components: dependency analysis finds cascades no project register shows. A portfolio register holds escalated and portfolio risks tied to strategic goals. A management reserve sized to aggregate exposure, approved with release rules, covers portfolio risks more efficiently than padding each project."
+  }
+}
