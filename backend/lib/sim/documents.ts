@@ -672,6 +672,16 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NREMTEMR", "emr-line-down-on-the-car"),
   entry("NREMTEMR", "emr-finish-line-confused-runner"),
   entry("NREMTEMR", "emr-head-cut-wants-to-drive-home"),
+  entry("NREMTAEMT", "aemt-chest-pressure-pill-last-night"),
+  entry("NREMTEMT", "emt-low-sugar-now-says-no"),
+  entry("NREMTAEMT", "aemt-copd-tripod-cpap"),
+  entry("NREMTEMT", "emt-head-bump-on-a-blood-thinner"),
+  entry("NREMTAEMT", "aemt-belly-pain-fainted-in-bathroom"),
+  entry("NREMTPARAMEDIC", "medic-racing-heart-pressure-falling"),
+  entry("NREMTPARAMEDIC", "medic-assisted-living-fever-confused"),
+  entry("NREMTPARAMEDIC", "medic-polst-selective-daughter-wants-everything"),
+  entry("NREMTPARAMEDIC", "medic-chest-stab-pulse-lost"),
+  entry("NASMCPT", "cpt-twenty-four-weeks-leaking-fluid"),
   // ---- end REQ-338 ----
 ];
 

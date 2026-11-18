@@ -1,0 +1,1065 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "emr-head-cut-wants-to-drive-home",
+  "title": "A head cut and car keys",
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "Pulse",
+          "spokenLabel": "Pulse, last measured",
+          "value": "vHr",
+          "unit": "/min",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              100,
+              120
+            ]
+          },
+          "colour": "ecg",
+          "hiddenUntil": "vAt > 0"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure, last measured",
+          "value": [
+            "vSbp",
+            "vDbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "high": 180
+          },
+          "announce": {
+            "bands": [
+              160,
+              180
+            ]
+          },
+          "colour": "art",
+          "hiddenUntil": "vAt > 0"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate, last measured",
+          "value": "vRr",
+          "unit": "/min",
+          "announce": {
+            "bands": [
+              10,
+              8
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "vAt > 0"
+        }
+      ],
+      "infusions": "Where he is: {gone ? \"driving away\" : isNull(drowsyAt) ? \"standing by his car, keys in hand\" : \"on the ground\"}. Law enforcement: {isNull(policeAt) ? \"not requested\" : isNull(policeHere) ? \"on the way\" : \"here\"}. Position: {isNull(sideAt) ? \"as found\" : \"on his side\"}.",
+      "banner": [
+        {
+          "when": "isNull(drowsyAt) and not gone",
+          "text": "Mike, about 40, blood down his face, keeps asking what happened; he says he's fine and wants to drive home."
+        },
+        {
+          "when": "not isNull(drowsyAt) and isNull(ambAt)",
+          "text": "He has slid down against the car, eyes closing, snoring."
+        },
+        {
+          "when": "not isNull(ambAt)",
+          "text": "The ambulance crew is here."
+        }
+      ]
+    }
+  },
+  "objective": "Apply implied consent for a patient who cannot consent, and recognize when a patient lacks the capacity to refuse",
+  "secondaryObjectives": [
+    "Open the airway with head tilt-chin lift or jaw thrust and insert an oral airway in an unresponsive patient with no gag reflex",
+    "Control life-threatening external bleeding with direct pressure, a tourniquet or wound packing",
+    "Hand over care to the transporting crew with a concise report"
+  ],
+  "sources": [
+    {
+      "cite": "National Registry of EMTs. EMR examination test plan",
+      "checkedAt": "2026-11-09",
+      "url": "https://nremt.org/getmedia/4657d30a-a955-43af-aa8f-a92388f0d9f4/EMR-Test-Plan_Public",
+      "note": "Relayed from the course seed (backend/supabase/seed/tracks/ems.ts and labs/ems-sources.ts, read in NREMT's own documents 2026-11-09); not re-read for this case. Operations: consent, refusal and capacity; Primary Assessment: airway in a patient with a falling level of consciousness."
+    },
+    {
+      "cite": "NASEMSO. National Model EMS Clinical Guidelines, Version 3.0 (March 2022): Patient Refusals",
+      "checkedAt": "2026-11-17",
+      "url": "https://nasemso.org/?p=223",
+      "note": "Read 2026-11-17 in the full text Iowa HHS hosts (https://hhs.iowa.gov/media/198/download) through summarizing fetches with quotes; NASEMSO's own page, read the same day, still presents Version 3 (2022) as current and names no later version. Capacity: 'alert, oriented, and can understand the circumstances surrounding his/her illness or impairment', judgment not significantly impaired by illness, injury or intoxication; a patient without capacity 'should not be allowed to refuse care against medical advice or to be released at the scene'; explain 'the possible risks and overall concerns'; doubts about capacity: contact medical direction; document the plan, who will be with the patient, and the patient's own words; tell them they may call again."
+    },
+    {
+      "cite": "NASEMSO. National Model EMS Clinical Guidelines, Version 3.0 (March 2022): Head Injury",
+      "checkedAt": "2026-11-17",
+      "url": "https://nasemso.org/?p=223",
+      "note": "Read 2026-11-17 in the full text Iowa HHS hosts (https://hhs.iowa.gov/media/198/download) through summarizing fetches with quotes; NASEMSO's own page, read the same day, still presents Version 3 (2022) as current and names no later version. Avoid hypoxia (no SpO2 below 90%) and hypotension; trend GCS or AVPU and reassess with any change in mentation; preferential transport to the highest level of care in the trauma system for GCS 3-13."
+    },
+    {
+      "cite": "NHTSA. National EMS Scope of Practice Model 2019: Including Change Notices 1.0 and 2.0 (DOT HS 813 151, 2021-08-01)",
+      "checkedAt": "2026-11-17",
+      "url": "https://rosap.ntl.bts.gov/view/dot/56917",
+      "note": "Read 2026-11-17: the record page (title, report number, date; the change notices add intramuscular injection, vaccination in a public health emergency and nasal swab collection at EMT and above) and the PDF's skill tables through a summarizing fetch whose table columns were partly unclear, so placement was checked against the course's own reading (backend/supabase/seed/labs/ems-sources.ts, 2026-11-09) and REQ-241's reading (2026-11-11). EMR: oxygen, BVM, naloxone (intranasal or auto-injector), unit-dose hazmat antidote auto-injectors, tourniquet, wound packing, emergency moves, manual stabilization; no pulse oximetry, glucose monitoring or transport. EMT adds pulse oximetry, glucose monitoring, oral glucose, aspirin, the patient's own nitroglycerin, an inhaled bronchodilator, CPAP, the epinephrine auto-injector. AEMT adds IV and IO access, non-medicated IV fluids, supraglottic airways, waveform capnography, sublingual nitroglycerin and a limited list of IV and IM drugs (dextrose, naloxone). Paramedic adds 12-lead interpretation, manual defibrillation, synchronized cardioversion, transcutaneous pacing, needle chest decompression, intubation and medicated infusions. No newer model was found on 2026-11-17."
+    },
+    {
+      "cite": "Ascendra NREMT EMR course catalog (backend/supabase/seed/tracks/ems.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Ascendra teaching model (REQ-338, authored)",
+      "checkedAt": "2026-11-17",
+      "note": "That he decides to drive off about four minutes after you arrive unless you engage him, and that his level of consciousness falls about eight minutes in (as after a head injury with a bleed), are authored for the case. Simplified teaching model written for exam practice; not a validated physiological model."
+    }
+  ],
+  "brief": {
+    "situation": "01:30. You are an emergency medical responder on a fire department first-response unit, sent to a bar parking lot: a man fell and hit his head. Mike, about 40, is standing by his car with a bleeding forehead and his keys in his hand. He smells of beer. His friend says he went down hard on the curb about 15 minutes ago.",
+    "handover": [
+      "An ambulance is on the way, about 12 minutes out. Law enforcement can be requested by radio.",
+      "Within EMR scope: assessment by hand, bleeding control, airway positioning and adjuncts, and handover. You may not physically restrain him."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated seconds per real second. Pause any time.",
+      "Every assessment and treatment takes the time it would on a real call. Scene time and the drive run on the clock.",
+      "Partway through you are asked to explain your decisions in writing. The case ends when care is handed over, then a debrief scores what you did."
+    ]
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice; follow your local protocols and medical direction.",
+  "clock": {
+    "start": "01:30",
+    "tick": "1s",
+    "maxDuration": "40min",
+    "calendar": "clock"
+  },
+  "params": {
+    "leaveAt": {
+      "value": 240,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Unless someone keeps him talking and away from the car, he drives off about 4 minutes after you arrive. Authored for the case; real times vary."
+      }
+    },
+    "drowsyTime": {
+      "value": 480,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "His level of consciousness falls about 8 minutes after you arrive (authored). Authored for the case; real times vary."
+      }
+    },
+    "obstructGrace": {
+      "value": 90,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Snoring respirations become a blocked airway about 90 seconds later if nobody positions him. Authored for the case; real times vary."
+      }
+    },
+    "ambEta": {
+      "value": 720,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Ambulance 12 minutes out. Authored for the case; real times vary."
+      }
+    },
+    "policeEta": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A deputy about 5 minutes after the request. Authored for the case; real times vary."
+      }
+    },
+    "vitalsTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A set of vital signs by hand: about 1 minute. Authored for the case; real times vary."
+      }
+    }
+  },
+  "state": {
+    "capAt": {
+      "type": "time",
+      "init": null
+    },
+    "engageAt": {
+      "type": "time",
+      "init": null
+    },
+    "policeAt": {
+      "type": "time",
+      "init": null
+    },
+    "policeHere": {
+      "type": "time",
+      "init": null
+    },
+    "keysAt": {
+      "type": "time",
+      "init": null
+    },
+    "pressureAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstVAt": {
+      "type": "time",
+      "init": null
+    },
+    "drowsyAt": {
+      "type": "time",
+      "init": null
+    },
+    "sideAt": {
+      "type": "time",
+      "init": null
+    },
+    "jawAt": {
+      "type": "time",
+      "init": null
+    },
+    "ambAt": {
+      "type": "time",
+      "init": null
+    },
+    "handAt": {
+      "type": "time",
+      "init": null
+    },
+    "signAt": {
+      "type": "time",
+      "init": null
+    },
+    "restrainAt": {
+      "type": "time",
+      "init": null
+    },
+    "blockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "gone": {
+      "type": "bool",
+      "init": false
+    },
+    "vPending": {
+      "type": "bool",
+      "init": false
+    },
+    "fight": {
+      "type": "bool",
+      "init": false
+    },
+    "vAt": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000,
+      "unit": "s"
+    },
+    "vHr": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 220,
+      "unit": "/min"
+    },
+    "vSbp": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 250,
+      "unit": "mmHg"
+    },
+    "vDbp": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 200,
+      "unit": "mmHg"
+    },
+    "vRr": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 60,
+      "unit": "/min"
+    }
+  },
+  "derived": {
+    "rr": {
+      "expr": "isNull(drowsyAt) ? 16 : 10",
+      "unit": "/min",
+      "precision": 0
+    }
+  },
+  "processes": [],
+  "phases": {
+    "call": {
+      "label": "On scene",
+      "clock": "running",
+      "actions": [
+        "capacity",
+        "engage",
+        "police",
+        "keys",
+        "accept",
+        "restrain",
+        "pressure",
+        "vitals",
+        "side",
+        "jaw",
+        "report"
+      ]
+    }
+  },
+  "initialPhase": "call",
+  "actions": {
+    "capacity": {
+      "label": "Check whether he can decide: where he is, the date, what happened, and whether he understands the risk",
+      "group": "Assess",
+      "available": "isNull(capAt) and not gone",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(capAt)",
+          "then": [
+            {
+              "set": "capAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "He doesn't know the date, can't say how he got hurt, asks the same question twice and vomited once, his friend says. Head injury and alcohol: he cannot weigh the risk.",
+          "kind": "find"
+        }
+      ]
+    },
+    "engage": {
+      "label": "Keep him talking, away from the car: sit him on the curb with his friend",
+      "group": "Scene",
+      "available": "isNull(engageAt) and not gone",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(engageAt)",
+          "then": [
+            {
+              "set": "engageAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "He sits on the curb with his friend; he grumbles but stays.",
+          "kind": "good"
+        }
+      ]
+    },
+    "police": {
+      "label": "Radio for law enforcement: a confused injured man trying to drive",
+      "group": "Call",
+      "available": "isNull(policeAt)",
+      "why": "Already requested.",
+      "effects": [
+        {
+          "if": "isNull(policeAt)",
+          "then": [
+            {
+              "set": "policeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "schedule": "policeT",
+          "after": "policeEta"
+        },
+        {
+          "log": "A deputy is on the way.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "keys": {
+      "label": "Ask his friend to hold his keys",
+      "group": "Scene",
+      "available": "isNull(keysAt) and not gone",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(keysAt)",
+          "then": [
+            {
+              "set": "keysAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "His friend takes the keys.",
+          "kind": "good"
+        }
+      ]
+    },
+    "accept": {
+      "label": "He says he's fine: accept the refusal, have him sign and let him go",
+      "group": "Scene",
+      "available": "isNull(signAt) and not gone and isNull(drowsyAt)",
+      "why": "Not now.",
+      "effects": [
+        {
+          "if": "isNull(signAt)",
+          "then": [
+            {
+              "set": "signAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "gone",
+          "to": "true"
+        },
+        {
+          "log": "He scrawls a signature and drives off.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "restrain": {
+      "label": "Grab his arm and hold him down until the ambulance comes",
+      "group": "Scene",
+      "available": "isNull(restrainAt) and not gone and isNull(drowsyAt)",
+      "why": "Not now.",
+      "effects": [
+        {
+          "if": "isNull(restrainAt)",
+          "then": [
+            {
+              "set": "restrainAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "fight",
+          "to": "true"
+        },
+        {
+          "log": "He swings at you; you both go down on the asphalt.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "pressure": {
+      "label": "Direct pressure on the forehead cut with a dressing",
+      "group": "Treat",
+      "available": "isNull(pressureAt) and not gone",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(pressureAt)",
+          "then": [
+            {
+              "set": "pressureAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Dressing and pressure; the bleeding stops."
+        }
+      ]
+    },
+    "vitals": {
+      "label": "Pulse, blood pressure and breathing by hand",
+      "group": "Assess",
+      "available": "not vPending and not gone",
+      "why": "Not now.",
+      "effects": [
+        {
+          "set": "vPending",
+          "to": "true"
+        },
+        {
+          "schedule": "vitalsT",
+          "after": "vitalsTime"
+        },
+        {
+          "log": "Pulse, cuff, counting breaths."
+        }
+      ]
+    },
+    "side": {
+      "label": "Lay him on his side, head supported, and watch his breathing",
+      "group": "Airway",
+      "available": "not isNull(drowsyAt) and isNull(sideAt)",
+      "why": "Only if his consciousness falls.",
+      "effects": [
+        {
+          "if": "isNull(sideAt)",
+          "then": [
+            {
+              "set": "sideAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "On his side; the snoring eases.",
+          "kind": "good"
+        }
+      ]
+    },
+    "jaw": {
+      "label": "Jaw thrust to open his airway",
+      "group": "Airway",
+      "available": "not isNull(drowsyAt) and isNull(jawAt)",
+      "why": "Only if his consciousness falls.",
+      "effects": [
+        {
+          "if": "isNull(jawAt)",
+          "then": [
+            {
+              "set": "jawAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Jaw thrust; air moves freely.",
+          "kind": "good"
+        }
+      ]
+    },
+    "report": {
+      "label": "Hand over: fall and head strike, alcohol, confusion and repeated questions, vomiting, falling consciousness and the time, airway care, why the refusal was not accepted",
+      "group": "Handover",
+      "available": "not isNull(ambAt) and isNull(handAt) and not gone",
+      "why": "When the crew is here.",
+      "effects": [
+        {
+          "if": "isNull(handAt)",
+          "then": [
+            {
+              "set": "handAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Report given.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "ambT": {
+      "label": "the ambulance",
+      "wait": {
+        "skipLabel": "the ambulance (about 12 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 12 minutes. Authored for the case; real times vary."
+      },
+      "effects": [
+        {
+          "if": "isNull(ambAt)",
+          "then": [
+            {
+              "set": "ambAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "The ambulance crew arrives.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "policeT": {
+      "label": "the deputy",
+      "wait": {
+        "skipLabel": "the deputy"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 5 minutes. Authored for the case; real times vary."
+      },
+      "effects": [
+        {
+          "if": "isNull(policeHere)",
+          "then": [
+            {
+              "set": "policeHere",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "A deputy arrives and stays with you.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "vitalsT": {
+      "label": "vital signs",
+      "wait": {
+        "skipLabel": "the vital signs (about 1 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 1 minute. Authored for the case; real times vary."
+      },
+      "effects": [
+        {
+          "set": "vPending",
+          "to": "false"
+        },
+        {
+          "set": "vAt",
+          "to": "t"
+        },
+        {
+          "if": "isNull(firstVAt)",
+          "then": [
+            {
+              "set": "firstVAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "vHr",
+          "to": "isNull(drowsyAt) ? 92 : 58"
+        },
+        {
+          "set": "vSbp",
+          "to": "isNull(drowsyAt) ? 148 : 176"
+        },
+        {
+          "set": "vDbp",
+          "to": "isNull(drowsyAt) ? 90 : 96"
+        },
+        {
+          "set": "vRr",
+          "to": "rr"
+        },
+        {
+          "log": "Pulse {isNull(drowsyAt) ? 92 : 58}, BP {isNull(drowsyAt) ? \"148/90\" : \"176/96\"}, breathing {rr}.",
+          "kind": "find"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "amb",
+      "when": "t >= 1",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "ambT",
+          "after": "ambEta"
+        }
+      ]
+    },
+    {
+      "id": "leave",
+      "when": "t >= leaveAt and isNull(engageAt) and isNull(keysAt) and isNull(restrainAt) and not gone",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "gone",
+          "to": "true"
+        },
+        {
+          "log": "He gets in his car and drives off before anyone stops him.",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "drowsy",
+      "when": "t >= drowsyTime and isNull(drowsyAt) and not gone",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "isNull(drowsyAt)",
+          "then": [
+            {
+              "set": "drowsyAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "He slumps against the car, eyes closing; his breathing turns to snoring.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "blocked",
+      "when": "not isNull(drowsyAt) and isNull(sideAt) and isNull(jawAt) and isNull(blockedAt) and t >= timeAt(drowsyAt) + obstructGrace",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "isNull(blockedAt)",
+          "then": [
+            {
+              "set": "blockedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "The snoring stops: his chest heaves but little air moves.",
+          "kind": "alarm"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "why": {
+      "trigger": "not isNull(capAt) and t >= 300 and not gone",
+      "question": "He told you he was fine and wanted to go. Why did you not let him, and what are you allowed to do about it?",
+      "parts": [
+        {
+          "label": "Capacity",
+          "criteria": "A head injury with confusion, repeated questions and vomiting, plus alcohol, impairs judgment: he is not alert and oriented and cannot understand the risk, so he lacks capacity to refuse and his refusal is not accepted.",
+          "modelAnswer": "He doesn't know the date, keeps repeating himself and vomited after a head strike, and he has been drinking. He can't understand the risk, so he can't refuse."
+        },
+        {
+          "label": "What I can do",
+          "criteria": "Treat under implied consent for the emergency; keep him engaged and away from the car without restraining him alone; request law enforcement; the friend holds the keys; contact medical direction if in doubt; never let him drive.",
+          "modelAnswer": "Care under implied consent, keep him talking on the curb, his friend holds the keys, and a deputy for safety. I don't wrestle him."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "not isNull(handAt) and not isNull(blockedAt)",
+      "class": "harm",
+      "rationale": "His airway blocked while his consciousness fell and nobody positioned him.",
+      "source": {
+        "cite": "NASEMSO. National Model EMS Clinical Guidelines, Version 3.0 (March 2022): Head Injury",
+        "checkedAt": "2026-11-17",
+        "url": "https://nasemso.org/?p=223",
+        "note": "Read 2026-11-17 in the full text Iowa HHS hosts (https://hhs.iowa.gov/media/198/download) through summarizing fetches with quotes; NASEMSO's own page, read the same day, still presents Version 3 (2022) as current and names no later version. Avoid hypoxia (no SpO2 below 90%) and hypotension; trend GCS or AVPU and reassess with any change in mentation; preferential transport to the highest level of care in the trauma system for GCS 3-13."
+      }
+    }
+  },
+  "endings": {
+    "drove": {
+      "label": "He drove away",
+      "class": "harm",
+      "terminal": true,
+      "when": "gone",
+      "narrative": "{t|clock}: he drove off confused with a head injury. {isNull(signAt) ? \"No one stopped him.\" : \"You accepted a refusal he could not give.\"}"
+    },
+    "brawl": {
+      "label": "A struggle in the parking lot",
+      "class": "harm",
+      "terminal": true,
+      "when": "not isNull(handAt) and fight",
+      "narrative": "{timeAt(handAt)|clock}: the crew takes over a man you wrestled to the ground with a head injury; both of you have new scrapes."
+    },
+    "airway": {
+      "label": "His airway blocked",
+      "class": "harm",
+      "terminal": true,
+      "when": "not isNull(handAt) and not isNull(blockedAt)",
+      "narrative": "{timeAt(handAt)|clock}: his airway blocked when his consciousness fell, before anyone positioned him."
+    },
+    "kept": {
+      "label": "Kept safe and handed over",
+      "class": "target",
+      "terminal": true,
+      "when": "not isNull(handAt) and not fight and isNull(blockedAt) and not isNull(capAt) and timeAt(capAt) <= 180 and not isNull(engageAt) and timeAt(engageAt) <= 180 and not isNull(policeAt) and not isNull(pressureAt) and not isNull(sideAt) and timeAt(sideAt) - timeAt(drowsyAt) <= 60",
+      "narrative": "{timeAt(handAt)|clock}: he never reached his car, his airway stayed open when his consciousness fell, and the crew takes him with a clear report of why his refusal was not accepted."
+    },
+    "handed": {
+      "label": "Handed over, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not isNull(handAt)",
+      "narrative": "{timeAt(handAt)|clock}: he is with the crew, but {isNull(capAt) ? \"nobody checked whether he could decide\" : isNull(policeAt) ? \"there was no backup if he had tried to leave\" : isNull(pressureAt) ? \"the bleeding was never controlled\" : \"the airway care came late\"}."
+    },
+    "time_up": {
+      "label": "40 minutes",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "Forty minutes and no handover."
+    }
+  },
+  "endingOrder": [
+    "drove",
+    "brawl",
+    "airway",
+    "kept",
+    "handed"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "capacity",
+        "label": "Capacity checked and the refusal not accepted",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(signAt)",
+            "score": "missed",
+            "why": "Accepted a refusal from a man who could not give one."
+          },
+          {
+            "when": "not isNull(capAt) and timeAt(capAt) <= 180",
+            "score": "met",
+            "why": "Checked at {timeAt(capAt)|clock}."
+          },
+          {
+            "when": "not isNull(capAt)",
+            "score": "partial",
+            "why": "Checked late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "keep",
+        "label": "Kept him from driving without restraining him alone",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "gone or fight",
+            "score": "missed",
+            "why": "He drove off, or you wrestled him."
+          },
+          {
+            "when": "not isNull(engageAt) and timeAt(engageAt) <= 180 and not isNull(keysAt)",
+            "score": "met",
+            "why": "Engaged and the keys with his friend."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "He stayed, but engagement or the keys came late."
+          }
+        ]
+      },
+      {
+        "id": "airway",
+        "label": "Airway positioned within a minute of his consciousness falling",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(drowsyAt)",
+            "score": "na",
+            "why": "His consciousness did not fall while you had him."
+          },
+          {
+            "when": "not isNull(sideAt) and timeAt(sideAt) - timeAt(drowsyAt) <= 60 or not isNull(jawAt) and timeAt(jawAt) - timeAt(drowsyAt) <= 60",
+            "score": "met",
+            "why": "Positioned at once."
+          },
+          {
+            "when": "isNull(blockedAt)",
+            "score": "partial",
+            "why": "Positioned, late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "His airway blocked."
+          }
+        ]
+      },
+      {
+        "id": "police",
+        "label": "Law enforcement requested",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(policeAt)",
+            "score": "met",
+            "why": "Requested."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not requested."
+          }
+        ]
+      },
+      {
+        "id": "care",
+        "label": "Bleeding controlled and vital signs",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(pressureAt) and not isNull(firstVAt)",
+            "score": "met",
+            "why": "Both."
+          },
+          {
+            "when": "not isNull(pressureAt) or not isNull(firstVAt)",
+            "score": "partial",
+            "why": "One."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: capacity and implied consent",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toCap",
+        "label": "Arrival to the capacity check",
+        "value": "isNull(capAt) ? -1 : timeAt(capAt)",
+        "format": "duration",
+        "expert": "under 2 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "01:30",
+        "text": "Sit him on the curb with his friend, talking; the friend holds the keys; radio for a deputy."
+      },
+      {
+        "at": "01:31",
+        "text": "Capacity: not oriented, repeating himself, vomited, alcohol: he cannot refuse. Pressure on the cut, vital signs."
+      },
+      {
+        "at": "~01:38",
+        "text": "His consciousness falls and he snores: on his side, jaw thrust if needed, watch his breathing."
+      },
+      {
+        "at": "~01:42",
+        "text": "Hand over, including the time his consciousness fell and why his refusal was not accepted."
+      }
+    ],
+    "debrief": {
+      "kept": {
+        "headline": "Kept safe, under implied consent",
+        "body": "A head injury with confusion and alcohol takes away the capacity to refuse. You kept him calm and away from the car without a fight, and caught the airway when he faded."
+      },
+      "handed": {
+        "headline": "Handed over, with gaps",
+        "body": "Check the capacity check, the backup, the bleeding and how fast you positioned his airway."
+      },
+      "drove": {
+        "headline": "He couldn't refuse",
+        "body": "A refusal from a man who doesn't know the date after a head strike is not informed. Keep him talking, keys with his friend, and call law enforcement."
+      },
+      "brawl": {
+        "headline": "Don't wrestle him alone",
+        "body": "Physical restraint by a single responder hurts both of you. Engage, involve his friend and the deputy."
+      },
+      "airway": {
+        "headline": "Snoring is a blocked airway",
+        "body": "When his consciousness fell, the next step was his side or a jaw thrust within a minute."
+      },
+      "time_up": {
+        "headline": "No handover",
+        "body": "Forty minutes passed."
+      }
+    },
+    "modelReasoning": "After a head strike he is confused, repeating himself and has vomited, and he has been drinking: he is not alert and oriented and cannot understand the risk, so he lacks capacity and cannot refuse (NASEMSO: such a patient should not be released at the scene). Treat under implied consent: keep him engaged on the curb, his friend holds the keys, request law enforcement rather than restraining him alone, control the bleeding and take vital signs. When his consciousness falls, position the airway at once (side, jaw thrust) and hand over with the times and why the refusal was not accepted."
+  },
+  "chapters": [
+    {
+      "id": "faded",
+      "label": "His consciousness fell",
+      "when": "not isNull(drowsyAt)"
+    }
+  ],
+  "teaching": {
+    "cap": {
+      "during": "ambT",
+      "ask": "While you wait: which finding most clearly means he cannot refuse care?",
+      "choices": [
+        {
+          "id": "smell",
+          "label": "He smells of beer"
+        },
+        {
+          "id": "date",
+          "label": "He doesn't know the date and keeps repeating the same question after hitting his head"
+        },
+        {
+          "id": "angry",
+          "label": "He is angry with you"
+        }
+      ],
+      "expect": "date",
+      "explain": "NASEMSO: capacity means alert, oriented and able to understand the circumstances; judgment significantly impaired by injury or intoxication removes it. Disorientation and repeated questions after a head strike show that impairment; anger alone does not.",
+      "source": {
+        "cite": "NASEMSO. National Model EMS Clinical Guidelines, Version 3.0 (March 2022): Patient Refusals",
+        "checkedAt": "2026-11-17",
+        "url": "https://nasemso.org/?p=223",
+        "note": "Read 2026-11-17 in the full text Iowa HHS hosts (https://hhs.iowa.gov/media/198/download) through summarizing fetches with quotes; NASEMSO's own page, read the same day, still presents Version 3 (2022) as current and names no later version. Capacity: 'alert, oriented, and can understand the circumstances surrounding his/her illness or impairment', judgment not significantly impaired by illness, injury or intoxication; a patient without capacity 'should not be allowed to refuse care against medical advice or to be released at the scene'; explain 'the possible risks and overall concerns'; doubts about capacity: contact medical direction; document the plan, who will be with the patient, and the patient's own words; tell them they may call again."
+      }
+    }
+  }
+}
