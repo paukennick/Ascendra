@@ -78,6 +78,10 @@ export default function AppLayout() {
           ("settings/discount") until the screen set its own title. */}
       <Stack.Screen name="settings/discount" options={{ title: "Verified discount" }} />
       <Stack.Screen name="support" options={{ title: "Support" }} />
+      {/* REQ-331: reviewers' feedback form and their past feedback; the owner's list. */}
+      <Stack.Screen name="feedback/index" options={{ title: "Your feedback" }} />
+      <Stack.Screen name="feedback/edit" options={{ title: "Give feedback" }} />
+      <Stack.Screen name="settings/reviewer-feedback" options={{ title: "Reviewer feedback" }} />
       <Stack.Screen name="course/[trackId]/labs" options={{ title: "Labs" }} />
       <Stack.Screen name="course/[trackId]/lab/[labId]" options={{ title: "Lab" }} />
       <Stack.Screen name="course/[trackId]/sims" options={{ title: "Simulations" }} />

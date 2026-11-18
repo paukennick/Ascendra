@@ -13,7 +13,7 @@ export interface AuthUser {
   // REQ-093: documents whose current version this user still has to accept.
   legalPending?: ("terms" | "privacy")[];
   // REQ-144: owner or unrestricted access (src/lib/access.ts), null otherwise.
-  access?: { level: "owner" | "unrestricted"; grantedBy: string | null; expiresAt: string | null } | null;
+  access?: { level: "owner" | "unrestricted"; grantedBy: string | null; expiresAt: string | null; reviewer?: { since: string; areas: string[] } | null } | null;
   // REQ-201: present when the server limits AI to invited pilot accounts
   // (AI_ACCESS_MODE granted or paid); absent means full AI as before.
   ai?: { mode: "all" | "granted" | "paid"; full: boolean };

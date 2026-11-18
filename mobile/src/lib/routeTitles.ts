@@ -30,6 +30,10 @@ const ROUTES: [RegExp, string][] = [
   [/^\/settings\/free-course$/, "Your free course"],
   [/^\/settings\/access$/, "Access"],
   [/^\/settings\/discount$/, "Verified discount"],
+  // REQ-331: the owner's list of reviewer feedback, and the reviewer form.
+  [/^\/settings\/reviewer-feedback$/, "Reviewer feedback"],
+  [/^\/feedback$/, "Your feedback"],
+  [/^\/feedback\/edit$/, "Give feedback"],
   [/^\/plans$/, "Plans"],
   [/^\/support$/, "Support"],
   [/^\/release-notes$/, "Release notes"],

@@ -501,6 +501,20 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
              and exists(select 1 from pg_constraint where conname = 'mature_course_acknowledgements_scope_087') as ok`,
   },
   {
+    // REQ-331: accessFor (every gated request with billing on, /api/auth/me)
+    // reads the reviewer columns; the reviewer and owner routes read and write
+    // reviewer_feedback; marking writes the reviewer_on / reviewer_off events.
+    migration: "088_reviewers.sql",
+    what: "the reviewer mark on account_access (reviewer_at, reviewer_by, reviewer_areas, reviewer_note, reviewer_added_access), the reviewer_on/reviewer_off audit actions and reviewer_feedback (the reviewer form; in the account export)",
+    sql: `select to_regclass('public.reviewer_feedback') is not null
+             and exists(select 1 from pg_constraint where conname = 'account_access_reviewer_088')
+             and exists(select 1 from pg_constraint where conname = 'reviewer_feedback_fields_088')
+             and exists(select 1 from pg_constraint where conname = 'account_access_events_action_check'
+                         and pg_get_constraintdef(oid) like '%reviewer_off%')
+             and exists(select 1 from information_schema.columns
+                         where table_schema = 'public' and table_name = 'account_access' and column_name = 'reviewer_added_access') as ok`,
+  },
+  {
     // REQ-262: GET/PUT /api/account/teach-order and every lesson open read it.
     migration: "082_teach_order.sql",
     what: "learner_teach_order (the Explain first / Example first order: the random assignment, the learner's own choice; in the account export)",

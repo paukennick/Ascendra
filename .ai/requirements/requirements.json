@@ -12131,6 +12131,59 @@
         "The Play app signing SHA-256 must be added to backend/public/.well-known/assetlinks.json or autofill association works only for internal (EAS-signed) installs",
         "Release notes written after this merges must use appVersion 2.1.0 (release-notes.test.ts: never decreasing)"
       ]
+    },
+    {
+      "id": "REQ-331",
+      "category": "feature",
+      "title": "Reviewers: owner-marked reviewer accounts with full access and an in-app feedback form",
+      "description": "Nick 2026-11-17 17:52 PT: 'Build it into the app. I also want the ability to label a user as a reviewer giving them the access and features needed.' Clinician friends review the mental health courses and session sims; later reviewers may cover other areas. The owner marks or unmarks any address as a reviewer from Settings, Access (areas = course categories, a note, who and when recorded; migration 088 on account_access). A reviewer has a grant's access (every course, full AI within the global ceiling) and the reviewer feedback form (reviewer_feedback, 088): create, edit and list own; owners read all, filtered by reviewer and course. The 18+ gates still apply. Privacy Policy 2026-11-19 discloses it; export and deletion include it.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/088_reviewers.sql",
+        "backend/lib/reviewers.ts",
+        "backend/lib/reviewers-config.ts",
+        "backend/lib/account-access.ts",
+        "backend/lib/account-export.ts",
+        "backend/lib/schema-status.ts",
+        "backend/lib/legal.ts",
+        "backend/app/api/access/reviewers/",
+        "backend/app/api/access/reviewer-feedback/",
+        "backend/app/api/reviewer/feedback/",
+        "backend/app/delete-account/page.tsx",
+        "mobile/src/lib/reviewers.ts",
+        "mobile/src/lib/access.ts",
+        "mobile/src/components/GiveFeedback.tsx",
+        "mobile/app/(app)/feedback/",
+        "mobile/app/(app)/settings/reviewer-feedback.tsx",
+        "mobile/app/(app)/settings/access.tsx",
+        "mobile/app/(app)/settings.tsx",
+        "mobile/app/(app)/index.tsx",
+        "mobile/src/content/legal.ts",
+        "docs/legal/data-inventory.md",
+        "docs/operations-runbook.md",
+        "README.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "owner-only routes refuse non-owners with 403",
+        "a reviewer creates edits and lists only their own feedback",
+        "a non-reviewer is refused with 403",
+        "unmarking removes the form and the access marking created",
+        "the 18+ gate still applies to a reviewer",
+        "export and deletion include reviewer data",
+        "Privacy Policy discloses reviewer status and feedback"
+      ],
+      "validation_required": [
+        "backend lib tests",
+        "lib/reviewers.dbtest.ts on a throwaway Postgres",
+        "mobile tests and tsc",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": []
     }
   ]
 }

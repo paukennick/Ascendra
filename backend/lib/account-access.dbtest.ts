@@ -176,7 +176,7 @@ describe("owner from OWNER_EMAILS", () => {
 
   test("/api/auth/me says so; an ordinary learner's access is null", async () => {
     const me = await json(await call(authMeGet, "/api/auth/me", ownerId));
-    assert.deepEqual(me.user.access, { level: "owner", grantedBy: null, expiresAt: null });
+    assert.deepEqual(me.user.access, { level: "owner", grantedBy: null, expiresAt: null, reviewer: null }); // REQ-331: reviewer is null for an owner
     const other = await newUser();
     assert.equal((await json(await call(authMeGet, "/api/auth/me", other))).user.access, null);
   });
@@ -433,7 +433,7 @@ describe("granting (owner only)", () => {
 
     // The learner sees it as their plan, named by the giver.
     assert.deepEqual((await json(await call(authMeGet, "/api/auth/me", u))).user.access, {
-      level: "unrestricted", grantedBy: "Nick", expiresAt: "2099-12-31T23:59:59.999Z",
+      level: "unrestricted", grantedBy: "Nick", expiresAt: "2099-12-31T23:59:59.999Z", reviewer: null, // REQ-331: no reviewer mark
     });
     // A later email change does not take it away.
     await query(`update app_users set email = $2 where id = $1`, [u, `moved-${run}@example.test`]);
