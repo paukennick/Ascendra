@@ -1,0 +1,853 @@
+{
+  "slug": "blameless-retro-psychological-safety",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Review read and one-to-ones held; blameless rerun; safe retrospective; challenge welcomed; an honest record",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "email",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "oneToOnes",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 4,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 24,
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "choose",
+          "prompt": "blamePrompt",
+          "choice": "blameless",
+          "seq": 6,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 48,
+          "seq": 7,
+          "tick": 24
+        },
+        {
+          "type": "choose",
+          "prompt": "retroPrompt",
+          "choice": "dialogue",
+          "seq": 8,
+          "tick": 48
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 72,
+          "seq": 9,
+          "tick": 48
+        },
+        {
+          "type": "choose",
+          "prompt": "challengePrompt",
+          "choice": "welcome",
+          "seq": 10,
+          "tick": 72
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 96,
+          "seq": 11,
+          "tick": 72
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 96
+        }
+      ],
+      "expect": {
+        "ending": "target",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "blameCrit": "met",
+          "retroCrit": "met",
+          "challengeCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0,
+          "supK": 80
+        },
+        "stateHash": "84629020515479ae"
+      },
+      "reasoning": {
+        "reflection": "met"
+      }
+    },
+    {
+      "id": "partialBlame",
+      "title": "Partly right on the outage review, the rest on plan",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "email",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 24,
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "choose",
+          "prompt": "blamePrompt",
+          "choice": "privateTalk",
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 48,
+          "seq": 5,
+          "tick": 24
+        },
+        {
+          "type": "choose",
+          "prompt": "retroPrompt",
+          "choice": "dialogue",
+          "seq": 6,
+          "tick": 48
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 72,
+          "seq": 7,
+          "tick": 48
+        },
+        {
+          "type": "choose",
+          "prompt": "challengePrompt",
+          "choice": "welcome",
+          "seq": 8,
+          "tick": 72
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 96,
+          "seq": 9,
+          "tick": 72
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 10,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 11,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 12,
+          "tick": 96
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "blameCrit": "partial",
+          "retroCrit": "met",
+          "challengeCrit": "met",
+          "evidenceCrit": "partial",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0,
+          "supK": 55
+        },
+        "stateHash": "2245611ba1d39f64"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "partialChallenge",
+      "title": "Partly right on the challenge, and a one-line record",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 24,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "blamePrompt",
+          "choice": "blameless",
+          "seq": 2,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 2,
+          "to": 48,
+          "seq": 3,
+          "tick": 24
+        },
+        {
+          "type": "choose",
+          "prompt": "retroPrompt",
+          "choice": "dialogue",
+          "seq": 4,
+          "tick": 48
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 72,
+          "seq": 5,
+          "tick": 48
+        },
+        {
+          "type": "choose",
+          "prompt": "challengePrompt",
+          "choice": "thankPrivately",
+          "seq": 6,
+          "tick": 72
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 96,
+          "seq": 7,
+          "tick": 72
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 8,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "summary"
+          },
+          "seq": 9,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 10,
+          "tick": 96
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "blameCrit": "met",
+          "retroCrit": "met",
+          "challengeCrit": "partial",
+          "evidenceCrit": "missed",
+          "recordCrit": "missed"
+        },
+        "kpis": {
+          "missK": 0,
+          "supK": 55
+        },
+        "stateHash": "6795bef5d230695a"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "allPartial",
+      "title": "Every decision only partly right",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 24,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "blamePrompt",
+          "choice": "privateTalk",
+          "seq": 2,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 2,
+          "to": 48,
+          "seq": 3,
+          "tick": 24
+        },
+        {
+          "type": "choose",
+          "prompt": "retroPrompt",
+          "choice": "anonOnly",
+          "seq": 4,
+          "tick": 48
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 72,
+          "seq": 5,
+          "tick": 48
+        },
+        {
+          "type": "choose",
+          "prompt": "challengePrompt",
+          "choice": "thankPrivately",
+          "seq": 6,
+          "tick": 72
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 96,
+          "seq": 7,
+          "tick": 72
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 8,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 9,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 10,
+          "tick": 96
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "blameCrit": "partial",
+          "retroCrit": "partial",
+          "challengeCrit": "partial",
+          "evidenceCrit": "missed",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0,
+          "supK": 55
+        },
+        "stateHash": "2149a1995a70b013"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "badBlame",
+      "title": "The blaming review left standing",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "email",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "oneToOnes",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 4,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 24,
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "choose",
+          "prompt": "blamePrompt",
+          "choice": "moveOn",
+          "seq": 6,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 48,
+          "seq": 7,
+          "tick": 24
+        },
+        {
+          "type": "choose",
+          "prompt": "retroPrompt",
+          "choice": "dialogue",
+          "seq": 8,
+          "tick": 48
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 72,
+          "seq": 9,
+          "tick": 48
+        },
+        {
+          "type": "choose",
+          "prompt": "challengePrompt",
+          "choice": "welcome",
+          "seq": 10,
+          "tick": 72
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 96,
+          "seq": 11,
+          "tick": 72
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 96
+        }
+      ],
+      "expect": {
+        "ending": "blameHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "blameCrit": "missed",
+          "retroCrit": "met",
+          "challengeCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1,
+          "supK": 45
+        },
+        "stateHash": "8aed9431304c6e73"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    },
+    {
+      "id": "badRetro",
+      "title": "The manager ran the retrospective",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "email",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "oneToOnes",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 4,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 24,
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "choose",
+          "prompt": "blamePrompt",
+          "choice": "blameless",
+          "seq": 6,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 48,
+          "seq": 7,
+          "tick": 24
+        },
+        {
+          "type": "choose",
+          "prompt": "retroPrompt",
+          "choice": "managerRuns",
+          "seq": 8,
+          "tick": 48
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 72,
+          "seq": 9,
+          "tick": 48
+        },
+        {
+          "type": "choose",
+          "prompt": "challengePrompt",
+          "choice": "welcome",
+          "seq": 10,
+          "tick": 72
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 96,
+          "seq": 11,
+          "tick": 72
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 96
+        }
+      ],
+      "expect": {
+        "ending": "retroHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "blameCrit": "met",
+          "retroCrit": "missed",
+          "challengeCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1,
+          "supK": 45
+        },
+        "stateHash": "9e0d5e4f21816381"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    },
+    {
+      "id": "badChallenge",
+      "title": "The challenge dismissed",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "email",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "oneToOnes",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 4,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 24,
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "choose",
+          "prompt": "blamePrompt",
+          "choice": "blameless",
+          "seq": 6,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 48,
+          "seq": 7,
+          "tick": 24
+        },
+        {
+          "type": "choose",
+          "prompt": "retroPrompt",
+          "choice": "dialogue",
+          "seq": 8,
+          "tick": 48
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 72,
+          "seq": 9,
+          "tick": 48
+        },
+        {
+          "type": "choose",
+          "prompt": "challengePrompt",
+          "choice": "dismiss",
+          "seq": 10,
+          "tick": 72
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 96,
+          "seq": 11,
+          "tick": 72
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 96
+        }
+      ],
+      "expect": {
+        "ending": "challengeHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "blameCrit": "met",
+          "retroCrit": "met",
+          "challengeCrit": "missed",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1,
+          "supK": 45
+        },
+        "stateHash": "ba1a013597e491d2"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    }
+  ]
+}
