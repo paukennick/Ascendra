@@ -1,0 +1,1036 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "thigh-pain-walking-breast-cancer-history",
+  "title": "Thigh pain with walking, and a cancer history",
+  "objective": "Integrating oncologic history, treatment phase and comorbidities into a movement-system diagnosis",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "Specialist certification examination outline: oncology (the certifying board's published outline page)",
+      "checkedAt": "2026-11-08",
+      "url": "https://specialization.apta.org/become-a-specialist/oncology/specialist-certification-examination-outline-oncology",
+      "note": "Relayed from the oncology specialty course seed (backend/supabase/seed/tracks/pt-abpts.ts, outline pages read 2026-10-08 and 2026-11-04, OUTLINE_CHECKED_AT 2026-11-08), not re-read: Evaluation, diagnosis and prognosis (14%) is a tested area. Scope only; no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra oncology specialty course catalog (backend/supabase/seed/tracks/pt-abpts.ts, track ABPTSONC)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Rizzo SE, et al.. Pathologic Fractures. StatPearls (updated 2023-05-22), StatPearls Publishing",
+      "checkedAt": "2026-11-04",
+      "note": "Relayed from the course seed (tag SP-PATHFX; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: a pathologic fracture occurs through bone weakened by disease such as metastasis; the course objective asks the therapist to integrate oncologic history, treatment phase and comorbidities into the movement-system diagnosis."
+    },
+    {
+      "cite": "Riccio AI, Wodajo FM, Malawer M. Metastatic Carcinoma of the Long Bones. Am Fam Physician 2007;76(10):1489-1494",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.aafp.org/pubs/afp/issues/2007/1115/p1489.html",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'Pain with weight-bearing activities can signal a potential for pathologic fracture, particularly in the lower extremities'; the Mirels score grades site, pain, lesion type and size (8 or more points toward prophylactic fixation); breast, prostate, lung, kidney and thyroid cancers account for about 80 percent of skeletal metastases; 'High-risk patients require immediate referral to an orthopedic surgeon'. The article does not address weight-bearing restrictions; protected weight bearing pending orthopedics is the clinic's policy in the case."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "13:00 in an outpatient clinic. You are the physical therapist. Mrs. Jensen, 64, was referred by her primary care provider for 'right hip osteoarthritis, strengthening'. She had breast cancer treated 5 years ago and is on hormonal therapy.",
+    "handover": [
+      "No imaging has been done. She has lost weight without trying.",
+      "Clinic policy: suspected bone metastasis or impending pathologic fracture: no loading, protected weight bearing on crutches, and a same-day call to the referring provider for imaging and orthopedic referral."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "13:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.008,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Weight bearing on a weakened femur risks a fracture. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.002,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It is protected on crutches. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of pathologic femur fracture. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The referring provider called within 5 minutes of the red flags (clinic policy: same day)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min to arrange imaging."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "hxAt": {
+      "type": "time",
+      "init": null
+    },
+    "hipAt": {
+      "type": "time",
+      "init": null
+    },
+    "gaitAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "hx",
+        "hip",
+        "gait"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "md",
+        "plan"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "met",
+        "oa",
+        "strain"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "pwbAt": {
+      "type": "time",
+      "init": null
+    },
+    "loadAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(80 + sin(t / 9) * 3)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "pain": {
+      "expr": "round(clamp(5 + 5 * max(0, prog - 0.4), 0, 10))",
+      "unit": "/10",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (not isNull(pwbAt) ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Mrs. Jensen, 64, referred for 'right hip osteoarthritis, strengthening'",
+        "presentation": "Right thigh pain for 6 weeks, worse with walking and at night; breast cancer treated 5 years ago. {not isNull(pwbAt) ? \"On crutches, partial weight bearing.\" : \"\"}"
+      },
+      "vitals": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "colour": "ecg",
+          "alarm": {
+            "high": 110
+          },
+          "announce": {
+            "bands": [
+              95,
+              110
+            ]
+          }
+        },
+        {
+          "id": "pain",
+          "label": "Pain",
+          "spokenLabel": "Pain, out of 10",
+          "value": "pain",
+          "unit": "/10",
+          "colour": "neutral",
+          "alarm": {
+            "high": 8
+          },
+          "announce": {
+            "bands": [
+              6,
+              8
+            ]
+          }
+        }
+      ],
+      "activity": "{not inClinic ? \"Gone for imaging.\" : (not isNull(loadAt) ? \"Doing step-ups and single-leg stance.\" : (not isNull(pwbAt) ? \"Seated with crutches.\" : \"Walking with a limp.\"))}",
+      "measures": [
+        {
+          "id": "hxResult",
+          "label": "History",
+          "result": "Mid-thigh pain with weight bearing, worse at night, not eased by rest; 5 kg weight loss; breast cancer 5 years ago, on hormonal therapy.",
+          "when": "not isNull(hxAt)",
+          "flag": "true"
+        },
+        {
+          "id": "hipResult",
+          "label": "Hip exam",
+          "result": "Hip motion nearly full and comfortable; tender mid-shaft femur.",
+          "when": "not isNull(hipAt)"
+        },
+        {
+          "id": "gaitResult",
+          "label": "Gait",
+          "result": "Antalgic gait, short stance on the right.",
+          "when": "not isNull(gaitAt)"
+        }
+      ],
+      "dosage": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "Protected weight bearing",
+            "when": "not isNull(pwbAt)"
+          },
+          {
+            "label": "Loading exercise done",
+            "when": "not isNull(loadAt)"
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleMet",
+          "label": "Weight-bearing and night pain with a cancer history",
+          "text": "Possible bone metastasis: no loading; protected weight bearing; urgent imaging and orthopedics.",
+          "met": "not isNull(hxAt) and isNull(callAt)"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "hx": {
+      "label": "History: pain pattern, night pain, weight loss, cancer history and treatment phase",
+      "group": "Examine",
+      "available": "not testPending and isNull(hxAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"hx\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "hip": {
+      "label": "Hip range of motion and palpation",
+      "group": "Examine",
+      "available": "not testPending and isNull(hipAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"hip\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "gait": {
+      "label": "Watch her walk",
+      "group": "Examine",
+      "available": "not testPending and isNull(gaitAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"gait\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "pwb": {
+      "label": "Crutches with protected weight bearing until imaging",
+      "group": "Treat",
+      "available": "isNull(pwbAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "pwbAt",
+          "to": "t"
+        },
+        {
+          "log": "Fitted with crutches, protected weight bearing on the right.",
+          "kind": "act"
+        }
+      ]
+    },
+    "load": {
+      "label": "Start the referred strengthening: step-ups and single-leg stance",
+      "group": "Treat",
+      "available": "isNull(loadAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "loadAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.5, 2)"
+        },
+        {
+          "log": "On the second step-up she cries out; the leg gives way.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "What is your movement-system diagnosis?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "met",
+              "label": "Not hip osteoarthritis: weight-bearing and night femoral pain with a breast cancer history and weight loss suggest bone metastasis with possible impending fracture"
+            },
+            {
+              "value": "oa",
+              "label": "Hip osteoarthritis, as referred"
+            },
+            {
+              "value": "strain",
+              "label": "A muscle strain"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"met\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"met\""
+                },
+                {
+                  "log": "Possible femoral metastasis.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"oa\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"oa\""
+                },
+                {
+                  "log": "Read as osteoarthritis.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"strain\""
+                },
+                {
+                  "log": "Read as strain.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Refer",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "md",
+              "label": "Call her provider today: mid-femoral weight-bearing and night pain, 5 kg loss, breast cancer history; protected weight bearing; ask for same-day imaging and orthopedic referral"
+            },
+            {
+              "value": "plan",
+              "label": "Write back that strengthening has begun"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"md\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"md\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "Her provider orders same-day femur radiographs; a lytic lesion leads to an urgent orthopedic referral.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"plan\""
+                },
+                {
+                  "log": "A letter goes to her provider.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Explain the plan to her and document",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "She understands why she is on crutches; findings documented.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Outpatient clinic",
+      "clock": "running",
+      "actions": [
+        "hx",
+        "hip",
+        "gait",
+        "pwb",
+        "load",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the test",
+      "wait": {
+        "skipLabel": "the test result"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each test or question takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"hx\"",
+              "then": [
+                {
+                  "set": "hxAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Mid-thigh pain with weight bearing and at night, not eased by rest; 5 kg unintended weight loss; breast cancer treated 5 years ago, on hormonal therapy.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"hip\"",
+              "then": [
+                {
+                  "set": "hipAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Hip motion nearly full and comfortable, but the mid-shaft femur is tender to palpation: the pain isn't coming from the hip joint.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "gaitAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Antalgic gait with a short right stance.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "imaging",
+      "wait": {
+        "skipLabel": "imaging"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min to arrange imaging."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "She leaves for radiographs on crutches.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "Is this hip osteoarthritis?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "No: a comfortable hip with a tender mid-femur, weight-bearing and night pain, weight loss and a breast cancer history (one of the cancers that commonly spreads to bone) suggest metastasis with a risk of pathologic fracture.",
+          "modelAnswer": "No. Her hip moves fine but her femur's tender, the pain's with weight bearing and at night, she's lost weight, and breast cancer loves bone. This could be a metastasis."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Protected weight bearing on crutches, no loading, same-day call for imaging and orthopedics.",
+          "modelAnswer": "Crutches, no step-ups, and a same-day call for imaging and orthopedics."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "spo2Floor": {
+        "value": 88,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "escalateWindow": {
+        "value": 300,
+        "source": {
+          "cite": "Unit practice (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "The referring provider called within 5 minutes of the red flags (clinic policy: same day)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "A suspected metastatic femur loaded and unreferred an hour on is harm here.",
+      "source": {
+        "cite": "Riccio AI, Wodajo FM, Malawer M. Metastatic Carcinoma of the Long Bones. Am Fam Physician 2007;76(10):1489-1494",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.aafp.org/pubs/afp/issues/2007/1115/p1489.html",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'Pain with weight-bearing activities can signal a potential for pathologic fracture, particularly in the lower extremities'; the Mirels score grades site, pain, lesion type and size (8 or more points toward prophylactic fixation); breast, prostate, lung, kidney and thyroid cancers account for about 80 percent of skeletal metastases; 'High-risk patients require immediate referral to an orthopedic surgeon'. The article does not address weight-bearing restrictions; protected weight bearing pending orthopedics is the clinic's policy in the case."
+      }
+    }
+  },
+  "endings": {
+    "fracture": {
+      "label": "Pathologic femur fracture",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "Her femur fractures through a metastatic lesion; she needs emergency fixation."
+    },
+    "safe": {
+      "label": "Metastasis suspected, femur protected",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"md\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and (not isNull(hxAt)) and isNull(loadAt) and (not isNull(pwbAt))",
+      "narrative": "{timeAt(leftAt)|clock}: she goes for imaging on crutches."
+    },
+    "safeGaps": {
+      "label": "Referred, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: she is imaged, but late or after loading exercise."
+    },
+    "time_up": {
+      "label": "Undecided at 14:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "14:00 and no plan."
+    }
+  },
+  "endingOrder": [
+    "fracture",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "The referring provider called within 5 minutes of the history",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"md\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"md\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "hxC",
+        "label": "Integrated her cancer history and red-flag pain pattern",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(hxAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not taken."
+          }
+        ]
+      },
+      {
+        "id": "protectC",
+        "label": "Protected weight bearing, no loading exercise",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(loadAt)",
+            "score": "missed",
+            "why": "Loaded the femur."
+          },
+          {
+            "when": "not isNull(pwbAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not protected."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Examined the hip and gait",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(hipAt) and not isNull(gaitAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(hipAt) or not isNull(gaitAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Integrated the oncologic history into the diagnosis",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"met\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"oa\"",
+            "score": "missed",
+            "why": "The joint is comfortable; the femur is tender."
+          },
+          {
+            "when": "dxEnum == \"strain\"",
+            "score": "missed",
+            "why": "Night pain and weight loss are red flags."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Explained and documented",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: cancer history plus weight-bearing and night pain means possible metastasis; protect and refer",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Red flags to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "13:00 to protected weight bearing",
+        "value": "isNull(pwbAt) ? -1 : timeAt(pwbAt)",
+        "format": "duration",
+        "expert": "under 6 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "13:00",
+        "text": "History: weight-bearing and night pain, weight loss, breast cancer."
+      },
+      {
+        "at": "~13:02",
+        "text": "Crutches; protected weight bearing."
+      },
+      {
+        "at": "~13:03",
+        "text": "Call her provider for imaging."
+      },
+      {
+        "at": "~13:05",
+        "text": "Hip exam and gait; explain; document."
+      }
+    ],
+    "debrief": {
+      "fracture": {
+        "headline": "Pathologic femur fracture",
+        "body": "Pain with weight bearing and at night in someone with a cancer history is bone metastasis until proven otherwise: protect, don't load, image and refer."
+      },
+      "safe": {
+        "headline": "Metastasis suspected, femur protected",
+        "body": "You integrated her cancer history, looked past the referral, protected her and called within minutes. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Referred, with gaps",
+        "body": "Check whether you loaded the leg and how soon you called."
+      },
+      "time_up": {
+        "headline": "Undecided at 14:00",
+        "body": "Decide the same visit."
+      }
+    },
+    "modelReasoning": "Integrate oncologic history, treatment phase and comorbidities into the movement-system diagnosis. Breast, prostate, lung, kidney and thyroid cancers account for most skeletal metastases, and pain with weight bearing can signal impending pathologic fracture. Mrs. Jensen's femoral, weight-bearing and night pain with weight loss is not hip osteoarthritis: protect the limb, avoid loading, and get same-day imaging and orthopedic referral."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "fxQ": {
+      "during": "testT",
+      "ask": "While you examine: what pain pattern signals impending pathologic fracture?",
+      "choices": [
+        {
+          "id": "wb",
+          "label": "Pain with weight-bearing activity, especially in the legs"
+        },
+        {
+          "id": "morning",
+          "label": "Morning stiffness that eases"
+        },
+        {
+          "id": "none",
+          "label": "No pain pattern matters"
+        }
+      ],
+      "expect": "wb",
+      "explain": "Pain with weight-bearing activities can signal a potential for pathologic fracture, particularly in the lower extremities.",
+      "source": {
+        "cite": "Riccio AI, Wodajo FM, Malawer M. Metastatic Carcinoma of the Long Bones. Am Fam Physician 2007;76(10):1489-1494",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.aafp.org/pubs/afp/issues/2007/1115/p1489.html",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'Pain with weight-bearing activities can signal a potential for pathologic fracture, particularly in the lower extremities'; the Mirels score grades site, pain, lesion type and size (8 or more points toward prophylactic fixation); breast, prostate, lung, kidney and thyroid cancers account for about 80 percent of skeletal metastases; 'High-risk patients require immediate referral to an orthopedic surgeon'. The article does not address weight-bearing restrictions; protected weight bearing pending orthopedics is the clinic's policy in the case."
+      }
+    },
+    "primQ": {
+      "during": "leaveT",
+      "ask": "While she goes: which cancers most often spread to bone?",
+      "choices": [
+        {
+          "id": "five",
+          "label": "Breast, prostate, lung, kidney, thyroid"
+        },
+        {
+          "id": "skin",
+          "label": "Skin cancers"
+        },
+        {
+          "id": "none",
+          "label": "Any cancer equally"
+        }
+      ],
+      "expect": "five",
+      "explain": "Five carcinomas account for about 80 percent of skeletal metastases: breast, prostate, lung, kidney and thyroid.",
+      "source": {
+        "cite": "Riccio AI, Wodajo FM, Malawer M. Metastatic Carcinoma of the Long Bones. Am Fam Physician 2007;76(10):1489-1494",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.aafp.org/pubs/afp/issues/2007/1115/p1489.html",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'Pain with weight-bearing activities can signal a potential for pathologic fracture, particularly in the lower extremities'; the Mirels score grades site, pain, lesion type and size (8 or more points toward prophylactic fixation); breast, prostate, lung, kidney and thyroid cancers account for about 80 percent of skeletal metastases; 'High-risk patients require immediate referral to an orthopedic surgeon'. The article does not address weight-bearing restrictions; protected weight bearing pending orthopedics is the clinic's policy in the case."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}
