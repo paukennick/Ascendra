@@ -1,0 +1,1093 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pgmp-benefits-sustainment-transition",
+  "title": "Benefits that last: synergies between projects, a sustainment plan and the hand-over to operations",
+  "screen": {
+    "type": "governance-board",
+    "level": 1,
+    "governance": {
+      "risks": [
+        {
+          "id": "rSyn",
+          "label": "Duplicated components",
+          "spokenLabel": "Duplicated components",
+          "owner": "\"Program manager\"",
+          "rating": "syn == \"merge\" ? \"low\" : syn == \"later\" ? \"medium\" : syn == \"cut\" ? \"critical\" : p >= 1 ? \"high\" : \"medium\"",
+          "appetite": "syn == \"merge\" ? \"within\" : syn == \"later\" ? \"within\" : syn == \"cut\" ? \"above\" : p >= 1 ? \"above\" : \"within\"",
+          "status": "{syn == \"merge\" ? \"One payment module; plan updated\" : syn == \"later\" ? \"Both kept, noted\" : syn == \"cut\" ? \"Portal payments removed\" : \"Open\"}"
+        },
+        {
+          "id": "rSus",
+          "label": "Benefits decay after closure",
+          "spokenLabel": "Benefits decay after closure",
+          "owner": "\"Program manager\"",
+          "rating": "sus == \"plan\" ? \"low\" : sus == \"doc\" ? \"medium\" : sus == \"nothing\" ? \"critical\" : p >= 2 ? \"high\" : \"medium\"",
+          "appetite": "sus == \"plan\" ? \"within\" : sus == \"doc\" ? \"within\" : sus == \"nothing\" ? \"above\" : p >= 2 ? \"above\" : \"within\"",
+          "status": "{sus == \"plan\" ? \"Sustainment plan with owner, metric and funding\" : sus == \"doc\" ? \"Documentation only\" : sus == \"nothing\" ? \"No sustainment plan\" : \"Open\"}"
+        },
+        {
+          "id": "rTrans",
+          "label": "No clean transition",
+          "spokenLabel": "No clean transition",
+          "owner": "\"Program board\"",
+          "rating": "trans == \"transition\" ? \"low\" : trans == \"declare\" ? \"medium\" : trans == \"extend\" ? \"critical\" : p >= 3 ? \"high\" : \"medium\"",
+          "appetite": "trans == \"transition\" ? \"within\" : trans == \"declare\" ? \"within\" : trans == \"extend\" ? \"above\" : p >= 3 ? \"above\" : \"within\"",
+          "status": "{trans == \"transition\" ? \"Transitioned with the register and the gap\" : trans == \"declare\" ? \"Reported as on track\" : trans == \"extend\" ? \"Program kept open\" : \"Open\"}"
+        }
+      ],
+      "stakeholders": [
+        {
+          "id": "sSpon",
+          "label": "Program sponsor",
+          "spokenLabel": "the sponsor's support",
+          "value": "spon",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sOps",
+          "label": "Operations director",
+          "spokenLabel": "the operations director's support",
+          "value": "ops",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sPms",
+          "label": "Project managers",
+          "spokenLabel": "the project managers' support",
+          "value": "pms",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "docket": [
+        {
+          "id": "dSyn",
+          "kind": "Synergy",
+          "label": "Meeting 1: payment modules",
+          "status": "{syn == \"merge\" ? \"One payment module; plan updated\" : syn == \"later\" ? \"Both kept, noted\" : syn == \"cut\" ? \"Portal payments removed\" : \"Due\"}",
+          "when": "p >= 1",
+          "flag": "p >= 1 and syn == \"none\""
+        },
+        {
+          "id": "dSus",
+          "kind": "Sustainment",
+          "label": "Meeting 2: sustainment",
+          "status": "{sus == \"plan\" ? \"Sustainment plan with owner, metric and funding\" : sus == \"doc\" ? \"Documentation only\" : sus == \"nothing\" ? \"No sustainment plan\" : \"Due\"}",
+          "when": "p >= 2",
+          "flag": "p >= 2 and sus == \"none\""
+        },
+        {
+          "id": "dTrans",
+          "kind": "Transition",
+          "label": "Meeting 3: closure",
+          "status": "{trans == \"transition\" ? \"Transitioned with the register and the gap\" : trans == \"declare\" ? \"Reported as on track\" : trans == \"extend\" ? \"Program kept open\" : \"Due\"}",
+          "when": "p >= 3",
+          "flag": "p >= 3 and trans == \"none\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Meeting",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Building a sustainment plan (processes, metrics, tools) so benefits continue past program completion",
+  "secondaryObjectives": [
+    "Identifying synergies and efficiencies across the program life cycle and updating the benefits realization plan accordingly",
+    "Maintaining a benefits register and developing an operations transition plan to guarantee sustainment"
+  ],
+  "sources": [
+    {
+      "cite": "PMI, Program Management Professional (PgMP) Examination Content Outline: Strategic Program Alignment 15%, Program Life Cycle Management 44%, Benefits Management 11%, Stakeholder Engagement 16%, Governance 14%",
+      "checkedAt": "2026-11-17",
+      "url": "https://eartech.pmtraining.com/about/how-to-prepare-for-the-pgmp-certification-exam",
+      "note": "Read 2026-11-17. The domain weights were confirmed through a summarizing fetch of a training provider's article (eartech.pmtraining.com, 'How to Prepare for the PgMP Certification Exam'), which describes Program Life Cycle Management as 'initiating, planning, executing, controlling, and closing the program across its phases' and Governance as 'the boards, gates, and decision rights that let leadership steer and, when needed, stop a program'. PMI's own outline PDF did not come up in search and PMI's PgMP pages read today do not list the domains; the task wording is the course seed's, to verify against PMI's PDF. Reused for REQ-336 from this course's pgmp-transit-program-steering-review (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the portfolio or program, the figures and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are closing a self-service program at Fenmoor Water, a fictional water company: an app, a web portal and a new contact center platform. The program ends in two months; the benefit is a 30% cut in calls.",
+    "handover": [
+      "Calls are down 24% so far.",
+      "Operations will own the three products after closure."
+    ],
+    "howItWorks": [
+      "The board shows the risk register against the appetite, each stakeholder's support in words and the docket.",
+      "Move on a fortnight at a time. A decision comes to you at each board meeting; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-06-07T09:00",
+    "tick": "1d",
+    "maxDuration": "168d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "spon": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "ops": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "pms": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "syn": {
+      "type": "enum",
+      "values": [
+        "none",
+        "merge",
+        "later",
+        "cut"
+      ],
+      "init": "none"
+    },
+    "synAt": {
+      "type": "time",
+      "init": null
+    },
+    "sus": {
+      "type": "enum",
+      "values": [
+        "none",
+        "plan",
+        "doc",
+        "nothing"
+      ],
+      "init": "none"
+    },
+    "susAt": {
+      "type": "time",
+      "init": null
+    },
+    "trans": {
+      "type": "enum",
+      "values": [
+        "none",
+        "transition",
+        "declare",
+        "extend"
+      ],
+      "init": "none"
+    },
+    "transAt": {
+      "type": "time",
+      "init": null
+    },
+    "benAt": {
+      "type": "time",
+      "init": null
+    },
+    "opsAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(spon, ops), pms)"
+    },
+    "missCount": {
+      "expr": "((syn == \"cut\") ? 1 : 0) + ((sus == \"nothing\") ? 1 : 0) + ((trans == \"extend\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(syn == \"none\" or (syn == \"cut\") ? 1 : 0) + (sus == \"none\" or (sus == \"nothing\") ? 1 : 0) + (trans == \"none\" or (trans == \"extend\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Benefits transition",
+      "clock": "turns",
+      "actions": [
+        "ben",
+        "ops"
+      ]
+    },
+    "close": {
+      "label": "Board record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "ben": {
+      "label": "Read the benefits register",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(benAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "benAt",
+          "to": "t"
+        },
+        {
+          "log": "Read the benefits register.",
+          "kind": "act"
+        },
+        {
+          "finding": "Calls down 24%; the app and portal each built their own payment module; nobody owns the call-deflection metric after closure."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2d"
+        }
+      ]
+    },
+    "ops": {
+      "label": "Talk to the operations director",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(opsAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "opsAt",
+          "to": "t"
+        },
+        {
+          "log": "Talk to the operations director.",
+          "kind": "act"
+        },
+        {
+          "finding": "Operations has no budget line for content updates or the knowledge base that deflects calls."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2d"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Record the board decisions",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "One payment module with the saving recorded, a funded sustainment plan, and a transition with the 26% result and owned actions"
+                },
+                {
+                  "value": "summary",
+                  "label": "Program closed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next board meeting",
+      "wait": {
+        "skipLabel": "Go to the next board meeting"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "syn == \"cut\"",
+              "then": [
+                {
+                  "log": "Meeting 2: portal users can't pay online and phone in; calls rise 8%.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "sus == \"nothing\"",
+              "then": [
+                {
+                  "log": "Meeting 3 (six months on): the unmaintained knowledge base goes stale; calls climb back to 10% below baseline.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "trans == \"extend\"",
+              "then": [
+                {
+                  "log": "Meeting 4: the program runs four more months at 300 thousand dollars a month; calls reach 27%.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "14d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The program closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "14d"
+        }
+      ]
+    },
+    {
+      "id": "t_syn",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Meeting 1: the two payment modules.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "synPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_sus",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Meeting 2: sustainment.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "susPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_trans",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Meeting 3: closure.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "transPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "synPrompt": {
+      "title": "Duplicated work",
+      "context": "The app and portal each run a payment module.",
+      "choices": [
+        {
+          "id": "merge",
+          "label": "Consolidate onto one payment module, record the 400 thousand dollar annual saving as an efficiency benefit, and update the benefits realization plan",
+          "effects": [
+            {
+              "set": "syn",
+              "to": "\"merge\""
+            },
+            {
+              "set": "synAt",
+              "to": "t"
+            },
+            {
+              "add": "pms",
+              "by": "1"
+            },
+            {
+              "log": "One payment module; the plan is updated.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Synergies across components are benefits too; the plan records them."
+        },
+        {
+          "id": "later",
+          "label": "Leave both and note it for operations",
+          "effects": [
+            {
+              "set": "syn",
+              "to": "\"later\""
+            },
+            {
+              "set": "synAt",
+              "to": "t"
+            },
+            {
+              "add": "pms",
+              "by": "-1"
+            },
+            {
+              "log": "Both remain.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The saving is noted but not realized."
+        },
+        {
+          "id": "cut",
+          "label": "Delete the portal's payment module to save cost, without migrating users",
+          "effects": [
+            {
+              "set": "syn",
+              "to": "\"cut\""
+            },
+            {
+              "set": "synAt",
+              "to": "t"
+            },
+            {
+              "add": "pms",
+              "by": "-2"
+            },
+            {
+              "log": "The portal's module is removed.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Users lose a way to pay; calls go up."
+        }
+      ]
+    },
+    "susPrompt": {
+      "title": "After the program ends",
+      "context": "Nobody will own call deflection or fund the knowledge base.",
+      "choices": [
+        {
+          "id": "plan",
+          "label": "A sustainment plan: operations owns call deflection with a monthly metric, a funded content team for the knowledge base, and the tools handed over",
+          "effects": [
+            {
+              "set": "sus",
+              "to": "\"plan\""
+            },
+            {
+              "set": "susAt",
+              "to": "t"
+            },
+            {
+              "add": "ops",
+              "by": "1"
+            },
+            {
+              "log": "Operations accepts the sustainment plan.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Benefits continue only if someone owns the processes, metrics and tools after closure."
+        },
+        {
+          "id": "doc",
+          "label": "Hand over the documentation",
+          "effects": [
+            {
+              "set": "sus",
+              "to": "\"doc\""
+            },
+            {
+              "set": "susAt",
+              "to": "t"
+            },
+            {
+              "add": "ops",
+              "by": "-1"
+            },
+            {
+              "log": "Documents are handed over.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Documents don't fund or own anything."
+        },
+        {
+          "id": "nothing",
+          "label": "No plan: the products work",
+          "effects": [
+            {
+              "set": "sus",
+              "to": "\"nothing\""
+            },
+            {
+              "set": "susAt",
+              "to": "t"
+            },
+            {
+              "add": "ops",
+              "by": "-2"
+            },
+            {
+              "log": "No sustainment plan.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The knowledge base decays and calls return."
+        }
+      ]
+    },
+    "transPrompt": {
+      "title": "Closing the program",
+      "context": "Calls are down 26%, short of 30%.",
+      "choices": [
+        {
+          "id": "transition",
+          "label": "Hand over through an operations transition plan with the benefits register, the 26% result against 30%, and the actions operations owns to close the gap",
+          "effects": [
+            {
+              "set": "trans",
+              "to": "\"transition\""
+            },
+            {
+              "set": "transAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "1"
+            },
+            {
+              "log": "Operations takes over with the register.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Closure verifies transition criteria and hands over the benefits register honestly."
+        },
+        {
+          "id": "declare",
+          "label": "Close and report 30% as 'on track'",
+          "effects": [
+            {
+              "set": "trans",
+              "to": "\"declare\""
+            },
+            {
+              "set": "transAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-1"
+            },
+            {
+              "log": "On track is reported.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The gap disappears from view."
+        },
+        {
+          "id": "extend",
+          "label": "Keep the program open indefinitely until 30% is reached",
+          "effects": [
+            {
+              "set": "trans",
+              "to": "\"extend\""
+            },
+            {
+              "set": "transAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-2"
+            },
+            {
+              "log": "The program stays open.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The program's costs continue for an operational result operations should own."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the closure note for the program board: benefits achieved, what keeps them going, and what operations owns.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Benefits",
+          "criteria": "Calls down 26% against 30%; a 400 thousand dollar synergy.",
+          "modelAnswer": "Calls are down 26% against the 30% target; consolidating payments saves 400 thousand dollars a year."
+        },
+        {
+          "label": "Sustainment and transition",
+          "criteria": "Operations owns deflection with a metric and funded content team; the register handed over.",
+          "modelAnswer": "Operations owns call deflection with a monthly metric and a funded content team, and takes the benefits register and the actions to close the gap."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "governance",
+    "thresholds": {
+      "aboveAppetite": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No risk above appetite at the close without a treatment."
+        }
+      },
+      "supportTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Each key stakeholder at 6 of 10 or more at the close."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (syn == \"later\") and (sus == \"doc\") and (trans == \"declare\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "PMI, Program Management Professional (PgMP) Examination Content Outline: Strategic Program Alignment 15%, Program Life Cycle Management 44%, Benefits Management 11%, Stakeholder Engagement 16%, Governance 14%",
+        "checkedAt": "2026-11-17",
+        "url": "https://eartech.pmtraining.com/about/how-to-prepare-for-the-pgmp-certification-exam",
+        "note": "Read 2026-11-17. The domain weights were confirmed through a summarizing fetch of a training provider's article (eartech.pmtraining.com, 'How to Prepare for the PgMP Certification Exam'), which describes Program Life Cycle Management as 'initiating, planning, executing, controlling, and closing the program across its phases' and Governance as 'the boards, gates, and decision rights that let leadership steer and, when needed, stop a program'. PMI's own outline PDF did not come up in search and PMI's PgMP pages read today do not list the domains; the task wording is the course seed's, to verify against PMI's PDF. Reused for REQ-336 from this course's pgmp-transit-program-steering-review (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "synHarm": {
+      "label": "Calls back up",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and syn == \"cut\"",
+      "narrative": "Removing the portal's payments sent users to the phone; calls rose 8%."
+    },
+    "susHarm": {
+      "label": "Benefits eroded",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and sus == \"nothing\"",
+      "narrative": "With no owner or funding, the knowledge base went stale and the call reduction eroded."
+    },
+    "transHarm": {
+      "label": "A program that wouldn't close",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and trans == \"extend\"",
+      "narrative": "Kept open for an operational target, the program spent 1.2 million dollars for one more point."
+    },
+    "target": {
+      "label": "Benefits that outlast the program",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (syn == \"merge\") and (sus == \"plan\") and (trans == \"transition\") and record == \"honest\" and openCount <= aboveAppetite and minSupport >= supportTarget",
+      "narrative": "The program closed cleanly, and its benefits now have an owner, a metric and funding."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "synHarm",
+    "susHarm",
+    "transHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "synCrit",
+        "label": "Found the synergy and updated the benefits plan",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "syn == \"merge\"",
+            "score": "met",
+            "why": "Captured."
+          },
+          {
+            "when": "syn == \"later\"",
+            "score": "partial",
+            "why": "Missed."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Broke a benefit."
+          }
+        ]
+      },
+      {
+        "id": "susCrit",
+        "label": "Built a sustainment plan with owners, metrics and funding",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sus == \"plan\"",
+            "score": "met",
+            "why": "Sustained."
+          },
+          {
+            "when": "sus == \"doc\"",
+            "score": "partial",
+            "why": "No owner."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Benefits decay."
+          }
+        ]
+      },
+      {
+        "id": "transCrit",
+        "label": "Transitioned to operations with the benefits register and an honest status",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "trans == \"transition\"",
+            "score": "met",
+            "why": "Honest transition."
+          },
+          {
+            "when": "trans == \"declare\"",
+            "score": "partial",
+            "why": "Overstated."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No transition."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(benAt) and not isNull(opsAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(benAt) or not isNull(opsAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 10)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the benefits register and the operations plan first."
+      },
+      {
+        "at": "Meeting 1",
+        "text": "Consolidate the modules and record the saving in the benefits plan."
+      },
+      {
+        "at": "Meeting 2",
+        "text": "Write a sustainment plan with an owner, a metric and funding."
+      },
+      {
+        "at": "Meeting 3",
+        "text": "Transition with the register, the gap and owned actions."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "synHarm": {
+        "headline": "Capture synergies carefully",
+        "body": "Consolidate and update the benefits plan."
+      },
+      "susHarm": {
+        "headline": "Plan sustainment",
+        "body": "Owners, metrics and funding keep benefits after closure."
+      },
+      "transHarm": {
+        "headline": "Transition to operations",
+        "body": "Close with the register and owned actions."
+      },
+      "target": {
+        "headline": "Good: benefits that outlast the program",
+        "body": "Synergies captured, sustainment planned, and an honest transition."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Benefits management continues past delivery: synergies between components are captured and recorded in the benefits realization plan; a sustainment plan gives the benefits an owner, metrics, processes, tools and funding after closure; and the transition to operations hands over the benefits register with an honest status."
+  }
+}
