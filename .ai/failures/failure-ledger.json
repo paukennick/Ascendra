@@ -18827,7 +18827,7 @@
       "title": "Short course name kept the new 'Exam Prep for' title prefix",
       "status": "fixed",
       "severity": "low",
-      "symptom": "With REQ-324 titles, shortCourseName's title fallback (no credential name) would print 'Exam Prep for CISSP®' cut to 18 characters in reminder and countdown emails.",
+      "symptom": "With REQ-324 titles, shortCourseName's title fallback (no credential name) would print 'Exam Prep for CISSP\u00ae' cut to 18 characters in reminder and countdown emails.",
       "how_detected": "review of title readers during REQ-324",
       "root_cause": "VENDOR_PREFIX listed the old 'Prep for' prefix only; a title-format change did not look at the readers that strip title prefixes.",
       "requirement": "REQ-324",
@@ -18850,7 +18850,7 @@
       "title": "Reminder short name cut a long credential name to its first words",
       "status": "fixed",
       "severity": "low",
-      "symptom": "With names on again, reminder and countdown emails for CISSP would call the course 'Information…' (the credential name without 'Certified', cut to 18 characters).",
+      "symptom": "With names on again, reminder and countdown emails for CISSP would call the course 'Information\u2026' (the credential name without 'Certified', cut to 18 characters).",
       "how_detected": "lib/unbranded.test.ts (REQ-324 short-name test)",
       "root_cause": "shortCourseName fell back to the exam code or an ellipsis; CISSP and similar exams have no code and are known by the acronym at the end of their name. REQ-319 had hidden it by nulling the names.",
       "requirement": "REQ-324",
@@ -19205,6 +19205,53 @@
         ".ai/checklists/pre-completion.md"
       ],
       "prevention_notes": "Test checks the plugin output shape, app.json registration and that the website still lists the app with the existing fingerprint; README explains both halves and which fingerprints matter",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2530",
+      "date": "2026-11-17",
+      "title": "Trainer case reused one id for a reading and a rule",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "sim:golden refused NASMCPT/cpt-six-weeks-off-make-it-up and NASMCNC/cnc-losing-too-fast-and-thirsty: 'screen.trainer.rules[1]: duplicate id rLoad' (and rRate)",
+      "how_detected": "validator while building the golden paths",
+      "root_cause": "The author named a reading and a rule after the same idea (rLoad, rRate); the trainer screen's element ids share one namespace because each is one accessible element",
+      "requirement": "REQ-338",
+      "affected": [
+        "backend/supabase/seed/sims/NASMCPT/cpt-six-weeks-off-make-it-up.sim.json",
+        "backend/supabase/seed/sims/NASMCNC/cnc-losing-too-fast-and-thirsty.sim.json"
+      ],
+      "fix_summary": "Renamed the rules (rReturn, rPace)",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/ems-fitness-depth.test.ts (screen ids unique)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Prefix ids by element kind (r for readings is not enough; rules use a distinct word)",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2531",
+      "date": "2026-11-17",
+      "title": "noProgress rationale too short for the validator",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "sim:golden refused three strength and conditioning cases: 'outcome.noProgress.rationale: write the one-line clinical or domain rationale'",
+      "how_detected": "validator while building the golden paths",
+      "root_cause": "The rationales were three-word notes ('No test was set.'); the validator requires at least 20 characters so a reviewer can read why the class applies",
+      "requirement": "REQ-338",
+      "affected": [
+        "backend/supabase/seed/sims/NSCACSCS/"
+      ],
+      "fix_summary": "Wrote a one-line rationale for each",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/ems-fitness-depth.test.ts (noProgress rationale length)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Write noProgress rationales as a full sentence saying why that class applies; the REQ-338 test asserts the length",
       "recurrence_of": ""
     }
   ]

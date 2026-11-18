@@ -17,19 +17,74 @@ import { courseObjectives } from "./generator/course.ts";
 import { selectionFor } from "./generator/selection.ts";
 import { toUsSpelling } from "../us-spelling";
 
-export const REQ338_BANDS: readonly { course: string; slug: string; base: string }[] = [];
+export const REQ338_BANDS: readonly { course: string; slug: string; base: string }[] = [
+  { course: "ACECPT", slug: "ace-low-glucose-mid-intervals", base: "NASMCPT/cpt-low-glucose-mid-intervals" },
+  { course: "ACSMCPT", slug: "acsm-low-glucose-mid-intervals", base: "NASMCPT/cpt-low-glucose-mid-intervals" },
+  { course: "NCCPTCPT", slug: "nccpt-low-glucose-mid-intervals", base: "NASMCPT/cpt-low-glucose-mid-intervals" },
+  { course: "NSCACPT", slug: "nscacpt-low-glucose-mid-intervals", base: "NASMCPT/cpt-low-glucose-mid-intervals" },
+  { course: "ACECPT", slug: "ace-six-weeks-off-make-it-up", base: "NASMCPT/cpt-six-weeks-off-make-it-up" },
+  { course: "ACSMCPT", slug: "acsm-six-weeks-off-make-it-up", base: "NASMCPT/cpt-six-weeks-off-make-it-up" },
+  { course: "NCCPTCPT", slug: "nccpt-six-weeks-off-make-it-up", base: "NASMCPT/cpt-six-weeks-off-make-it-up" },
+  { course: "ACECPT", slug: "ace-watch-zone-on-a-beta-blocker", base: "NASMCPT/cpt-watch-zone-on-a-beta-blocker" },
+  { course: "NSCACPT", slug: "nscacpt-watch-zone-on-a-beta-blocker", base: "NASMCPT/cpt-watch-zone-on-a-beta-blocker" },
+  { course: "NCCPTCPT", slug: "nccpt-twenty-four-weeks-leaking-fluid", base: "NASMCPT/cpt-twenty-four-weeks-leaking-fluid" },
+  { course: "ACECPT", slug: "ace-twenty-four-weeks-leaking-fluid", base: "NASMCPT/cpt-twenty-four-weeks-leaking-fluid" },
+  { course: "ACSMCPT", slug: "acsm-twenty-four-weeks-leaking-fluid", base: "NASMCPT/cpt-twenty-four-weeks-leaking-fluid" },
+  { course: "NREMTEMT", slug: "emt-line-down-on-the-car", base: "NREMTEMR/emr-line-down-on-the-car" },
+  { course: "NREMTAEMT", slug: "aemt-low-sugar-now-says-no", base: "NREMTEMT/emt-low-sugar-now-says-no" },
+];
 
 export const REQ338_TRAINER: readonly { course: string; slug: string }[] = [
   { course: "NASMCPT", slug: "cpt-low-glucose-mid-intervals" },
+  { course: "NASMCPT", slug: "cpt-six-weeks-off-make-it-up" },
+  { course: "NASMCPT", slug: "cpt-watch-zone-on-a-beta-blocker" },
+  { course: "NASMCPT", slug: "cpt-twenty-four-weeks-leaking-fluid" },
+  { course: "NASMCNC", slug: "cnc-losing-too-fast-and-thirsty" },
+  { course: "NSCACSCS", slug: "cscs-first-day-back-collapse-in-heat" },
+  { course: "NSCACSCS", slug: "cscs-shuttle-test-trait-on-file" },
+  { course: "NSCACSCS", slug: "cscs-winter-return-gut-check-squats" },
 ];
 
-export const REQ338_BEDSIDE: readonly { course: string; slug: string }[] = [];
+export const REQ338_BEDSIDE: readonly { course: string; slug: string }[] = [
+  { course: "NREMTEMR", slug: "emr-line-down-on-the-car" },
+  { course: "NREMTEMR", slug: "emr-finish-line-confused-runner" },
+  { course: "NREMTEMR", slug: "emr-head-cut-wants-to-drive-home" },
+  { course: "NREMTEMT", slug: "emt-head-bump-on-a-blood-thinner" },
+  { course: "NREMTEMT", slug: "emt-low-sugar-now-says-no" },
+  { course: "NREMTAEMT", slug: "aemt-copd-tripod-cpap" },
+  { course: "NREMTAEMT", slug: "aemt-chest-pressure-pill-last-night" },
+  { course: "NREMTAEMT", slug: "aemt-belly-pain-fainted-in-bathroom" },
+  { course: "NREMTPARAMEDIC", slug: "medic-racing-heart-pressure-falling" },
+  { course: "NREMTPARAMEDIC", slug: "medic-assisted-living-fever-confused" },
+  { course: "NREMTPARAMEDIC", slug: "medic-polst-selective-daughter-wants-everything" },
+  { course: "NREMTPARAMEDIC", slug: "medic-chest-stab-pulse-lost" },
+];
 
 // Main objectives that the keyword screen (selection.ts) does not pick up but
 // that meet Nick's rule on reading (time, cues, choices with consequences,
 // competing priorities), each with the reason. Everything else must pass the
 // screen.
-const JUDGED: Readonly<Record<string, string>> = {};
+const JUDGED: Readonly<Record<string, string>> = {
+  "NASMCPT/cpt-six-weeks-off-make-it-up": "handling a lapse has choices with consequences (blame loses the client, a catch-up load causes exertional rhabdomyolysis) and cues to read",
+  "NASMCPT/cpt-twenty-four-weeks-leaking-fluid": "prenatal program design has cues (lightheaded lying flat, fluid leakage) and a time-critical stop-and-call",
+  "NCCPTCPT/nccpt-twenty-four-weeks-leaking-fluid": "as its base: prenatal modification with a time-critical warning sign",
+  "ACECPT/ace-twenty-four-weeks-leaking-fluid": "as its base: modifying a program for a changing health condition, with a warning sign",
+  "ACSMCPT/acsm-twenty-four-weeks-leaking-fluid": "as its base: modifications for a pregnant client, with a warning sign",
+};
+
+// The round's target (round-1117b): every unit with an objective fitting the
+// selection rule has a sim whose main objective sits in it, except the units
+// recorded here as no fit with a reason (docs/sims.md 22.42); a course under
+// 60 objectives has at least 4 sims, from 60 at least 8.
+export const REQ338_COURSES = ["NREMTEMR", "NREMTEMT", "NREMTAEMT", "NREMTPARAMEDIC", "ACECPT", "ACSMCPT", "NASMCPT", "NASMCNC", "NCCPTCPT", "NSCACPT", "NSCACSCS"];
+export const REQ338_NO_FIT: Readonly<Record<string, string>> = {
+  "NASMCPT/Exercise technique and training instruction": "technique coaching with nothing time-critical unfolding; covered as secondary objectives by the overhead squat case",
+  "NCCPTCPT/Applied science: anatomy, kinesiology and physiology": "science knowledge; the labs cover it",
+  "NCCPTCPT/Nutrition": "a trainer's nutrition knowledge; the nutrition coach cases teach the decisions in their own scope",
+  "NSCACSCS/Scientific Foundations: exercise science": "Scientific Foundations stays no fit (round-1117b)",
+  "NSCACSCS/Scientific Foundations: sport psychology": "Scientific Foundations stays no fit (round-1117b)",
+  "NSCACSCS/Scientific Foundations: nutrition": "Scientific Foundations stays no fit (round-1117b)",
+};
 
 const BAND_PATCH_KEYS = ["brief", "objective", "secondaryObjectives", "sources"];
 interface GoldenPath { id: string; expect: { ending: string; rating: string; criteria: Record<string, string> } }
@@ -95,8 +150,30 @@ function checkAuthored(course: string, slug: string, screen: string, profile: st
   assert.ok(critical.length >= 3 && critical.length <= 4, "three or four critical criteria");
   assert.ok(Object.values(doc.endings).some((x) => x.class === "harm" && x.when), "a conditional harm ending");
   assert.ok(doc.reasoning && Object.keys(doc.reasoning).length >= 1, "a reasoning moment");
+  // FAIL-2531: the validator wants a real one-line rationale for noProgress.
+  if (doc.outcome.noProgress) assert.ok((doc.outcome.noProgress.rationale ?? "").trim().length >= 20, "noProgress rationale of at least 20 characters");
+  // FAIL-2530: ids are shared across a trainer screen's readings, findings, rules and journal.
+  const tr = doc.screen.trainer;
+  if (tr) {
+    const ids = [...(tr.readings ?? []), ...(tr.findings ?? []), ...tr.rules, ...(tr.journal ?? []), ...(tr.intake?.items ?? []), ...tr.gauges].map((x) => x.id);
+    assert.equal(new Set(ids).size, ids.length, `screen ids unique: ${ids.join(",")}`);
+  }
   const keys = Object.keys((doc as unknown as { teaching?: Record<string, unknown> }).teaching ?? {});
   assert.deepEqual(keys, [...keys].sort(jsonbOrder), "teaching keys in jsonb order (FAIL-1362)");
+}
+
+for (const course of REQ338_COURSES) {
+  test(`${course}: every unit has a main-objective sim or a recorded no fit, and the course reaches its count`, () => {
+    const objectives = courseObjectives(course);
+    const docs = ALL_DOCUMENTS.filter((e) => e.course === course).map((e) => loadDocument(e));
+    assert.ok(docs.length >= (objectives.length >= 60 ? 8 : 4), `${course}: ${docs.length} sims for ${objectives.length} objectives`);
+    const mains = new Set(docs.map((d) => toUsSpelling(d.objective)));
+    for (const unit of new Set(objectives.map((o) => o.unitTitle))) {
+      const inUnit = objectives.filter((o) => o.unitTitle === unit);
+      const covered = inUnit.some((o) => mains.has(toUsSpelling(o.objective)));
+      assert.ok(covered || REQ338_NO_FIT[`${course}/${unit}`], `${course} unit "${unit}" has a main-objective sim or a no-fit reason`);
+    }
+  });
 }
 
 for (const b of REQ338_BANDS) {
