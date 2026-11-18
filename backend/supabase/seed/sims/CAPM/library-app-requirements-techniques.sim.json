@@ -1,0 +1,1090 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "library-app-requirements-techniques",
+  "title": "Requirements for a library booking app: interviews, a workshop or a survey, and when each fits",
+  "screen": {
+    "type": "governance-board",
+    "level": 1,
+    "governance": {
+      "risks": [
+        {
+          "id": "rStaff",
+          "label": "Conflicting branch rules",
+          "spokenLabel": "Conflicting branch rules",
+          "owner": "\"Business analyst\"",
+          "rating": "staff == \"workshop\" ? \"low\" : staff == \"interviews12\" ? \"medium\" : staff == \"pickOne\" ? \"critical\" : p >= 1 ? \"high\" : \"medium\"",
+          "appetite": "staff == \"workshop\" ? \"within\" : staff == \"interviews12\" ? \"within\" : staff == \"pickOne\" ? \"above\" : p >= 1 ? \"above\" : \"within\"",
+          "status": "{staff == \"workshop\" ? \"Facilitated workshop\" : staff == \"interviews12\" ? \"Separate interviews\" : staff == \"pickOne\" ? \"One branch's rules imposed\" : \"Open\"}"
+        },
+        {
+          "id": "rDesk",
+          "label": "Desk needs unknown",
+          "spokenLabel": "Desk needs unknown",
+          "owner": "\"Business analyst\"",
+          "rating": "desk == \"observe\" ? \"low\" : desk == \"assumeDesk\" ? \"medium\" : desk == \"skipDesk\" ? \"critical\" : p >= 2 ? \"high\" : \"medium\"",
+          "appetite": "desk == \"observe\" ? \"within\" : desk == \"assumeDesk\" ? \"within\" : desk == \"skipDesk\" ? \"above\" : p >= 2 ? \"above\" : \"within\"",
+          "status": "{desk == \"observe\" ? \"Interviews, observation and use cases\" : desk == \"assumeDesk\" ? \"Second-hand requirements\" : desk == \"skipDesk\" ? \"Desk ignored\" : \"Open\"}"
+        },
+        {
+          "id": "rPatrons",
+          "label": "Patron needs assumed",
+          "spokenLabel": "Patron needs assumed",
+          "owner": "\"Business analyst\"",
+          "rating": "patrons == \"survey\" ? \"low\" : patrons == \"focusOnly\" ? \"medium\" : patrons == \"guess\" ? \"critical\" : p >= 3 ? \"high\" : \"medium\"",
+          "appetite": "patrons == \"survey\" ? \"within\" : patrons == \"focusOnly\" ? \"within\" : patrons == \"guess\" ? \"above\" : p >= 3 ? \"above\" : \"within\"",
+          "status": "{patrons == \"survey\" ? \"Survey turned into user stories\" : patrons == \"focusOnly\" ? \"Ten main-branch patrons\" : patrons == \"guess\" ? \"Stories from assumptions\" : \"Open\"}"
+        }
+      ],
+      "stakeholders": [
+        {
+          "id": "sSpon",
+          "label": "Sponsor",
+          "spokenLabel": "the sponsor's support",
+          "value": "spon",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sUsers",
+          "label": "Library staff",
+          "spokenLabel": "the library staff's support",
+          "value": "users",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sTeam",
+          "label": "Project team",
+          "spokenLabel": "the project team's support",
+          "value": "team",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "docket": [
+        {
+          "id": "dStaff",
+          "kind": "Elicitation",
+          "label": "Week 1: branch rules",
+          "status": "{staff == \"workshop\" ? \"Facilitated workshop\" : staff == \"interviews12\" ? \"Separate interviews\" : staff == \"pickOne\" ? \"One branch's rules imposed\" : \"Due\"}",
+          "when": "p >= 1",
+          "flag": "p >= 1 and staff == \"none\""
+        },
+        {
+          "id": "dDesk",
+          "kind": "Elicitation",
+          "label": "Week 2: desk workflows",
+          "status": "{desk == \"observe\" ? \"Interviews, observation and use cases\" : desk == \"assumeDesk\" ? \"Second-hand requirements\" : desk == \"skipDesk\" ? \"Desk ignored\" : \"Due\"}",
+          "when": "p >= 2",
+          "flag": "p >= 2 and desk == \"none\""
+        },
+        {
+          "id": "dPatrons",
+          "kind": "Elicitation",
+          "label": "Week 3: patron needs",
+          "status": "{patrons == \"survey\" ? \"Survey turned into user stories\" : patrons == \"focusOnly\" ? \"Ten main-branch patrons\" : patrons == \"guess\" ? \"Stories from assumptions\" : \"Due\"}",
+          "when": "p >= 3",
+          "flag": "p >= 3 and patrons == \"none\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Week",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Matching a requirements-gathering technique to a scenario: user stories, use cases, stakeholder interviews, surveys, workshops, and lessons learned",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "PMI, Certified Associate in Project Management (CAPM) Examination Content Outline, 2023 Exam Update: Fundamentals and Core Concepts 36%, Predictive Plan-Based Methodologies 17%, Agile Frameworks/Methodologies 20%, Business Analysis Frameworks 27%",
+      "checkedAt": "2026-11-17",
+      "url": "https://www-prod01.wku.edu/lp/fortknox/capmexaminationoutline.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch of a copy of PMI's PDF hosted by a university. Relevant text: Domain 1 Task 5 'Demonstrate an understanding of common problem-solving tools and techniques' ('Evaluate the effectiveness of a meeting'; 'Explain the purpose of focus groups, standup meetings, brainstorming, etc.'); Domain 2 Task 2 ('Apply critical path methods'; 'Calculate schedule variance') and Task 3 ('Calculate cost and schedule variances'). The objective wording here is the course seed's. Reused for REQ-336 from this course's sprint-status-meeting-daily-scrum-capm (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the project and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the business analyst on a fictional app for the Riverbend public library system: patrons will book study rooms and equipment. Twelve branches, 40 staff and 30,000 patrons.",
+    "handover": [
+      "The branches book rooms differently today.",
+      "A similar app at another library failed because staff found it slower than paper."
+    ],
+    "howItWorks": [
+      "The board shows the risk register against the appetite, each stakeholder's support in words and the docket.",
+      "Move on a week at a time. A decision comes to you at each review; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-05-10T09:00",
+    "tick": "1d",
+    "maxDuration": "84d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "spon": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "users": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "team": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "staff": {
+      "type": "enum",
+      "values": [
+        "none",
+        "workshop",
+        "interviews12",
+        "pickOne"
+      ],
+      "init": "none"
+    },
+    "staffAt": {
+      "type": "time",
+      "init": null
+    },
+    "desk": {
+      "type": "enum",
+      "values": [
+        "none",
+        "observe",
+        "assumeDesk",
+        "skipDesk"
+      ],
+      "init": "none"
+    },
+    "deskAt": {
+      "type": "time",
+      "init": null
+    },
+    "patrons": {
+      "type": "enum",
+      "values": [
+        "none",
+        "survey",
+        "focusOnly",
+        "guess"
+      ],
+      "init": "none"
+    },
+    "patronsAt": {
+      "type": "time",
+      "init": null
+    },
+    "stakeholdersAt": {
+      "type": "time",
+      "init": null
+    },
+    "lessonsAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(spon, users), team)"
+    },
+    "missCount": {
+      "expr": "((staff == \"pickOne\") ? 1 : 0) + ((desk == \"skipDesk\") ? 1 : 0) + ((patrons == \"guess\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(staff == \"none\" or (staff == \"pickOne\") ? 1 : 0) + (desk == \"none\" or (desk == \"skipDesk\") ? 1 : 0) + (patrons == \"none\" or (patrons == \"guess\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Requirements weeks",
+      "clock": "turns",
+      "actions": [
+        "stakeholders",
+        "lessons"
+      ]
+    },
+    "close": {
+      "label": "Requirements record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "stakeholders": {
+      "label": "Map the stakeholders",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(stakeholdersAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "stakeholdersAt",
+          "to": "t"
+        },
+        {
+          "log": "Map the stakeholders.",
+          "kind": "act"
+        },
+        {
+          "finding": "Branch managers (12), front-desk staff (40), IT, accessibility officer, and 30,000 patrons with varied needs."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "lessons": {
+      "label": "Read the other library's lessons learned",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(lessonsAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "lessonsAt",
+          "to": "t"
+        },
+        {
+          "log": "Read the other library's lessons learned.",
+          "kind": "act"
+        },
+        {
+          "finding": "Staff were never observed at the desk; booking took longer than paper; rules differed by branch and the app ignored them."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "A workshop for branch rules, interviews and observation with use cases for the desk, and a survey turned into user stories"
+                },
+                {
+                  "value": "summary",
+                  "label": "Requirements gathered"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next review",
+      "wait": {
+        "skipLabel": "Go to the next review"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "staff == \"pickOne\"",
+              "then": [
+                {
+                  "log": "Week 2: branch managers refuse to pilot an app that ignores their rules; the sponsor delays the launch.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "desk == \"skipDesk\"",
+              "then": [
+                {
+                  "log": "Week 3: the prototype takes four minutes for a phone booking; staff vote to keep paper.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "patrons == \"guess\"",
+              "then": [
+                {
+                  "log": "Week 4: accessibility advocates find the booking screens unusable with screen readers; launch is blocked.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "7d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The requirements review closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "7d"
+        }
+      ]
+    },
+    {
+      "id": "t_staff",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 1: conflicting rules.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "staffPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_desk",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 2: the desk.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "deskPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_patrons",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 3: patrons.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "patronsPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "staffPrompt": {
+      "title": "Twelve branches, twelve rule sets",
+      "context": "Branch managers disagree on booking limits.",
+      "choices": [
+        {
+          "id": "workshop",
+          "label": "Run a facilitated workshop with the twelve branch managers to agree common booking rules and the allowed local variations",
+          "effects": [
+            {
+              "set": "staff",
+              "to": "\"workshop\""
+            },
+            {
+              "set": "staffAt",
+              "to": "t"
+            },
+            {
+              "add": "users",
+              "by": "1"
+            },
+            {
+              "log": "Common rules are agreed with two local variations.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Workshops bring stakeholders with conflicting needs together to reach agreement efficiently."
+        },
+        {
+          "id": "interviews12",
+          "label": "Interview each manager separately",
+          "effects": [
+            {
+              "set": "staff",
+              "to": "\"interviews12\""
+            },
+            {
+              "set": "staffAt",
+              "to": "t"
+            },
+            {
+              "add": "users",
+              "by": "-1"
+            },
+            {
+              "log": "Twelve interviews are held.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Detailed, but the conflicts are never resolved together."
+        },
+        {
+          "id": "pickOne",
+          "label": "Adopt the main branch's rules for everyone",
+          "effects": [
+            {
+              "set": "staff",
+              "to": "\"pickOne\""
+            },
+            {
+              "set": "staffAt",
+              "to": "t"
+            },
+            {
+              "add": "users",
+              "by": "-2"
+            },
+            {
+              "log": "Main branch rules are adopted.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Eleven branches' needs are ignored."
+        }
+      ]
+    },
+    "deskPrompt": {
+      "title": "How staff really book today",
+      "context": "The other library's app failed at the desk.",
+      "choices": [
+        {
+          "id": "observe",
+          "label": "Interview and observe front-desk staff at three branches during busy hours, and write use cases for desk bookings, checking them against the lessons learned",
+          "effects": [
+            {
+              "set": "desk",
+              "to": "\"observe\""
+            },
+            {
+              "set": "deskAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "1"
+            },
+            {
+              "log": "Desk use cases capture a 30-second phone booking.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Interviews and observation reveal how work is really done; lessons learned point to where the last project failed."
+        },
+        {
+          "id": "assumeDesk",
+          "label": "Write desk requirements from the managers' description",
+          "effects": [
+            {
+              "set": "desk",
+              "to": "\"assumeDesk\""
+            },
+            {
+              "set": "deskAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "-1"
+            },
+            {
+              "log": "Requirements are written.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Managers describe the process as it should be, not as it is."
+        },
+        {
+          "id": "skipDesk",
+          "label": "Skip desk staff; patrons will book online",
+          "effects": [
+            {
+              "set": "desk",
+              "to": "\"skipDesk\""
+            },
+            {
+              "set": "deskAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "-2"
+            },
+            {
+              "log": "Desk staff are skipped.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Phone and walk-in bookings, a third of today's, have no design."
+        }
+      ]
+    },
+    "patronsPrompt": {
+      "title": "What patrons need",
+      "context": "Too many to interview.",
+      "choices": [
+        {
+          "id": "survey",
+          "label": "Send a short survey to patrons in English and Spanish, with accessible formats, and turn the findings into user stories with acceptance criteria",
+          "effects": [
+            {
+              "set": "patrons",
+              "to": "\"survey\""
+            },
+            {
+              "set": "patronsAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "1"
+            },
+            {
+              "log": "2,400 responses shape 18 user stories.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Surveys gather input from large groups; user stories with acceptance criteria carry their needs into the backlog."
+        },
+        {
+          "id": "focusOnly",
+          "label": "Interview ten patrons who visit the main branch",
+          "effects": [
+            {
+              "set": "patrons",
+              "to": "\"focusOnly\""
+            },
+            {
+              "set": "patronsAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-1"
+            },
+            {
+              "log": "Ten interviews are held.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Useful depth, but ten main-branch patrons do not represent 30,000."
+        },
+        {
+          "id": "guess",
+          "label": "Write patron stories from the team's own experience",
+          "effects": [
+            {
+              "set": "patrons",
+              "to": "\"guess\""
+            },
+            {
+              "set": "patronsAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-2"
+            },
+            {
+              "log": "The team writes the stories.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The team's needs are not patrons' needs; accessibility needs are missed."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the requirements record for the sponsor.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Techniques",
+          "criteria": "Workshop, interviews and observation, survey.",
+          "modelAnswer": "Branch managers agreed common rules in a workshop; we interviewed and observed desk staff; 2,400 patrons answered a survey."
+        },
+        {
+          "label": "Outputs",
+          "criteria": "Desk use cases; 18 patron user stories with acceptance criteria.",
+          "modelAnswer": "Desk bookings are written as use cases; patron needs became 18 user stories with acceptance criteria."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "governance",
+    "thresholds": {
+      "aboveAppetite": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No risk above appetite at the close without a treatment."
+        }
+      },
+      "supportTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Each key stakeholder at 6 of 10 or more at the close."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (staff == \"interviews12\") and (desk == \"assumeDesk\") and (patrons == \"focusOnly\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "PMI, Certified Associate in Project Management (CAPM) Examination Content Outline, 2023 Exam Update: Fundamentals and Core Concepts 36%, Predictive Plan-Based Methodologies 17%, Agile Frameworks/Methodologies 20%, Business Analysis Frameworks 27%",
+        "checkedAt": "2026-11-17",
+        "url": "https://www-prod01.wku.edu/lp/fortknox/capmexaminationoutline.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch of a copy of PMI's PDF hosted by a university. Relevant text: Domain 1 Task 5 'Demonstrate an understanding of common problem-solving tools and techniques' ('Evaluate the effectiveness of a meeting'; 'Explain the purpose of focus groups, standup meetings, brainstorming, etc.'); Domain 2 Task 2 ('Apply critical path methods'; 'Calculate schedule variance') and Task 3 ('Calculate cost and schedule variances'). The objective wording here is the course seed's. Reused for REQ-336 from this course's sprint-status-meeting-daily-scrum-capm (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "staffHarm": {
+      "label": "Branches refuse",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and staff == \"pickOne\"",
+      "narrative": "Imposed rules led branches to refuse the pilot."
+    },
+    "deskHarm": {
+      "label": "Staff reject the app",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and desk == \"skipDesk\"",
+      "narrative": "Ignoring desk work repeated the other library's failure."
+    },
+    "patronsHarm": {
+      "label": "Launch blocked",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and patrons == \"guess\"",
+      "narrative": "Assumed stories missed accessibility needs."
+    },
+    "target": {
+      "label": "Requirements from the right people, the right way",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (staff == \"workshop\") and (desk == \"observe\") and (patrons == \"survey\") and record == \"honest\" and openCount <= aboveAppetite and minSupport >= supportTarget",
+      "narrative": "The app fits the branches, the desk and the patrons."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "staffHarm",
+    "deskHarm",
+    "patronsHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "staffCrit",
+        "label": "Used a facilitated workshop to reconcile branch rules",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "staff == \"workshop\"",
+            "score": "met",
+            "why": "Agreed."
+          },
+          {
+            "when": "staff == \"interviews12\"",
+            "score": "partial",
+            "why": "Unreconciled."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Imposed."
+          }
+        ]
+      },
+      {
+        "id": "deskCrit",
+        "label": "Observed and interviewed front-desk staff, guided by lessons learned",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "desk == \"observe\"",
+            "score": "met",
+            "why": "Grounded."
+          },
+          {
+            "when": "desk == \"assumeDesk\"",
+            "score": "partial",
+            "why": "Second-hand."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Gap."
+          }
+        ]
+      },
+      {
+        "id": "patronsCrit",
+        "label": "Used a survey for breadth and user stories for the backlog",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "patrons == \"survey\"",
+            "score": "met",
+            "why": "Broad and usable."
+          },
+          {
+            "when": "patrons == \"focusOnly\"",
+            "score": "partial",
+            "why": "Narrow."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Assumed."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(stakeholdersAt) and not isNull(lessonsAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(stakeholdersAt) or not isNull(lessonsAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 10)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Map stakeholders and read the other library's lessons first."
+      },
+      {
+        "at": "Week 1",
+        "text": "Facilitate a workshop to reconcile the rules."
+      },
+      {
+        "at": "Week 2",
+        "text": "Interview and observe staff, and write use cases."
+      },
+      {
+        "at": "Week 3",
+        "text": "Survey patrons and write user stories."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "staffHarm": {
+        "headline": "Reconcile together",
+        "body": "Workshops resolve conflicting needs."
+      },
+      "deskHarm": {
+        "headline": "Elicit from the people who do the work",
+        "body": "Interview, observe and learn from lessons."
+      },
+      "patronsHarm": {
+        "headline": "Ask patrons",
+        "body": "Survey widely and write stories from it."
+      },
+      "target": {
+        "headline": "Good: requirements from the right people, the right way",
+        "body": "Techniques matched to stakeholders."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Match the technique to the situation: workshops reconcile conflicting stakeholders, interviews and observation show how work is really done, surveys reach large groups, lessons learned point to past failures, and use cases and user stories carry the needs into design."
+  }
+}
