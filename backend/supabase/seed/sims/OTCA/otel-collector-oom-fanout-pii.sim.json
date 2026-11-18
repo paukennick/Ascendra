@@ -1,0 +1,1017 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "otel-collector-oom-fanout-pii",
+  "title": "A gateway Collector that OOMs, a slow backend that blocks the other, and emails in span attributes",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "obs@larchfield:~$",
+      "lines": [
+        {
+          "id": "firstLine",
+          "text": "kubelet: otel-gateway-0 OOMKilled (3rd time today)",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "lineMem",
+          "text": "{mem == \"limiter\" ? \"memory_limiter first; 3 replicas\" : mem == \"moreRam\" ? \"8 GiB, no limiter\" : mem == \"limiterLast\" ? \"memory_limiter after batch\" : \"\"}",
+          "when": "mem != \"none\"",
+          "at": "timeAt(memAt)",
+          "error": "mem == \"limiterLast\""
+        },
+        {
+          "id": "lineFan",
+          "text": "{fan == \"isolate\" ? \"Separate queues and retries; persistent in-house\" : fan == \"bigQueue\" ? \"Both queues 50,000\" : fan == \"dropVendor\" ? \"Vendor exporter removed\" : \"\"}",
+          "when": "fan != \"none\"",
+          "at": "timeAt(fanAt)",
+          "error": "fan == \"dropVendor\""
+        },
+        {
+          "id": "linePii",
+          "text": "{pii == \"redact\" ? \"Redacted before every exporter\" : pii == \"vendorOnly\" ? \"Vendor asked to drop it\" : pii == \"nothing\" ? \"Emails still exported\" : \"\"}",
+          "when": "pii != \"none\"",
+          "at": "timeAt(piiAt)",
+          "error": "pii == \"nothing\""
+        }
+      ],
+      "nodes": [
+        {
+          "id": "nMem",
+          "label": "otel-gateway memory",
+          "spokenLabel": "otel-gateway memory",
+          "kind": "Collector",
+          "status": "{mem == \"limiter\" ? \"memory_limiter first; 3 replicas\" : mem == \"moreRam\" ? \"8 GiB, no limiter\" : mem == \"limiterLast\" ? \"memory_limiter after batch\" : \"Waiting\"}",
+          "tone": "mem == \"limiter\" ? \"up\" : mem == \"moreRam\" ? \"degraded\" : mem == \"limiterLast\" ? \"down\" : p >= 1 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nFan",
+          "label": "exporters otlp/inhouse and otlp/vendor",
+          "spokenLabel": "exporters otlp/inhouse and otlp/vendor",
+          "kind": "exporters",
+          "status": "{fan == \"isolate\" ? \"Separate queues and retries; persistent in-house\" : fan == \"bigQueue\" ? \"Both queues 50,000\" : fan == \"dropVendor\" ? \"Vendor exporter removed\" : \"Waiting\"}",
+          "tone": "fan == \"isolate\" ? \"up\" : fan == \"bigQueue\" ? \"degraded\" : fan == \"dropVendor\" ? \"down\" : p >= 2 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nPii",
+          "label": "attributes processing",
+          "spokenLabel": "attributes processing",
+          "kind": "processor",
+          "status": "{pii == \"redact\" ? \"Redacted before every exporter\" : pii == \"vendorOnly\" ? \"Vendor asked to drop it\" : pii == \"nothing\" ? \"Emails still exported\" : \"Waiting\"}",
+          "tone": "pii == \"redact\" ? \"up\" : pii == \"vendorOnly\" ? \"degraded\" : pii == \"nothing\" ? \"down\" : p >= 3 ? \"degraded\" : \"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "link0",
+          "from": "nMem",
+          "to": "nFan",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        },
+        {
+          "id": "link1",
+          "from": "nFan",
+          "to": "nPii",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Check-in",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Design pipelines: batching, retries and queues, fan-out to multiple exporters, and ordering of processors",
+  "secondaryObjectives": [
+    "Transforming data: attributes, resource, filter and transform (OTTL) processors, redaction, and tail-based sampling",
+    "Scaling: horizontal scaling with load balancing, the load-balancing exporter for tail sampling, resource limits and the memory_limiter processor"
+  ],
+  "sources": [
+    {
+      "cite": "Linux Foundation, OpenTelemetry Certified Associate (OTCA) exam page: Fundamentals of Observability 18%, The OpenTelemetry API and SDK 46%, The OpenTelemetry Collector 26%, Maintaining and Debugging Observability Pipelines 10%",
+      "checkedAt": "2026-11-17",
+      "url": "https://training.linuxfoundation.org/certification/opentelemetry-certified-associate-otca/",
+      "note": "Read through a summarizing fetch on 2026-11-17: the four domains and weights above, with context propagation named under the API and SDK domain and under maintaining and debugging pipelines. The objective wording is the course seed's. Reused for REQ-336 from this course's split-traces-b3-propagator (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "OneUptime blog, 'How to Fix the Mistake of Not Adding the memory_limiter Processor as the First' (2026-02-06)",
+      "checkedAt": "2026-11-17",
+      "url": "https://oneuptime.com/blog/post/2026-02-06-fix-memory-limiter-processor-order/view",
+      "note": "Found by search 2026-11-17 and read only through the search listing (title and address); to verify against the page. Used for: memory_limiter as the first processor in each pipeline, before batch."
+    },
+    {
+      "cite": "OneUptime blog, 'How to Configure Backpressure-Aware Pipelines with Sending Queues, Retry Logic, ...' (2026-02-06)",
+      "checkedAt": "2026-11-17",
+      "url": "https://oneuptime.com/blog/post/2026-02-06-otel-backpressure-queues-retry-memory-limiter/view",
+      "note": "Found by search 2026-11-17 and read only through the search listing (title and address); to verify against the page. Used for: per-exporter sending queues, retry on failure, persistent queues and what is dropped when a queue fills."
+    },
+    {
+      "cite": "KodeKloud OTCA prep notes, Collector core components: service and pipelines",
+      "checkedAt": "2026-11-17",
+      "url": "https://notes.kodekloud.com/docs/Prep-Course-OpenTelemetry-Certified-Associate-OTCA-Certification/OTel-Collector-Core-Components/Service-and-Pipelines-Explained/page",
+      "note": "Found by search 2026-11-17 and read only through the search listing (title and address); to verify against the page. Used for: receivers, processors and exporters wired into per-signal pipelines, fan-out to several exporters, and internal telemetry."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The company, the services, the backends and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You run the observability platform at Larchfield Bank, a fictional bank. All services send OTLP to a gateway Collector that exports traces to two backends: the in-house tracing store and a vendor used by the fraud team. During this morning's peak the gateway was OOM-killed three times and traces went missing.",
+    "handover": [
+      "Traces pipeline: receivers otlp; processors batch; exporters otlp/inhouse and otlp/vendor, sharing one queue setting.",
+      "The vendor's endpoint was slow all morning. Some spans carry user.email as an attribute."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the map shows each component and its status in words.",
+      "Move on a check-in at a time. A decision comes to you at each check-in; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-02-08T09:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "mem": {
+      "type": "enum",
+      "values": [
+        "none",
+        "limiter",
+        "moreRam",
+        "limiterLast"
+      ],
+      "init": "none"
+    },
+    "memAt": {
+      "type": "time",
+      "init": null
+    },
+    "fan": {
+      "type": "enum",
+      "values": [
+        "none",
+        "isolate",
+        "bigQueue",
+        "dropVendor"
+      ],
+      "init": "none"
+    },
+    "fanAt": {
+      "type": "time",
+      "init": null
+    },
+    "pii": {
+      "type": "enum",
+      "values": [
+        "none",
+        "redact",
+        "vendorOnly",
+        "nothing"
+      ],
+      "init": "none"
+    },
+    "piiAt": {
+      "type": "time",
+      "init": null
+    },
+    "cfgAt": {
+      "type": "time",
+      "init": null
+    },
+    "metricsAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((mem == \"limiterLast\") ? 1 : 0) + ((fan == \"dropVendor\") ? 1 : 0) + ((pii == \"nothing\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(mem == \"none\" or (mem == \"limiterLast\") ? 1 : 0) + (fan == \"none\" or (fan == \"dropVendor\") ? 1 : 0) + (pii == \"none\" or (pii == \"nothing\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The pipeline fix",
+      "clock": "turns",
+      "actions": [
+        "cfg",
+        "metrics"
+      ]
+    },
+    "close": {
+      "label": "Change record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "cfg": {
+      "label": "kubectl get cm otel-gateway -o yaml | grep -A20 'service:'",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(cfgAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "cfgAt",
+          "to": "t"
+        },
+        {
+          "output": "traces: receivers otlp, processors batch, exporters otlp/inhouse, otlp/vendor\n(no memory_limiter; sending_queue default; no attributes processor)"
+        },
+        {
+          "log": "You read the gateway's pipelines.",
+          "kind": "act"
+        },
+        {
+          "finding": "No memory_limiter: under a spike the Collector buffers until the kernel kills it, losing everything in memory. Both exporters have default queues; nothing removes user.email."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "metrics": {
+      "label": "curl -s otel-gateway:8888/metrics | grep -E 'queue_size|send_failed|refused'",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(metricsAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "metricsAt",
+          "to": "t"
+        },
+        {
+          "output": "otelcol_exporter_queue_size (exporter otlp/vendor) 5000 (capacity 5000)\notelcol_exporter_send_failed_spans (exporter otlp/vendor) 182340\notelcol_exporter_queue_size (exporter otlp/inhouse) 12"
+        },
+        {
+          "log": "You read the Collector's internal metrics.",
+          "kind": "act"
+        },
+        {
+          "finding": "The vendor exporter's queue is full and failing; memory grows behind it. The in-house exporter is healthy but loses data each time the process is killed."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the change record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "memory_limiter first with three replicas, separate queues and retries per exporter with a persistent in-house queue, and redaction before export"
+                },
+                {
+                  "value": "summary",
+                  "label": "Collector stabilized"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next check-in",
+      "wait": {
+        "skipLabel": "Go to the next check-in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "mem == \"limiterLast\"",
+              "then": [
+                {
+                  "log": "Check-in 2: at the 10:30 peak the gateway is OOM-killed again with 40 seconds of traces in memory; the fraud team loses traces for a disputed payment.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "fan == \"dropVendor\"",
+              "then": [
+                {
+                  "log": "Check-in 3: the fraud team's alerting goes silent; a card-testing attack runs for an hour before anyone notices.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "pii == \"nothing\"",
+              "then": [
+                {
+                  "log": "Check-in 4: the privacy audit finds 3 million customer emails in the vendor's trace store; the bank must report it.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "10min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The change window closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "10min"
+        }
+      ]
+    },
+    {
+      "id": "t_mem",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 1: the next peak is at 10:30.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "memPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_fan",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 2: the vendor is slow again.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "fanPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_pii",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 3: the privacy officer asks about user.email.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "piiPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "memPrompt": {
+      "title": "The gateway keeps getting OOM-killed",
+      "context": "The pod's memory limit is 2 GiB.",
+      "choices": [
+        {
+          "id": "limiter",
+          "label": "Add memory_limiter as the first processor (limit about 80% of 2 GiB, with a spike allowance), batch after it, and run three gateway replicas behind a load balancer",
+          "effects": [
+            {
+              "set": "mem",
+              "to": "\"limiter\""
+            },
+            {
+              "set": "memAt",
+              "to": "t"
+            },
+            {
+              "log": "memory_limiter first, batch second, three replicas.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "memory_limiter refuses data before memory runs out, so clients retry instead of the Collector dying with everything in it."
+        },
+        {
+          "id": "moreRam",
+          "label": "Raise the pod's memory limit to 8 GiB",
+          "effects": [
+            {
+              "set": "mem",
+              "to": "\"moreRam\""
+            },
+            {
+              "set": "memAt",
+              "to": "t"
+            },
+            {
+              "log": "The limit is raised to 8 GiB.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "It takes longer to die; with a slow backend the buffer still grows until it does."
+        },
+        {
+          "id": "limiterLast",
+          "label": "Add memory_limiter after batch to protect the exporters",
+          "effects": [
+            {
+              "set": "mem",
+              "to": "\"limiterLast\""
+            },
+            {
+              "set": "memAt",
+              "to": "t"
+            },
+            {
+              "log": "memory_limiter is added after batch.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "After batch, data is already buffered in memory before the limiter sees it; the OOMs continue."
+        }
+      ]
+    },
+    "fanPrompt": {
+      "title": "One slow backend",
+      "context": "The vendor endpoint is slow; its full queue holds memory the in-house exporter needs.",
+      "choices": [
+        {
+          "id": "isolate",
+          "label": "Give each exporter its own sending_queue sized for its backend and retry_on_failure with a max elapsed time; use a file-backed persistent queue for the in-house store",
+          "effects": [
+            {
+              "set": "fan",
+              "to": "\"isolate\""
+            },
+            {
+              "set": "fanAt",
+              "to": "t"
+            },
+            {
+              "log": "Each exporter has its own queue and retries; in-house survives restarts.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Each exporter has its own queue and retry policy, so one slow backend fills only its queue, and a persistent queue survives restarts."
+        },
+        {
+          "id": "bigQueue",
+          "label": "Raise both queues to 50,000",
+          "effects": [
+            {
+              "set": "fan",
+              "to": "\"bigQueue\""
+            },
+            {
+              "set": "fanAt",
+              "to": "t"
+            },
+            {
+              "log": "Both queues grow tenfold.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "More buffer for the vendor means more memory held; the limiter will refuse data sooner for everyone."
+        },
+        {
+          "id": "dropVendor",
+          "label": "Remove the vendor exporter: the fraud team can use the in-house store",
+          "effects": [
+            {
+              "set": "fan",
+              "to": "\"dropVendor\""
+            },
+            {
+              "set": "fanAt",
+              "to": "t"
+            },
+            {
+              "log": "The vendor exporter is removed.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The fraud team's detections run only in the vendor; removing it blinds them."
+        }
+      ]
+    },
+    "piiPrompt": {
+      "title": "Emails in span attributes",
+      "context": "user.email reaches both backends, including the vendor.",
+      "choices": [
+        {
+          "id": "redact",
+          "label": "Add an attributes processor that deletes user.email (and hashes user.id) after memory_limiter and before batch, so no exporter receives it; ask the teams to stop setting it",
+          "effects": [
+            {
+              "set": "pii",
+              "to": "\"redact\""
+            },
+            {
+              "set": "piiAt",
+              "to": "t"
+            },
+            {
+              "log": "user.email is removed before export.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Processor order matters: redaction before batch and export means no backend ever receives the value."
+        },
+        {
+          "id": "vendorOnly",
+          "label": "Ask the vendor to drop the field on their side",
+          "effects": [
+            {
+              "set": "pii",
+              "to": "\"vendorOnly\""
+            },
+            {
+              "set": "piiAt",
+              "to": "t"
+            },
+            {
+              "log": "The vendor is asked to drop it.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The data still leaves the bank before anything removes it."
+        },
+        {
+          "id": "nothing",
+          "label": "Leave it: the vendor contract covers personal data",
+          "effects": [
+            {
+              "set": "pii",
+              "to": "\"nothing\""
+            },
+            {
+              "set": "piiAt",
+              "to": "t"
+            },
+            {
+              "log": "Nothing changes.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Personal data the bank does not need is still sent to a third party."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the change record: why the gateway died, how the pipelines are ordered now, and how each backend is isolated.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Order",
+          "criteria": "memory_limiter first, then attributes redaction, then batch, then exporters.",
+          "modelAnswer": "Processors run in order: memory_limiter refuses data before memory runs out, attributes removes user.email, then batch."
+        },
+        {
+          "label": "Exporters",
+          "criteria": "Own queue and retry policy per exporter; persistent queue in-house; three replicas.",
+          "modelAnswer": "Each exporter has its own sized queue and retries, the in-house one persistent, behind three gateway replicas."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Service restored and the work closed within 60 minutes of the first report."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No fault introduced by the response itself."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (mem == \"moreRam\") and (fan == \"bigQueue\") and (pii == \"vendorOnly\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "Linux Foundation, OpenTelemetry Certified Associate (OTCA) exam page: Fundamentals of Observability 18%, The OpenTelemetry API and SDK 46%, The OpenTelemetry Collector 26%, Maintaining and Debugging Observability Pipelines 10%",
+        "checkedAt": "2026-11-17",
+        "url": "https://training.linuxfoundation.org/certification/opentelemetry-certified-associate-otca/",
+        "note": "Read through a summarizing fetch on 2026-11-17: the four domains and weights above, with context propagation named under the API and SDK domain and under maintaining and debugging pipelines. The objective wording is the course seed's. Reused for REQ-336 from this course's split-traces-b3-propagator (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "memHarm": {
+      "label": "Traces lost in another OOM",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and mem == \"limiterLast\"",
+      "narrative": "With memory_limiter after batch, the gateway was OOM-killed at the peak and lost the traces in memory."
+    },
+    "fanHarm": {
+      "label": "The fraud team blinded",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and fan == \"dropVendor\"",
+      "narrative": "Removing the vendor exporter silenced fraud alerting; a card-testing attack ran for an hour."
+    },
+    "piiHarm": {
+      "label": "Personal data exported",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and pii == \"nothing\"",
+      "narrative": "Customer emails flowed to the vendor's trace store; the privacy audit found 3 million and the bank had to report it."
+    },
+    "target": {
+      "label": "A pipeline that bends instead of breaking",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (mem == \"limiter\") and (fan == \"isolate\") and (pii == \"redact\") and record == \"honest\" and missCount <= newFaults and timeAt(doneAt) <= restoreWindow",
+      "narrative": "The gateway survives peaks, a slow backend affects only itself, and no personal data leaves."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "memHarm",
+    "fanHarm",
+    "piiHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "memCrit",
+        "label": "Put memory_limiter first so the Collector refuses data instead of dying",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "mem == \"limiter\"",
+            "score": "met",
+            "why": "Protected first, scaled out."
+          },
+          {
+            "when": "mem == \"moreRam\"",
+            "score": "partial",
+            "why": "Delayed, not prevented."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Limiter in the wrong place."
+          }
+        ]
+      },
+      {
+        "id": "fanCrit",
+        "label": "Isolated each exporter with its own sized queue and retries",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fan == \"isolate\"",
+            "score": "met",
+            "why": "Exporters isolated."
+          },
+          {
+            "when": "fan == \"bigQueue\"",
+            "score": "partial",
+            "why": "Bigger, not isolated."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Cut off a consumer."
+          }
+        ]
+      },
+      {
+        "id": "piiCrit",
+        "label": "Redacted the attribute in the Collector before any exporter",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "pii == \"redact\"",
+            "score": "met",
+            "why": "Redacted in the right place."
+          },
+          {
+            "when": "pii == \"vendorOnly\"",
+            "score": "partial",
+            "why": "Redacted after it left."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Left PII flowing."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(cfgAt) and not isNull(metricsAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(cfgAt) or not isNull(metricsAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the pipelines and the Collector's own metrics before changing anything."
+      },
+      {
+        "at": "Check-in 1",
+        "text": "Put memory_limiter first, then batch, and scale the gateway horizontally."
+      },
+      {
+        "at": "Check-in 2",
+        "text": "Size each exporter's queue and retries separately, persistent for the in-house store."
+      },
+      {
+        "at": "Check-in 3",
+        "text": "Delete user.email with an attributes processor before batch and export."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "memHarm": {
+        "headline": "memory_limiter goes first",
+        "body": "Place memory_limiter first in each pipeline so data is refused before memory runs out."
+      },
+      "fanHarm": {
+        "headline": "Isolate, don't remove",
+        "body": "Give each exporter its own queue and retry policy so one slow backend doesn't affect the others."
+      },
+      "piiHarm": {
+        "headline": "Redact in the Collector",
+        "body": "Remove personal attributes with a processor before any exporter."
+      },
+      "target": {
+        "headline": "Good: a pipeline that bends instead of breaking",
+        "body": "memory_limiter first, isolated exporters, redaction before export."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Collector processors run in the order a pipeline lists them: memory_limiter first, so data is refused (and clients retry) before memory runs out; then transforms such as attribute redaction; then batch. Each exporter has its own sending queue and retry policy, so a slow backend fills only its own queue; persistent queues survive restarts, and horizontal scaling spreads load. Removing a backend or raising memory hides the design problem."
+  }
+}
