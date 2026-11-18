@@ -162,6 +162,14 @@ describe("depth cloud sims (REQ-335)", () => {
       assert.equal(c.scoring, undefined);
     }
   });
+
+  test("no action or state id is a server-only key name, so the client document's keys stay clean (FAIL-2500)", () => {
+    const SERVER_ONLY = ["scoring", "parts", "modelAnswer", "modelReasoning", "debrief", "expertPath", "checkedAt", "recheckBy"];
+    for (const w of CLOUD) {
+      const d = docOf(w.slug);
+      for (const id of [...Object.keys(d.actions), ...Object.keys(d.state ?? {})]) assert.ok(!SERVER_ONLY.includes(id), `${w.slug}: id "${id}" is a server-only key`);
+    }
+  });
 });
 
 describe("what each new depth cloud case teaches (REQ-335)", () => {

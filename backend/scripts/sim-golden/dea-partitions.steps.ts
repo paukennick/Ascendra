@@ -14,7 +14,7 @@ export function spec(): StepsSpec {
         title: "Partitions, files, function log, count; add partition; restore permission; verify",
         reasoning: "met",
         drive: (c) => {
-          run(c, "parts");
+          run(c, "showparts");
           run(c, "files");
           run(c, "lamlog");
           run(c, "count");
@@ -31,7 +31,7 @@ export function spec(): StepsSpec {
         title: "Re-runs today's loads",
         reasoning: "missed",
         drive: (c) => {
-          run(c, "parts");
+          run(c, "showparts");
           run(c, "rerun");
           run(c, "verify");
           waitUntil(c, 41);
@@ -44,7 +44,7 @@ export function spec(): StepsSpec {
         title: "Runs MSCK REPAIR TABLE",
         reasoning: "partial",
         drive: (c) => {
-          run(c, "parts");
+          run(c, "showparts");
           run(c, "msck");
           run(c, "verify");
           waitUntil(c, 41);
@@ -57,7 +57,7 @@ export function spec(): StepsSpec {
         title: "Compares partitions and files, adds the partition, verifies",
         reasoning: "partial",
         drive: (c) => {
-          run(c, "parts");
+          run(c, "showparts");
           run(c, "files");
           run(c, "addPart");
           run(c, "verify");
@@ -71,7 +71,7 @@ export function spec(): StepsSpec {
         title: "Waits, adds the partition after 10:00",
         reasoning: "partial",
         drive: (c) => {
-          run(c, "parts");
+          run(c, "showparts");
           waitUntil(c, 40);
           run(c, "addPart");
           run(c, "verify");

@@ -96,7 +96,7 @@
       "cite": "AWS Certification, AWS Certified Data Engineer - Associate (DEA-C01) exam guide: Data Ingestion and Transformation 34%, Data Store Management 26%, Data Operations and Support 22%, Data Security and Governance 18%",
       "checkedAt": "2026-11-17",
       "url": "https://docs.aws.amazon.com/id_id/aws-certification/latest/data-engineer-associate-01/data-engineer-associate-01.md",
-      "note": "Read directly on 2026-11-17 (the page text was English). Domain 1's task statements are on a linked page not read in this round; the objective wording is the course seed's. (read for this round by an earlier pass on 2026-11-17)"
+      "note": "Read directly on 2026-11-17 (the page text was English). Domain 1's task statements are on a linked page not read in this round; the objective wording is the course seed's. (read for this round by an earlier pass on 2026-11-17) (read for this round by an earlier pass on 2026-11-17)"
     },
     {
       "cite": "Amazon Athena User Guide, MSCK REPAIR TABLE",
@@ -159,7 +159,7 @@
       "type": "time",
       "init": null
     },
-    "partsAt": {
+    "showpartsAt": {
       "type": "time",
       "init": null
     },
@@ -209,7 +209,7 @@
       "label": "Outage in progress",
       "clock": "turns",
       "actions": [
-        "parts",
+        "showparts",
         "files",
         "lamlog",
         "count",
@@ -232,17 +232,17 @@
   },
   "initialPhase": "incident",
   "actions": {
-    "parts": {
+    "showparts": {
       "label": "Athena: SHOW PARTITIONS clicks (last three)",
       "group": "Look",
       "available": "not busy",
       "why": "Wait for the running command to finish.",
       "effects": [
         {
-          "if": "isNull(partsAt)",
+          "if": "isNull(showpartsAt)",
           "then": [
             {
-              "set": "partsAt",
+              "set": "showpartsAt",
               "to": "t"
             }
           ]
@@ -723,7 +723,7 @@
       "label": "Partition added, permission restored, checked",
       "class": "target",
       "terminal": true,
-      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(partsAt) and not isNull(filesAt) and not isNull(verifiedAt) and causeDoc == \"catalog\"",
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(showpartsAt) and not isNull(filesAt) and not isNull(verifiedAt) and causeDoc == \"catalog\"",
       "narrative": "Today's partition was registered before 10:00 and the function that adds them works again."
     },
     "gaps": {
@@ -755,12 +755,12 @@
         "critical": true,
         "rows": [
           {
-            "when": "not isNull(partsAt) and not isNull(filesAt)",
+            "when": "not isNull(showpartsAt) and not isNull(filesAt)",
             "score": "met",
             "why": "The key evidence, read before changing anything."
           },
           {
-            "when": "not isNull(partsAt) or not isNull(filesAt) or not isNull(lamlogAt) or not isNull(countAt)",
+            "when": "not isNull(showpartsAt) or not isNull(filesAt) or not isNull(lamlogAt) or not isNull(countAt)",
             "score": "partial",
             "why": "Part of the picture."
           },
