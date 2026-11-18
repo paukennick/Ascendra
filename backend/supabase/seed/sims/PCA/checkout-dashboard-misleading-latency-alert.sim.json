@@ -1,0 +1,1017 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "checkout-dashboard-misleading-latency-alert",
+  "title": "A checkout dashboard that hid an outage and an alert that paged on CPU: rate windows, quantiles and burn-rate alerts",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "mon@marigold:~$",
+      "lines": [
+        {
+          "id": "firstLine",
+          "text": "postmortem: checkout p99 was 2.1 s for 40 min; dashboard showed a flat 180 ms average",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "lineQuant",
+          "text": "{quant == \"hq\" ? \"p99 from summed bucket rates\" : quant == \"maxAvg\" ? \"Max of per-instance averages\" : quant == \"avgQuant\" ? \"Average of per-instance p99s\" : \"\"}",
+          "when": "quant != \"none\"",
+          "at": "timeAt(quantAt)",
+          "error": "quant == \"avgQuant\""
+        },
+        {
+          "id": "lineWindow",
+          "text": "{window == \"longer\" ? \"Windows of at least 4 scrapes\" : window == \"irate\" ? \"irate over 1m\" : window == \"faster\" ? \"1-second scrapes everywhere\" : \"\"}",
+          "when": "window != \"none\"",
+          "at": "timeAt(windowAt)",
+          "error": "window == \"faster\""
+        },
+        {
+          "id": "linePage",
+          "text": "{page == \"burn\" ? \"Burn-rate pages; CPU a ticket\" : page == \"threshold\" ? \"p99 threshold alert; CPU page kept\" : page == \"moreCpu\" ? \"CPU page at 60%\" : \"\"}",
+          "when": "page != \"none\"",
+          "at": "timeAt(pageAt)",
+          "error": "page == \"moreCpu\""
+        }
+      ],
+      "nodes": [
+        {
+          "id": "nQuant",
+          "label": "checkout latency panel",
+          "spokenLabel": "checkout latency panel",
+          "kind": "dashboard",
+          "status": "{quant == \"hq\" ? \"p99 from summed bucket rates\" : quant == \"maxAvg\" ? \"Max of per-instance averages\" : quant == \"avgQuant\" ? \"Average of per-instance p99s\" : \"Waiting\"}",
+          "tone": "quant == \"hq\" ? \"up\" : quant == \"maxAvg\" ? \"degraded\" : quant == \"avgQuant\" ? \"down\" : p >= 1 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nWindow",
+          "label": "rate windows",
+          "spokenLabel": "rate windows",
+          "kind": "dashboard",
+          "status": "{window == \"longer\" ? \"Windows of at least 4 scrapes\" : window == \"irate\" ? \"irate over 1m\" : window == \"faster\" ? \"1-second scrapes everywhere\" : \"Waiting\"}",
+          "tone": "window == \"longer\" ? \"up\" : window == \"irate\" ? \"degraded\" : window == \"faster\" ? \"down\" : p >= 2 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nPage",
+          "label": "alerting rules",
+          "spokenLabel": "alerting rules",
+          "kind": "alerts",
+          "status": "{page == \"burn\" ? \"Burn-rate pages; CPU a ticket\" : page == \"threshold\" ? \"p99 threshold alert; CPU page kept\" : page == \"moreCpu\" ? \"CPU page at 60%\" : \"Waiting\"}",
+          "tone": "page == \"burn\" ? \"up\" : page == \"threshold\" ? \"degraded\" : page == \"moreCpu\" ? \"down\" : p >= 3 ? \"degraded\" : \"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "link0",
+          "from": "nQuant",
+          "to": "nWindow",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        },
+        {
+          "id": "link1",
+          "from": "nWindow",
+          "to": "nPage",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Check-in",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Design dashboards: panels that match the metric type, rate windows, units, legends, variables and avoiding misleading aggregations",
+  "secondaryObjectives": [
+    "Alerting basics: when to alert (symptoms over causes), what to alert on (SLO burn, saturation that predicts impact) and why pages must be actionable",
+    "Configuring alerting rules: alert, expr, for, labels and annotations with templating, rule groups and evaluation interval"
+  ],
+  "sources": [
+    {
+      "cite": "CNCF Prometheus Certified Associate (PCA) curriculum: PromQL 28%, Prometheus Fundamentals 20%, Observability Concepts 18%, Alerting & Dashboarding 18%, Instrumentation and Exporters 16%",
+      "checkedAt": "2026-11-17",
+      "url": "https://kube-dojo.github.io/k8s/pca",
+      "note": "On 2026-11-17 the weights were confirmed through a third-party study page (kube-dojo.github.io/k8s/pca, summarizing fetch), which cites no curriculum version; the official curriculum (cncf/curriculum, read by the course builder for backend/supabase/seed/tracks/cncf-ecosystem.ts) was not re-read. The objective wording is the course seed's. Reused for REQ-336 from this course's canary-gate-wrong-p99-query (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "GrokDevOps wiki, 'Prometheus and the art of not alerting'",
+      "checkedAt": "2026-11-17",
+      "url": "https://grokdatum.github.io/grokdevops-wiki/library/lessons/prometheus-and-the-art-of-not-alerting",
+      "note": "Found by search 2026-11-17 and read only through the search listing (title and address); to verify against the page. Used for: alerting on symptoms and SLO burn rate rather than causes such as CPU."
+    },
+    {
+      "cite": "youngju.dev, 'Observability: Prometheus, PromQL, recording rules and SLOs' (2026-03-07)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.youngju.dev/blog/observability/2026-03-07-observability-prometheus-promql-recording-rules-slo.en",
+      "note": "Found by search 2026-11-17 and read only through the search listing (title and address); to verify against the page. Used for: recording rules, histogram_quantile over summed bucket rates by le, and multiwindow burn-rate alerts."
+    },
+    {
+      "cite": "GrokDevOps wiki, Prometheus deep dive: footguns",
+      "checkedAt": "2026-11-17",
+      "url": "https://grokdatum.github.io/grokdevops-wiki/library/topics/prometheus-deep-dive/footguns",
+      "note": "Found by search 2026-11-17 and read only through the search listing (title and address); to verify against the page. Used for: relabeling that drops every target, high-cardinality labels and averaging quantiles."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The company, the services, the metrics and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You own monitoring for checkout at Marigold Shoes, a fictional online shoe store. Last night checkout was slow for 40 minutes; the latency panel stayed flat and the on-call engineer was paged three times for CPU on a batch node instead. The checkout SLO: 99% of requests under 300 ms over 30 days.",
+    "handover": [
+      "Scrape interval 30s. The latency panel shows avg(rate(http_request_duration_seconds_sum[1m])) / avg(rate(..._count[1m])) across all instances.",
+      "The only page is an alert on node CPU above 80% for 1 minute."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the map shows each component and its status in words.",
+      "Move on a check-in at a time. A decision comes to you at each check-in; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-03-22T09:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "quant": {
+      "type": "enum",
+      "values": [
+        "none",
+        "hq",
+        "maxAvg",
+        "avgQuant"
+      ],
+      "init": "none"
+    },
+    "quantAt": {
+      "type": "time",
+      "init": null
+    },
+    "window": {
+      "type": "enum",
+      "values": [
+        "none",
+        "longer",
+        "irate",
+        "faster"
+      ],
+      "init": "none"
+    },
+    "windowAt": {
+      "type": "time",
+      "init": null
+    },
+    "page": {
+      "type": "enum",
+      "values": [
+        "none",
+        "burn",
+        "threshold",
+        "moreCpu"
+      ],
+      "init": "none"
+    },
+    "pageAt": {
+      "type": "time",
+      "init": null
+    },
+    "panelAt": {
+      "type": "time",
+      "init": null
+    },
+    "rulesAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((quant == \"avgQuant\") ? 1 : 0) + ((window == \"faster\") ? 1 : 0) + ((page == \"moreCpu\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(quant == \"none\" or (quant == \"avgQuant\") ? 1 : 0) + (window == \"none\" or (window == \"faster\") ? 1 : 0) + (page == \"none\" or (page == \"moreCpu\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The dashboard and alert fix",
+      "clock": "turns",
+      "actions": [
+        "panel",
+        "rules"
+      ]
+    },
+    "close": {
+      "label": "Change record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "panel": {
+      "label": "Read the latency panel's query and last night's raw buckets",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(panelAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "panelAt",
+          "to": "t"
+        },
+        {
+          "output": "panel: average of averages over 1m windows, all instances\nbuckets last night: 4% of requests above 1 s on one instance"
+        },
+        {
+          "log": "You read the panel.",
+          "kind": "act"
+        },
+        {
+          "finding": "An average hides the tail and averaging per-instance averages hides the bad instance; with a 30-second scrape, a 1-minute rate window often has one sample and draws gaps."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "rules": {
+      "label": "promtool check rules alerts.yml; read the alert history",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(rulesAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "rulesAt",
+          "to": "t"
+        },
+        {
+          "output": "alert NodeCPUHigh: expr node CPU > 80, for 1m (paged 3 times last night: batch node)\nno alert on checkout latency or errors"
+        },
+        {
+          "log": "You read the alert rules and history.",
+          "kind": "act"
+        },
+        {
+          "finding": "The only page is a cause (CPU) on a batch node that affects no customer; nothing pages on the symptom customers felt."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the change record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "p99 from summed bucket rates with a per-instance view, rate windows of four scrapes, and burn-rate pages with CPU moved to a ticket"
+                },
+                {
+                  "value": "summary",
+                  "label": "Dashboards and alerts updated"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next check-in",
+      "wait": {
+        "skipLabel": "Go to the next check-in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "quant == \"avgQuant\"",
+              "then": [
+                {
+                  "log": "Check-in 2: a repeat of last night's slowdown on one instance shows as a 40 ms bump on the new panel; nobody reacts.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "window == \"faster\"",
+              "then": [
+                {
+                  "log": "Check-in 3: Prometheus falls behind on ingestion and drops samples; rule evaluations time out and dashboards lag by minutes.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "page == \"moreCpu\"",
+              "then": [
+                {
+                  "log": "Check-in 4: on-call is paged eleven times overnight for batch CPU and mutes the channel; a real checkout slowdown at 03:00 goes unseen.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "10min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The monitoring review closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "10min"
+        }
+      ]
+    },
+    {
+      "id": "t_quant",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 1: the dashboard review.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "quantPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_window",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 2: the graphs have gaps.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "windowPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_page",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 3: alerting.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "pagePrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "quantPrompt": {
+      "title": "A flat line during an outage",
+      "context": "The panel averages averages; the metric is a histogram.",
+      "choices": [
+        {
+          "id": "hq",
+          "label": "Plot histogram_quantile(0.99, sum by (le) (rate(http_request_duration_seconds_bucket[2m]))) in seconds, plus a per-instance variable to break it down",
+          "effects": [
+            {
+              "set": "quant",
+              "to": "\"hq\""
+            },
+            {
+              "set": "quantAt",
+              "to": "t"
+            },
+            {
+              "log": "The panel now shows p99, with a per-instance view.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Quantiles come from bucket rates summed by le first; averaging hides exactly the tail customers feel."
+        },
+        {
+          "id": "maxAvg",
+          "label": "Switch to the maximum of per-instance averages",
+          "effects": [
+            {
+              "set": "quant",
+              "to": "\"maxAvg\""
+            },
+            {
+              "set": "quantAt",
+              "to": "t"
+            },
+            {
+              "log": "The panel shows the worst instance's average.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The bad instance shows, but an average still hides the tail."
+        },
+        {
+          "id": "avgQuant",
+          "label": "Compute p99 per instance with histogram_quantile and average those p99s",
+          "effects": [
+            {
+              "set": "quant",
+              "to": "\"avgQuant\""
+            },
+            {
+              "set": "quantAt",
+              "to": "t"
+            },
+            {
+              "log": "The panel averages per-instance p99s.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Averaging quantiles is mathematically meaningless; one bad instance among twelve is diluted to a small bump."
+        }
+      ]
+    },
+    "windowPrompt": {
+      "title": "Gaps in every rate panel",
+      "context": "Scrape interval 30s; panels use rate(...[1m]).",
+      "choices": [
+        {
+          "id": "longer",
+          "label": "Use the dashboard's rate-interval variable (at least four times the scrape interval, so 2m here) in every rate panel",
+          "effects": [
+            {
+              "set": "window",
+              "to": "\"longer\""
+            },
+            {
+              "set": "windowAt",
+              "to": "t"
+            },
+            {
+              "log": "Rate panels use a 2-minute or longer window.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A rate needs at least two samples in the window; four scrape intervals leaves room for a missed scrape."
+        },
+        {
+          "id": "irate",
+          "label": "Switch to irate over 1m",
+          "effects": [
+            {
+              "set": "window",
+              "to": "\"irate\""
+            },
+            {
+              "set": "windowAt",
+              "to": "t"
+            },
+            {
+              "log": "Panels use irate.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "irate draws lines from the last two samples, but is jumpy and still gaps when a scrape is missed."
+        },
+        {
+          "id": "faster",
+          "label": "Scrape every service every 1 second so 1-minute windows fill",
+          "effects": [
+            {
+              "set": "window",
+              "to": "\"faster\""
+            },
+            {
+              "set": "windowAt",
+              "to": "t"
+            },
+            {
+              "log": "Every job scrapes every second.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Thirty times the samples overloads Prometheus and the targets for no gain in the dashboards' accuracy."
+        }
+      ]
+    },
+    "pagePrompt": {
+      "title": "Paged for CPU, not for customers",
+      "context": "The SLO: 99% of requests under 300 ms over 30 days.",
+      "choices": [
+        {
+          "id": "burn",
+          "label": "Add multiwindow burn-rate alerts on the share of requests over 300 ms (fast: 1h and 5m windows; slow: 6h and 30m), with for, severity labels and a runbook link; turn NodeCPUHigh into a ticket",
+          "effects": [
+            {
+              "set": "page",
+              "to": "\"burn\""
+            },
+            {
+              "set": "pageAt",
+              "to": "t"
+            },
+            {
+              "log": "Burn-rate pages; CPU becomes a ticket.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Page on the symptom customers feel, at a rate that will spend the error budget; causes such as CPU go to tickets."
+        },
+        {
+          "id": "threshold",
+          "label": "Add an alert on p99 above 300 ms for 5 minutes, and keep the CPU page",
+          "effects": [
+            {
+              "set": "page",
+              "to": "\"threshold\""
+            },
+            {
+              "set": "pageAt",
+              "to": "t"
+            },
+            {
+              "log": "A p99 threshold alert is added.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "It catches big slowdowns, but pages on short blips, and CPU still wakes people for nothing."
+        },
+        {
+          "id": "moreCpu",
+          "label": "Lower the CPU alert to 60% so it pages earlier",
+          "effects": [
+            {
+              "set": "page",
+              "to": "\"moreCpu\""
+            },
+            {
+              "set": "pageAt",
+              "to": "t"
+            },
+            {
+              "log": "The CPU page fires at 60%.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "More pages about a cause that doesn't affect customers, and still none about latency."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the change record: why the dashboard and the alert missed last night's slowdown, and what they show and page on now.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Dashboard",
+          "criteria": "Average of averages hid the tail and the instance; now p99 from summed bucket rates with a 2m window.",
+          "modelAnswer": "Averages hid the slow tail and the bad instance; the panel now shows histogram_quantile over bucket rates summed by le, with a 2-minute window."
+        },
+        {
+          "label": "Alerting",
+          "criteria": "Multiwindow burn-rate pages on the SLO; CPU moved to a ticket.",
+          "modelAnswer": "We page when the share of slow requests burns the error budget fast or steadily; CPU on batch nodes is a ticket."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Service restored and the work closed within 60 minutes of the first report."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No fault introduced by the response itself."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (quant == \"maxAvg\") and (window == \"irate\") and (page == \"threshold\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CNCF Prometheus Certified Associate (PCA) curriculum: PromQL 28%, Prometheus Fundamentals 20%, Observability Concepts 18%, Alerting & Dashboarding 18%, Instrumentation and Exporters 16%",
+        "checkedAt": "2026-11-17",
+        "url": "https://kube-dojo.github.io/k8s/pca",
+        "note": "On 2026-11-17 the weights were confirmed through a third-party study page (kube-dojo.github.io/k8s/pca, summarizing fetch), which cites no curriculum version; the official curriculum (cncf/curriculum, read by the course builder for backend/supabase/seed/tracks/cncf-ecosystem.ts) was not re-read. The objective wording is the course seed's. Reused for REQ-336 from this course's canary-gate-wrong-p99-query (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "quantHarm": {
+      "label": "The panel hid it again",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and quant == \"avgQuant\"",
+      "narrative": "Averaging per-instance p99s diluted a one-instance slowdown into a small bump; nobody reacted."
+    },
+    "windowHarm": {
+      "label": "Prometheus overloaded",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and window == \"faster\"",
+      "narrative": "1-second scrapes overloaded Prometheus; samples were dropped and rule evaluation lagged."
+    },
+    "pageHarm": {
+      "label": "Alert fatigue hid an outage",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and page == \"moreCpu\"",
+      "narrative": "Eleven CPU pages overnight led on-call to mute the channel; a real checkout slowdown went unseen."
+    },
+    "target": {
+      "label": "A dashboard and a page that tell the truth",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (quant == \"hq\") and (window == \"longer\") and (page == \"burn\") and record == \"honest\" and missCount <= newFaults and timeAt(doneAt) <= restoreWindow",
+      "narrative": "The next slowdown shows on the panel and pages on-call for the right reason."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "quantHarm",
+    "windowHarm",
+    "pageHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "quantCrit",
+        "label": "Showed latency as a quantile from summed bucket rates",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "quant == \"hq\"",
+            "score": "met",
+            "why": "The right aggregation."
+          },
+          {
+            "when": "quant == \"maxAvg\"",
+            "score": "partial",
+            "why": "Better, still an average."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Averaged quantiles."
+          }
+        ]
+      },
+      {
+        "id": "windowCrit",
+        "label": "Made rate windows at least four scrape intervals",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "window == \"longer\"",
+            "score": "met",
+            "why": "Window fits the scrape."
+          },
+          {
+            "when": "window == \"irate\"",
+            "score": "partial",
+            "why": "Jumpy, still gaps."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Overloaded Prometheus."
+          }
+        ]
+      },
+      {
+        "id": "pageCrit",
+        "label": "Paged on SLO burn rate and removed the cause-based page",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "page == \"burn\"",
+            "score": "met",
+            "why": "Symptom-based, actionable."
+          },
+          {
+            "when": "page == \"threshold\"",
+            "score": "partial",
+            "why": "Better, noisy."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "More noise, no symptom."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(panelAt) and not isNull(rulesAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(panelAt) or not isNull(rulesAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the panel's query, last night's buckets and the alert rules first."
+      },
+      {
+        "at": "Check-in 1",
+        "text": "Plot histogram_quantile over bucket rates summed by le, with a per-instance variable."
+      },
+      {
+        "at": "Check-in 2",
+        "text": "Use a rate window of at least four scrape intervals."
+      },
+      {
+        "at": "Check-in 3",
+        "text": "Page on multiwindow SLO burn rate and move the CPU alert to a ticket."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "quantHarm": {
+        "headline": "Never average quantiles",
+        "body": "Sum bucket rates by le, then take histogram_quantile."
+      },
+      "windowHarm": {
+        "headline": "Fit the window to the scrape",
+        "body": "Use rate windows of at least four scrape intervals."
+      },
+      "pageHarm": {
+        "headline": "Page on symptoms",
+        "body": "Alert on SLO burn rate; send causes such as CPU to tickets."
+      },
+      "target": {
+        "headline": "Good: a dashboard and a page that tell the truth",
+        "body": "Quantiles computed correctly, windows that fit the scrape, and pages on SLO burn."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Dashboards must match the metric type: latency is a histogram, so quantiles come from histogram_quantile over bucket rates summed by le; averaging averages or quantiles hides the tail and the bad instance. A rate window needs several samples, at least four scrape intervals. Pages should be actionable and about symptoms: multiwindow burn-rate alerts on the SLO page when the error budget is burning; causes like CPU belong in tickets."
+  }
+}
