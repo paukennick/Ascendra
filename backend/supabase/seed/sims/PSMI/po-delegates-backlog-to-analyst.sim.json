@@ -1,0 +1,1140 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "po-delegates-backlog-to-analyst",
+  "title": "A Product Owner who hands the backlog to an analyst, two teams with two backlogs, and who decides",
+  "screen": {
+    "type": "project-dashboard",
+    "level": 1,
+    "dashboard": {
+      "mode": "sprint",
+      "heading": "Sprint 14 of the claims app",
+      "commitments": [
+        {
+          "id": "pg",
+          "label": "Product Goal",
+          "text": "Policyholders settle simple claims in the app without calling."
+        },
+        {
+          "id": "sgoal",
+          "label": "Sprint Goal",
+          "text": "A policyholder can upload photos and see the claim's status."
+        },
+        {
+          "id": "dod",
+          "label": "Definition of Done",
+          "text": "Reviewed, tested in the staging pipeline, accessible, released behind a flag."
+        }
+      ],
+      "columns": [
+        {
+          "id": "todo",
+          "label": "To do"
+        },
+        {
+          "id": "blocked",
+          "label": "Off course"
+        },
+        {
+          "id": "done",
+          "label": "Handled"
+        }
+      ],
+      "items": [
+        {
+          "id": "wDeleg",
+          "label": "Product Owner delegation",
+          "column": "deleg == \"poAccountable\" ? \"done\" : deleg == \"unclear\" ? \"blocked\" : deleg == \"marcoPo\" ? \"blocked\" : \"todo\"",
+          "when": "true",
+          "flag": "deleg == \"marcoPo\""
+        },
+        {
+          "id": "wOnebl",
+          "label": "Product Backlog structure",
+          "column": "onebl == \"merge\" ? \"done\" : onebl == \"sync\" ? \"blocked\" : onebl == \"bOwn\" ? \"blocked\" : \"todo\"",
+          "when": "true",
+          "flag": "onebl == \"bOwn\""
+        },
+        {
+          "id": "wAccept",
+          "label": "Photo upload (fails accessibility)",
+          "column": "accept == \"dodHolds\" ? \"done\" : accept == \"deferPriya\" ? \"blocked\" : accept == \"acceptIt\" ? \"blocked\" : \"todo\"",
+          "when": "true",
+          "flag": "accept == \"acceptIt\""
+        }
+      ],
+      "issues": [
+        {
+          "id": "iDeleg",
+          "label": "Unclear who orders the backlog",
+          "when": "p >= 1",
+          "at": "86400",
+          "status": "{deleg == \"poAccountable\" ? \"Priya accountable; Marco helps with the work\" : deleg == \"unclear\" ? \"Roles left unclear\" : deleg == \"marcoPo\" ? \"Marco presented as Product Owner\" : \"Due\"}",
+          "open": "deleg == \"none\""
+        },
+        {
+          "id": "iOnebl",
+          "label": "Two backlogs for one product",
+          "when": "p >= 2",
+          "at": "172800",
+          "status": "{onebl == \"merge\" ? \"One Product Backlog for both teams\" : onebl == \"sync\" ? \"Two backlogs, weekly sync\" : onebl == \"bOwn\" ? \"Two backlogs, two priorities\" : \"Due\"}",
+          "open": "onebl == \"none\""
+        },
+        {
+          "id": "iAccept",
+          "label": "Pressure to release undone work",
+          "when": "p >= 3",
+          "at": "259200",
+          "status": "{accept == \"dodHolds\" ? \"Undone item returned to the backlog\" : accept == \"deferPriya\" ? \"Waiting for the Review\" : accept == \"acceptIt\" ? \"Undone work released\" : \"Due\"}",
+          "open": "accept == \"none\""
+        }
+      ],
+      "people": [
+        {
+          "id": "sDev",
+          "label": "Developers",
+          "spokenLabel": "the Developers' trust",
+          "value": "dev",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sPo",
+          "label": "Product Owner",
+          "spokenLabel": "the Product Owner's trust",
+          "value": "po",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sSh",
+          "label": "Stakeholders",
+          "spokenLabel": "the stakeholders' trust",
+          "value": "sh",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "events": [
+        {
+          "id": "mDeleg",
+          "label": "Daily Scrum, day 1",
+          "at": "86400",
+          "status": "{deleg == \"poAccountable\" ? \"Priya accountable; Marco helps with the work\" : deleg == \"unclear\" ? \"Roles left unclear\" : deleg == \"marcoPo\" ? \"Marco presented as Product Owner\" : \"Ahead\"}"
+        },
+        {
+          "id": "mOnebl",
+          "label": "Daily Scrum, day 2",
+          "at": "172800",
+          "status": "{onebl == \"merge\" ? \"One Product Backlog for both teams\" : onebl == \"sync\" ? \"Two backlogs, weekly sync\" : onebl == \"bOwn\" ? \"Two backlogs, two priorities\" : \"Ahead\"}"
+        },
+        {
+          "id": "mAccept",
+          "label": "Daily Scrum, day 3",
+          "at": "259200",
+          "status": "{accept == \"dodHolds\" ? \"Undone item returned to the backlog\" : accept == \"deferPriya\" ? \"Waiting for the Review\" : accept == \"acceptIt\" ? \"Undone work released\" : \"Ahead\"}"
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Sprint day",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Deciding who stays accountable when the Product Owner delegates Product Backlog work",
+  "secondaryObjectives": [
+    "Assigning the Product Owner's accountabilities for value and the Product Backlog, and why the Product Owner is one person",
+    "Organizing several Scrum Teams on one product around one Product Backlog, one Product Owner and one Product Goal"
+  ],
+  "sources": [
+    {
+      "cite": "Ken Schwaber and Jeff Sutherland, The Scrum Guide (November 2020)",
+      "url": "https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf",
+      "checkedAt": "2026-11-16",
+      "note": "Read 2026-11-16 directly (the PDF). Daily Scrum: 'The purpose of the Daily Scrum is to inspect progress toward the Sprint Goal and adapt the Sprint Backlog as necessary'; 'a 15-minute event for the Developers of the Scrum Team'. Reused for REQ-336 from this course's sprint-status-meeting-daily-scrum (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The company, the product, the team and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the Scrum Master of two Scrum Teams building Alderbank Insurance's claims app, a fictional insurer. The Product Owner, Priya, is moving to a part-time role for two months and has asked a business analyst to 'own the backlog'. A second team joined last month with its own backlog.",
+    "handover": [
+      "Priya will still attend Sprint Reviews. The analyst, Marco, is skilled at refinement.",
+      "Team B keeps a separate backlog in a spreadsheet; both teams build features of the same app."
+    ],
+    "howItWorks": [
+      "The board shows the Sprint's commitments, the work, the impediments, the people's support and the Scrum events.",
+      "Move on a day at a time. A decision comes to you at each Daily Scrum; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-03-01T09:00",
+    "tick": "1h",
+    "maxDuration": "20d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "dev": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "po": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "sh": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "deleg": {
+      "type": "enum",
+      "values": [
+        "none",
+        "poAccountable",
+        "unclear",
+        "marcoPo"
+      ],
+      "init": "none"
+    },
+    "delegAt": {
+      "type": "time",
+      "init": null
+    },
+    "onebl": {
+      "type": "enum",
+      "values": [
+        "none",
+        "merge",
+        "sync",
+        "bOwn"
+      ],
+      "init": "none"
+    },
+    "oneblAt": {
+      "type": "time",
+      "init": null
+    },
+    "accept": {
+      "type": "enum",
+      "values": [
+        "none",
+        "dodHolds",
+        "deferPriya",
+        "acceptIt"
+      ],
+      "init": "none"
+    },
+    "acceptAt": {
+      "type": "time",
+      "init": null
+    },
+    "backlogsAt": {
+      "type": "time",
+      "init": null
+    },
+    "askAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(dev, po), sh)"
+    },
+    "missCount": {
+      "expr": "((deleg == \"marcoPo\") ? 1 : 0) + ((onebl == \"bOwn\") ? 1 : 0) + ((accept == \"acceptIt\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(deleg == \"none\" or (deleg == \"marcoPo\") ? 1 : 0) + (onebl == \"none\" or (onebl == \"bOwn\") ? 1 : 0) + (accept == \"none\" or (accept == \"acceptIt\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The Sprint",
+      "clock": "turns",
+      "actions": [
+        "backlogs",
+        "ask"
+      ]
+    },
+    "close": {
+      "label": "Sprint notes",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "backlogs": {
+      "label": "Look at both teams' backlogs",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(backlogsAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "backlogsAt",
+          "to": "t"
+        },
+        {
+          "log": "You compare the two backlogs.",
+          "kind": "act"
+        },
+        {
+          "finding": "Two backlogs order the same app's work differently; Team B is building a settlement screen Team A's ordering puts last."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2h"
+        }
+      ]
+    },
+    "ask": {
+      "label": "Ask Priya what she wants Marco to do",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(askAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "askAt",
+          "to": "t"
+        },
+        {
+          "log": "You talk with Priya.",
+          "kind": "act"
+        },
+        {
+          "finding": "Priya wants Marco to write and refine items; she assumed he would also decide the order and accept work."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2h"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the Sprint notes",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the notes say",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Priya accountable while Marco does delegated work, one Product Backlog for both teams, and the Definition of Done held"
+                },
+                {
+                  "value": "summary",
+                  "label": "Sprint completed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next working day",
+      "wait": {
+        "skipLabel": "Go to the next day"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "deleg == \"marcoPo\"",
+              "then": [
+                {
+                  "log": "Day 2: Marco reorders the backlog around a stakeholder's request; Priya reverses it at the Review; the teams lose two days of work.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "onebl == \"bOwn\"",
+              "then": [
+                {
+                  "log": "Day 3: Team B ships a settlement screen nobody asked for this quarter; the photo upload the Sprint Goal needs is behind.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "accept == \"acceptIt\"",
+              "then": [
+                {
+                  "log": "Day 4: screen-reader users can't upload claim photos; complaints reach the regulator's accessibility office.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "1d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The Sprint ends.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "1d"
+        }
+      ]
+    },
+    {
+      "id": "t_deleg",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 1: Marco starts.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "delegPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_onebl",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 2: the two backlogs.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "oneblPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_accept",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 3: a stakeholder asks Marco to accept a half-done feature.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "acceptPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "delegPrompt": {
+      "title": "Who owns the backlog now?",
+      "context": "Marco will refine items; Priya is part-time.",
+      "choices": [
+        {
+          "id": "poAccountable",
+          "label": "Marco may refine and write items, but Priya stays accountable for ordering and value; make that transparent to both teams and stakeholders",
+          "effects": [
+            {
+              "set": "deleg",
+              "to": "\"poAccountable\""
+            },
+            {
+              "set": "delegAt",
+              "to": "t"
+            },
+            {
+              "add": "po",
+              "by": "10"
+            },
+            {
+              "log": "The team hears that Priya remains accountable.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "The Product Owner may delegate work but remains accountable (Scrum Guide 2020)."
+        },
+        {
+          "id": "unclear",
+          "label": "Let Marco and Priya work it out between them",
+          "effects": [
+            {
+              "set": "deleg",
+              "to": "\"unclear\""
+            },
+            {
+              "set": "delegAt",
+              "to": "t"
+            },
+            {
+              "add": "po",
+              "by": "-15"
+            },
+            {
+              "log": "Nothing is said.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Ambiguity means the team guesses who decides."
+        },
+        {
+          "id": "marcoPo",
+          "label": "Tell the teams Marco is the Product Owner now and decides the order",
+          "effects": [
+            {
+              "set": "deleg",
+              "to": "\"marcoPo\""
+            },
+            {
+              "set": "delegAt",
+              "to": "t"
+            },
+            {
+              "add": "po",
+              "by": "-25"
+            },
+            {
+              "log": "Marco is announced as Product Owner.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The Product Owner is one accountable person; transferring it informally leaves nobody with authority."
+        }
+      ]
+    },
+    "oneblPrompt": {
+      "title": "Two teams, two backlogs",
+      "context": "Team B's spreadsheet backlog conflicts with Team A's.",
+      "choices": [
+        {
+          "id": "merge",
+          "label": "Help Priya merge into one Product Backlog she orders, with one Product Goal, refined jointly by both teams",
+          "effects": [
+            {
+              "set": "onebl",
+              "to": "\"merge\""
+            },
+            {
+              "set": "oneblAt",
+              "to": "t"
+            },
+            {
+              "add": "dev",
+              "by": "10"
+            },
+            {
+              "log": "One backlog, one order.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Several Scrum Teams on one product share one Product Backlog, one Product Owner and one Product Goal."
+        },
+        {
+          "id": "sync",
+          "label": "Keep two backlogs and hold a weekly sync",
+          "effects": [
+            {
+              "set": "onebl",
+              "to": "\"sync\""
+            },
+            {
+              "set": "oneblAt",
+              "to": "t"
+            },
+            {
+              "add": "dev",
+              "by": "-15"
+            },
+            {
+              "log": "A weekly sync is set.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "It reduces conflict but two orders still compete."
+        },
+        {
+          "id": "bOwn",
+          "label": "Let Team B keep its own backlog and priorities",
+          "effects": [
+            {
+              "set": "onebl",
+              "to": "\"bOwn\""
+            },
+            {
+              "set": "oneblAt",
+              "to": "t"
+            },
+            {
+              "add": "dev",
+              "by": "-25"
+            },
+            {
+              "log": "Team B continues alone.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Two teams optimize two orders for one product."
+        }
+      ]
+    },
+    "acceptPrompt": {
+      "title": "Marco is asked to approve undone work",
+      "context": "The photo upload works but fails the accessibility check in the Definition of Done.",
+      "choices": [
+        {
+          "id": "dodHolds",
+          "label": "Explain that the Definition of Done decides what is done; the item returns to the Product Backlog and Priya is told",
+          "effects": [
+            {
+              "set": "accept",
+              "to": "\"dodHolds\""
+            },
+            {
+              "set": "acceptAt",
+              "to": "t"
+            },
+            {
+              "add": "sh",
+              "by": "10"
+            },
+            {
+              "log": "The undone item stays out of the Increment.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "An item that doesn't meet the Definition of Done can't be released or presented as done."
+        },
+        {
+          "id": "deferPriya",
+          "label": "Ask Priya to decide at the Review",
+          "effects": [
+            {
+              "set": "accept",
+              "to": "\"deferPriya\""
+            },
+            {
+              "set": "acceptAt",
+              "to": "t"
+            },
+            {
+              "add": "sh",
+              "by": "-15"
+            },
+            {
+              "log": "It waits for Priya.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Better than accepting it, but the Definition of Done isn't the Product Owner's to waive."
+        },
+        {
+          "id": "acceptIt",
+          "label": "Let Marco accept it as done to keep the stakeholder happy",
+          "effects": [
+            {
+              "set": "accept",
+              "to": "\"acceptIt\""
+            },
+            {
+              "set": "acceptAt",
+              "to": "t"
+            },
+            {
+              "add": "sh",
+              "by": "-25"
+            },
+            {
+              "log": "It goes out as done.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Releasing undone work hides it from everyone and breaks the Definition of Done."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write a note to the teams and stakeholders: who is accountable for the Product Backlog during Priya's part-time months, how the two teams now work, and why the photo upload wasn't released.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Accountability",
+          "criteria": "Priya remains accountable; Marco does delegated refinement; one backlog and one Product Goal for both teams.",
+          "modelAnswer": "Priya stays accountable for value and the order of the one Product Backlog both teams share; Marco helps refine it."
+        },
+        {
+          "label": "Done",
+          "criteria": "The Definition of Done decides; undone work returns to the backlog.",
+          "modelAnswer": "The upload failed the accessibility check in our Definition of Done, so it went back to the backlog."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "scrum",
+    "thresholds": {
+      "undoneShown": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Nothing undone released or presented as done (Scrum Guide 2020)."
+        }
+      },
+      "trustTarget": {
+        "value": 60,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Every team and stakeholder gauge at 60 of 100 or more at the end."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (deleg == \"unclear\") and (onebl == \"sync\") and (accept == \"deferPriya\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "Ken Schwaber and Jeff Sutherland, The Scrum Guide (November 2020)",
+        "url": "https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf",
+        "checkedAt": "2026-11-16",
+        "note": "Read 2026-11-16 directly (the PDF). Daily Scrum: 'The purpose of the Daily Scrum is to inspect progress toward the Sprint Goal and adapt the Sprint Backlog as necessary'; 'a 15-minute event for the Developers of the Scrum Team'. Reused for REQ-336 from this course's sprint-status-meeting-daily-scrum (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "delegHarm": {
+      "label": "Two people deciding",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and deleg == \"marcoPo\"",
+      "narrative": "Marco and Priya both decided the order; reversed priorities wasted two days of both teams' work."
+    },
+    "oneblHarm": {
+      "label": "Work off the Product Goal",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and onebl == \"bOwn\"",
+      "narrative": "Team B built work outside the product's order; the Sprint Goal fell behind."
+    },
+    "acceptHarm": {
+      "label": "Undone work released",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and accept == \"acceptIt\"",
+      "narrative": "The inaccessible photo upload was released as done; screen-reader users couldn't file claims."
+    },
+    "target": {
+      "label": "Clear accountability and one backlog",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (deleg == \"poAccountable\") and (onebl == \"merge\") and (accept == \"dodHolds\") and record == \"honest\" and missCount <= undoneShown and minSupport >= trustTarget",
+      "narrative": "Both teams worked from one ordered backlog under one accountable Product Owner, and only done work was released."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "delegHarm",
+    "oneblHarm",
+    "acceptHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "delegCrit",
+        "label": "Kept the Product Owner accountable while she delegates work",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "deleg == \"poAccountable\"",
+            "score": "met",
+            "why": "Accountability kept."
+          },
+          {
+            "when": "deleg == \"unclear\"",
+            "score": "partial",
+            "why": "Unclear."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Moved accountability."
+          }
+        ]
+      },
+      {
+        "id": "oneblCrit",
+        "label": "Brought both teams onto one Product Backlog with one Product Goal",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "onebl == \"merge\"",
+            "score": "met",
+            "why": "One backlog."
+          },
+          {
+            "when": "onebl == \"sync\"",
+            "score": "partial",
+            "why": "Coordination over structure."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Split product."
+          }
+        ]
+      },
+      {
+        "id": "acceptCrit",
+        "label": "Kept undone work out of the Increment",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "accept == \"dodHolds\"",
+            "score": "met",
+            "why": "DoD held."
+          },
+          {
+            "when": "accept == \"deferPriya\"",
+            "score": "partial",
+            "why": "Delayed."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Released undone work."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(backlogsAt) and not isNull(askAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(backlogsAt) or not isNull(askAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 100)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "70 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Look at both backlogs and ask Priya what she is delegating."
+      },
+      {
+        "at": "Day 1",
+        "text": "Keep Priya accountable while Marco does delegated work."
+      },
+      {
+        "at": "Day 2",
+        "text": "Merge into one Product Backlog ordered by the Product Owner."
+      },
+      {
+        "at": "Day 3",
+        "text": "Hold the Definition of Done; return the item to the backlog."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "delegHarm": {
+        "headline": "One accountable Product Owner",
+        "body": "The Product Owner can delegate work but stays accountable for the Product Backlog."
+      },
+      "oneblHarm": {
+        "headline": "One product, one backlog",
+        "body": "Several teams on one product work from one Product Backlog."
+      },
+      "acceptHarm": {
+        "headline": "Done means done",
+        "body": "Nothing undone is released or presented as done."
+      },
+      "target": {
+        "headline": "Good: clear accountability and one backlog",
+        "body": "Delegation without losing accountability, one backlog, and the Definition of Done held."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The Product Owner may delegate Product Backlog work to others but remains accountable for it, and is one person, not a committee. Several Scrum Teams on one product share one Product Backlog, one Product Owner and one Product Goal. The Definition of Done is the commitment for the Increment: work that doesn't meet it isn't released or presented as done, whoever asks."
+  }
+}
