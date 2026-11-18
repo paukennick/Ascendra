@@ -213,5 +213,26 @@ describe("REQ-333: the new cases behave as taught", () => {
     assert.equal(m.v("testPassed"), false);
     assert.equal(goldenOf(S).paths.find((p) => p.id === "purge")!.expect.ending, "lost");
   });
+
+  test("MSCS byte order: only '<h' matches the handheld log; byte order alone or sign alone still fails; filtering hides F3", () => {
+    const S = "mscs-freezer-bytes-little-endian";
+    const ok = (f?: string, filter = false) => {
+      const d = driver(S);
+      if (f) d.act("decoder", { f });
+      if (filter) d.act("filter");
+      d.act("handheld");
+      return d.v("checkMatched");
+    };
+    assert.equal(ok("leS"), true);
+    assert.equal(ok("leU"), false);
+    assert.equal(ok("beS"), false);
+    assert.equal(ok(), false);
+    assert.equal(ok("leS", true), false);
+    const u16 = (hi: number, lo: number) => hi * 256 + lo;
+    const s16 = (v: number) => (v >= 32768 ? v - 65536 : v);
+    assert.equal(s16(u16(0xf8, 0xc6)) / 100, -18.5, "C6 F8 little-endian two's complement");
+    assert.equal(u16(0xc6, 0xf8) / 100, 509.36, "the same bytes big-endian unsigned");
+    assert.equal(s16(u16(0xfd, 0x94)) / 100, -6.2);
+  });
 });
 

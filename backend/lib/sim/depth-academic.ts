@@ -20,6 +20,7 @@ export const DEPTH_ACADEMIC: readonly DepthAcademicEntry[] = [
   { course: "MSHI", slug: "mshi-ehr-downtime-tabletop", screen: "tabletop", profile: "exercise", kind: "scenario", steps: "mshi-downtime" },
   { course: "MSHI", slug: "mshi-ehr-go-live-readiness", screen: "governance-board", profile: "governance", kind: "scenario", steps: "mshi-golive" },
   { course: "MSCS", slug: "mscs-transfer-workers-deadlock", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "mscs-deadlock" },
+  { course: "MSCS", slug: "mscs-freezer-bytes-little-endian", screen: "data", profile: "data", kind: "scenario", steps: "mscs-endian" },
   { course: "MSHI", slug: "sql-not-in-null-empty-list-mshi", screen: "data", profile: "data", kind: "band", steps: "da-mshi-sql-not-in-null-empty-list-mshi", base: "SQL/sql-not-in-null-empty-list" },
   { course: "MSHI", slug: "ethics-shared-credentials-mshi", screen: "session", profile: "professional-ethics", kind: "band", steps: "da-mshi-ethics-shared-credentials-mshi", base: "ISC2CC/cc-ethics-shared-credentials" },
   { course: "MSHI", slug: "phi-in-application-logs-mshi", screen: "board", profile: "cloud", kind: "band", steps: "da-mshi-phi-in-application-logs-mshi", base: "AWSDVA/phi-in-application-logs" },

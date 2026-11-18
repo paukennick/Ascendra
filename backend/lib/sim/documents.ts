@@ -664,6 +664,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("MSHI", "mshi-ehr-downtime-tabletop"),
   entry("MSHI", "mshi-ehr-go-live-readiness"),
   entry("MSCS", "mscs-transfer-workers-deadlock"),
+  entry("MSCS", "mscs-freezer-bytes-little-endian"),
   band("MSHI", "sql-not-in-null-empty-list-mshi"),
   band("MSHI", "ethics-shared-credentials-mshi"),
   band("MSHI", "phi-in-application-logs-mshi"),

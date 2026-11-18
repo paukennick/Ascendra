@@ -1,0 +1,450 @@
+{
+  "schemaVersion": 1,
+  "engine": { "major": 1, "minor": 2 },
+  "slug": "mscs-freezer-bytes-little-endian",
+  "title": "Freezers at 509 degrees?",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "ingest.py and the cold-store readings table, Northbay Dairy (fictional)",
+      "flags": [
+        { "id": "ask", "label": "Quality lead, Rosa Lindqvist", "text": "Since the new gateways went in last night the dashboard shows freezers at hundreds of degrees. I must decide by 10:00 which pallets ship. Which readings are real?", "when": "true", "severity": "info" },
+        { "id": "absurd", "label": "Plausibility", "text": "Gateway G2 readings range from 304.65 to 509.36 °C.", "when": "decode == \"beU\" and not isNull(lookAt)", "severity": "warning" },
+        { "id": "f3", "label": "Excursion", "text": "Freezer F3 has read -6.20 °C since 05:10 (limit -18 °C).", "when": "decode == \"leS\" and not isNull(ranAt)", "severity": "error" },
+        { "id": "overwrote", "label": "Data", "text": "The stored raw readings were rewritten; the gateway's original bytes are gone.", "when": "rowsAlteredOutsideFix > 0", "severity": "error" },
+        { "id": "lock", "label": "Quality", "text": "10:00: the trucks loaded without an answer.", "when": "not isNull(lockedAt)", "severity": "error" }
+      ],
+      "charts": [],
+      "tables": [
+        {
+          "id": "raw",
+          "label": "Raw frames from gateway G2 (temperature field, bytes 4-5)",
+          "spokenLabel": "the raw frames",
+          "columns": [
+            { "id": "sensor", "label": "Sensor" },
+            { "id": "bytes", "label": "Bytes 4-5 (hex)" },
+            { "id": "now", "label": "Decoded now", "numeric": true },
+            { "id": "hand", "label": "Handheld 07:30", "numeric": true }
+          ],
+          "rows": [
+            { "id": "f1", "cells": ["F1 freezer", "C6 F8", "{decode == \"beU\" ? \"509.36\" : decode == \"leU\" ? \"636.86\" : decode == \"beS\" ? \"-146.00\" : \"-18.50\"}", "{isNull(handAt) ? \"-\" : \"-18.4\"}"] },
+            { "id": "f2", "cells": ["F2 freezer", "BA F8", "{decode == \"beU\" ? \"478.64\" : decode == \"leU\" ? \"636.74\" : decode == \"beS\" ? \"-176.72\" : \"-18.62\"}", "{isNull(handAt) ? \"-\" : \"-18.6\"}"] },
+            { "id": "f3", "cells": ["F3 freezer", "94 FD", "{decode == \"beU\" ? \"381.41\" : decode == \"leU\" ? \"649.16\" : decode == \"beS\" ? \"-273.95\" : \"-6.20\"}", "{isNull(handAt) ? \"-\" : \"-6.1\"}"], "flag": "decode == \"leS\"" },
+            { "id": "c1", "cells": ["C1 chiller", "77 01", "{decode == \"beU\" or decode == \"beS\" ? \"304.65\" : \"3.75\"}", "{isNull(handAt) ? \"-\" : \"3.8\"}"] }
+          ],
+          "when": "not isNull(lookAt)",
+          "note": "Values in °C as ingest.py decodes them."
+        }
+      ],
+      "code": [
+        {
+          "id": "ingest",
+          "label": "ingest.py",
+          "language": "Python",
+          "lines": [
+            { "id": "c0", "text": "import struct" },
+            { "id": "c1", "text": "def temperature_c(frame: bytes) -> float:" },
+            { "id": "c2", "text": "    (raw,) = struct.unpack(\">H\", frame[4:6])", "when": "decode == \"beU\"", "mark": "not isNull(specAt) ? \"error\" : \"none\"" },
+            { "id": "c3", "text": "    (raw,) = struct.unpack(\"<H\", frame[4:6])", "when": "decode == \"leU\"", "mark": "\"warning\"" },
+            { "id": "c4", "text": "    (raw,) = struct.unpack(\">h\", frame[4:6])", "when": "decode == \"beS\"", "mark": "\"warning\"" },
+            { "id": "c5", "text": "    (raw,) = struct.unpack(\"<h\", frame[4:6])", "when": "decode == \"leS\"", "mark": "\"changed\"" },
+            { "id": "c6", "text": "    return raw / 100" }
+          ]
+        }
+      ],
+      "meters": [
+        { "id": "due", "label": "Trucks load", "value": "10:00" },
+        { "id": "altered", "label": "Stored readings changed outside the fix", "value": "{rowsAlteredOutsideFix}" }
+      ]
+    }
+  },
+  "objective": "Binary and hex representation",
+  "secondaryObjectives": ["Boolean arithmetic", "Registers and memory"],
+  "sources": [
+    {
+      "cite": "ACM/IEEE-CS/AAAI, Computer Science Curricula 2023 (CS2023), knowledge areas (AR: Architecture and Organization, AR-Representation: Machine-Level Data Representation)",
+      "checkedAt": "2026-11-17",
+      "url": "https://csed.acm.org/wp-content/uploads/2025/11/CS2023-Report.htm",
+      "note": "Read 2026-11-17 through a summarizing fetch of the report's first part: the AR knowledge area lists AR-Representation, Machine-Level Data Representation, as a knowledge unit; the fetch did not reach its topic list. The MSCS course cites CS2023 by knowledge unit and Nand2Tetris projects 1-5 for binary and Boolean arithmetic (dated 2026-11-11, not re-read)."
+    },
+    {
+      "cite": "Python 3.15 documentation, struct: Interpret bytes as packed binary data",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.python.org/3/library/struct",
+      "note": "Read 2026-11-17 through a summarizing fetch (page for Python 3.15.2): byte order '<' little-endian, '>' big-endian, '!' network (= big-endian); 'h' short and 'H' unsigned short, both standard size 2; unpack returns a tuple 'even if it contains exactly one item'. Two's complement: a 16-bit pattern with the top bit set is negative when read as signed, value minus 65,536 (the standard rule, worked in each reading's arithmetic: 0xF8C6 = 63,686, minus 65,536 = -1,850, so -18.50 °C)."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Northbay Dairy, its gateways, frames, readings and deadline are invented teaching values; every decoded value follows from the bytes shown by the rules in the struct source. No real device is described."
+    }
+  ],
+  "brief": {
+    "situation": "You look after ingest.py at Northbay Dairy (fictional), which turns cold-store sensor frames into temperatures. Last night gateway G2 was replaced with a new model; since then its freezers read hundreds of degrees. The quality lead decides at 10:00 which pallets of ice cream ship. It is 09:05.",
+    "handover": [
+      "The new gateway's notes say: temperature is a signed 16-bit integer, hundredths of a degree Celsius, little-endian.",
+      "Two handheld thermometer readings were taken at 07:30 on every freezer, as the cold-chain plan requires."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: look at the raw bytes, read the notes, change the decoder, run a check, or send your answer. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "The console shows the flags, the raw frames table, the decoder's code and the result of each step.",
+      "Sending your answer is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": { "start": "09:05", "tick": "1min", "maxDuration": "120min", "calendar": "clock" },
+  "params": {
+    "deadline": { "value": 3300, "unit": "s", "source": { "cite": "Author's scenario (REQ-333)", "checkedAt": "2026-11-17", "note": "Trucks load at 10:00, 55 minutes after the start; invented." } }
+  },
+  "state": {
+    "busy": { "type": "bool", "init": false },
+    "closedAt": { "type": "time", "init": null },
+    "documented": { "type": "bool", "init": false },
+    "decode": { "type": "enum", "values": ["beU", "leU", "beS", "leS"], "init": "beU" },
+    "filtered": { "type": "bool", "init": false },
+    "lookAt": { "type": "time", "init": null },
+    "specAt": { "type": "time", "init": null },
+    "changedAt": { "type": "time", "init": null },
+    "lastChangeAt": { "type": "time", "init": null },
+    "ranAt": { "type": "time", "init": null },
+    "handAt": { "type": "time", "init": null },
+    "checkMatched": { "type": "bool", "init": false },
+    "rowsAlteredOutsideFix": { "type": "number", "init": 0, "min": 0, "max": 100000 },
+    "sentAs": { "type": "enum", "values": ["unsent", "wrong", "right"], "init": "unsent" },
+    "sentAt": { "type": "time", "init": null },
+    "lockedAt": { "type": "time", "init": null },
+    "causeDoc": { "type": "enum", "values": ["unset", "order", "sensor", "scale"], "init": "unset" },
+    "checkDoc": { "type": "enum", "values": ["unset", "handheld", "plausible", "none"], "init": "unset" }
+  },
+  "derived": {
+    "correct": { "expr": "decode == \"leS\" and not filtered" },
+    "sent": { "expr": "sentAs != \"unsent\"" },
+    "sentSec": { "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1" },
+    "lookedFirst": { "expr": "not isNull(lookAt) and not isNull(specAt) and (isNull(changedAt) or (timeAt(lookAt) <= timeAt(changedAt) and timeAt(specAt) <= timeAt(changedAt)))" },
+    "checkedCurrent": { "expr": "checkMatched and not isNull(handAt) and timeAt(handAt) >= timeAt(lastChangeAt)" }
+  },
+  "processes": [],
+  "phases": {
+    "work": { "label": "Working the problem", "clock": "turns", "actions": ["xxd", "notes", "decoder", "filter", "overwrite", "rerun", "handheld", "send", "wait", "finish"] },
+    "report": { "label": "Record", "clock": "stopped", "actions": ["document"] }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "xxd": {
+      "label": "xxd -s 4 -l 2 on one frame from each G2 sensor (the raw temperature bytes)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        { "if": "isNull(lookAt)", "then": [{ "set": "lookAt", "to": "t" }] },
+        { "output": "F1: 00000004: c6f8\nF2: 00000004: baf8\nF3: 00000004: 94fd\nC1: 00000004: 7701" },
+        { "finding": "The freezers' high byte is F8 or FD: the top bit is set, so read as signed they are negative; read as unsigned they are huge." },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "3min" }
+      ]
+    },
+    "notes": {
+      "label": "Read the new gateway's frame notes",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        { "if": "isNull(specAt)", "then": [{ "set": "specAt", "to": "t" }] },
+        { "output": "Frame v4, bytes 4-5: temperature, int16, two's complement, 0.01 °C, little-endian (least significant byte first). Frame v3 (old gateway): uint16, big-endian, kelvin offset removed upstream." },
+        { "finding": "The decoder still reads the old gateway's format: big-endian and unsigned." },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "2min" }
+      ]
+    },
+    "decoder": {
+      "label": "Change the struct format in temperature_c()",
+      "group": "Change the code",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        { "id": "f", "kind": "choice", "label": "Format", "options": [
+          { "value": "leS", "label": "\"<h\": little-endian, signed 16-bit" },
+          { "value": "leU", "label": "\"<H\": little-endian, unsigned 16-bit" },
+          { "value": "beS", "label": "\">h\": big-endian, signed 16-bit" }
+        ] }
+      ],
+      "effects": [
+        { "if": "isNull(changedAt)", "then": [{ "set": "changedAt", "to": "t" }] },
+        { "set": "lastChangeAt", "to": "t" },
+        { "set": "decode", "to": "f" },
+        { "set": "checkMatched", "to": "false" },
+        { "log": "temperature_c() now uses the {f} format.", "kind": "act" },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "4min" }
+      ]
+    },
+    "filter": {
+      "label": "Drop any reading above 100 °C as a sensor fault",
+      "group": "Change the code",
+      "available": "not busy and not filtered",
+      "why": "Already filtering.",
+      "effects": [
+        { "if": "isNull(changedAt)", "then": [{ "set": "changedAt", "to": "t" }] },
+        { "set": "lastChangeAt", "to": "t" },
+        { "set": "filtered", "to": "true" },
+        { "set": "checkMatched", "to": "false" },
+        { "log": "Readings above 100 °C are now dropped: every G2 freezer has no readings since last night.", "kind": "bad" },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "3min" }
+      ]
+    },
+    "overwrite": {
+      "label": "UPDATE readings: subtract 655.36 from every G2 value above 100",
+      "group": "Change the data",
+      "available": "not busy and rowsAlteredOutsideFix == 0",
+      "why": "Already done.",
+      "effects": [
+        { "if": "isNull(changedAt)", "then": [{ "set": "changedAt", "to": "t" }] },
+        { "set": "lastChangeAt", "to": "t" },
+        { "add": "rowsAlteredOutsideFix", "by": "3420" },
+        { "output": "UPDATE 3420" },
+        { "log": "3,420 stored readings were rewritten by a guess; the byte-swapped values are still wrong, and the originals are gone.", "kind": "bad" },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "3min" }
+      ]
+    },
+    "rerun": {
+      "label": "Re-run ingest.py over last night's G2 frames",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        { "if": "isNull(ranAt)", "then": [{ "set": "ranAt", "to": "t" }] },
+        { "if": "filtered", "then": [{ "output": "F1, F2, F3: no readings since 22:40 (all dropped)\nC1: {decode == \"leS\" or decode == \"leU\" ? \"3.75\" : \"dropped\"}" }], "else": [{ "output": "F1 {decode == \"beU\" ? \"509.36\" : decode == \"leU\" ? \"636.86\" : decode == \"beS\" ? \"-146.00\" : \"-18.50\"}   F2 {decode == \"beU\" ? \"478.64\" : decode == \"leU\" ? \"636.74\" : decode == \"beS\" ? \"-176.72\" : \"-18.62\"}   F3 {decode == \"beU\" ? \"381.41\" : decode == \"leU\" ? \"649.16\" : decode == \"beS\" ? \"-273.95\" : \"-6.20 (since 05:10)\"}   C1 {decode == \"beU\" or decode == \"beS\" ? \"304.65\" : \"3.75\"}" }] },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "5min" }
+      ]
+    },
+    "handheld": {
+      "label": "Check: compare the decoded 07:30 values with the handheld thermometer log",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        { "set": "handAt", "to": "t" },
+        { "if": "correct", "then": [
+          { "set": "checkMatched", "to": "true" },
+          { "output": "handheld 07:30: F1 -18.4  F2 -18.6  F3 -6.1  C1 3.8\ndecoded 07:30:  F1 -18.50 F2 -18.62 F3 -6.20 C1 3.75\nall within 0.2 °C" },
+          { "log": "Every decoded value agrees with the handheld log, and F3 really is warm.", "kind": "good" }
+        ], "else": [
+          { "output": "handheld 07:30: F1 -18.4  F2 -18.6  F3 -6.1  C1 3.8\ndecoded values do not agree" },
+          { "log": "The decoded values do not agree with the handheld log.", "kind": "bad" }
+        ] },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "4min" }
+      ]
+    },
+    "send": {
+      "label": "Send the quality lead your answer: which freezers are within limits",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already sent.",
+      "effects": [
+        { "set": "sentAs", "to": "correct ? \"right\" : \"wrong\"" },
+        { "set": "sentAt", "to": "t" },
+        { "output": "{correct ? \"Sent: F1, F2 and C1 within limits; F3 at -6.20 °C since 05:10, hold its pallets.\" : filtered ? \"Sent: the new gateway's freezer sensors are faulty; no excursion recorded.\" : \"Sent: G2 readings are garbage; go by last night's values.\"}" },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "1min" }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        { "log": "You wait 10 minutes.", "kind": "act" },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "10min" }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        { "cancel": "work" },
+        { "set": "busy", "to": "false" },
+        { "set": "closedAt", "to": "t" },
+        { "log": "You stop and write it up.", "kind": "act" },
+        { "phase": "report" }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        { "id": "record", "kind": "form", "label": "Record", "fields": [
+          { "id": "cause", "label": "Why the freezers read hundreds of degrees", "options": [
+            { "value": "order", "label": "The new frames are little-endian two's complement; the decoder read them big-endian and unsigned" },
+            { "value": "sensor", "label": "The new sensors are faulty" },
+            { "value": "scale", "label": "The new gateway reports in a different unit" }
+          ] },
+          { "id": "check", "label": "How you know the readings are right now", "options": [
+            { "value": "handheld", "label": "They agree with the independent handheld readings within 0.2 °C" },
+            { "value": "plausible", "label": "They look like freezer temperatures" },
+            { "value": "none", "label": "Not checked" }
+          ] }
+        ] }
+      ],
+      "effects": [
+        { "set": "causeDoc", "to": "cause" },
+        { "set": "checkDoc", "to": "check" },
+        { "log": "Recorded: cause {cause}, check {check}.", "kind": "act" },
+        { "set": "documented", "to": "true" }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": { "skipLabel": "Let the step finish" },
+      "instances": "one",
+      "source": { "cite": "Author's scenario (REQ-333)", "checkedAt": "2026-11-17", "note": "Working minutes per step are invented teaching values." },
+      "effects": [{ "set": "busy", "to": "false" }]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        { "set": "lockedAt", "to": "t" },
+        { "log": "10:00: the trucks loaded without an answer.", "kind": "alarm" }
+      ]
+    },
+    { "id": "writeUp", "when": "phase == \"report\"", "mode": "once", "effects": [{ "reason": "writeup" }] }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the quality lead: why the readings were wrong, what you changed, and how you know the new ones are right.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why they were wrong",
+          "criteria": "Byte order and sign: the frame stores a 16-bit two's complement value least significant byte first; reading C6 F8 big-endian unsigned gives 0xC6F8 = 50,936 (509.36 °C); the right reading is 0xF8C6 = 63,686, top bit set, so 63,686 - 65,536 = -1,850 (-18.50 °C). Not faulty sensors.",
+          "modelAnswer": "Little-endian int16 read as big-endian uint16: both the byte order and the sign were wrong."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "The struct format becomes '<h'; swapping only the byte order or only the sign leaves the freezers wrong; dropping readings above 100 °C hides the real F3 excursion; the stored readings are not rewritten by a guess.",
+          "modelAnswer": "struct.unpack('<h', frame[4:6]); nothing filtered; stored data untouched."
+        },
+        {
+          "label": "How you know",
+          "criteria": "Concordance with an independent measurement after the last change: the 07:30 handheld readings agree within 0.2 °C, which also confirms F3 really warmed.",
+          "modelAnswer": "Handheld F1 -18.4, F2 -18.6, F3 -6.1, C1 3.8; decoded -18.50, -18.62, -6.20, 3.75."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": { "value": 3300, "source": { "cite": "Author's scenario (REQ-333)", "checkedAt": "2026-11-17", "note": "Trucks load at 10:00; invented." } }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Sending nothing tells the quality lead nothing wrong, but the trucks loaded without an answer about F3.",
+      "source": { "cite": "Author's scenario (REQ-333)", "checkedAt": "2026-11-17", "note": "An invented teaching scenario." }
+    }
+  },
+  "endings": {
+    "altered": { "label": "Stored readings rewritten", "class": "harm", "terminal": true, "when": "documented and rowsAlteredOutsideFix > 0", "narrative": "3,420 cold-chain records now hold guessed values; the original bytes, the evidence for every pallet, are gone." },
+    "wrongSent": { "label": "A wrong answer went to quality", "class": "harm", "terminal": true, "when": "documented and sentAs == \"wrong\"", "narrative": "The quality lead was told nothing is wrong; F3's pallets, warm since 05:10, can ship." },
+    "notSent": { "label": "Nothing sent", "class": "recovered", "terminal": true, "when": "documented and not sent", "narrative": "No wrong answer went out, but the trucks loaded without one." },
+    "right": { "label": "Decoded right, checked, on time", "class": "target", "terminal": true, "when": "documented and sentAs == \"right\" and sentSec <= deadline and checkedCurrent", "narrative": "F3's pallets are held, and the rest ship on readings an independent thermometer confirms." },
+    "gaps": { "label": "Right, with gaps", "class": "recovered", "terminal": true, "when": "documented", "narrative": "The answer is right, but it went late or unchecked." },
+    "time_up": { "label": "Time up", "class": "recovered", "terminal": true, "narrative": "The case reached its time limit with nothing recorded." }
+  },
+  "endingOrder": ["altered", "wrongSent", "notSent", "right", "gaps"],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Looked at the raw bytes and the frame notes before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          { "when": "lookedFirst", "score": "met", "why": "Bytes and format first." },
+          { "when": "not isNull(lookAt) or not isNull(specAt)", "score": "partial", "why": "Looked at only one, or only after a change." },
+          { "when": "true", "score": "missed", "why": "Never looked at the bytes or the format." }
+        ]
+      },
+      {
+        "id": "decoded",
+        "label": "Decoded as little-endian two's complement ('<h'), with nothing filtered out",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          { "when": "correct", "score": "met", "why": "'<h': -18.50 °C from C6 F8." },
+          { "when": "true", "score": "missed", "why": "{filtered ? \"Dropping readings hides F3.\" : decode == \"leU\" ? \"Byte order fixed, sign still unsigned: 636.86 °C.\" : decode == \"beS\" ? \"Sign fixed, byte order still wrong: -146.00 °C.\" : \"Still big-endian unsigned.\"}" }
+        ]
+      },
+      {
+        "id": "data",
+        "label": "Left the stored readings as received",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          { "when": "rowsAlteredOutsideFix == 0", "score": "met", "why": "No stored reading changed." },
+          { "when": "true", "score": "missed", "why": "Rewrote {rowsAlteredOutsideFix} stored readings." }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Checked against the handheld readings after the last change",
+        "weight": 1,
+        "rows": [
+          { "when": "checkedCurrent and (not sent or timeAt(handAt) <= sentSec)", "score": "met", "why": "Within 0.2 °C on every sensor." },
+          { "when": "not isNull(handAt)", "score": "partial", "why": "Checked, but it did not match or came before a later change." },
+          { "when": "true", "score": "missed", "why": "Never checked." }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the byte order and sign, and the independent check",
+        "weight": 1,
+        "rows": [
+          { "when": "causeDoc == \"order\" and checkDoc == \"handheld\"", "score": "met", "why": "Cause and check both right." },
+          { "when": "causeDoc == \"order\" or checkDoc == \"handheld\"", "score": "partial", "why": "Half right." },
+          { "when": "true", "score": "missed", "why": "Neither is recorded right." }
+        ]
+      }
+    ],
+    "reasoningCriteria": [{ "moment": "writeup", "label": "Written explanation", "weight": 1 }],
+    "kpis": [
+      { "id": "f3k", "label": "F3 reported warm", "value": "sentAs == \"right\" ? 1 : 0", "format": "number", "expert": "1" },
+      { "id": "altered", "label": "Stored readings changed outside the fix", "value": "rowsAlteredOutsideFix", "format": "number", "expert": "0" },
+      { "id": "sentAtMin", "label": "Minutes until sent", "value": "sent ? sentSec / 60 : 0", "format": "number", "expert": "about 23" }
+    ],
+    "expertPath": [
+      { "at": "0-3 min", "text": "xxd the temperature bytes: F1 C6 F8, F3 94 FD, C1 77 01." },
+      { "at": "3-5 min", "text": "Frame notes: int16, two's complement, little-endian." },
+      { "at": "5-9 min", "text": "struct format '<h': C6 F8 is 0xF8C6 = 63,686, minus 65,536 = -1,850, so -18.50 °C." },
+      { "at": "9-18 min", "text": "Re-run, then compare with the 07:30 handheld log: all within 0.2 °C; F3 is really at -6.20 °C." },
+      { "at": "18-19 min", "text": "Send: F3's pallets held, the rest ship." }
+    ],
+    "debrief": {
+      "right": { "headline": "Good: bytes, then meaning", "body": "Two bytes mean nothing until you know their order and whether the top bit is a sign. The notes said little-endian two's complement; '<h' gave -18.50 °C, and an independent thermometer confirmed it, including the real problem in F3." },
+      "gaps": { "headline": "Right, with gaps", "body": "The decoding is right; the answer went late, or without the independent check that proves it." },
+      "wrongSent": { "headline": "A wrong answer went out", "body": "Calling impossible readings 'faulty sensors' or filtering them out discards the one real excursion. Decode first, then judge plausibility." },
+      "altered": { "headline": "The evidence was rewritten", "body": "Cold-chain readings are records. Fix the decoder and re-run; never rewrite stored data with a guess." },
+      "notSent": { "headline": "Nothing sent", "body": "Safe, but the trucks needed an answer, and the fix is one format string." },
+      "time_up": { "headline": "Time up", "body": "Nothing was recorded before the case's limit." }
+    },
+    "modelReasoning": "Impossible readings that appear with new hardware point to representation, not physics. The raw bytes for F1 are C6 F8. Read big-endian unsigned, 0xC6F8 is 50,936, so 509.36 °C. The notes say little-endian two's complement: least significant byte first gives 0xF8C6 = 63,686, and with the top bit set the signed value is 63,686 - 65,536 = -1,850, so -18.50 °C. Fixing only the byte order (636.86) or only the sign (-146.00) still fails. Struct format '<h' is both. Filtering readings above 100 °C would have hidden F3, really at -6.20 °C. Check against the independent handheld readings, then send."
+  }
+}
