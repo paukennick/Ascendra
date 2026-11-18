@@ -18827,7 +18827,7 @@
       "title": "Short course name kept the new 'Exam Prep for' title prefix",
       "status": "fixed",
       "severity": "low",
-      "symptom": "With REQ-324 titles, shortCourseName's title fallback (no credential name) would print 'Exam Prep for CISSP®' cut to 18 characters in reminder and countdown emails.",
+      "symptom": "With REQ-324 titles, shortCourseName's title fallback (no credential name) would print 'Exam Prep for CISSP\u00ae' cut to 18 characters in reminder and countdown emails.",
       "how_detected": "review of title readers during REQ-324",
       "root_cause": "VENDOR_PREFIX listed the old 'Prep for' prefix only; a title-format change did not look at the readers that strip title prefixes.",
       "requirement": "REQ-324",
@@ -18850,7 +18850,7 @@
       "title": "Reminder short name cut a long credential name to its first words",
       "status": "fixed",
       "severity": "low",
-      "symptom": "With names on again, reminder and countdown emails for CISSP would call the course 'Information…' (the credential name without 'Certified', cut to 18 characters).",
+      "symptom": "With names on again, reminder and countdown emails for CISSP would call the course 'Information\u2026' (the credential name without 'Certified', cut to 18 characters).",
       "how_detected": "lib/unbranded.test.ts (REQ-324 short-name test)",
       "root_cause": "shortCourseName fell back to the exam code or an ellipsis; CISSP and similar exams have no code and are known by the acronym at the end of their name. REQ-319 had hidden it by nulling the names.",
       "requirement": "REQ-324",
@@ -19205,6 +19205,34 @@
         ".ai/checklists/pre-completion.md"
       ],
       "prevention_notes": "Test checks the plugin output shape, app.json registration and that the website still lists the app with the existing fingerprint; README explains both halves and which fingerprints matter",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2490",
+      "date": "2026-11-17",
+      "title": "Six new health sims carried objective titles cut short, and one carried another course's secondary objective",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "lib/sim/health-depth-1117.test.ts: 7 failures, 'objective in the <course> catalog' for CCRNNEO/lip-smacking-and-a-pause, ABPTSCCS/cardiac-rehab-weight-up-orthopnea, ABPTSNCS/tilt-table-pounding-headache-t4, ABPTSOCS/rolled-ankle-cant-take-four-steps, ABPTSPWCS/second-trimester-dizzy-on-her-back, ABPTSSCS/runner-groin-pain-hop-test, and a PWCS secondary objective that belongs to the neurology course",
+      "how_detected": "the round's pin test (objective lookup against courseObjectives)",
+      "root_cause": "The builder copied objective titles from a coverage listing displayed with a column cut (cut -c1-240), finished the cut-off endings by guessing, and took a neurology objective for the pelvic health course's MS secondary. The sim linter does not check that the objective is in the course catalog, so the golden runs and lint passed.",
+      "requirement": "REQ-334",
+      "affected": [
+        "backend/supabase/seed/sims/CCRNNEO",
+        "backend/supabase/seed/sims/ABPTSCCS",
+        "backend/supabase/seed/sims/ABPTSNCS",
+        "backend/supabase/seed/sims/ABPTSOCS",
+        "backend/supabase/seed/sims/ABPTSPWCS",
+        "backend/supabase/seed/sims/ABPTSSCS"
+      ],
+      "fix_summary": "Each objective now uses the catalog's exact title, copied from an untruncated listing; the PWCS case's secondary list is empty and its MS source is cited as the neurology course's wording.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/health-depth-1117.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Copy objective titles from the catalog itself, never from a truncated display; run the per-round pin test (objective in catalog) before committing a case, not only lint.",
       "recurrence_of": ""
     }
   ]

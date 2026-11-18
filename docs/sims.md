@@ -7670,3 +7670,191 @@ SAMHSA SAFE-T (PEP24-01-036, product page only); RCW 71.05.120 (Legislature PDF)
 Med 2012); Abderhalden et al., BMC Psychiatry 2006 (Broset checklist); the Keppra label (revised 8/2023).
 Relayed, not re-read: RCW 70.02.050 and HIPAA FAQ 520 (2026-11-14), 988 (2026-11-10), 42 CFR 482.13(e)
 (2026-11-14), and the exam outlines from the course seeds.
+
+### 22.38 Health depth of the 2026-11-17 evening round (REQ-334)
+
+Nick, 2026-11-17 (19:51 PT): "Courses have no sims still like the MS Health
+Informatics. Some still have 1 or two. Let's build those out more robustly."
+Scope (round-1117b.md, as changed at 19:55 PT): ADN-RN, BSN-RN, LPN/VN, CCRN
+Neonatal, CCRN Pediatric and the ten physical therapy specialty courses; EMS
+and fitness moved to depth-ems-fitness (REQ-338). Target: 8 sims for a
+course with 60 or more objectives, 4 for the rest, purpose-written cases for
+each course's top domains, bands only where the setting and the license
+level match. No engine, renderer, schema or migration change; engine 1.2;
+existing screens only (bedside, treatment session).
+`lib/sim/health-depth-1117.test.ts` pins every document by slug (317 tests)
+and checks the per-course targets.
+
+**Shape.** Every new case is built in the round-2 shape of 22.32: tests share
+one timer and one pending slot, a red-flag finding sets `redFlagAt`, the
+escalation is timed against it (5 minutes unless stated), unsafe actions push
+the course toward a conditional harm ending, and handing over to the next
+level of care ends the run. Each has `endingOrder`, three critical criteria
+inside the `target` condition, a reasoning moment, two sourced teaching
+prompts in jsonb key order, a chapter, two KPIs, an expert path, a debrief
+per ending and five golden paths (Good, two Mediocre or Bad with gaps, two
+Bad reaching harm; every ending but `time_up`; every criterion met and
+missed). Drugs appear only as "the ordered" drug with no dose (the pin test
+checks learner text); lab values, feed and fluid volumes are not doses.
+
+**Bands (16).** The patch changes only `objective`, `secondaryObjectives`,
+`sources` (and never the scoring, outcome, endings or `mature` flag; the test
+compares them). A band is made only from a case of the same license level:
+RN cases to the two RN programs, PN cases to LPN/VN, a DPT case to the
+geriatric specialty (the test checks the level).
+
+| Course / band slug | Base | Objective (abridged, unit) |
+|---|---|---|
+| ADNRN/postop-fever-150-graves-meds-stopped-adn | NCLEXRN | Thyroid storm as an emergency (Med-surg I) |
+| ADNRN/oxytocin-tachysystole-late-decels-adn | NCLEXRN | Fetal heart rate baseline and abnormal tracings (Maternal-newborn) |
+| ADNRN/postpartum-hemorrhage-atony-adn | NCLEXRN | PPH at 1,000 mL, quantitative loss, fundus and bladder (Maternal-newborn) |
+| ADNRN/alcohol-withdrawal-ciwa-adn | NCLEXRN | CIWA-Ar and alcohol overdose (Mental health) |
+| ADNRN/after-amputation-im-done-adn (18+) | NCLEXRN | Suicide lethality (Mental health) |
+| ADNRN/eleven-pills-three-falls-sleep-aid-adn | BSNRN | Comprehensive geriatric assessment (Health assessment) |
+| LPNVN/warfarin-inr-high-tarry-stool-lpn | NCLEXPN | Warfarin, vitamin K, INR (Pharmacology) |
+| LPNVN/head-strike-on-apixaban-lpn | NCLEXPN | Rising ICP and Cushing's triad (Med-surg) |
+| LPNVN/clinic-belly-pain-moved-right-lpn | NCLEXPN | Appendicitis recognized and reported (Med-surg) |
+| LPNVN/aide-feeding-thin-liquids-dysphagia-lpn | NCLEXPN | Delegation for the PN (Foundations) |
+| LPNVN/postpartum-check-boggy-fundus-lpn | NCLEXPN | PPH recognized and reported (Maternal, mental health) |
+| LPNVN/rehab-resident-no-use-to-anyone-lpn (18+) | NCLEXPN | Suicide risk factors, report at once (Maternal, mental health) |
+| BSNRN/med-surg-deterioration-sbar-bsn | NCLEXRN | ABCs and Maslow to sort cues (Nursing science) |
+| BSNRN/insulin-given-to-wrong-bed-bsn | NCLEXRN | Risk management and legal exposure (Systems, policy) |
+| BSNRN/preop-consent-after-opioid-bsn | NCLEXRN | Malpractice, consent and negligence (Ethics) |
+| ABPTSGCS/parkinson-freezing-session-geri | DPT | Balance and resistance program in early to mid PD (Intervention) |
+
+**New bedside cases (19).**
+
+| Course / slug | Unit (weight) | Teaches | Steps |
+|---|---|---|---|
+| CCRNNEO/green-vomit-day-three | Endo, GI... (20) | Bilious emesis is malrotation with volvulus: NPO, decompress, surgeon | neo-volvulus |
+| CCRNNEO/yellow-at-twenty-hours | Multisystem (20) | Hour-specific bilirubin by gestation and risk; phototherapy; early encephalopathy | neo-bili |
+| CCRNNEO/floppy-after-cord-prolapse | Neuro (13) | Sarnat exam, cooling within 6 hours, no overheating | neo-hie |
+| CCRNNEO/cpap-baby-sudden-desaturation | Respiratory (15) | Pneumothorax on CPAP: transilluminate, no more pressure, aspiration | neo-ptx |
+| CCRNNEO/sweaty-feeds-liver-edge-down | Cardiovascular (10) | Infant heart failure from a VSD; feeding work; no hyperoxygenation | neo-chf |
+| CCRNNEO/lip-smacking-and-a-pause | Neuro (13) | Subtle seizures; glucose and calcium first; airway; EEG | neo-seizure |
+| CCRNPEDS/sickle-cell-belly-big-and-pale | Endo, Heme... (25) | Acute splenic sequestration: volume, crossmatch, no sedation | peds-sequestration |
+| CCRNPEDS/red-cells-then-crackles | Endo, Heme... (25) | TACO: stop, upright, no more volume, report | peds-taco |
+| CCRNPEDS/wheeze-gone-quiet-and-sleepy | Respiratory (13) | Status asthmaticus tiring; rising CO2; no sedation | peds-asthma |
+| CCRNPEDS/bike-crash-icp-climbing | Neuro (15) | TBI: head up and midline, collar, no prophylactic hyperventilation | peds-tbi |
+| CCRNPEDS/shunt-baby-vomiting-sats-falling | Cardiovascular (11) | Shunt thrombosis in a dehydrated infant | peds-shunt |
+| CCRNPEDS/toddler-woke-after-naloxone-now-sleepy | Multisystem (17) | Methadone outlasts naloxone; repeat, airway, infusion, long observation | peds-opioid |
+| ADNRN/two-weeks-thirsty-glucose-890 | Med-surg I (20) | HHS told from DKA; fluids first; potassium before insulin | adn-hhs |
+| ADNRN/pain-better-then-belly-rigid | Med-surg II (18) | Perforated appendix and peritonitis; no heat or laxative; sepsis screen | adn-appy |
+| LPNVN/iv-arm-cool-and-swollen | Fundamental skills (20) | Infiltration within LPN IV scope: stop, remove, elevate, report | lpn-iv |
+| LPNVN/breakfast-tray-droop-last-seen-well | Med-surg (18) | Stroke: last known well, NPO, 911 and the RN | lpn-stroke |
+| BSNRN/hip-repair-moaning-scale-says-zero | Person-centered care (14) | A plan that fails a patient with dementia; PAINAD; change it | bsn-pain |
+| BSNRN/insulin-pen-teaching-before-noon | Person-centered care (14) | Readiness first; three domains; return demonstration; move discharge | bsn-teach |
+| BSNRN/eleven-pills-three-falls-sleep-aid | Person-centered care (14) | Geriatric screening areas change the night plan | bsn-cga |
+
+**New treatment-session cases (28).** Same shape on the treatment session
+with the physical-therapy profile (`escalateWindow` matches each case's
+report window).
+
+| Course / slug | Unit (weight) | Teaches | Steps |
+|---|---|---|---|
+| ABPTSCCS/walk-test-saturation-eighty-three | Evaluation (30) | Exertional desaturation; stop; titrate to 88-92% | ccs-walk |
+| ABPTSCCS/walk-test-booked-two-weeks-after-mi | Examination (15) | ACS within 30 days is the absolute contraindication | ccs-screen |
+| ABPTSCCS/cardiac-rehab-weight-up-orthopnea | Plan of care (15) | Decompensated heart failure stops exercise | ccs-rehab |
+| ABPTSECS/emg-referral-platelets-thirty-one | Clinical sciences (19) | Platelets under 50,000 defer needle EMG | ecs-screen |
+| ABPTSECS/proximal-weakness-on-statin-cola-urine | Evaluation (25) | Myopathic EMG; possible rhabdomyolysis | ecs-myopathy |
+| ABPTSECS/ulnar-referral-droopy-eyelid-low-snap | Anatomy (21) | SNAPs localize past the ganglion; lower trunk plexopathy with Horner | ecs-plexus |
+| ABPTSGCS/dizzy-on-standing-new-tamsulosin | Examination (25) | Orthostatic hypotension measured correctly; deprescribing | gcs-orthostatic |
+| ABPTSGCS/home-visit-quiet-and-sleepy-today | Evaluation (15) | Sepsis with hypoactive delirium needs referral | gcs-sepsis |
+| ABPTSGCS/bruises-in-stages-son-wont-leave (18+) | Professional roles (15) | Elder abuse forms; see alone; Adult Protective Services | gcs-abuse |
+| ABPTSNCS/tilt-table-pounding-headache-t4 | Intervention (30) | Autonomic dysreflexia: sit up, loosen, kinked catheter | ncs-ad |
+| ABPTSNCS/gait-session-worst-headache-ever | Knowledge (15) | Aneurysmal subarachnoid hemorrhage: stop, 911 | ncs-sah |
+| ABPTSOCS/neck-pain-headache-after-adjustment | Spine (28) | Vertebral artery dissection; no manipulation | ocs-vad |
+| ABPTSOCS/rolled-ankle-cant-take-four-steps | Lower extremity (19) | Ottawa rules first; then early functional rehab | ocs-ankle |
+| ABPTSONC/chemo-day-nine-shivery-at-rehab | Examination (23) | Febrile neutropenia at nadir | onc-fn |
+| ABPTSONC/jaw-wont-open-new-neck-lump | Examination (23) | Atypical trismus with a node | onc-trismus |
+| ABPTSONC/thigh-pain-walking-breast-cancer-history | Evaluation (14) | Possible femoral metastasis; protect and refer | onc-bone |
+| ABPTSPCS/nicu-range-of-motion-sats-dropping | Intervention (20) | Preterm stress cues: pause and contain | pcs-nicu |
+| ABPTSPCS/torticollis-visit-hip-clunk | Examination (20) | Hip screen in a breech infant | pcs-ddh |
+| ABPTSPCS/six-year-old-limp-after-soccer | Evaluation (20) | Legg-Calve-Perthes behind knee pain | pcs-perthes |
+| ABPTSPWCS/postpartum-gap-and-a-hard-bulge | Patient management (55) | Diastasis recti with an incarcerated hernia | pwcs-dra |
+| ABPTSPWCS/urgency-numb-legs-blurred-eye | Patient management (55) | Urge incontinence with neurological signs | pwcs-urge |
+| ABPTSPWCS/second-trimester-dizzy-on-her-back | Patient management (55) | Supine hypotension; pregnancy exercise prescription | pwcs-pregex |
+| ABPTSSCS/lacrosse-ball-to-chest-collapse | Intervention (35) | Commotio cordis: 911, CPR, AED | scs-commotio |
+| ABPTSSCS/header-collision-wants-back-in | Intervention (35) | Concussion: out for the day; danger signs | scs-concussion |
+| ABPTSSCS/runner-groin-pain-hop-test | Assessment (30) | Femoral neck stress fracture with the triad | scs-stressfx |
+| ABPTSWMS/braden-eleven-purple-heel | Clinical sciences (12) | Staging and risk: Braden 11 and a heel deep tissue injury | wms-braden |
+| ABPTSWMS/two-wounds-one-dressing-choice | Interventions (20) | Dressings matched to two wounds; don't occlude infection | wms-dressing |
+| ABPTSWMS/walking-program-plantar-ulcer | Clinical inquiry (10) | Exercise that minimizes weight bearing with an ulcer | wms-dfu |
+
+- **Scope.** The ICU nurse acts on unit policy and the intensivist's or
+  nurse practitioner's orders; the RN on standing orders and protocols in
+  the brief; the LPN collects data, holds and reports, and works under the
+  facility's named IV scope; the physical therapist acts within the clinic's
+  named policy (911, the referring provider, the oncology triage line,
+  Adult Protective Services) and tells the referrer.
+- **18+.** The two suicide-risk bands keep their base's `mature: true`; the
+  elder abuse case is marked `mature: true` (REQ-327).
+- **Sources**, read 2026-11-17 through summarizing fetches with quotes
+  (URLs from searches): AFP 2000 on neonatal bilious vomiting; AFP 2023 on
+  neonatal hyperbilirubinemia; OPQIC's posting of the AAP therapeutic
+  hypothermia report (secondary); Merck Manual consumer page on newborn
+  pneumothorax (2025); MSD Manual Professional on neonatal seizures (2025);
+  FPnotebook on pediatric heart failure (secondary); WisTech Open Health
+  Promotion 17.5 and 1.7; St. Jude Together on splenic sequestration (2026);
+  the Massachusetts Hemovigilance Program's TACO summary (NHSN definition);
+  Children's Mercy PICU asthma guide; the Brain Trauma Foundation's pediatric
+  TBI summary page (2019 guideline not opened); WikEM on congenital heart
+  disease (secondary); ACEP Toxicology on pediatric methadone ingestion
+  (2019); CCJM 2025 on the 2024 hyperglycemic crises consensus; Nurse.com on
+  appendicitis; LOUIS IV Therapy for Practical Nurses ch. 7; CDC stroke signs
+  (2026); GVSU PAINAD notes; AFP 2018 geriatric assessment; USA Lacrosse
+  commotio cordis guideline (2023); CDC HEADS UP danger signs (2025); ACEP
+  Now 2022 on cervical artery dissection; CMAJ 2012 on autonomic dysreflexia
+  (Canadian; no US guideline opened); MedlinePlus on subarachnoid hemorrhage,
+  rhabdomyolysis and umbilical hernia; AFP 2012 on ankle sprains; Roswell
+  Park on Pancoast tumors; AFP 2007 on long bone metastases; DOJ Elder
+  Justice red flags (2023) and the Eldercare Locator abuse fact sheet; Emory
+  on preterm infant behavior; Provider Magazine 2017 on NPUAP staging.
+  Relayed with their dates, not re-read: the CCRN handbook and NCLEX test
+  plans and AACN Essentials from the course seeds and earlier cases; the
+  StatPearls chapters tagged in pt-abpts.ts (read 2026-11-04) for the ABPTS
+  objectives' own wording; the base cases' sources for every band. Disease
+  courses, effect sizes and local waits are authored teaching values marked
+  `FLAG`.
+- **Findings while authoring.** FAIL-2490: six objective titles were
+  copied from a truncated listing and one secondary came from another
+  course; the linter does not check catalog membership, the pin test did.
+  A teaching choice id must start with a letter (`30`, `150` refused). A
+  treatment-session minor criterion must be missed by some golden path, so
+  a bad path must skip every test it lists. `time_up` is reached by no
+  golden path (the linter's warning, as before); actions that need a prior
+  step draw the "never available" warning although goldens use them.
+
+**Per-course table (counted from the seed on the branch).** "Units covered"
+counts units with a fitting objective that are some sim's main objective.
+
+| Course | Objectives | Sims before | Sims after | Target | Units with a fitting objective covered | Left (fits but no main sim) |
+|---|---|---|---|---|---|---|
+| ADNRN | 178 | 2 | 10 | 8 | 6 of 6 | none |
+| BSNRN | 179 | 2 | 8 | 8 | 7 of 10 | EBP, Teamwork, Informatics (need a non-bedside screen; see Open) |
+| LPNVN | 176 | 2 | 10 | 8 | 5 of 5 | none (Anatomy has no fitting objective) |
+| CCRNNEO | 136 | 2 | 8 | 8 | 5 of 6 | Professional caring (no fit on bedside) |
+| CCRNPEDS | 135 | 2 | 8 | 8 | 5 of 6 | Professional caring (no fit on bedside) |
+| ABPTSCCS | 47 | 1 | 4 | 4 | 3 of 5 | EBP (10%), Professional behaviors (5%) |
+| ABPTSECS | 37 | 1 | 4 | 4 | 3 of 4 | Examination (20%): early electrodiagnosis in GBS |
+| ABPTSGCS | 48 | 1 | 5 | 4 | 4 of 6 | Knowledge (15%), Outcomes (5%) |
+| ABPTSONC | 47 | 1 | 4 | 4 | 3 of 4 | Outcomes (5%): lymphedema volume tracking |
+| ABPTSPCS | 44 | 1 | 4 | 4 | 3 of 4 | Professional roles (16%): early intervention, IDEA |
+| ABPTSPWCS | 35 | 1 | 4 | 4 | 1 of 1 | none |
+| ABPTSSCS | 40 | 1 | 4 | 4 | 2 of 3 | Knowledge (20%): triad (secondary only) |
+| ABPTSWMS | 52 | 1 | 4 | 4 | 4 of 4 | none |
+| ABPTSNCS | 43 | 2 | 4 | 4 | 3 of 4 | Clinical reasoning (25%): integrated PD care |
+| ABPTSOCS | 50 | 2 | 4 | 4 | 3 of 4 | Clinical reasoning (10%): shared decision-making |
+
+**Open (for the next round or for Nick).**
+- BSN-RN EBP (research ethics and IRB), Teamwork (conflict) and Informatics
+  (a privacy breach) fit the professional-ethics conversation or the
+  governance board, not the bedside. A decision for Nick whether nursing
+  courses should use those screens.
+- CCRN Neonatal and Pediatric "Professional caring and ethical practice"
+  (advocacy, systems thinking) has no timed bedside fit; the same decision.
+- The PT units left above fit treatment-session cases and are the next
+  candidates (geriatric delirium and polypharmacy, the female athlete triad,
+  early GBS electrodiagnosis, early intervention referral, integrated PD
+  care, shared decision-making in arthroplasty, EBP and walk-test MCID, PT
+  education); outcomes units at 5% are low priority.
