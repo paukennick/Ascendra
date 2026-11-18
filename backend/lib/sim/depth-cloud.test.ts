@@ -237,4 +237,21 @@ describe("what each new depth cloud case teaches (REQ-335)", () => {
     assert.equal(ok.value("missAt"), null);
     assert.equal(ok.value("okAt") !== null, true);
   });
+  test("AWSDEA glue-join-skewed-on-guest-key: copying yesterday's output publishes wrong numbers; 60 workers change nothing; splitting the GUEST key makes 06:00", () => {
+    const d = docOf("glue-join-skewed-on-guest-key");
+    const h = driver(d);
+    h.act("stale");
+    assert.equal(h.value("harmed"), true, "stale causes harm");
+    until(h, 61);
+    assert.notEqual(h.value("missAt"), null);
+    const n = driver(d);
+    n.act("workers");
+    until(n, 61);
+    assert.notEqual(n.value("missAt"), null, "workers changes nothing");
+    const ok = driver(d);
+    ok.act("split");
+    until(ok, 61);
+    assert.equal(ok.value("missAt"), null);
+    assert.equal(ok.value("okAt") !== null, true);
+  });
 });
