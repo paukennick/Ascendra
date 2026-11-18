@@ -694,6 +694,12 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("CNPE", "platform-deploys-failing-webhook-quota"),
   entry("KCSA", "secret-read-by-unknown-serviceaccount"),
   band("KCSA", "restricted-profile-payments-rollout-kcsa"),
+  band("CYSAPLUS", "phish-to-account-takeover-cysa"),
+  band("CYSAPLUS", "ransomware-file-server-cysa"),
+  band("CYSAPLUS", "ransomware-tabletop-cysa"),
+  band("CEH", "pentest-scope-boundary-ceh"),
+  band("CEH", "cloud-iam-backdoor-ceh"),
+  band("SECURITYX", "risk-appetite-exception-securityx"),
   // ---- end REQ-336 ----
 ];
 

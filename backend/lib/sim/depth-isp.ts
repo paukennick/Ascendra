@@ -41,4 +41,10 @@ export const DEPTH_ISP: readonly DepthIspEntry[] = [
   { course: "CNPE", slug: "platform-deploys-failing-webhook-quota", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "isp-cnpe-incident" },
   { course: "KCSA", slug: "secret-read-by-unknown-serviceaccount", screen: "security-console", profile: "security", kind: "scenario", steps: "isp-kcsa-secrets" },
   { course: "KCSA", slug: "restricted-profile-payments-rollout-kcsa", screen: "terminal", profile: "infrastructure", kind: "band", steps: "isp-kcsa-restricted-profile-payments-rollout-kcsa", base: "CKS/restricted-profile-payments-rollout" },
+  { course: "CYSAPLUS", slug: "phish-to-account-takeover-cysa", screen: "security-console", profile: "security", kind: "band", steps: "isp-cysaplus-phish-to-account-takeover-cysa", base: "SECPLUS/phish-to-account-takeover" },
+  { course: "CYSAPLUS", slug: "ransomware-file-server-cysa", screen: "security-console", profile: "security", kind: "band", steps: "isp-cysaplus-ransomware-file-server-cysa", base: "SECPLUS/ransomware-file-server" },
+  { course: "CYSAPLUS", slug: "ransomware-tabletop-cysa", screen: "tabletop", profile: "exercise", kind: "band", steps: "isp-cysaplus-ransomware-tabletop-cysa", base: "CISM/cism-ransomware-tabletop" },
+  { course: "CEH", slug: "pentest-scope-boundary-ceh", screen: "security-console", profile: "security", kind: "band", steps: "isp-ceh-pentest-scope-boundary-ceh", base: "PENTESTPLUS/pentest-scope-boundary" },
+  { course: "CEH", slug: "cloud-iam-backdoor-ceh", screen: "security-console", profile: "security", kind: "band", steps: "isp-ceh-cloud-iam-backdoor-ceh", base: "SECPLUS/cloud-iam-backdoor" },
+  { course: "SECURITYX", slug: "risk-appetite-exception-securityx", screen: "governance-board", profile: "governance", kind: "band", steps: "isp-securityx-risk-appetite-exception-securityx", base: "CISM/cism-risk-appetite-exception" },
 ];
