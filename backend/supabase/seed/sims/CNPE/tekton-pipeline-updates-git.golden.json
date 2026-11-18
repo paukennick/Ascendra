@@ -1,0 +1,846 @@
+{
+  "slug": "tekton-pipeline-updates-git",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Pipeline and run read; Git-based deploy; tasks ordered; finally cleanup; an honest record",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "pipe",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "run",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 6,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 10,
+          "seq": 5,
+          "tick": 6
+        },
+        {
+          "type": "choose",
+          "prompt": "deployPrompt",
+          "choice": "gitUpdate",
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 20,
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "choose",
+          "prompt": "orderPrompt",
+          "choice": "runAfter",
+          "seq": 8,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 30,
+          "seq": 9,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "cleanupPrompt",
+          "choice": "finally",
+          "seq": 10,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 40,
+          "seq": 11,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 40
+        }
+      ],
+      "expect": {
+        "ending": "target",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "deployCrit": "met",
+          "orderCrit": "met",
+          "cleanupCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0
+        },
+        "stateHash": "9c6478b705c2c5b3"
+      },
+      "reasoning": {
+        "reflection": "met"
+      }
+    },
+    {
+      "id": "partialDeploy",
+      "title": "Partly right on the deploy task, the rest on plan",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "pipe",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 10,
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "choose",
+          "prompt": "deployPrompt",
+          "choice": "stagingOnly",
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 20,
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "choose",
+          "prompt": "orderPrompt",
+          "choice": "runAfter",
+          "seq": 6,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 30,
+          "seq": 7,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "cleanupPrompt",
+          "choice": "finally",
+          "seq": 8,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 40,
+          "seq": 9,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 10,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 11,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 12,
+          "tick": 40
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "deployCrit": "partial",
+          "orderCrit": "met",
+          "cleanupCrit": "met",
+          "evidenceCrit": "partial",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0
+        },
+        "stateHash": "cabcd95d3adebab3"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "partialCleanup",
+      "title": "Partly right on cleanup, and a one-line record",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 10,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "deployPrompt",
+          "choice": "gitUpdate",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 2,
+          "to": 20,
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "choose",
+          "prompt": "orderPrompt",
+          "choice": "runAfter",
+          "seq": 4,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 30,
+          "seq": 5,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "cleanupPrompt",
+          "choice": "cron",
+          "seq": 6,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 40,
+          "seq": 7,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 8,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "summary"
+          },
+          "seq": 9,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 10,
+          "tick": 40
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "deployCrit": "met",
+          "orderCrit": "met",
+          "cleanupCrit": "partial",
+          "evidenceCrit": "missed",
+          "recordCrit": "missed"
+        },
+        "kpis": {
+          "missK": 0
+        },
+        "stateHash": "9678f74ee33b216d"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "allPartial",
+      "title": "Every decision only partly right",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 10,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "deployPrompt",
+          "choice": "stagingOnly",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 2,
+          "to": 20,
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "choose",
+          "prompt": "orderPrompt",
+          "choice": "tagUntested",
+          "seq": 4,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 30,
+          "seq": 5,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "cleanupPrompt",
+          "choice": "cron",
+          "seq": 6,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 40,
+          "seq": 7,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 8,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 9,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 10,
+          "tick": 40
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "deployCrit": "partial",
+          "orderCrit": "partial",
+          "cleanupCrit": "partial",
+          "evidenceCrit": "missed",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0
+        },
+        "stateHash": "46c6e5c1d46819b7"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "badDeploy",
+      "title": "kubectl apply kept with self-heal off",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "pipe",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "run",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 6,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 10,
+          "seq": 5,
+          "tick": 6
+        },
+        {
+          "type": "choose",
+          "prompt": "deployPrompt",
+          "choice": "keepApply",
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 20,
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "choose",
+          "prompt": "orderPrompt",
+          "choice": "runAfter",
+          "seq": 8,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 30,
+          "seq": 9,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "cleanupPrompt",
+          "choice": "finally",
+          "seq": 10,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 40,
+          "seq": 11,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 40
+        }
+      ],
+      "expect": {
+        "ending": "deployHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "deployCrit": "missed",
+          "orderCrit": "met",
+          "cleanupCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1
+        },
+        "stateHash": "4709ea85f5db7af2"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    },
+    {
+      "id": "badOrder",
+      "title": "Tests removed from the pipeline",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "pipe",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "run",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 6,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 10,
+          "seq": 5,
+          "tick": 6
+        },
+        {
+          "type": "choose",
+          "prompt": "deployPrompt",
+          "choice": "gitUpdate",
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 20,
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "choose",
+          "prompt": "orderPrompt",
+          "choice": "dropTests",
+          "seq": 8,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 30,
+          "seq": 9,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "cleanupPrompt",
+          "choice": "finally",
+          "seq": 10,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 40,
+          "seq": 11,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 40
+        }
+      ],
+      "expect": {
+        "ending": "orderHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "deployCrit": "met",
+          "orderCrit": "missed",
+          "cleanupCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1
+        },
+        "stateHash": "9da322a263208ca8"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    },
+    {
+      "id": "badCleanup",
+      "title": "Cleanup left as a regular last task",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "pipe",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "run",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 6,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 10,
+          "seq": 5,
+          "tick": 6
+        },
+        {
+          "type": "choose",
+          "prompt": "deployPrompt",
+          "choice": "gitUpdate",
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 20,
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "choose",
+          "prompt": "orderPrompt",
+          "choice": "runAfter",
+          "seq": 8,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 30,
+          "seq": 9,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "cleanupPrompt",
+          "choice": "lastTask",
+          "seq": 10,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 40,
+          "seq": 11,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 40
+        }
+      ],
+      "expect": {
+        "ending": "cleanupHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "deployCrit": "met",
+          "orderCrit": "met",
+          "cleanupCrit": "missed",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1
+        },
+        "stateHash": "bdde1e2ef1f7d171"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    }
+  ]
+}
