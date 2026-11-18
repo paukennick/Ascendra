@@ -1,0 +1,1092 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cspp-highway-sustainability-plan-bribery",
+  "title": "A highway project's sustainability management plan: an anti-bribery gap, community investment and the project manager's role",
+  "screen": {
+    "type": "governance-board",
+    "level": 1,
+    "governance": {
+      "risks": [
+        {
+          "id": "rAbc",
+          "label": "Bribery",
+          "spokenLabel": "Bribery",
+          "owner": "\"Project manager\"",
+          "rating": "abc == \"refuse\" ? \"low\" : abc == \"ask\" ? \"medium\" : abc == \"pay\" ? \"critical\" : p >= 1 ? \"high\" : \"medium\"",
+          "appetite": "abc == \"refuse\" ? \"within\" : abc == \"ask\" ? \"within\" : abc == \"pay\" ? \"above\" : p >= 1 ? \"above\" : \"within\"",
+          "status": "{abc == \"refuse\" ? \"Refused; controls added\" : abc == \"ask\" ? \"Asked the client\" : abc == \"pay\" ? \"Facilitation payment made\" : \"Open\"}"
+        },
+        {
+          "id": "rCommunity",
+          "label": "Community harm",
+          "spokenLabel": "Community harm",
+          "owner": "\"Project manager\"",
+          "rating": "community == \"invest\" ? \"low\" : community == \"charity\" ? \"medium\" : community == \"ignore\" ? \"critical\" : p >= 2 ? \"high\" : \"medium\"",
+          "appetite": "community == \"invest\" ? \"within\" : community == \"charity\" ? \"within\" : community == \"ignore\" ? \"above\" : p >= 2 ? \"above\" : \"within\"",
+          "status": "{community == \"invest\" ? \"Community plan agreed with villages\" : community == \"charity\" ? \"One-off donation\" : community == \"ignore\" ? \"Left to the government\" : \"Open\"}"
+        },
+        {
+          "id": "rInd",
+          "label": "Plan not implemented",
+          "spokenLabel": "Plan not implemented",
+          "owner": "\"Project manager\"",
+          "rating": "ind == \"lead\" ? \"low\" : ind == \"lagOnly\" ? \"medium\" : ind == \"delegate\" ? \"critical\" : p >= 3 ? \"high\" : \"medium\"",
+          "appetite": "ind == \"lead\" ? \"within\" : ind == \"lagOnly\" ? \"within\" : ind == \"delegate\" ? \"above\" : p >= 3 ? \"above\" : \"within\"",
+          "status": "{ind == \"lead\" ? \"Leading and lagging indicators\" : ind == \"lagOnly\" ? \"Lagging only\" : ind == \"delegate\" ? \"Handed off\" : \"Open\"}"
+        }
+      ],
+      "stakeholders": [
+        {
+          "id": "sSpon",
+          "label": "Sponsor",
+          "spokenLabel": "the sponsor's support",
+          "value": "spon",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sComm",
+          "label": "Community representatives",
+          "spokenLabel": "the community's support",
+          "value": "comm",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sTeam",
+          "label": "Project team",
+          "spokenLabel": "the team's support",
+          "value": "team",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "docket": [
+        {
+          "id": "dAbc",
+          "kind": "Anti-bribery",
+          "label": "Week 1: the offer",
+          "status": "{abc == \"refuse\" ? \"Refused; controls added\" : abc == \"ask\" ? \"Asked the client\" : abc == \"pay\" ? \"Facilitation payment made\" : \"Due\"}",
+          "when": "p >= 1",
+          "flag": "p >= 1 and abc == \"none\""
+        },
+        {
+          "id": "dCommunity",
+          "kind": "Social responsibility",
+          "label": "Week 2: villages",
+          "status": "{community == \"invest\" ? \"Community plan agreed with villages\" : community == \"charity\" ? \"One-off donation\" : community == \"ignore\" ? \"Left to the government\" : \"Due\"}",
+          "when": "p >= 2",
+          "flag": "p >= 2 and community == \"none\""
+        },
+        {
+          "id": "dInd",
+          "kind": "Indicators",
+          "label": "Week 3: indicators",
+          "status": "{ind == \"lead\" ? \"Leading and lagging indicators\" : ind == \"lagOnly\" ? \"Lagging only\" : ind == \"delegate\" ? \"Handed off\" : \"Due\"}",
+          "when": "p >= 3",
+          "flag": "p >= 3 and ind == \"none\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Week",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Evaluating aspects of a Sustainability Management Plan against a scenario: anti-bribery standards and supporting community/social-responsibility development",
+  "secondaryObjectives": [
+    "Identifying the project manager's role and responsibilities in implementing a Sustainability Management Plan, including systems-thinking concepts and distinguishing between leading and lagging indicators"
+  ],
+  "sources": [
+    {
+      "cite": "PMI, Certified Sustainable Project Professional (CSPP) bundle and exam page: P5 Standard: Sustainability and Impact Analysis 24% (the largest domain with PRiSM Life Cycle Approach 23% and Project Management Considerations 23%)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.pmi.org/certifications/cspp-bundle-exam-course",
+      "note": "Read 2026-11-17 directly (summarizing fetch of pmi.org/certifications/cspp-bundle-exam-course). The page lists six domains: Foundations of Sustainable Project Work 12%, PRiSM Life Cycle Approach 23%, P5 Standard: Sustainability and Impact Analysis 24%, Developing a Sustainability Management Plan 12%, ESG & Sustainability Reporting, Governance, and Project Communications 7%, Project Management Considerations 23% (they add to 101%). It says the P5 Standard evaluates project impacts on 'people, planet, and prosperity', and a prep module practices 'a P5 Impact Analysis' to 'identify, assess and mitigate sustainability impacts'. The course seed's five domains and weights (P5 36%) differ from this page; the P5 domain is the largest either way. The objective wording is the course seed's. Reused for REQ-336 from this course's cspp-school-laptop-p5-review (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the project, the figures and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You manage a highway upgrade abroad for a fictional engineering firm. A local permitting agent offers to 'speed up' permits for a fee.",
+    "handover": [
+      "The sustainability management plan covers emissions and waste, but not ethics or community.",
+      "Villages along the route lose farmland to the road."
+    ],
+    "howItWorks": [
+      "The board shows the risk register against the appetite, each stakeholder's support in words and the docket.",
+      "Move on a week at a time. A decision comes to you at each review; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-05-03T09:00",
+    "tick": "1d",
+    "maxDuration": "84d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "spon": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "comm": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "team": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "abc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "refuse",
+        "ask",
+        "pay"
+      ],
+      "init": "none"
+    },
+    "abcAt": {
+      "type": "time",
+      "init": null
+    },
+    "community": {
+      "type": "enum",
+      "values": [
+        "none",
+        "invest",
+        "charity",
+        "ignore"
+      ],
+      "init": "none"
+    },
+    "communityAt": {
+      "type": "time",
+      "init": null
+    },
+    "ind": {
+      "type": "enum",
+      "values": [
+        "none",
+        "lead",
+        "lagOnly",
+        "delegate"
+      ],
+      "init": "none"
+    },
+    "indAt": {
+      "type": "time",
+      "init": null
+    },
+    "smpAt": {
+      "type": "time",
+      "init": null
+    },
+    "villagesAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(spon, comm), team)"
+    },
+    "missCount": {
+      "expr": "((abc == \"pay\") ? 1 : 0) + ((community == \"ignore\") ? 1 : 0) + ((ind == \"delegate\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(abc == \"none\" or (abc == \"pay\") ? 1 : 0) + (community == \"none\" or (community == \"ignore\") ? 1 : 0) + (ind == \"none\" or (ind == \"delegate\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Plan review",
+      "clock": "turns",
+      "actions": [
+        "smp",
+        "villages"
+      ]
+    },
+    "close": {
+      "label": "Plan record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "smp": {
+      "label": "Review the sustainability management plan",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(smpAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "smpAt",
+          "to": "t"
+        },
+        {
+          "log": "Review the sustainability management plan.",
+          "kind": "act"
+        },
+        {
+          "finding": "No anti-bribery controls, no community investment, only lagging indicators (tonnes of waste at the end)."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "villages": {
+      "label": "Visit the affected villages",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(villagesAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "villagesAt",
+          "to": "t"
+        },
+        {
+          "log": "Visit the affected villages.",
+          "kind": "act"
+        },
+        {
+          "finding": "Farmers lose land; there's no local hiring plan or grievance channel."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "The fee refused with anti-bribery controls, a community plan agreed with the villages, and leading indicators you review"
+                },
+                {
+                  "value": "summary",
+                  "label": "Plan updated"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next review",
+      "wait": {
+        "skipLabel": "Go to the next review"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "abc == \"pay\"",
+              "then": [
+                {
+                  "log": "Week 2: the payment surfaces in an audit; the firm self-reports and is barred from bidding for public contracts for a year.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "community == \"ignore\"",
+              "then": [
+                {
+                  "log": "Week 3: farmers block the site for a week over compensation; the schedule slips.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "ind == \"delegate\"",
+              "then": [
+                {
+                  "log": "Week 4: grievances pile up unanswered for two months; nobody owns them.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "7d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The plan review closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "7d"
+        }
+      ]
+    },
+    {
+      "id": "t_abc",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 1: the agent's offer.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "abcPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_community",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 2: the villages.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "communityPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_ind",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 3: monitoring the plan.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "indPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "abcPrompt": {
+      "title": "A fee to speed up permits",
+      "context": "The fee is outside any official schedule.",
+      "choices": [
+        {
+          "id": "refuse",
+          "label": "Refuse, report it to compliance, and add anti-bribery controls to the plan (due diligence on agents, a gifts register, reporting channel)",
+          "effects": [
+            {
+              "set": "abc",
+              "to": "\"refuse\""
+            },
+            {
+              "set": "abcAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "1"
+            },
+            {
+              "log": "The payment is refused; controls are added.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Anti-bribery standards forbid facilitation payments; the plan needs controls."
+        },
+        {
+          "id": "ask",
+          "label": "Ask the client if it's normal locally",
+          "effects": [
+            {
+              "set": "abc",
+              "to": "\"ask\""
+            },
+            {
+              "set": "abcAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-1"
+            },
+            {
+              "log": "The question is raised.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "It delays the refusal and suggests it might be acceptable."
+        },
+        {
+          "id": "pay",
+          "label": "Pay the fee as a local cost of business",
+          "effects": [
+            {
+              "set": "abc",
+              "to": "\"pay\""
+            },
+            {
+              "set": "abcAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-2"
+            },
+            {
+              "log": "The fee is paid.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "It's a bribe under the firm's code and international law."
+        }
+      ]
+    },
+    "communityPrompt": {
+      "title": "Farmers losing land",
+      "context": "No hiring plan or grievance channel exists.",
+      "choices": [
+        {
+          "id": "invest",
+          "label": "Add local hiring and training targets, fair compensation, a grievance channel and a community investment fund, agreed with village representatives",
+          "effects": [
+            {
+              "set": "community",
+              "to": "\"invest\""
+            },
+            {
+              "set": "communityAt",
+              "to": "t"
+            },
+            {
+              "add": "comm",
+              "by": "1"
+            },
+            {
+              "log": "Community measures are agreed.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Social responsibility belongs in the plan, agreed with the people affected."
+        },
+        {
+          "id": "charity",
+          "label": "Donate to a local school",
+          "effects": [
+            {
+              "set": "community",
+              "to": "\"charity\""
+            },
+            {
+              "set": "communityAt",
+              "to": "t"
+            },
+            {
+              "add": "comm",
+              "by": "-1"
+            },
+            {
+              "log": "A donation is made.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Kind, but not a plan with the affected people."
+        },
+        {
+          "id": "ignore",
+          "label": "Leave compensation to the government",
+          "effects": [
+            {
+              "set": "community",
+              "to": "\"ignore\""
+            },
+            {
+              "set": "communityAt",
+              "to": "t"
+            },
+            {
+              "add": "comm",
+              "by": "-2"
+            },
+            {
+              "log": "Nothing is added.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The affected farmers have no voice in the project."
+        }
+      ]
+    },
+    "indPrompt": {
+      "title": "What to measure",
+      "context": "Only lagging indicators exist.",
+      "choices": [
+        {
+          "id": "lead",
+          "label": "Add leading indicators (training hours, grievances resolved within 30 days, agent due-diligence completed) to the lagging ones, reviewed monthly by you",
+          "effects": [
+            {
+              "set": "ind",
+              "to": "\"lead\""
+            },
+            {
+              "set": "indAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "1"
+            },
+            {
+              "log": "Leading indicators are reviewed monthly.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Leading indicators show trouble early; the project manager owns implementation."
+        },
+        {
+          "id": "lagOnly",
+          "label": "Keep the end-of-project measures",
+          "effects": [
+            {
+              "set": "ind",
+              "to": "\"lagOnly\""
+            },
+            {
+              "set": "indAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "-1"
+            },
+            {
+              "log": "End measures only.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Problems show only when it's too late."
+        },
+        {
+          "id": "delegate",
+          "label": "Hand the plan to the environmental officer",
+          "effects": [
+            {
+              "set": "ind",
+              "to": "\"delegate\""
+            },
+            {
+              "set": "indAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "-2"
+            },
+            {
+              "log": "Handed off.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Implementation is the project manager's responsibility across the project."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the updated sustainability management plan summary.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Ethics and community",
+          "criteria": "Payment refused; due diligence, gifts register and reporting; hiring, compensation, grievance and fund.",
+          "modelAnswer": "We refused the permit fee and added anti-bribery controls; the villages agreed hiring, compensation, a grievance channel and a fund."
+        },
+        {
+          "label": "Monitoring",
+          "criteria": "Leading and lagging indicators reviewed monthly by the project manager.",
+          "modelAnswer": "Training hours, grievance resolution and agent checks lead; waste and emissions lag; I review them monthly."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "governance",
+    "thresholds": {
+      "aboveAppetite": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No risk above appetite at the close without a treatment."
+        }
+      },
+      "supportTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Each key stakeholder at 6 of 10 or more at the close."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (abc == \"ask\") and (community == \"charity\") and (ind == \"lagOnly\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "PMI, Certified Sustainable Project Professional (CSPP) bundle and exam page: P5 Standard: Sustainability and Impact Analysis 24% (the largest domain with PRiSM Life Cycle Approach 23% and Project Management Considerations 23%)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.pmi.org/certifications/cspp-bundle-exam-course",
+        "note": "Read 2026-11-17 directly (summarizing fetch of pmi.org/certifications/cspp-bundle-exam-course). The page lists six domains: Foundations of Sustainable Project Work 12%, PRiSM Life Cycle Approach 23%, P5 Standard: Sustainability and Impact Analysis 24%, Developing a Sustainability Management Plan 12%, ESG & Sustainability Reporting, Governance, and Project Communications 7%, Project Management Considerations 23% (they add to 101%). It says the P5 Standard evaluates project impacts on 'people, planet, and prosperity', and a prep module practices 'a P5 Impact Analysis' to 'identify, assess and mitigate sustainability impacts'. The course seed's five domains and weights (P5 36%) differ from this page; the P5 domain is the largest either way. The objective wording is the course seed's. Reused for REQ-336 from this course's cspp-school-laptop-p5-review (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "abcHarm": {
+      "label": "A bribery finding",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and abc == \"pay\"",
+      "narrative": "The payment was found in audit; the firm was barred from public bids."
+    },
+    "communityHarm": {
+      "label": "A site blockade",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and community == \"ignore\"",
+      "narrative": "Farmers blocked the site for a week over compensation."
+    },
+    "indHarm": {
+      "label": "Unowned grievances",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and ind == \"delegate\"",
+      "narrative": "With the plan handed off, grievances went unanswered for two months."
+    },
+    "target": {
+      "label": "A plan that covers ethics and people",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (abc == \"refuse\") and (community == \"invest\") and (ind == \"lead\") and record == \"honest\" and openCount <= aboveAppetite and minSupport >= supportTarget",
+      "narrative": "The highway proceeds without bribery, with the villages, and with early warning on problems."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "abcHarm",
+    "communityHarm",
+    "indHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "abcCrit",
+        "label": "Refused the payment and added anti-bribery controls",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "abc == \"refuse\"",
+            "score": "met",
+            "why": "Ethical."
+          },
+          {
+            "when": "abc == \"ask\"",
+            "score": "partial",
+            "why": "Hesitant."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Bribery."
+          }
+        ]
+      },
+      {
+        "id": "communityCrit",
+        "label": "Supported community development through the plan",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "community == \"invest\"",
+            "score": "met",
+            "why": "Responsible."
+          },
+          {
+            "when": "community == \"charity\"",
+            "score": "partial",
+            "why": "Token."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Ignored."
+          }
+        ]
+      },
+      {
+        "id": "indCrit",
+        "label": "Owned the plan's implementation with leading and lagging indicators",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "ind == \"lead\"",
+            "score": "met",
+            "why": "Owned."
+          },
+          {
+            "when": "ind == \"lagOnly\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Abdicated."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(smpAt) and not isNull(villagesAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(smpAt) or not isNull(villagesAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 10)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Review the plan and the community's situation first."
+      },
+      {
+        "at": "Week 1",
+        "text": "Refuse, report and add anti-bribery controls."
+      },
+      {
+        "at": "Week 2",
+        "text": "Agree hiring, compensation, grievance and investment with the villages."
+      },
+      {
+        "at": "Week 3",
+        "text": "Add leading indicators and review them monthly."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "abcHarm": {
+        "headline": "Refuse and control",
+        "body": "No facilitation payments; anti-bribery controls in the plan."
+      },
+      "communityHarm": {
+        "headline": "Plan with the community",
+        "body": "Hiring, compensation and grievance channels in the plan."
+      },
+      "indHarm": {
+        "headline": "Own the plan",
+        "body": "Leading indicators reviewed by the project manager."
+      },
+      "target": {
+        "headline": "Good: a plan that covers ethics and people",
+        "body": "Anti-bribery, community development and owned indicators."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A sustainability management plan covers ethics and social responsibility as well as environment: anti-bribery controls and refusal of facilitation payments, community development agreed with the people affected, and leading as well as lagging indicators. The project manager owns its implementation."
+  }
+}
