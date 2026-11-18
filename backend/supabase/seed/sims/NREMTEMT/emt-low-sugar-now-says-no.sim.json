@@ -1,0 +1,1080 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "emt-low-sugar-now-says-no",
+  "title": "Sugar fixed, and now he says no",
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate, last measured",
+          "value": "vHr",
+          "unit": "/min",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              100,
+              120
+            ]
+          },
+          "colour": "ecg",
+          "hiddenUntil": "vAt > 0"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure, last measured",
+          "value": [
+            "vSbp",
+            "vDbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90
+            ]
+          },
+          "colour": "art",
+          "hiddenUntil": "vAt > 0"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 94
+          },
+          "announce": {
+            "bands": [
+              94,
+              90
+            ]
+          },
+          "colour": "spo2",
+          "hiddenUntil": "vAt > 0"
+        },
+        {
+          "id": "glu",
+          "label": "Glucose",
+          "spokenLabel": "Blood glucose, last measured",
+          "value": "vGlu",
+          "unit": "mg/dL",
+          "alarm": {
+            "low": 70
+          },
+          "announce": {
+            "bands": [
+              70,
+              54
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "gAt > 0"
+        }
+      ],
+      "infusions": "Oral glucose: {isNull(ogAt) ? \"not given\" : \"given\"}. He is {glu >= 70 ? \"alert and oriented\" : \"confused, sweating, pushing you away\"}. Medical direction: {isNull(mdAt) ? \"not contacted\" : \"on the phone\"}.",
+      "banner": [
+        {
+          "when": "glu < 70",
+          "text": "Gary, 66, sweaty and muddled in his kitchen chair: 'Get out of my house, I'm fine.'"
+        },
+        {
+          "when": "glu >= 70 and isNull(departAt)",
+          "text": "Gary is himself again, embarrassed, and wants you to leave."
+        }
+      ]
+    }
+  },
+  "objective": "Assess decision-making capacity when a patient refuses care, explain the risks, involve medical direction and document the refusal",
+  "secondaryObjectives": [
+    "Recognize hypoglycemia on reassessment of a patient with altered mental status and treat it within EMT scope",
+    "Apply consent, confidentiality and the duty to act, and avoid abandonment and negligence"
+  ],
+  "sources": [
+    {
+      "cite": "National Registry of EMTs. EMT examination test plan",
+      "checkedAt": "2026-11-09",
+      "url": "https://nremt.org/getmedia/4cb170ab-35fa-4ec0-a76c-634847005bc4/EMT-Test-Plan_Public",
+      "note": "Relayed from the course seed (backend/supabase/seed/tracks/ems.ts and labs/ems-sources.ts, read in NREMT's own documents 2026-11-09); not re-read for this case. Operations: assess decision-making capacity when a patient refuses, explain the risks, involve medical direction and document."
+    },
+    {
+      "cite": "NASEMSO. National Model EMS Clinical Guidelines, Version 3.0 (March 2022): Patient Refusals",
+      "checkedAt": "2026-11-17",
+      "url": "https://nasemso.org/?p=223",
+      "note": "Read 2026-11-17 in the full text Iowa HHS hosts (https://hhs.iowa.gov/media/198/download) through summarizing fetches with quotes; NASEMSO's own page, read the same day, still presents Version 3 (2022) as current and names no later version. Capacity: 'alert, oriented, and can understand the circumstances surrounding his/her illness or impairment', judgment not significantly impaired by illness, injury or intoxication; a patient without capacity 'should not be allowed to refuse care against medical advice or to be released at the scene'; explain 'the possible risks and overall concerns'; doubts about capacity: contact medical direction; document the plan, who will be with the patient, and the patient's own words; tell them they may call again."
+    },
+    {
+      "cite": "NASEMSO. National Model EMS Clinical Guidelines, Version 3.0 (March 2022): Hypoglycemia",
+      "checkedAt": "2026-11-17",
+      "url": "https://nasemso.org/?p=223",
+      "note": "Read 2026-11-17 in the full text Iowa HHS hosts (https://hhs.iowa.gov/media/198/download) through summarizing fetches with quotes; NASEMSO's own page, read the same day, still presents Version 3 (2022) as current and names no later version. Treat at 60 mg/dL or less; oral glucose for a conscious patient with a patent airway (adult 25 g); release without transport only if all are true: repeat glucose above 80 mg/dL, takes insulin or metformin and 'does not take long-acting oral sulphunylurea agents', normal mental status with no focal signs, can promptly eat a carbohydrate meal, and 'a reliable adult will be staying with patient'. Altered Mental Status: a glucose check is part of the assessment."
+    },
+    {
+      "cite": "American Diabetes Association. Hypoglycemia Guidelines: your visual guide to the guidelines (infographic based on the Standards of Care in Diabetes, 2025)",
+      "checkedAt": "2026-11-17",
+      "url": "https://professional.diabetes.org/sites/dpro/files/2025-05/hypoglycemia-hcp-5-27-25.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: level 1 below 70 mg/dL, level 2 below 54 mg/dL, level 3 'Altered mental and/or physical status requiring assistance, irrespective of glucose level'; 'In most conscious individuals, have 15 grams of fast-acting carbohydrates, and recheck glucose in 15 minutes', repeated until it resolves; 'Glucagon is indicated for hypoglycemia treatment when people are unable or unwilling to consume carbohydrates by mouth'; ready-to-use glucagon can be given by people who are not health care professionals. The page says nothing about exercise."
+    },
+    {
+      "cite": "NHTSA. National EMS Scope of Practice Model 2019: Including Change Notices 1.0 and 2.0 (DOT HS 813 151, 2021-08-01)",
+      "checkedAt": "2026-11-17",
+      "url": "https://rosap.ntl.bts.gov/view/dot/56917",
+      "note": "Read 2026-11-17: the record page (title, report number, date; the change notices add intramuscular injection, vaccination in a public health emergency and nasal swab collection at EMT and above) and the PDF's skill tables through a summarizing fetch whose table columns were partly unclear, so placement was checked against the course's own reading (backend/supabase/seed/labs/ems-sources.ts, 2026-11-09) and REQ-241's reading (2026-11-11). EMR: oxygen, BVM, naloxone (intranasal or auto-injector), unit-dose hazmat antidote auto-injectors, tourniquet, wound packing, emergency moves, manual stabilization; no pulse oximetry, glucose monitoring or transport. EMT adds pulse oximetry, glucose monitoring, oral glucose, aspirin, the patient's own nitroglycerin, an inhaled bronchodilator, CPAP, the epinephrine auto-injector. AEMT adds IV and IO access, non-medicated IV fluids, supraglottic airways, waveform capnography, sublingual nitroglycerin and a limited list of IV and IM drugs (dextrose, naloxone). Paramedic adds 12-lead interpretation, manual defibrillation, synchronized cardioversion, transcutaneous pacing, needle chest decompression, intubation and medicated infusions. No newer model was found on 2026-11-17."
+    },
+    {
+      "cite": "Ascendra NREMT EMT course catalog (backend/supabase/seed/tracks/ems.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Ascendra teaching model (REQ-338, authored)",
+      "checkedAt": "2026-11-17",
+      "note": "His glucose (46 mg/dL) and its rise after one tube of oral glucose (to about 110 mg/dL over 15 minutes) are authored; so is the rule that he agrees to go only once the specific risk of his sulfonylurea is explained and the physician on medical direction speaks to him, and that a plain release leads to a second low three hours later. FLAG: no source gives these timings. Simplified teaching model written for exam practice; not a validated physiological model."
+    }
+  ],
+  "brief": {
+    "situation": "07:50. You and your partner are EMTs on an ambulance. Joan called because her husband Gary, 66, was sweaty and confused at breakfast. He has type 2 diabetes. He is in a kitchen chair, telling you to leave.",
+    "handover": [
+      "Joan has his medication bag: glipizide and metformin.",
+      "Within EMT scope: glucose monitoring, oral glucose for a patient who can swallow, oxygen, transport, and a refusal process with medical direction."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated seconds per real second. Pause any time.",
+      "Every assessment and treatment takes the time it would on a real call. Scene time and the drive run on the clock.",
+      "Partway through you are asked to explain your decisions in writing. The case ends when care is handed over, then a debrief scores what you did."
+    ]
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice; follow your local protocols and medical direction.",
+  "clock": {
+    "start": "07:50",
+    "tick": "1s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "riseRate": {
+      "value": 0.072,
+      "unit": "mg/dL/s",
+      "source": {
+        "cite": "Ascendra teaching model (REQ-338, authored)",
+        "checkedAt": "2026-11-17",
+        "note": "FLAG: stands in for a number no guideline gives. About 4.3 mg/dL a minute for 15 minutes after one tube of oral glucose. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "absorb": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (REQ-338, authored)",
+        "checkedAt": "2026-11-17",
+        "note": "FLAG: stands in for a number no guideline gives. The tube's effect over 15 minutes. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "gluTime": {
+      "value": 45,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A fingerstick glucose: about 45 seconds. Authored for the case; real times vary."
+      }
+    },
+    "vitalsTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A set of vital signs: about 1 minute. Authored for the case; real times vary."
+      }
+    },
+    "driveTime": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Load and drive to the emergency department: about 15 minutes. Authored for the case; real times vary."
+      }
+    },
+    "gluGoal": {
+      "value": 180,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (REQ-338, authored)",
+        "checkedAt": "2026-11-17",
+        "note": "FLAG: stands in for a number no guideline gives. A glucose check within 3 minutes of reaching a confused diabetic patient; NASEMSO lists the glucose check as part of the altered mental status assessment without a time. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    }
+  },
+  "state": {
+    "capEarlyAt": {
+      "type": "time",
+      "init": null
+    },
+    "capLateAt": {
+      "type": "time",
+      "init": null
+    },
+    "ogAt": {
+      "type": "time",
+      "init": null
+    },
+    "recheckAt": {
+      "type": "time",
+      "init": null
+    },
+    "riskAt": {
+      "type": "time",
+      "init": null
+    },
+    "mdAt": {
+      "type": "time",
+      "init": null
+    },
+    "agreeAt": {
+      "type": "time",
+      "init": null
+    },
+    "departAt": {
+      "type": "time",
+      "init": null
+    },
+    "arrivedAt": {
+      "type": "time",
+      "init": null
+    },
+    "releaseAt": {
+      "type": "time",
+      "init": null
+    },
+    "safeAt": {
+      "type": "time",
+      "init": null
+    },
+    "forcedAt": {
+      "type": "time",
+      "init": null
+    },
+    "earlyRefusalAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstVAt": {
+      "type": "time",
+      "init": null
+    },
+    "vPending": {
+      "type": "bool",
+      "init": false
+    },
+    "gPending": {
+      "type": "bool",
+      "init": false
+    },
+    "glu": {
+      "type": "number",
+      "init": 46,
+      "min": 20,
+      "max": 300,
+      "unit": "mg/dL"
+    },
+    "gAt": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000,
+      "unit": "s"
+    },
+    "vGlu": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 600,
+      "unit": "mg/dL"
+    },
+    "vAt": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000,
+      "unit": "s"
+    },
+    "vHr": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 220,
+      "unit": "/min"
+    },
+    "vSbp": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 250,
+      "unit": "mmHg"
+    },
+    "vDbp": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 200,
+      "unit": "mmHg"
+    },
+    "gluChecks": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    }
+  },
+  "derived": {
+    "spo2": {
+      "expr": "97",
+      "unit": "%",
+      "precision": 0
+    }
+  },
+  "processes": [
+    {
+      "id": "sugar",
+      "when": "not isNull(ogAt) and t < timeAt(ogAt) + absorb",
+      "update": {
+        "glu": "clamp(glu + riseRate * dt, 20, 300)"
+      }
+    }
+  ],
+  "phases": {
+    "call": {
+      "label": "In the kitchen",
+      "clock": "running",
+      "actions": [
+        "capacity",
+        "glucose",
+        "vitals",
+        "oralGlucose",
+        "acceptEarly",
+        "risk",
+        "medDir",
+        "go",
+        "release",
+        "safeRefusal",
+        "force"
+      ]
+    }
+  },
+  "initialPhase": "call",
+  "actions": {
+    "capacity": {
+      "label": "Assess his capacity: orientation, understanding, whether he can weigh the risk",
+      "group": "Assess",
+      "available": "isNull(departAt)",
+      "why": "Not now.",
+      "effects": [
+        {
+          "if": "glu >= 70",
+          "then": [
+            {
+              "if": "isNull(capLateAt)",
+              "then": [
+                {
+                  "set": "capLateAt",
+                  "to": "t"
+                }
+              ]
+            },
+            {
+              "log": "Oriented to time, place and events; he explains the risk back to you in his own words. He has capacity.",
+              "kind": "find"
+            }
+          ],
+          "else": [
+            {
+              "if": "isNull(capEarlyAt)",
+              "then": [
+                {
+                  "set": "capEarlyAt",
+                  "to": "t"
+                }
+              ]
+            },
+            {
+              "log": "He doesn't know the day or why you are here and can't repeat what you said. He lacks capacity right now.",
+              "kind": "find"
+            }
+          ]
+        }
+      ]
+    },
+    "glucose": {
+      "label": "Fingerstick glucose",
+      "group": "Assess",
+      "available": "not gPending",
+      "why": "Already measuring.",
+      "effects": [
+        {
+          "set": "gPending",
+          "to": "true"
+        },
+        {
+          "schedule": "gluT",
+          "after": "gluTime"
+        },
+        {
+          "log": "Fingerstick, with Joan holding his hand."
+        }
+      ]
+    },
+    "vitals": {
+      "label": "Vital signs and pulse oximetry",
+      "group": "Assess",
+      "available": "not vPending",
+      "why": "Already measuring.",
+      "effects": [
+        {
+          "set": "vPending",
+          "to": "true"
+        },
+        {
+          "schedule": "vitalsT",
+          "after": "vitalsTime"
+        },
+        {
+          "log": "Cuff and oximeter."
+        }
+      ]
+    },
+    "oralGlucose": {
+      "label": "Oral glucose gel: he is sitting up and can swallow on command",
+      "group": "Treat",
+      "available": "isNull(ogAt)",
+      "why": "Already given.",
+      "effects": [
+        {
+          "if": "isNull(ogAt)",
+          "then": [
+            {
+              "set": "ogAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "One tube of oral glucose gel, a little at a time between his cheek and gum; he swallows.",
+          "kind": "good"
+        }
+      ]
+    },
+    "acceptEarly": {
+      "label": "He says he's fine and wants you out: accept his refusal now",
+      "group": "Refusal",
+      "available": "glu < 70 and isNull(earlyRefusalAt)",
+      "why": "Not now.",
+      "effects": [
+        {
+          "if": "isNull(earlyRefusalAt)",
+          "then": [
+            {
+              "set": "earlyRefusalAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You leave a confused man who could not refuse.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "risk": {
+      "label": "Explain the specific risk: glipizide can drop his sugar again for many hours; he should be watched in hospital",
+      "group": "Refusal",
+      "available": "isNull(riskAt) and glu >= 70",
+      "why": "Wait until he can understand you.",
+      "effects": [
+        {
+          "if": "isNull(riskAt)",
+          "then": [
+            {
+              "set": "riskAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "He listens; 'I've got things to do today.'"
+        }
+      ]
+    },
+    "medDir": {
+      "label": "Call medical direction and put the physician on speaker with him",
+      "group": "Refusal",
+      "available": "isNull(mdAt) and glu >= 70",
+      "why": "Once he can take part.",
+      "effects": [
+        {
+          "if": "isNull(mdAt)",
+          "then": [
+            {
+              "set": "mdAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not isNull(riskAt)",
+          "then": [
+            {
+              "if": "isNull(agreeAt)",
+              "then": [
+                {
+                  "set": "agreeAt",
+                  "to": "t"
+                }
+              ]
+            },
+            {
+              "log": "The physician repeats the risk of his tablet; Gary sighs and agrees to go.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "log": "The physician asks whether you have explained the risk of his tablet yet."
+            }
+          ]
+        }
+      ]
+    },
+    "go": {
+      "label": "Help him to the stretcher and transport",
+      "group": "Transport",
+      "available": "not isNull(agreeAt) and isNull(departAt)",
+      "why": "Only once he agrees.",
+      "effects": [
+        {
+          "if": "isNull(departAt)",
+          "then": [
+            {
+              "set": "departAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "schedule": "arriveT",
+          "after": "driveTime"
+        },
+        {
+          "log": "On the way to the emergency department."
+        }
+      ]
+    },
+    "release": {
+      "label": "He is back to normal: have him sign the refusal and leave",
+      "group": "Refusal",
+      "available": "isNull(releaseAt) and isNull(departAt) and glu >= 70",
+      "why": "Not now.",
+      "effects": [
+        {
+          "if": "isNull(releaseAt)",
+          "then": [
+            {
+              "set": "releaseAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "He signs and you clear the call.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "safeRefusal": {
+      "label": "He still refuses with capacity: document his words, confirm Joan stays, he eats a full meal now, and tell them to call back for any sweating or confusion",
+      "group": "Refusal",
+      "available": "isNull(safeAt) and isNull(departAt) and not isNull(riskAt) and not isNull(capLateAt) and glu >= 70",
+      "why": "Only after capacity and the risk.",
+      "effects": [
+        {
+          "if": "isNull(safeAt)",
+          "then": [
+            {
+              "set": "safeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Refusal documented with his words; Joan stays; he eats toast and eggs; they know to call back.",
+          "kind": "good"
+        }
+      ]
+    },
+    "force": {
+      "label": "Tell him he has to go, and lift him onto the stretcher",
+      "group": "Refusal",
+      "available": "isNull(forcedAt) and isNull(departAt) and glu >= 70",
+      "why": "Not now.",
+      "effects": [
+        {
+          "if": "isNull(forcedAt)",
+          "then": [
+            {
+              "set": "forcedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "He shouts that he never agreed; Joan is in tears.",
+          "kind": "bad"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "gluT": {
+      "label": "glucose",
+      "wait": {
+        "skipLabel": "the glucose (about 45 s)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 45 seconds. Authored for the case; real times vary."
+      },
+      "effects": [
+        {
+          "set": "gPending",
+          "to": "false"
+        },
+        {
+          "set": "gAt",
+          "to": "t"
+        },
+        {
+          "set": "vGlu",
+          "to": "round(glu)"
+        },
+        {
+          "add": "gluChecks",
+          "by": "1"
+        },
+        {
+          "if": "gluChecks >= 2 and not isNull(ogAt)",
+          "then": [
+            {
+              "if": "isNull(recheckAt)",
+              "then": [
+                {
+                  "set": "recheckAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "log": "Glucose {round(glu)} mg/dL.",
+          "kind": "find"
+        }
+      ]
+    },
+    "vitalsT": {
+      "label": "vital signs",
+      "wait": {
+        "skipLabel": "the vital signs (about 1 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 1 minute. Authored for the case; real times vary."
+      },
+      "effects": [
+        {
+          "set": "vPending",
+          "to": "false"
+        },
+        {
+          "set": "vAt",
+          "to": "t"
+        },
+        {
+          "if": "isNull(firstVAt)",
+          "then": [
+            {
+              "set": "firstVAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "vHr",
+          "to": "glu < 70 ? 104 : 84"
+        },
+        {
+          "set": "vSbp",
+          "to": "146"
+        },
+        {
+          "set": "vDbp",
+          "to": "82"
+        },
+        {
+          "log": "HR {glu < 70 ? 104 : 84}, BP 146/82, SpO2 97%.",
+          "kind": "find"
+        }
+      ]
+    },
+    "arriveT": {
+      "label": "arrival",
+      "wait": {
+        "skipLabel": "arrival at the hospital"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 minutes. Authored for the case; real times vary."
+      },
+      "effects": [
+        {
+          "if": "isNull(arrivedAt)",
+          "then": [
+            {
+              "set": "arrivedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "At the emergency department.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "not isNull(capLateAt) and (not isNull(riskAt) or t >= 1500)",
+      "question": "He refused twice. Why was the first refusal not valid, and what makes the second one different?",
+      "parts": [
+        {
+          "label": "The first refusal",
+          "criteria": "Confused, not oriented, low glucose: judgment impaired by illness, so he lacked capacity; treat under implied consent; check glucose, oral glucose because he could swallow, recheck.",
+          "modelAnswer": "At first he was confused with a glucose of 46: he couldn't understand his situation, so he couldn't refuse. I treated the low with oral glucose and rechecked."
+        },
+        {
+          "label": "The second refusal",
+          "criteria": "Now alert and oriented and able to explain the risk back: he has capacity. Explain the specific risk (a sulfonylurea can cause recurrent lows; NASEMSO does not support release for patients on one), involve medical direction, and if he still refuses, document his words, who stays with him, a meal, and that he can call back. Do not force a capacitated patient.",
+          "modelAnswer": "Now he is oriented and can explain the risk back, so he can decide. Glipizide makes another low likely, so I explained that, got the physician on the phone, and he agreed to go. Had he still refused, his words, Joan staying, a meal and a call-back plan would be in the record."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "not isNull(releaseAt) and isNull(riskAt)",
+      "class": "harm",
+      "rationale": "He was released on a sulfonylurea without the risk explained or medical direction involved.",
+      "source": {
+        "cite": "NASEMSO. National Model EMS Clinical Guidelines, Version 3.0 (March 2022): Hypoglycemia",
+        "checkedAt": "2026-11-17",
+        "url": "https://nasemso.org/?p=223",
+        "note": "Read 2026-11-17 in the full text Iowa HHS hosts (https://hhs.iowa.gov/media/198/download) through summarizing fetches with quotes; NASEMSO's own page, read the same day, still presents Version 3 (2022) as current and names no later version. Treat at 60 mg/dL or less; oral glucose for a conscious patient with a patent airway (adult 25 g); release without transport only if all are true: repeat glucose above 80 mg/dL, takes insulin or metformin and 'does not take long-acting oral sulphunylurea agents', normal mental status with no focal signs, can promptly eat a carbohydrate meal, and 'a reliable adult will be staying with patient'. Altered Mental Status: a glucose check is part of the assessment."
+      }
+    }
+  },
+  "endings": {
+    "leftConfused": {
+      "label": "Left a man who could not refuse",
+      "class": "harm",
+      "terminal": true,
+      "when": "not isNull(earlyRefusalAt)",
+      "narrative": "{t|clock}: you leave Gary confused with a low sugar. Joan finds him unresponsive an hour later."
+    },
+    "forced": {
+      "label": "Taken against his will",
+      "class": "harm",
+      "terminal": true,
+      "when": "not isNull(forcedAt)",
+      "narrative": "{t|clock}: Gary had capacity and refused; lifting him onto the stretcher anyway is treatment without consent."
+    },
+    "secondLow": {
+      "label": "A second low at home",
+      "class": "harm",
+      "terminal": true,
+      "when": "not isNull(releaseAt)",
+      "narrative": "You cleared the call with a signature. Three hours later the glipizide dropped his sugar again; Joan found him unresponsive."
+    },
+    "informed": {
+      "label": "Capacity, then an informed choice",
+      "class": "target",
+      "terminal": true,
+      "when": "not isNull(arrivedAt) and not isNull(capEarlyAt) and not isNull(capLateAt) and not isNull(recheckAt) and gAt > 0 and not isNull(ogAt) and not isNull(mdAt) and not isNull(firstVAt)",
+      "narrative": "{timeAt(arrivedAt)|clock}: Gary arrives at the hospital by his own choice, with his glucose rechecked and the risk of his tablet explained."
+    },
+    "transported": {
+      "label": "Transported, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not isNull(arrivedAt)",
+      "narrative": "{timeAt(arrivedAt)|clock}: he agreed and arrived, but {isNull(capEarlyAt) or isNull(capLateAt) ? \"his capacity was not assessed both times\" : isNull(recheckAt) ? \"his glucose was never rechecked\" : \"the assessment had gaps\"}."
+    },
+    "refusedSafely": {
+      "label": "An informed refusal, with safeguards",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not isNull(safeAt) and t >= timeAt(safeAt) + 60",
+      "narrative": "He refused with capacity after hearing the risk; Joan stays, he has eaten and they know to call back. Lawful and documented, but on glipizide the hospital was the safer place."
+    },
+    "time_up": {
+      "label": "60 minutes",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "Sixty minutes and the call is unresolved."
+    }
+  },
+  "endingOrder": [
+    "leftConfused",
+    "forced",
+    "secondLow",
+    "informed",
+    "transported",
+    "refusedSafely"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "capacity",
+        "label": "Capacity assessed while confused and again once alert",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(earlyRefusalAt)",
+            "score": "missed",
+            "why": "A confused man's refusal accepted."
+          },
+          {
+            "when": "not isNull(capEarlyAt) and not isNull(capLateAt)",
+            "score": "met",
+            "why": "Both times."
+          },
+          {
+            "when": "not isNull(capEarlyAt) or not isNull(capLateAt)",
+            "score": "partial",
+            "why": "Only once."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never assessed."
+          }
+        ]
+      },
+      {
+        "id": "sugar",
+        "label": "Glucose checked within 3 minutes, oral glucose, and rechecked",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "gAt > 0 and not isNull(ogAt) and not isNull(recheckAt)",
+            "score": "met",
+            "why": "Checked, treated, rechecked."
+          },
+          {
+            "when": "not isNull(ogAt)",
+            "score": "partial",
+            "why": "Treated, but the check or recheck was missing."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not treated."
+          }
+        ]
+      },
+      {
+        "id": "risk",
+        "label": "Explained the specific risk and involved medical direction",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(riskAt) and not isNull(mdAt)",
+            "score": "met",
+            "why": "Risk explained; the physician spoke to him."
+          },
+          {
+            "when": "not isNull(riskAt) or not isNull(mdAt)",
+            "score": "partial",
+            "why": "Only one of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "respect",
+        "label": "Did not force a patient with capacity",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(forcedAt)",
+            "score": "missed",
+            "why": "Forced."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "His decision respected."
+          }
+        ]
+      },
+      {
+        "id": "vitals",
+        "label": "Vital signs",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(firstVAt)",
+            "score": "met",
+            "why": "Taken."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not taken."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: capacity, the first and second refusal",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toGlu",
+        "label": "Arrival to the first glucose",
+        "value": "gAt == 0 ? -1 : gAt",
+        "format": "duration",
+        "expert": "under 2 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "07:50",
+        "text": "Confused and refusing: assess capacity (lacking). Fingerstick: 46. Oral glucose; vital signs."
+      },
+      {
+        "at": "~08:06",
+        "text": "Recheck: about 110 and alert. Reassess capacity (present). He refuses."
+      },
+      {
+        "at": "~08:07",
+        "text": "Explain the specific risk of glipizide; medical direction on speaker; he agrees; transport."
+      }
+    ],
+    "debrief": {
+      "informed": {
+        "headline": "Capacity, twice, then an informed choice",
+        "body": "A confused man cannot refuse; treat the cause. Once he is alert, capacity is his again, and the job is the specific risk, medical direction and his decision."
+      },
+      "transported": {
+        "headline": "Transported, with gaps",
+        "body": "Check the two capacity assessments and the recheck."
+      },
+      "refusedSafely": {
+        "headline": "A lawful refusal, not the best one",
+        "body": "With capacity he may refuse. On a sulfonylurea, NASEMSO does not support release, so the risk and medical direction matter; you documented and left him safe."
+      },
+      "leftConfused": {
+        "headline": "Confusion is not a refusal",
+        "body": "A patient who is not oriented cannot refuse. Check the glucose."
+      },
+      "secondLow": {
+        "headline": "Glipizide lows come back",
+        "body": "He was released without the risk explained or medical direction. Sulfonylureas can cause recurrent lows for hours."
+      },
+      "forced": {
+        "headline": "Capacity means his choice",
+        "body": "Once alert and oriented, he decides. Persuade, involve medical direction, document; do not force."
+      },
+      "time_up": {
+        "headline": "Unresolved",
+        "body": "Sixty minutes passed."
+      }
+    },
+    "modelReasoning": "Confused and sweaty with diabetes: assess capacity (lacking: not oriented, cannot weigh the risk) and treat under implied consent: fingerstick glucose (46), oral glucose because he can swallow, vital signs, recheck. Once alert and oriented and able to explain the risk back, he has capacity and may refuse. Explain the specific risk (glipizide, a sulfonylurea, can cause recurrent lows; NASEMSO does not support release for patients on one), involve medical direction, and respect his decision: transport if he agrees; if he still refuses, document his words, confirm someone stays, he eats a meal and knows to call back. Never force a capacitated patient."
+  },
+  "chapters": [
+    {
+      "id": "awake",
+      "label": "He is alert again",
+      "when": "glu >= 70"
+    }
+  ],
+  "teaching": {
+    "release": {
+      "during": "gluT",
+      "ask": "While the meter runs: which fact about Gary argues most against releasing him at home even if his sugar comes back to normal?",
+      "choices": [
+        {
+          "id": "su",
+          "label": "He takes glipizide, a sulfonylurea"
+        },
+        {
+          "id": "met",
+          "label": "He takes metformin"
+        },
+        {
+          "id": "age",
+          "label": "He is 66"
+        }
+      ],
+      "expect": "su",
+      "explain": "NASEMSO's release criteria require that the patient 'does not take long-acting oral sulphunylurea agents'; their lows can recur for hours.",
+      "source": {
+        "cite": "NASEMSO. National Model EMS Clinical Guidelines, Version 3.0 (March 2022): Hypoglycemia",
+        "checkedAt": "2026-11-17",
+        "url": "https://nasemso.org/?p=223",
+        "note": "Read 2026-11-17 in the full text Iowa HHS hosts (https://hhs.iowa.gov/media/198/download) through summarizing fetches with quotes; NASEMSO's own page, read the same day, still presents Version 3 (2022) as current and names no later version. Treat at 60 mg/dL or less; oral glucose for a conscious patient with a patent airway (adult 25 g); release without transport only if all are true: repeat glucose above 80 mg/dL, takes insulin or metformin and 'does not take long-acting oral sulphunylurea agents', normal mental status with no focal signs, can promptly eat a carbohydrate meal, and 'a reliable adult will be staying with patient'. Altered Mental Status: a glucose check is part of the assessment."
+      }
+    }
+  }
+}
