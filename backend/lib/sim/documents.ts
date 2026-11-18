@@ -720,6 +720,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("ABPTSPWCS", "postpartum-gap-and-a-hard-bulge"),
   entry("ABPTSPWCS", "urgency-numb-legs-blurred-eye"),
   entry("ABPTSPWCS", "second-trimester-dizzy-on-her-back"),
+  entry("ABPTSWMS", "braden-eleven-purple-heel"),
   // ---- end REQ-334 ----
 ];
 
