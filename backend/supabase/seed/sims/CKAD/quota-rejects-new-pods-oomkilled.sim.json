@@ -1,0 +1,1010 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "quota-rejects-new-pods-oomkilled",
+  "title": "A release rejected by the namespace quota, a worker OOMKilled and a payment API in BestEffort",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "dev@wrenfield:~/payments$",
+      "lines": [
+        {
+          "id": "firstLine",
+          "text": "deployment fraud-worker: 0/3 replicas; ReplicaSet: FailedCreate",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "lineReq",
+          "text": "{req == \"size\" ? \"Requests and limits set; 3/3 running\" : req == \"askQuota\" ? \"Waiting for a LimitRange\" : req == \"tiny\" ? \"1m CPU, 1Mi memory requested\" : \"\"}",
+          "when": "req != \"none\"",
+          "at": "timeAt(reqAt)",
+          "error": "req == \"tiny\""
+        },
+        {
+          "id": "lineMem",
+          "text": "{mem == \"fit\" ? \"256Mi request, 384Mi limit\" : mem == \"restartPolicy\" ? \"Still restarting\" : mem == \"noLimit\" ? \"No memory limit\" : \"\"}",
+          "when": "mem != \"none\"",
+          "at": "timeAt(memAt)",
+          "error": "mem == \"noLimit\""
+        },
+        {
+          "id": "lineQos",
+          "text": "{qos == \"guaranteed\" ? \"Guaranteed (requests = limits)\" : qos == \"burstable\" ? \"Burstable (requests only)\" : qos == \"leave\" ? \"Still BestEffort\" : \"\"}",
+          "when": "qos != \"none\"",
+          "at": "timeAt(qosAt)",
+          "error": "qos == \"leave\""
+        }
+      ],
+      "nodes": [
+        {
+          "id": "nReq",
+          "label": "fraud-worker Pods",
+          "spokenLabel": "fraud-worker Pods",
+          "kind": "Deployment",
+          "status": "{req == \"size\" ? \"Requests and limits set; 3/3 running\" : req == \"askQuota\" ? \"Waiting for a LimitRange\" : req == \"tiny\" ? \"1m CPU, 1Mi memory requested\" : \"Waiting\"}",
+          "tone": "req == \"size\" ? \"up\" : req == \"askQuota\" ? \"degraded\" : req == \"tiny\" ? \"down\" : p >= 1 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nMem",
+          "label": "ledger-worker container",
+          "spokenLabel": "ledger-worker container",
+          "kind": "container",
+          "status": "{mem == \"fit\" ? \"256Mi request, 384Mi limit\" : mem == \"restartPolicy\" ? \"Still restarting\" : mem == \"noLimit\" ? \"No memory limit\" : \"Waiting\"}",
+          "tone": "mem == \"fit\" ? \"up\" : mem == \"restartPolicy\" ? \"degraded\" : mem == \"noLimit\" ? \"down\" : p >= 2 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nQos",
+          "label": "payments-api QoS",
+          "spokenLabel": "payments-api QoS",
+          "kind": "Pod",
+          "status": "{qos == \"guaranteed\" ? \"Guaranteed (requests = limits)\" : qos == \"burstable\" ? \"Burstable (requests only)\" : qos == \"leave\" ? \"Still BestEffort\" : \"Waiting\"}",
+          "tone": "qos == \"guaranteed\" ? \"up\" : qos == \"burstable\" ? \"degraded\" : qos == \"leave\" ? \"down\" : p >= 3 ? \"degraded\" : \"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "link0",
+          "from": "nReq",
+          "to": "nMem",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        },
+        {
+          "id": "link1",
+          "from": "nMem",
+          "to": "nQos",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Check-in",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Understand requests, limits and quotas: how ResourceQuota and LimitRange constrain a namespace and why a Pod is rejected or defaulted",
+  "secondaryObjectives": [
+    "Define resource requirements for a container: CPU and memory requests and limits, units, and the resulting QoS class"
+  ],
+  "sources": [
+    {
+      "cite": "CNCF CKAD Curriculum v1.37 (cncf/curriculum, pinned commit 0a8cc08a): Application Design and Build 20%, Application Deployment 20%, Application Observability and Maintenance 15%, Application Environment, Configuration and Security 25%, Services and Networking 20%",
+      "checkedAt": "2026-11-17",
+      "url": "https://github.com/cncf/curriculum/blob/0a8cc08a502710a894e5724c2bec7b88404e5a6b/CKAD_Curriculum_v1.37.pdf",
+      "note": "The curriculum was read in primary text on 2026-11-07 by the course builder (backend/supabase/seed/tracks/kubernetes.ts). On 2026-11-17 a third-party summary (slauger.github.io/kubestronaut/ckad/application-environment) confirmed the 25% domain and ConfigMaps and Secrets in it; the PDF itself was not re-read. The objective wording is the course seed's. Reused for REQ-336 from this course's crashloop-bad-configmap-ckad (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Kubernetes documentation, Pod Quality of Service Classes (kubernetes.io)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.kubernetes.io/docs/concepts/workloads/pods/pod-qos/",
+      "note": "Found by search 2026-11-17 and read only through the search listing (title and address); to verify against the page. Used for: the Guaranteed, Burstable and BestEffort classes and which Pods the kubelet evicts first under node pressure."
+    },
+    {
+      "cite": "CNCF blog, 'Kubernetes resources management: QoS, quota and LimitRange' (2020-06-10)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.cncf.io/blog/2020/06/10/kubernetes-resources-management-qos-quota-and-limitrangeb/",
+      "note": "Found by search 2026-11-17 and read only through the search listing (title and address); to verify against the page. Used for: a ResourceQuota on requests rejecting Pods that set none unless a LimitRange defaults them, and OOMKilled containers over their memory limit."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The company, the cluster, the applications and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are a developer on the payments team at Wrenfield Bank, a fictional bank. Today's release adds a fraud-check worker. The rollout has stalled: new Pods are not being created, the old worker keeps restarting, and the platform team says your namespace has a quota.",
+    "handover": [
+      "Namespace payments: ResourceQuota requests.cpu 8, requests.memory 16Gi; no LimitRange.",
+      "The new worker's Deployment sets no requests or limits; the old worker has a 128Mi memory limit."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the map shows each component and its status in words.",
+      "Move on a check-in at a time. A decision comes to you at each check-in; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-02-01T10:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "req": {
+      "type": "enum",
+      "values": [
+        "none",
+        "size",
+        "askQuota",
+        "tiny"
+      ],
+      "init": "none"
+    },
+    "reqAt": {
+      "type": "time",
+      "init": null
+    },
+    "mem": {
+      "type": "enum",
+      "values": [
+        "none",
+        "fit",
+        "restartPolicy",
+        "noLimit"
+      ],
+      "init": "none"
+    },
+    "memAt": {
+      "type": "time",
+      "init": null
+    },
+    "qos": {
+      "type": "enum",
+      "values": [
+        "none",
+        "guaranteed",
+        "burstable",
+        "leave"
+      ],
+      "init": "none"
+    },
+    "qosAt": {
+      "type": "time",
+      "init": null
+    },
+    "eventsAt": {
+      "type": "time",
+      "init": null
+    },
+    "oomAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((req == \"tiny\") ? 1 : 0) + ((mem == \"noLimit\") ? 1 : 0) + ((qos == \"leave\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(req == \"none\" or (req == \"tiny\") ? 1 : 0) + (mem == \"none\" or (mem == \"noLimit\") ? 1 : 0) + (qos == \"none\" or (qos == \"leave\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The release",
+      "clock": "turns",
+      "actions": [
+        "events",
+        "oom"
+      ]
+    },
+    "close": {
+      "label": "Release record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "events": {
+      "label": "kubectl describe rs fraud-worker-5f9 | tail -3; kubectl describe quota",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(eventsAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "eventsAt",
+          "to": "t"
+        },
+        {
+          "output": "Error creating: pods is forbidden: failed quota: payments-quota: must specify requests.cpu, requests.memory\nUsed: requests.cpu 6/8, requests.memory 11Gi/16Gi"
+        },
+        {
+          "log": "You read the ReplicaSet's events and the quota.",
+          "kind": "act"
+        },
+        {
+          "finding": "With a quota on requests and no LimitRange to default them, Pods that set no requests are rejected. The namespace has 2 CPU and 5Gi of request headroom."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "oom": {
+      "label": "kubectl get pod ledger-worker-7c4 -o jsonpath='...lastState'; kubectl top pod",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(oomAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "oomAt",
+          "to": "t"
+        },
+        {
+          "output": "lastState: terminated, reason OOMKilled, exitCode 137\ntop: ledger-worker 121Mi just before restart; peaks at about 300Mi at month-end"
+        },
+        {
+          "log": "You read the old worker's last state and usage.",
+          "kind": "act"
+        },
+        {
+          "finding": "The old worker's 128Mi memory limit is below its normal peak, so the kernel kills it (exit 137). The payment API also has no requests or limits, so it is BestEffort."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the release record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Requests and limits sized from measurement to fit the quota, the OOMKilled worker's limit raised to its peak, and the payment API made Guaranteed"
+                },
+                {
+                  "value": "summary",
+                  "label": "Release done"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next check-in",
+      "wait": {
+        "skipLabel": "Go to the next check-in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "req == \"tiny\"",
+              "then": [
+                {
+                  "log": "Check-in 2: the worker lands on a full node; under memory pressure the kubelet evicts it mid-batch and 2,000 payments miss their fraud check.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "mem == \"noLimit\"",
+              "then": [
+                {
+                  "log": "Check-in 3: a month-end replay leaks memory; with no limit the worker takes 14Gi and the node evicts the payment API.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "qos == \"leave\"",
+              "then": [
+                {
+                  "log": "Check-in 4: node memory pressure during month-end evicts the BestEffort payment API first; card payments fail for six minutes.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "10min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The release window closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "10min"
+        }
+      ]
+    },
+    {
+      "id": "t_req",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 1: the release is blocked.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "reqPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_mem",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 2: the ledger worker restarted again.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "memPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_qos",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 3: the platform team flags the payment API.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "qosPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "reqPrompt": {
+      "title": "Pods rejected by the quota",
+      "context": "Load tests showed the worker using about 200m CPU and 400Mi memory per replica.",
+      "choices": [
+        {
+          "id": "size",
+          "label": "Set requests cpu 250m, memory 512Mi and limits memory 768Mi on the container (3 replicas fit within the headroom), and roll out",
+          "effects": [
+            {
+              "set": "req",
+              "to": "\"size\""
+            },
+            {
+              "set": "reqAt",
+              "to": "t"
+            },
+            {
+              "log": "The Pods are admitted; 3/3 running.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A quota on requests means every Pod must state them; sizing them from the load test fits the headroom."
+        },
+        {
+          "id": "askQuota",
+          "label": "Ask the platform team to add a LimitRange with defaults and wait for it",
+          "effects": [
+            {
+              "set": "req",
+              "to": "\"askQuota\""
+            },
+            {
+              "set": "reqAt",
+              "to": "t"
+            },
+            {
+              "log": "A request goes to the platform team.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Defaults would admit the Pods, but they won't match the worker's needs, and the release waits a day."
+        },
+        {
+          "id": "tiny",
+          "label": "Set requests of 1m CPU and 1Mi memory so they always fit",
+          "effects": [
+            {
+              "set": "req",
+              "to": "\"tiny\""
+            },
+            {
+              "set": "reqAt",
+              "to": "t"
+            },
+            {
+              "log": "Tiny requests are set.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The scheduler packs the Pods onto full nodes; under memory pressure they are the first evicted."
+        }
+      ]
+    },
+    "memPrompt": {
+      "title": "OOMKilled at 128Mi",
+      "context": "It peaks at about 300Mi at month-end, which is tomorrow.",
+      "choices": [
+        {
+          "id": "fit",
+          "label": "Set memory request 256Mi and limit 384Mi from the measured peak, within the quota's headroom",
+          "effects": [
+            {
+              "set": "mem",
+              "to": "\"fit\""
+            },
+            {
+              "set": "memAt",
+              "to": "t"
+            },
+            {
+              "log": "The worker runs through a month-end replay without restarts.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A memory limit below the real peak means OOMKilled; size it from measurement with some headroom."
+        },
+        {
+          "id": "restartPolicy",
+          "label": "Leave the limit and let it restart; it catches up",
+          "effects": [
+            {
+              "set": "mem",
+              "to": "\"restartPolicy\""
+            },
+            {
+              "set": "memAt",
+              "to": "t"
+            },
+            {
+              "log": "Nothing changes.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "It does catch up, slowly, and loses in-flight work each time."
+        },
+        {
+          "id": "noLimit",
+          "label": "Remove the memory limit entirely",
+          "effects": [
+            {
+              "set": "mem",
+              "to": "\"noLimit\""
+            },
+            {
+              "set": "memAt",
+              "to": "t"
+            },
+            {
+              "log": "The memory limit is removed.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Without a limit, a leak can take the whole node's memory and other Pods with it."
+        }
+      ]
+    },
+    "qosPrompt": {
+      "title": "The payment API is BestEffort",
+      "context": "With no requests or limits, it is the first evicted under pressure.",
+      "choices": [
+        {
+          "id": "guaranteed",
+          "label": "Set requests equal to limits for CPU and memory (500m, 1Gi) so the API is Guaranteed",
+          "effects": [
+            {
+              "set": "qos",
+              "to": "\"guaranteed\""
+            },
+            {
+              "set": "qosAt",
+              "to": "t"
+            },
+            {
+              "log": "payments-api is Guaranteed.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Requests equal to limits for every resource give the Guaranteed class, the last to be evicted."
+        },
+        {
+          "id": "burstable",
+          "label": "Set requests only, no limits",
+          "effects": [
+            {
+              "set": "qos",
+              "to": "\"burstable\""
+            },
+            {
+              "set": "qosAt",
+              "to": "t"
+            },
+            {
+              "log": "payments-api has requests only.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Better than BestEffort, but still evicted before Guaranteed Pods."
+        },
+        {
+          "id": "leave",
+          "label": "Leave it BestEffort: it has never been evicted",
+          "effects": [
+            {
+              "set": "qos",
+              "to": "\"leave\""
+            },
+            {
+              "set": "qosAt",
+              "to": "t"
+            },
+            {
+              "log": "Nothing changes.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "BestEffort Pods are evicted first under node pressure."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the release record: why the Pods were rejected and restarting, and how each container's resources are set now.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Quota",
+          "criteria": "A quota on requests rejects Pods that don't state them; requests set from the load test fit the headroom.",
+          "modelAnswer": "The quota covers requests and there is no LimitRange, so Pods without requests were rejected; the worker now requests 250m and 512Mi."
+        },
+        {
+          "label": "Limits and QoS",
+          "criteria": "OOMKilled at 128Mi, raised to fit the peak; payment API Guaranteed.",
+          "modelAnswer": "ledger-worker was OOMKilled under its peak; it now has 384Mi. payments-api has requests equal to limits, so it is Guaranteed."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Service restored and the work closed within 60 minutes of the first report."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No fault introduced by the response itself."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (req == \"askQuota\") and (mem == \"restartPolicy\") and (qos == \"burstable\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CNCF CKAD Curriculum v1.37 (cncf/curriculum, pinned commit 0a8cc08a): Application Design and Build 20%, Application Deployment 20%, Application Observability and Maintenance 15%, Application Environment, Configuration and Security 25%, Services and Networking 20%",
+        "checkedAt": "2026-11-17",
+        "url": "https://github.com/cncf/curriculum/blob/0a8cc08a502710a894e5724c2bec7b88404e5a6b/CKAD_Curriculum_v1.37.pdf",
+        "note": "The curriculum was read in primary text on 2026-11-07 by the course builder (backend/supabase/seed/tracks/kubernetes.ts). On 2026-11-17 a third-party summary (slauger.github.io/kubestronaut/ckad/application-environment) confirmed the 25% domain and ConfigMaps and Secrets in it; the PDF itself was not re-read. The objective wording is the course seed's. Reused for REQ-336 from this course's crashloop-bad-configmap-ckad (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "reqHarm": {
+      "label": "Evicted mid-batch",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and req == \"tiny\"",
+      "narrative": "Token requests put the worker on a full node; it was evicted mid-batch and 2,000 payments missed their fraud check."
+    },
+    "memHarm": {
+      "label": "A noisy neighbor took the node",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and mem == \"noLimit\"",
+      "narrative": "With no limit, the leaking worker took 14Gi and the node evicted the payment API."
+    },
+    "qosHarm": {
+      "label": "The payment API evicted",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and qos == \"leave\"",
+      "narrative": "Under month-end memory pressure, the BestEffort payment API was evicted first; payments failed for six minutes."
+    },
+    "target": {
+      "label": "Every container sized and admitted",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (req == \"size\") and (mem == \"fit\") and (qos == \"guaranteed\") and record == \"honest\" and missCount <= newFaults and timeAt(doneAt) <= restoreWindow",
+      "narrative": "The release is out, nothing is OOMKilled, and the payment API is the last thing a node would evict."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "reqHarm",
+    "memHarm",
+    "qosHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reqCrit",
+        "label": "Set requests and limits so the Pods fit the quota",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "req == \"size\"",
+            "score": "met",
+            "why": "Sized and admitted."
+          },
+          {
+            "when": "req == \"askQuota\"",
+            "score": "partial",
+            "why": "Delayed and generic."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Lied to the scheduler."
+          }
+        ]
+      },
+      {
+        "id": "memCrit",
+        "label": "Raised the memory limit to fit the measured peak",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "mem == \"fit\"",
+            "score": "met",
+            "why": "Sized from the peak."
+          },
+          {
+            "when": "mem == \"restartPolicy\"",
+            "score": "partial",
+            "why": "Tolerated the crashes."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Unbounded memory."
+          }
+        ]
+      },
+      {
+        "id": "qosCrit",
+        "label": "Gave the critical API a Guaranteed QoS class",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "qos == \"guaranteed\"",
+            "score": "met",
+            "why": "Guaranteed."
+          },
+          {
+            "when": "qos == \"burstable\"",
+            "score": "partial",
+            "why": "Burstable."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Left it first in line for eviction."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(eventsAt) and not isNull(oomAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(eventsAt) or not isNull(oomAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the events, the quota and the old worker's last state first."
+      },
+      {
+        "at": "Check-in 1",
+        "text": "Set requests and a memory limit from the load test so three replicas fit the quota."
+      },
+      {
+        "at": "Check-in 2",
+        "text": "Raise the memory request and limit from the measured peak."
+      },
+      {
+        "at": "Check-in 3",
+        "text": "Set requests equal to limits so the API is Guaranteed."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "reqHarm": {
+        "headline": "Request what you use",
+        "body": "Requests tell the scheduler what a Pod needs; under a quota, set them from measured use."
+      },
+      "memHarm": {
+        "headline": "Limits protect neighbors",
+        "body": "Set a memory limit above the real peak, not no limit."
+      },
+      "qosHarm": {
+        "headline": "Critical Pods are Guaranteed",
+        "body": "Requests equal to limits give the Guaranteed QoS class."
+      },
+      "target": {
+        "headline": "Good: every container sized and admitted",
+        "body": "Requests and limits from measurement, within the quota, with the right QoS for each."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A ResourceQuota on requests rejects any Pod that does not state them unless a LimitRange defaults them, so set requests from measured use. A container that exceeds its memory limit is OOMKilled (exit 137): size the limit above the real peak rather than removing it, which lets a leak starve the node. Requests equal to limits for every resource give the Guaranteed QoS class; Burstable and BestEffort Pods are evicted first under node pressure."
+  }
+}

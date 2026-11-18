@@ -33,4 +33,12 @@ export const DEPTH_ISP: readonly DepthIspEntry[] = [
   { course: "PCA", slug: "checkout-dashboard-misleading-latency-alert", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "isp-pca-dashboards" },
   { course: "PCA", slug: "metrics-naming-route-label-review", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "isp-pca-instrument" },
   { course: "KCNA", slug: "checkout-dashboard-misleading-latency-alert-kcna", screen: "terminal", profile: "infrastructure", kind: "band", steps: "isp-kcna-checkout-dashboard-misleading-latency-alert-kcna", base: "PCA/checkout-dashboard-misleading-latency-alert" },
+  { course: "CKAD", slug: "quota-rejects-new-pods-oomkilled", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "isp-ckad-resources" },
+  { course: "CKAD", slug: "stuck-rollout-helm-upgrade-failed", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "isp-ckad-deploy" },
+  { course: "CNPA", slug: "platform-ingress-outage-tabletop", screen: "tabletop", profile: "exercise", kind: "scenario", steps: "isp-cnpa-incident" },
+  { course: "CNPA", slug: "platform-metrics-dora-review", screen: "governance-board", profile: "governance", kind: "scenario", steps: "isp-cnpa-measure" },
+  { course: "CNPE", slug: "opencost-rightsizing-review", screen: "governance-board", profile: "governance", kind: "scenario", steps: "isp-cnpe-cost" },
+  { course: "CNPE", slug: "platform-deploys-failing-webhook-quota", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "isp-cnpe-incident" },
+  { course: "KCSA", slug: "secret-read-by-unknown-serviceaccount", screen: "security-console", profile: "security", kind: "scenario", steps: "isp-kcsa-secrets" },
+  { course: "KCSA", slug: "restricted-profile-payments-rollout-kcsa", screen: "terminal", profile: "infrastructure", kind: "band", steps: "isp-kcsa-restricted-profile-payments-rollout-kcsa", base: "CKS/restricted-profile-payments-rollout" },
 ];

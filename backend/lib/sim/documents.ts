@@ -686,6 +686,14 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("PCA", "checkout-dashboard-misleading-latency-alert"),
   entry("PCA", "metrics-naming-route-label-review"),
   band("KCNA", "checkout-dashboard-misleading-latency-alert-kcna"),
+  entry("CKAD", "quota-rejects-new-pods-oomkilled"),
+  entry("CKAD", "stuck-rollout-helm-upgrade-failed"),
+  entry("CNPA", "platform-ingress-outage-tabletop"),
+  entry("CNPA", "platform-metrics-dora-review"),
+  entry("CNPE", "opencost-rightsizing-review"),
+  entry("CNPE", "platform-deploys-failing-webhook-quota"),
+  entry("KCSA", "secret-read-by-unknown-serviceaccount"),
+  band("KCSA", "restricted-profile-payments-rollout-kcsa"),
   // ---- end REQ-336 ----
 ];
 
