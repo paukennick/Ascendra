@@ -1,0 +1,1010 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cluster-mesh-failover-overlapping-cidr",
+  "title": "Connecting two clusters with Cilium Cluster Mesh: overlapping CIDRs, a global service and local affinity",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "net@pellmark:~$",
+      "lines": [
+        {
+          "id": "firstLine",
+          "text": "cilium clustermesh connect: warning: clusters share name 'default' and ID 0",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "lineIds",
+          "text": "{ids == \"rebuildWest\" ? \"Unique identity; clusters connected\" : ids == \"namesOnly\" ? \"IDs unique; CIDRs still overlap\" : ids == \"forceConnect\" ? \"Connected with colliding identities\" : \"\"}",
+          "when": "ids != \"none\"",
+          "at": "timeAt(idsAt)",
+          "error": "ids == \"forceConnect\""
+        },
+        {
+          "id": "lineGlobal",
+          "text": "{global == \"annotate\" ? \"Global service; failover tested\" : global == \"oneSide\" ? \"Global in east only\" : global == \"dnsSwitch\" ? \"Manual DNS failover\" : \"\"}",
+          "when": "global != \"none\"",
+          "at": "timeAt(globalAt)",
+          "error": "global == \"dnsSwitch\""
+        },
+        {
+          "id": "lineAff",
+          "text": "{aff == \"local\" ? \"Local affinity; remote on failure\" : aff == \"accept\" ? \"Balanced across regions\" : aff == \"unshare\" ? \"West no longer global\" : \"\"}",
+          "when": "aff != \"none\"",
+          "at": "timeAt(affAt)",
+          "error": "aff == \"unshare\""
+        }
+      ],
+      "nodes": [
+        {
+          "id": "nIds",
+          "label": "east and west cluster settings",
+          "spokenLabel": "east and west cluster settings",
+          "kind": "cluster config",
+          "status": "{ids == \"rebuildWest\" ? \"Unique identity; clusters connected\" : ids == \"namesOnly\" ? \"IDs unique; CIDRs still overlap\" : ids == \"forceConnect\" ? \"Connected with colliding identities\" : \"Waiting\"}",
+          "tone": "ids == \"rebuildWest\" ? \"up\" : ids == \"namesOnly\" ? \"degraded\" : ids == \"forceConnect\" ? \"down\" : p >= 1 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nGlobal",
+          "label": "checkout Service",
+          "spokenLabel": "checkout Service",
+          "kind": "global service",
+          "status": "{global == \"annotate\" ? \"Global service; failover tested\" : global == \"oneSide\" ? \"Global in east only\" : global == \"dnsSwitch\" ? \"Manual DNS failover\" : \"Waiting\"}",
+          "tone": "global == \"annotate\" ? \"up\" : global == \"oneSide\" ? \"degraded\" : global == \"dnsSwitch\" ? \"down\" : p >= 2 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nAff",
+          "label": "checkout load balancing",
+          "spokenLabel": "checkout load balancing",
+          "kind": "affinity",
+          "status": "{aff == \"local\" ? \"Local affinity; remote on failure\" : aff == \"accept\" ? \"Balanced across regions\" : aff == \"unshare\" ? \"West no longer global\" : \"Waiting\"}",
+          "tone": "aff == \"local\" ? \"up\" : aff == \"accept\" ? \"degraded\" : aff == \"unshare\" ? \"down\" : p >= 3 ? \"degraded\" : \"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "link0",
+          "from": "nIds",
+          "to": "nGlobal",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        },
+        {
+          "id": "link1",
+          "from": "nGlobal",
+          "to": "nAff",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Check-in",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Configure service discovery and load balancing across clusters with Cluster Mesh: cilium clustermesh enable and connect, global services, and affinity annotations",
+  "secondaryObjectives": [
+    "Understand the benefits of Cluster Mesh for multi-cluster connectivity: Pod IP routing across clusters, shared identities and policy, and high availability"
+  ],
+  "sources": [
+    {
+      "cite": "Isovalent, Cilium Certified Associate (CCA) exam page: Architecture 20%, Network Policy 18%, Service Mesh 16%, Network Observability 10%, Installation and Configuration 10%, Cluster Mesh 10%, eBPF 10%, BGP and External Networking 6%",
+      "checkedAt": "2026-11-17",
+      "url": "https://isovalent.com/blog/post/cilium-certified-associate-cca",
+      "note": "Read through a summarizing fetch on 2026-11-17 (a third-party page from the project's main contributor, not the CNCF curriculum; to verify against cncf/curriculum). The objective wording is the course seed's. Reused for REQ-336 from this course's cluster-pool-exhausted-new-nodes (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "KodeKloud CCA prep notes, Cluster Mesh: configuring Cluster Mesh (demo)",
+      "checkedAt": "2026-11-17",
+      "url": "https://notes.kodekloud.com/docs/Prep-Course-Cilium-Certified-Associate-CCA-Certification/Cluster-Mesh/Demo-Configuring-Cluster-Mesh/page",
+      "note": "Found by search 2026-11-17 and read only through the search listing (title and address); to verify against the page. Used for: cilium clustermesh enable and connect, unique cluster names and IDs, and global services."
+    },
+    {
+      "cite": "OneUptime blog, 'How to Configure Cilium ClusterMesh for Multi-Cluster Pod Networking' (2026-02-09)",
+      "checkedAt": "2026-11-17",
+      "url": "https://oneuptime.com/blog/post/2026-02-09-cilium-clustermesh-multi-cluster-networking/view",
+      "note": "Found by search 2026-11-17 and read only through the search listing (title and address); to verify against the page. Used for: non-overlapping Pod CIDRs, the service.cilium.io/global annotation and affinity for local-first load balancing."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The company, the clusters, the services and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the network engineer at Pellmark Retail, a fictional store chain. The checkout service runs in two clusters, east and west. Last month an east outage took checkout down for an hour; the plan is Cluster Mesh so each cluster can fail over to the other's checkout Pods.",
+    "handover": [
+      "Both clusters were built from the same Terraform module: cluster name 'default', cluster ID 0, Pod CIDR 10.0.0.0/16.",
+      "Checkout's database writes are fastest from the local cluster."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the map shows each component and its status in words.",
+      "Move on a check-in at a time. A decision comes to you at each check-in; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-03-23T09:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "ids": {
+      "type": "enum",
+      "values": [
+        "none",
+        "rebuildWest",
+        "namesOnly",
+        "forceConnect"
+      ],
+      "init": "none"
+    },
+    "idsAt": {
+      "type": "time",
+      "init": null
+    },
+    "global": {
+      "type": "enum",
+      "values": [
+        "none",
+        "annotate",
+        "oneSide",
+        "dnsSwitch"
+      ],
+      "init": "none"
+    },
+    "globalAt": {
+      "type": "time",
+      "init": null
+    },
+    "aff": {
+      "type": "enum",
+      "values": [
+        "none",
+        "local",
+        "accept",
+        "unshare"
+      ],
+      "init": "none"
+    },
+    "affAt": {
+      "type": "time",
+      "init": null
+    },
+    "cfgAt": {
+      "type": "time",
+      "init": null
+    },
+    "svcAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((ids == \"forceConnect\") ? 1 : 0) + ((global == \"dnsSwitch\") ? 1 : 0) + ((aff == \"unshare\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(ids == \"none\" or (ids == \"forceConnect\") ? 1 : 0) + (global == \"none\" or (global == \"dnsSwitch\") ? 1 : 0) + (aff == \"none\" or (aff == \"unshare\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The mesh",
+      "clock": "turns",
+      "actions": [
+        "cfg",
+        "svc"
+      ]
+    },
+    "close": {
+      "label": "Change record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "cfg": {
+      "label": "cilium config view | grep -E 'cluster-(name|id)|ipv4-native|cluster-pool'",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(cfgAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "cfgAt",
+          "to": "t"
+        },
+        {
+          "output": "east: cluster-name default, cluster-id 0, pod CIDR 10.0.0.0/16\nwest: cluster-name default, cluster-id 0, pod CIDR 10.0.0.0/16"
+        },
+        {
+          "log": "You compare the two clusters' settings.",
+          "kind": "act"
+        },
+        {
+          "finding": "Both clusters have the same name, the same ID and the same Pod CIDR. Cluster Mesh needs unique names and IDs, and routing Pod IPs across clusters needs non-overlapping Pod CIDRs."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "svc": {
+      "label": "kubectl get svc checkout -o yaml (both clusters)",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(svcAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "svcAt",
+          "to": "t"
+        },
+        {
+          "output": "metadata: name checkout, namespace shop\nannotations: (none)"
+        },
+        {
+          "log": "You read the checkout Service in both clusters.",
+          "kind": "act"
+        },
+        {
+          "finding": "The Service has the same name and namespace in both clusters but no Cluster Mesh annotations, so each cluster only knows its own checkout Pods."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the change record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Unique names, IDs and Pod CIDRs before connecting, checkout as a tested global service, and local affinity"
+                },
+                {
+                  "value": "summary",
+                  "label": "Cluster Mesh enabled"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next check-in",
+      "wait": {
+        "skipLabel": "Go to the next check-in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "ids == \"forceConnect\"",
+              "then": [
+                {
+                  "log": "Check-in 2: colliding identities make east's policies match west's Pods; some payment traffic is dropped and some unexpected traffic allowed.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "global == \"dnsSwitch\"",
+              "then": [
+                {
+                  "log": "Check-in 3: east's checkout Pods crash on a bad node pool; checkout is down for 40 minutes while DNS is switched and caches expire.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "aff == \"unshare\"",
+              "then": [
+                {
+                  "log": "Check-in 4: east's Pods restart under load; with west no longer shared, east's checkout fails for 10 minutes.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "10min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The mesh change is complete.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "10min"
+        }
+      ]
+    },
+    {
+      "id": "t_ids",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 1: the mesh can't be connected as things are.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "idsPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_global",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 2: the mesh is up; checkout still only sees local Pods.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "globalPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_aff",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 3: half of checkout calls now cross to the other region.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "affPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "idsPrompt": {
+      "title": "Same name, same ID, same CIDR",
+      "context": "The clusters collide on name, ID and Pod CIDR. West is new and carries no production traffic yet; east is live.",
+      "choices": [
+        {
+          "id": "rebuildWest",
+          "label": "Rebuild the empty west cluster with name west, ID 2 and Pod CIDR 10.8.0.0/16, give east name east and ID 1 in a planned agent rollout, then cilium clustermesh enable and connect",
+          "effects": [
+            {
+              "set": "ids",
+              "to": "\"rebuildWest\""
+            },
+            {
+              "set": "idsAt",
+              "to": "t"
+            },
+            {
+              "log": "Unique names, IDs and CIDRs; the clusters connect.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Unique names and IDs keep identities apart, and non-overlapping Pod CIDRs let Pod IPs route between clusters."
+        },
+        {
+          "id": "namesOnly",
+          "label": "Change the names and IDs but keep the shared Pod CIDR and route through gateways later",
+          "effects": [
+            {
+              "set": "ids",
+              "to": "\"namesOnly\""
+            },
+            {
+              "set": "idsAt",
+              "to": "t"
+            },
+            {
+              "log": "Names and IDs fixed; the CIDR still overlaps.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The mesh connects, but Pod IPs can't be routed directly between overlapping CIDRs; failover will not work as planned."
+        },
+        {
+          "id": "forceConnect",
+          "label": "Connect them as they are and fix collisions if they show up",
+          "effects": [
+            {
+              "set": "ids",
+              "to": "\"forceConnect\""
+            },
+            {
+              "set": "idsAt",
+              "to": "t"
+            },
+            {
+              "log": "The clusters are connected with colliding IDs.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "With the same cluster ID, identities from both clusters collide; policy starts allowing and denying the wrong Pods."
+        }
+      ]
+    },
+    "globalPrompt": {
+      "title": "Make checkout fail over",
+      "context": "Each cluster's checkout Service only load-balances to its own Pods.",
+      "choices": [
+        {
+          "id": "annotate",
+          "label": "Annotate checkout with service.cilium.io/global: \"true\" in both clusters, same name and namespace, and test by scaling east's checkout to zero",
+          "effects": [
+            {
+              "set": "global",
+              "to": "\"annotate\""
+            },
+            {
+              "set": "globalAt",
+              "to": "t"
+            },
+            {
+              "log": "Checkout is global; with east at zero, traffic goes to west.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A global service with the same name and namespace in each cluster load-balances across both; the test proves failover."
+        },
+        {
+          "id": "oneSide",
+          "label": "Annotate it in east only",
+          "effects": [
+            {
+              "set": "global",
+              "to": "\"oneSide\""
+            },
+            {
+              "set": "globalAt",
+              "to": "t"
+            },
+            {
+              "log": "Only east's Service is annotated.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Both clusters must declare the Service global; one side alone does not give you two-way failover."
+        },
+        {
+          "id": "dnsSwitch",
+          "label": "Skip the annotation and plan to switch external DNS by hand during an outage",
+          "effects": [
+            {
+              "set": "global",
+              "to": "\"dnsSwitch\""
+            },
+            {
+              "set": "globalAt",
+              "to": "t"
+            },
+            {
+              "log": "Failover stays a manual DNS change.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The mesh is unused; an outage again waits for someone to change DNS and for caches to expire."
+        }
+      ]
+    },
+    "affPrompt": {
+      "title": "Cross-region latency",
+      "context": "A global service balances across both clusters by default, so half the calls cross regions and database writes slow down.",
+      "choices": [
+        {
+          "id": "local",
+          "label": "Set service.cilium.io/affinity: \"local\" so each cluster prefers its own checkout Pods and uses the other's only when it has none",
+          "effects": [
+            {
+              "set": "aff",
+              "to": "\"local\""
+            },
+            {
+              "set": "affAt",
+              "to": "t"
+            },
+            {
+              "log": "Calls stay local; remote Pods take over only when local ones are gone.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Local affinity keeps traffic in-region while keeping the remote cluster as failover."
+        },
+        {
+          "id": "accept",
+          "label": "Accept the cross-region traffic as the price of failover",
+          "effects": [
+            {
+              "set": "aff",
+              "to": "\"accept\""
+            },
+            {
+              "set": "affAt",
+              "to": "t"
+            },
+            {
+              "log": "Calls keep crossing regions.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Failover works, but every customer pays the latency."
+        },
+        {
+          "id": "unshare",
+          "label": "Remove the global annotation from west so east keeps its traffic local",
+          "effects": [
+            {
+              "set": "aff",
+              "to": "\"unshare\""
+            },
+            {
+              "set": "affAt",
+              "to": "t"
+            },
+            {
+              "log": "West's Service is no longer global.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "That removes west from failover: east's outage would be a full outage again."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the change record: what had to change before the clusters could connect, and how checkout now fails over without crossing regions in normal running.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Connecting",
+          "criteria": "Unique cluster names and IDs and non-overlapping Pod CIDRs, then enable and connect.",
+          "modelAnswer": "The clusters shared name, ID and Pod CIDR; west was rebuilt with its own, east renamed, then we enabled and connected the mesh."
+        },
+        {
+          "label": "Checkout",
+          "criteria": "A global service in both clusters, tested, with local affinity.",
+          "modelAnswer": "checkout is global in both clusters and failed over in a test; local affinity keeps calls in-region until local Pods are gone."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Service restored and the work closed within 60 minutes of the first report."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No fault introduced by the response itself."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (ids == \"namesOnly\") and (global == \"oneSide\") and (aff == \"accept\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "Isovalent, Cilium Certified Associate (CCA) exam page: Architecture 20%, Network Policy 18%, Service Mesh 16%, Network Observability 10%, Installation and Configuration 10%, Cluster Mesh 10%, eBPF 10%, BGP and External Networking 6%",
+        "checkedAt": "2026-11-17",
+        "url": "https://isovalent.com/blog/post/cilium-certified-associate-cca",
+        "note": "Read through a summarizing fetch on 2026-11-17 (a third-party page from the project's main contributor, not the CNCF curriculum; to verify against cncf/curriculum). The objective wording is the course seed's. Reused for REQ-336 from this course's cluster-pool-exhausted-new-nodes (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "idsHarm": {
+      "label": "Identities collided",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and ids == \"forceConnect\"",
+      "narrative": "Connecting clusters with the same ID made identities collide; policy dropped real traffic and allowed traffic it should not."
+    },
+    "globalHarm": {
+      "label": "Checkout down again",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and global == \"dnsSwitch\"",
+      "narrative": "With no global service, east's checkout outage lasted 40 minutes while DNS was switched by hand."
+    },
+    "affHarm": {
+      "label": "Failover removed",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and aff == \"unshare\"",
+      "narrative": "Removing the global annotation took west out of failover; east's restart became a checkout outage."
+    },
+    "target": {
+      "label": "Failover across clusters, local by default",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (ids == \"rebuildWest\") and (global == \"annotate\") and (aff == \"local\") and record == \"honest\" and missCount <= newFaults and timeAt(doneAt) <= restoreWindow",
+      "narrative": "Checkout now survives a cluster's outage and stays in-region in normal running."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "idsHarm",
+    "globalHarm",
+    "affHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "idsCrit",
+        "label": "Gave the clusters unique names, IDs and Pod CIDRs before connecting",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "ids == \"rebuildWest\"",
+            "score": "met",
+            "why": "Fixed before connecting."
+          },
+          {
+            "when": "ids == \"namesOnly\"",
+            "score": "partial",
+            "why": "Half fixed."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Connected with collisions."
+          }
+        ]
+      },
+      {
+        "id": "globalCrit",
+        "label": "Made checkout a global service in both clusters",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "global == \"annotate\"",
+            "score": "met",
+            "why": "Global and tested."
+          },
+          {
+            "when": "global == \"oneSide\"",
+            "score": "partial",
+            "why": "One side only."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No automatic failover."
+          }
+        ]
+      },
+      {
+        "id": "affCrit",
+        "label": "Preferred local endpoints and kept failover",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "aff == \"local\"",
+            "score": "met",
+            "why": "Local first, failover kept."
+          },
+          {
+            "when": "aff == \"accept\"",
+            "score": "partial",
+            "why": "Latency accepted."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Removed failover."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(cfgAt) and not isNull(svcAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(cfgAt) or not isNull(svcAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Compare cluster names, IDs and Pod CIDRs, and read the checkout Service, before connecting."
+      },
+      {
+        "at": "Check-in 1",
+        "text": "Give each cluster a unique name, ID and Pod CIDR, then enable and connect."
+      },
+      {
+        "at": "Check-in 2",
+        "text": "Annotate checkout as a global service in both clusters and test failover."
+      },
+      {
+        "at": "Check-in 3",
+        "text": "Set local affinity so each cluster prefers its own Pods."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "idsHarm": {
+        "headline": "Unique names, IDs and CIDRs first",
+        "body": "Cluster Mesh needs unique cluster names and IDs, and Pod routing needs non-overlapping CIDRs."
+      },
+      "globalHarm": {
+        "headline": "Let the mesh fail over",
+        "body": "A global service load-balances across clusters, so losing one cluster's Pods is not an outage."
+      },
+      "affHarm": {
+        "headline": "Use affinity, not removal",
+        "body": "Local affinity keeps traffic in-region and the other cluster for failover."
+      },
+      "target": {
+        "headline": "Good: failover across clusters, local by default",
+        "body": "Unique identity per cluster, a global service tested for failover, and local affinity."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Cluster Mesh joins clusters into one connectivity and identity domain, so each needs a unique name and ID, and Pod IPs can only be routed between non-overlapping Pod CIDRs. A Service with the same name and namespace annotated service.cilium.io/global in each cluster load-balances across all of them; test failover by removing local endpoints. Affinity tunes that: local prefers the cluster's own endpoints and falls back to remote ones only when none are left."
+  }
+}
