@@ -659,6 +659,17 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   // ---- end REQ-329 ----
   // ---- REQ-336 (docs/sims.md 22.40): depth for the CNCF ecosystem, CompTIA, security and project-management courses (depth-infra-sec-pm). New cases and their bands; lib/sim/depth-isp.ts lists them by slug. Keep these entries together. ----
   entry("CAPA", "argocd-prune-moved-database"),
+  entry("CAPA", "argo-events-upload-storm"),
+  entry("CAPA", "rollouts-analysis-gate-passes-bad-canary"),
+  entry("CBA", "backstage-upgrade-mismatched-packages"),
+  entry("CBA", "backstage-production-catalog-wiped"),
+  entry("CBA", "backstage-catalog-ingestion-gaps"),
+  entry("CCA", "cilium-default-deny-breaks-dns"),
+  entry("CCA", "cilium-wireguard-cross-node-plaintext"),
+  entry("CCA", "cluster-mesh-failover-overlapping-cidr"),
+  entry("CGOA", "gitops-claim-review-push-pipeline"),
+  entry("CGOA", "gitops-store-fleet-patterns"),
+  band("CGOA", "argocd-prune-moved-database-cgoa"),
   // ---- end REQ-336 ----
 ];
 

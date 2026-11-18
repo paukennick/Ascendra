@@ -1,0 +1,1016 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "argo-events-upload-storm",
+  "title": "An Argo Events flow that ran 4,000 workflows: filters, a durable EventBus and parameterized triggers",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "data@fernway:~$",
+      "lines": [
+        {
+          "id": "firstLine",
+          "text": "argo: 4,012 workflows from sensor sample-processor since 01:00; 3,950 pending",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "lineFilter",
+          "text": "{filter == \"dataFilter\" ? \"Filtered: one trigger per sample\" : filter == \"inWorkflow\" ? \"Workflows exit early on part files\" : filter == \"deleteSource\" ? \"EventSource deleted: no events at all\" : \"\"}",
+          "when": "filter != \"none\"",
+          "at": "timeAt(filterAt)",
+          "error": "filter == \"deleteSource\""
+        },
+        {
+          "id": "lineParam",
+          "text": "{param == \"params\" ? \"Parameterized: the event's key passed in\" : param == \"listBucket\" ? \"Workflow scans the bucket\" : param == \"rerunLatest\" ? \"Hourly rerun of 'latest' only\" : \"\"}",
+          "when": "param != \"none\"",
+          "at": "timeAt(paramAt)",
+          "error": "param == \"rerunLatest\""
+        },
+        {
+          "id": "lineDurable",
+          "text": "{durable == \"jetstream\" ? \"JetStream, 3 replicas, persistent; lost samples replayed\" : durable == \"replayOnly\" ? \"Lost samples replayed; bus unchanged\" : durable == \"ignore\" ? \"Unchanged; two samples never processed\" : \"\"}",
+          "when": "durable != \"none\"",
+          "at": "timeAt(durableAt)",
+          "error": "durable == \"ignore\""
+        }
+      ],
+      "nodes": [
+        {
+          "id": "nFilter",
+          "label": "Sensor sample-processor",
+          "spokenLabel": "Sensor sample-processor",
+          "kind": "Sensor",
+          "status": "{filter == \"dataFilter\" ? \"Filtered: one trigger per sample\" : filter == \"inWorkflow\" ? \"Workflows exit early on part files\" : filter == \"deleteSource\" ? \"EventSource deleted: no events at all\" : \"Waiting\"}",
+          "tone": "filter == \"dataFilter\" ? \"up\" : filter == \"inWorkflow\" ? \"degraded\" : filter == \"deleteSource\" ? \"down\" : p >= 1 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nParam",
+          "label": "Argo Workflow trigger",
+          "spokenLabel": "Argo Workflow trigger",
+          "kind": "Trigger",
+          "status": "{param == \"params\" ? \"Parameterized: the event's key passed in\" : param == \"listBucket\" ? \"Workflow scans the bucket\" : param == \"rerunLatest\" ? \"Hourly rerun of 'latest' only\" : \"Waiting\"}",
+          "tone": "param == \"params\" ? \"up\" : param == \"listBucket\" ? \"degraded\" : param == \"rerunLatest\" ? \"down\" : p >= 2 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nDurable",
+          "label": "EventBus default",
+          "spokenLabel": "EventBus default",
+          "kind": "EventBus",
+          "status": "{durable == \"jetstream\" ? \"JetStream, 3 replicas, persistent; lost samples replayed\" : durable == \"replayOnly\" ? \"Lost samples replayed; bus unchanged\" : durable == \"ignore\" ? \"Unchanged; two samples never processed\" : \"Waiting\"}",
+          "tone": "durable == \"jetstream\" ? \"up\" : durable == \"replayOnly\" ? \"degraded\" : durable == \"ignore\" ? \"down\" : p >= 3 ? \"degraded\" : \"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "link0",
+          "from": "nFilter",
+          "to": "nParam",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        },
+        {
+          "id": "link1",
+          "from": "nParam",
+          "to": "nDurable",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Check-in",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Build event flows from the Argo Events components: EventSource types (webhook, S3, Kafka, calendar, resource and more), the EventBus (NATS/JetStream), Sensors with dependencies, filters and triggers, and trigger parameterization",
+  "secondaryObjectives": [
+    "Argo Events fundamentals: event-driven automation for Kubernetes and how it connects external systems to Workflows and other resources"
+  ],
+  "sources": [
+    {
+      "cite": "Linux Foundation, Certified Argo Project Associate (CAPA) exam page: Argo Workflows 36%, Argo CD 34%, Argo Rollouts 18%, Argo Events 12%",
+      "checkedAt": "2026-11-17",
+      "url": "https://training.linuxfoundation.org/certification/lfs256-capa/",
+      "note": "Read 2026-11-17 through a summarizing fetch of the Linux Foundation's page (last modified 2026-05-06). Its Argo Workflows topics are workflow fundamentals, artifacts, templates, the workflow spec, DAGs ('Work with DAG (Directed-Acyclic Graphs)') and data processing jobs; it does not mention retries or exit handlers. A study page (kube-dojo.github.io/k8s/capa, same weights) lists retryStrategy, backoff and exit handlers as study topics. The objective wording is the course seed's. Reused for REQ-336 from this course's argo-nightly-dag-region-failure (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "KodeKloud CAPA prep notes, Argo Events: architecture and the Sensor",
+      "checkedAt": "2026-11-17",
+      "url": "https://notes.kodekloud.com/docs/Prep-Course-Certified-Argo-Project-Associate-CAPA/Argo-Events/Sensor/page",
+      "note": "Found by search 2026-11-17 and read only through the search listing (title and address); to verify against the page. Used for: EventSources, the EventBus and Sensors with dependencies, filters and triggers."
+    },
+    {
+      "cite": "OneUptime blog, 'Control Argo Events Storms with Filters, Rate Limits, and Backpressure' (2026-08-05)",
+      "checkedAt": "2026-11-17",
+      "url": "https://oneuptime.com/blog/post/2026-08-05-argo-events-control-event-storms/view",
+      "note": "Found by search 2026-11-17 and read only through the search listing (title and address); to verify against the page. Used for: data filters on a dependency so a Sensor triggers only on the events it should."
+    },
+    {
+      "cite": "OneUptime blog, 'Argo Events EventBus: JetStream vs Kafka' (2026-08-05)",
+      "checkedAt": "2026-11-17",
+      "url": "https://oneuptime.com/blog/post/2026-08-05-argo-events-eventbus-jetstream-vs-kafka/view",
+      "note": "Found by search 2026-11-17 and read only through the search listing (title and address); to verify against the page. Used for: a JetStream EventBus with replicas and persistence, so events survive a pod restart."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The company, the bucket, the workflows and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You run the data platform at Fernway Labs, a fictional genomics lab. Sequencers upload results to an S3-compatible bucket; an Argo Events S3 EventSource sends each upload to a Sensor that starts an Argo Workflow to process the sample. Overnight the pipeline started 4,000 workflows for 60 samples and the cluster queue is full.",
+    "handover": [
+      "EventSource sequencer-bucket: S3 notifications for every object created in the results/ prefix.",
+      "Sensor sample-processor: one dependency on sequencer-bucket, no filters, one Argo Workflow trigger with the workflow's sample parameter hard-coded to 'latest'."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the map shows each component and its status in words.",
+      "Move on a check-in at a time. A decision comes to you at each check-in; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-05-03T07:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "filter": {
+      "type": "enum",
+      "values": [
+        "none",
+        "dataFilter",
+        "inWorkflow",
+        "deleteSource"
+      ],
+      "init": "none"
+    },
+    "filterAt": {
+      "type": "time",
+      "init": null
+    },
+    "param": {
+      "type": "enum",
+      "values": [
+        "none",
+        "params",
+        "listBucket",
+        "rerunLatest"
+      ],
+      "init": "none"
+    },
+    "paramAt": {
+      "type": "time",
+      "init": null
+    },
+    "durable": {
+      "type": "enum",
+      "values": [
+        "none",
+        "jetstream",
+        "replayOnly",
+        "ignore"
+      ],
+      "init": "none"
+    },
+    "durableAt": {
+      "type": "time",
+      "init": null
+    },
+    "eventsAt": {
+      "type": "time",
+      "init": null
+    },
+    "busAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((filter == \"deleteSource\") ? 1 : 0) + ((param == \"rerunLatest\") ? 1 : 0) + ((durable == \"ignore\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(filter == \"none\" or (filter == \"deleteSource\") ? 1 : 0) + (param == \"none\" or (param == \"rerunLatest\") ? 1 : 0) + (durable == \"none\" or (durable == \"ignore\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The event flow",
+      "clock": "turns",
+      "actions": [
+        "events",
+        "bus"
+      ]
+    },
+    "close": {
+      "label": "Change record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "events": {
+      "label": "kubectl logs sensor sample-processor | tail",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(eventsAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "eventsAt",
+          "to": "t"
+        },
+        {
+          "output": "dependency sequencer-bucket: event key=results/S0412/part-00017.tmp -> trigger fired\ndependency sequencer-bucket: event key=results/S0412/part-00018.tmp -> trigger fired\n..."
+        },
+        {
+          "log": "You read the Sensor's log.",
+          "kind": "act"
+        },
+        {
+          "finding": "Each sample uploads about 60 temporary part files and one final results.json. The Sensor fires on every object, so each sample starts about 60 workflows."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "bus": {
+      "label": "kubectl get eventbus default -o yaml",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(busAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "busAt",
+          "to": "t"
+        },
+        {
+          "output": "spec:\n  nats:\n    native:\n      replicas: 1\n      persistence: (none)"
+        },
+        {
+          "log": "You read the EventBus.",
+          "kind": "act"
+        },
+        {
+          "finding": "A single NATS replica with no persistence: when its pod restarted at 03:10, the events in flight were lost, so two samples never started at all."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the change record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "The storm's cause (no filter), the dependency filter, the parameterized trigger, the durable EventBus and the two replayed samples"
+                },
+                {
+                  "value": "summary",
+                  "label": "Event pipeline stabilized"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next check-in",
+      "wait": {
+        "skipLabel": "Go to the next check-in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "filter == \"deleteSource\"",
+              "then": [
+                {
+                  "log": "Check-in 2: with the EventSource gone, the morning's 30 real samples are not processed; the clinical team's reports are late.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "param == \"rerunLatest\"",
+              "then": [
+                {
+                  "log": "Check-in 3: 26 of the 30 morning samples were never processed; only the last upload each hour was.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "durable == \"ignore\"",
+              "then": [
+                {
+                  "log": "Check-in 4: the two lost samples are still unprocessed; the lab finds out when their reports are a day late.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "10min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The morning's samples are processed.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "10min"
+        }
+      ]
+    },
+    {
+      "id": "t_filter",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 1: the queue is still growing.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "filterPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_param",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 2: a scientist asks why every workflow processed the same sample.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "paramPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_durable",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 3: the EventBus pod restarted again.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "durablePrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "filterPrompt": {
+      "title": "The Sensor fires on every part file",
+      "context": "Only the final results.json means a sample is complete. You can change the Sensor's dependency or the workflow.",
+      "choices": [
+        {
+          "id": "dataFilter",
+          "label": "Add a filter on the dependency so only object keys ending in /results.json trigger, and delete the pending duplicate workflows",
+          "effects": [
+            {
+              "set": "filter",
+              "to": "\"dataFilter\""
+            },
+            {
+              "set": "filterAt",
+              "to": "t"
+            },
+            {
+              "log": "The Sensor now fires once per sample.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Filters on the dependency decide which events trigger; the duplicates never start."
+        },
+        {
+          "id": "inWorkflow",
+          "label": "Leave the Sensor and add a first step to the workflow that exits if the key is not results.json",
+          "effects": [
+            {
+              "set": "filter",
+              "to": "\"inWorkflow\""
+            },
+            {
+              "set": "filterAt",
+              "to": "t"
+            },
+            {
+              "log": "Each workflow now exits early for part files.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "It works, but 60 workflows a sample still start and each takes a pod; the filter belongs in the Sensor."
+        },
+        {
+          "id": "deleteSource",
+          "label": "Delete the EventSource until the weekend and process samples by hand",
+          "effects": [
+            {
+              "set": "filter",
+              "to": "\"deleteSource\""
+            },
+            {
+              "set": "filterAt",
+              "to": "t"
+            },
+            {
+              "log": "The EventSource is deleted.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Removing the source stops the storm and every real sample with it; the lab's results go unprocessed."
+        }
+      ]
+    },
+    "paramPrompt": {
+      "title": "Every workflow processed 'latest'",
+      "context": "The trigger's sample parameter is hard-coded to 'latest', so the workflows read whatever was uploaded last, not the sample that fired them.",
+      "choices": [
+        {
+          "id": "params",
+          "label": "Add trigger parameters that copy the event's object key into the workflow's sample argument (src dependency, dataKey on the key)",
+          "effects": [
+            {
+              "set": "param",
+              "to": "\"params\""
+            },
+            {
+              "set": "paramAt",
+              "to": "t"
+            },
+            {
+              "log": "Each workflow now gets the key of the sample that fired it.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Trigger parameterization maps fields of the event into the triggered resource."
+        },
+        {
+          "id": "listBucket",
+          "label": "Make the workflow list the bucket and process every sample not yet processed",
+          "effects": [
+            {
+              "set": "param",
+              "to": "\"listBucket\""
+            },
+            {
+              "set": "paramAt",
+              "to": "t"
+            },
+            {
+              "log": "The workflow now scans the bucket.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "It ends up processing everything, but two runs can pick the same sample, and the event's data is thrown away."
+        },
+        {
+          "id": "rerunLatest",
+          "label": "Leave it: rerun 'latest' every hour from a CronWorkflow instead",
+          "effects": [
+            {
+              "set": "param",
+              "to": "\"rerunLatest\""
+            },
+            {
+              "set": "paramAt",
+              "to": "t"
+            },
+            {
+              "log": "An hourly rerun of 'latest' is scheduled.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Only the last upload of each hour is processed; the others are silently skipped."
+        }
+      ]
+    },
+    "durablePrompt": {
+      "title": "Events lost on an EventBus restart",
+      "context": "The EventBus is one NATS replica without persistence. When it restarts, events in flight are lost; two samples from the night never started.",
+      "choices": [
+        {
+          "id": "jetstream",
+          "label": "Move the EventBus to JetStream with three replicas and persistent storage, and re-send notifications for the two lost samples",
+          "effects": [
+            {
+              "set": "durable",
+              "to": "\"jetstream\""
+            },
+            {
+              "set": "durableAt",
+              "to": "t"
+            },
+            {
+              "log": "JetStream with three replicas and persistence; the two samples re-sent.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A replicated, persistent bus keeps events through a pod restart; the lost samples are replayed from the bucket."
+        },
+        {
+          "id": "replayOnly",
+          "label": "Re-send the two lost samples and leave the EventBus as it is",
+          "effects": [
+            {
+              "set": "durable",
+              "to": "\"replayOnly\""
+            },
+            {
+              "set": "durableAt",
+              "to": "t"
+            },
+            {
+              "log": "The two samples are re-sent.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Today's gap is closed, but the next restart loses events again."
+        },
+        {
+          "id": "ignore",
+          "label": "Ignore it: a restart is rare and the samples will turn up",
+          "effects": [
+            {
+              "set": "durable",
+              "to": "\"ignore\""
+            },
+            {
+              "set": "durableAt",
+              "to": "t"
+            },
+            {
+              "log": "Nothing changes.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The lost events never come back by themselves; two patients' samples stay unprocessed."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the change record for the lab's platform team: why 4,000 workflows started, how the Sensor and trigger were fixed, and how lost events are prevented.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Sensor and trigger",
+          "criteria": "A filter on the dependency (results.json) and trigger parameters that pass the event's key.",
+          "modelAnswer": "The Sensor fired on all 60 part files a sample; a dependency filter now passes only results.json. The trigger copies the event's object key into the workflow's sample argument."
+        },
+        {
+          "label": "The EventBus",
+          "criteria": "Explains the single, non-persistent NATS replica, the JetStream change and the replayed samples.",
+          "modelAnswer": "One NATS replica without persistence lost events on restart. The bus is now JetStream with three replicas and storage, and the two lost samples were re-sent."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Service restored and the work closed within 60 minutes of the first report."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No fault introduced by the response itself."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (filter == \"inWorkflow\") and (param == \"listBucket\") and (durable == \"replayOnly\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "Linux Foundation, Certified Argo Project Associate (CAPA) exam page: Argo Workflows 36%, Argo CD 34%, Argo Rollouts 18%, Argo Events 12%",
+        "checkedAt": "2026-11-17",
+        "url": "https://training.linuxfoundation.org/certification/lfs256-capa/",
+        "note": "Read 2026-11-17 through a summarizing fetch of the Linux Foundation's page (last modified 2026-05-06). Its Argo Workflows topics are workflow fundamentals, artifacts, templates, the workflow spec, DAGs ('Work with DAG (Directed-Acyclic Graphs)') and data processing jobs; it does not mention retries or exit handlers. A study page (kube-dojo.github.io/k8s/capa, same weights) lists retryStrategy, backoff and exit handlers as study topics. The objective wording is the course seed's. Reused for REQ-336 from this course's argo-nightly-dag-region-failure (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "filterHarm": {
+      "label": "Real samples left unprocessed",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and filter == \"deleteSource\"",
+      "narrative": "Deleting the EventSource stopped the duplicates and every real sample; the morning's results were late."
+    },
+    "paramHarm": {
+      "label": "Samples silently skipped",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and param == \"rerunLatest\"",
+      "narrative": "The hourly rerun of 'latest' processed one sample an hour; most of the morning's samples were silently skipped."
+    },
+    "durableHarm": {
+      "label": "Lost events never recovered",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and durable == \"ignore\"",
+      "narrative": "Two samples lost on the EventBus restart were never processed; their reports were a day late."
+    },
+    "target": {
+      "label": "One workflow per sample, nothing lost",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (filter == \"dataFilter\") and (param == \"params\") and (durable == \"jetstream\") and record == \"honest\" and missCount <= newFaults and timeAt(doneAt) <= restoreWindow",
+      "narrative": "Every sample now starts one workflow with its own key, and the EventBus keeps events through restarts."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "filterHarm",
+    "paramHarm",
+    "durableHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "filterCrit",
+        "label": "Filtered the dependency so only complete samples trigger",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "filter == \"dataFilter\"",
+            "score": "met",
+            "why": "Filtered at the dependency."
+          },
+          {
+            "when": "filter == \"inWorkflow\"",
+            "score": "partial",
+            "why": "Filtered late, in the workflow."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Stopped every sample, not just the duplicates."
+          }
+        ]
+      },
+      {
+        "id": "paramCrit",
+        "label": "Passed the event's own data into the workflow with trigger parameters",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "param == \"params\"",
+            "score": "met",
+            "why": "Event data passed in."
+          },
+          {
+            "when": "param == \"listBucket\"",
+            "score": "partial",
+            "why": "Works around the trigger."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Samples silently skipped."
+          }
+        ]
+      },
+      {
+        "id": "durableCrit",
+        "label": "Made the EventBus durable and replayed what was lost",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "durable == \"jetstream\"",
+            "score": "met",
+            "why": "Durable bus, losses replayed."
+          },
+          {
+            "when": "durable == \"replayOnly\"",
+            "score": "partial",
+            "why": "Fixed today's loss only."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Lost samples left lost."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(eventsAt) and not isNull(busAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(eventsAt) or not isNull(busAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the Sensor's log and the EventBus status before changing anything."
+      },
+      {
+        "at": "Check-in 1",
+        "text": "Filter the dependency on the results.json key and clear the duplicates."
+      },
+      {
+        "at": "Check-in 2",
+        "text": "Parameterize the trigger with the event's object key."
+      },
+      {
+        "at": "Check-in 3",
+        "text": "Move to a replicated, persistent JetStream EventBus and replay the two lost samples."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "filterHarm": {
+        "headline": "Filter the events, don't drop the source",
+        "body": "A dependency filter lets only the meaningful event trigger."
+      },
+      "paramHarm": {
+        "headline": "Pass the event's data into the trigger",
+        "body": "Trigger parameters map the event's fields, such as the object key, into the workflow."
+      },
+      "durableHarm": {
+        "headline": "Lost events don't come back",
+        "body": "Use a replicated, persistent EventBus, and replay what was lost from the source."
+      },
+      "target": {
+        "headline": "Good: one workflow per sample, nothing lost",
+        "body": "The dependency filter stopped the storm, the trigger passes the event's data, and the bus is durable."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "An EventSource turns external events into the EventBus; a Sensor's dependencies, filtered by event data, decide which events trigger; and trigger parameters map the event's fields into the triggered workflow. Filter at the dependency, not in each workflow, and never drop the source to stop a storm. Pass the event's object key, not a fixed 'latest'. The EventBus carries every event: a single, non-persistent replica loses events on restart, so use a replicated, persistent JetStream bus and replay what was lost."
+  }
+}
