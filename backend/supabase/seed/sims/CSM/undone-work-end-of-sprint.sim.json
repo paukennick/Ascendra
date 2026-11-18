@@ -1,0 +1,1138 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "undone-work-end-of-sprint",
+  "title": "Work that is not Done when the Sprint ends: what happens to it, how it is reported, and the Definition of Done",
+  "screen": {
+    "type": "project-dashboard",
+    "level": 1,
+    "dashboard": {
+      "mode": "sprint",
+      "heading": "Sprint 22 of the payments feature",
+      "commitments": [
+        {
+          "id": "sgoal",
+          "label": "Sprint Goal",
+          "text": "Customers can send a payment to a saved payee."
+        },
+        {
+          "id": "dod",
+          "label": "Definition of Done",
+          "text": "Reviewed, automated tests passing, security scan clean, deployed to staging."
+        }
+      ],
+      "columns": [
+        {
+          "id": "todo",
+          "label": "To do"
+        },
+        {
+          "id": "blocked",
+          "label": "Off course"
+        },
+        {
+          "id": "done",
+          "label": "Handled"
+        }
+      ],
+      "items": [
+        {
+          "id": "wUndone",
+          "label": "Item A: security scan failing",
+          "column": "undone == \"backlog\" ? \"done\" : undone == \"extend\" ? \"blocked\" : undone == \"releaseA\" ? \"blocked\" : \"todo\"",
+          "when": "true",
+          "flag": "undone == \"releaseA\""
+        },
+        {
+          "id": "wPresent",
+          "label": "Sprint Review report",
+          "column": "present == \"onlyDone\" ? \"done\" : present == \"vague\" ? \"blocked\" : present == \"claimFive\" ? \"blocked\" : \"todo\"",
+          "when": "true",
+          "flag": "present == \"claimFive\""
+        },
+        {
+          "id": "wDoneDef",
+          "label": "Definition of Done",
+          "column": "doneDef == \"keepDod\" ? \"done\" : doneDef == \"waive\" ? \"blocked\" : doneDef == \"dropScan\" ? \"blocked\" : \"todo\"",
+          "when": "true",
+          "flag": "doneDef == \"dropScan\""
+        }
+      ],
+      "issues": [
+        {
+          "id": "iUndone",
+          "label": "Undone work released",
+          "when": "p >= 1",
+          "at": "86400",
+          "status": "{undone == \"backlog\" ? \"Returned to the Product Backlog\" : undone == \"extend\" ? \"Sprint extended\" : undone == \"releaseA\" ? \"Undone work released\" : \"Due\"}",
+          "open": "undone == \"none\""
+        },
+        {
+          "id": "iPresent",
+          "label": "Status overstated",
+          "when": "p >= 2",
+          "at": "172800",
+          "status": "{present == \"onlyDone\" ? \"Only Done work presented\" : present == \"vague\" ? \"Vague summary\" : present == \"claimFive\" ? \"Undone reported as Done\" : \"Due\"}",
+          "open": "present == \"none\""
+        },
+        {
+          "id": "iDoneDef",
+          "label": "Definition of Done weakened",
+          "when": "p >= 3",
+          "at": "259200",
+          "status": "{doneDef == \"keepDod\" ? \"Definition kept; scans earlier\" : doneDef == \"waive\" ? \"Waivable scan\" : doneDef == \"dropScan\" ? \"Security dropped from Done\" : \"Due\"}",
+          "open": "doneDef == \"none\""
+        }
+      ],
+      "people": [
+        {
+          "id": "sDevs",
+          "label": "Developers",
+          "spokenLabel": "the Developers' trust",
+          "value": "devs",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sPo",
+          "label": "Product Owner",
+          "spokenLabel": "the Product Owner's trust",
+          "value": "po",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sSh",
+          "label": "Stakeholders",
+          "spokenLabel": "the stakeholders' trust",
+          "value": "sh",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "events": [
+        {
+          "id": "mUndone",
+          "label": "Daily Scrum, day 9",
+          "at": "86400",
+          "status": "{undone == \"backlog\" ? \"Returned to the Product Backlog\" : undone == \"extend\" ? \"Sprint extended\" : undone == \"releaseA\" ? \"Undone work released\" : \"Ahead\"}"
+        },
+        {
+          "id": "mPresent",
+          "label": "Sprint Review",
+          "at": "172800",
+          "status": "{present == \"onlyDone\" ? \"Only Done work presented\" : present == \"vague\" ? \"Vague summary\" : present == \"claimFive\" ? \"Undone reported as Done\" : \"Ahead\"}"
+        },
+        {
+          "id": "mDoneDef",
+          "label": "Sprint Retrospective",
+          "at": "259200",
+          "status": "{doneDef == \"keepDod\" ? \"Definition kept; scans earlier\" : doneDef == \"waive\" ? \"Waivable scan\" : doneDef == \"dropScan\" ? \"Security dropped from Done\" : \"Ahead\"}"
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Sprint day",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Deciding what happens to work that does not meet the Definition of Done when the Sprint ends",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "Ken Schwaber and Jeff Sutherland, The Scrum Guide (November 2020)",
+      "url": "https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf",
+      "checkedAt": "2026-11-16",
+      "note": "Read 2026-11-16 directly (the PDF). Daily Scrum: 'The purpose of the Daily Scrum is to inspect progress toward the Sprint Goal and adapt the Sprint Backlog as necessary'; 'a 15-minute event for the Developers of the Scrum Team'. Reused for REQ-336 from this course's csm-sprint-status-meeting-daily-scrum (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Ken Schwaber and Jeff Sutherland, The Scrum Guide (November 2020)",
+      "url": "https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf",
+      "checkedAt": "2026-11-16",
+      "note": "Read 2026-11-16 directly (the PDF). Daily Scrum: 'The purpose of the Daily Scrum is to inspect progress toward the Sprint Goal and adapt the Sprint Backlog as necessary'; 'a 15-minute event for the Developers of the Scrum Team'. Reused for REQ-336 from this course's sprint-status-meeting-daily-scrum (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The company, the product, the team and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the Scrum Master for a fictional team building a payments feature for Quayside Bank's app. The Sprint ends in two days and two items are not Done.",
+    "handover": [
+      "Definition of Done: code reviewed, automated tests passing, security scan clean, deployed to staging.",
+      "Item A is coded but its security scan has two high findings; item B is half built."
+    ],
+    "howItWorks": [
+      "The board shows the Sprint's commitments, the work, the impediments, the people's support and the Scrum events.",
+      "Move on a day at a time. A decision comes to you at each Daily Scrum; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-07-12T09:00",
+    "tick": "1h",
+    "maxDuration": "20d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "devs": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "po": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "sh": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "undone": {
+      "type": "enum",
+      "values": [
+        "none",
+        "backlog",
+        "extend",
+        "releaseA"
+      ],
+      "init": "none"
+    },
+    "undoneAt": {
+      "type": "time",
+      "init": null
+    },
+    "present": {
+      "type": "enum",
+      "values": [
+        "none",
+        "onlyDone",
+        "vague",
+        "claimFive"
+      ],
+      "init": "none"
+    },
+    "presentAt": {
+      "type": "time",
+      "init": null
+    },
+    "doneDef": {
+      "type": "enum",
+      "values": [
+        "none",
+        "keepDod",
+        "waive",
+        "dropScan"
+      ],
+      "init": "none"
+    },
+    "doneDefAt": {
+      "type": "time",
+      "init": null
+    },
+    "boardAt": {
+      "type": "time",
+      "init": null
+    },
+    "pressureAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(devs, po), sh)"
+    },
+    "missCount": {
+      "expr": "((undone == \"releaseA\") ? 1 : 0) + ((present == \"claimFive\") ? 1 : 0) + ((doneDef == \"dropScan\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(undone == \"none\" or (undone == \"releaseA\") ? 1 : 0) + (present == \"none\" or (present == \"claimFive\") ? 1 : 0) + (doneDef == \"none\" or (doneDef == \"dropScan\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The Sprint",
+      "clock": "turns",
+      "actions": [
+        "board",
+        "pressure"
+      ]
+    },
+    "close": {
+      "label": "Sprint notes",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "board": {
+      "label": "Read the Sprint Backlog",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(boardAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "boardAt",
+          "to": "t"
+        },
+        {
+          "log": "Read the Sprint Backlog.",
+          "kind": "act"
+        },
+        {
+          "finding": "Item A: coded and tested, security scan failing. Item B: half built. Three items Done."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2h"
+        }
+      ]
+    },
+    "pressure": {
+      "label": "Talk to the stakeholder lead",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(pressureAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "pressureAt",
+          "to": "t"
+        },
+        {
+          "log": "Talk to the stakeholder lead.",
+          "kind": "act"
+        },
+        {
+          "finding": "She wants to tell the bank's board that all five items are complete."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2h"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Undone items returned to the Product Backlog, only Done work presented, and the Definition of Done kept with earlier scans"
+                },
+                {
+                  "value": "summary",
+                  "label": "Sprint closed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next working day",
+      "wait": {
+        "skipLabel": "Go to the next day"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "undone == \"releaseA\"",
+              "then": [
+                {
+                  "log": "Day 10: one of the findings is exploited in production within a week; payments are paused.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "present == \"claimFive\"",
+              "then": [
+                {
+                  "log": "Day 11: the board announces item B to customers; it is not built.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "doneDef == \"dropScan\"",
+              "then": [
+                {
+                  "log": "Day 11: the next Sprint's Increment ships an unscanned library with a known flaw.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "1d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The Sprint ends.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "1d"
+        }
+      ]
+    },
+    {
+      "id": "t_undone",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 9: item A.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "undonePrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_present",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 10: the Review.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "presentPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_doneDef",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 10: the Retrospective.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "doneDefPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "undonePrompt": {
+      "title": "Coded but not Done",
+      "context": "The security scan still fails.",
+      "choices": [
+        {
+          "id": "backlog",
+          "label": "Item A does not meet the Definition of Done, so it is not part of the Increment; it returns to the Product Backlog for the Product Owner to order",
+          "effects": [
+            {
+              "set": "undone",
+              "to": "\"backlog\""
+            },
+            {
+              "set": "undoneAt",
+              "to": "t"
+            },
+            {
+              "add": "po",
+              "by": "10"
+            },
+            {
+              "log": "Item A goes back to the Product Backlog.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Work that does not meet the Definition of Done cannot be released or presented as Done; it returns to the Product Backlog."
+        },
+        {
+          "id": "extend",
+          "label": "Extend the Sprint by three days to finish it",
+          "effects": [
+            {
+              "set": "undone",
+              "to": "\"extend\""
+            },
+            {
+              "set": "undoneAt",
+              "to": "t"
+            },
+            {
+              "add": "po",
+              "by": "-15"
+            },
+            {
+              "log": "The Sprint is extended.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Sprints have a fixed length; extending one hides the problem and breaks the cadence."
+        },
+        {
+          "id": "releaseA",
+          "label": "Release item A with a note to fix the findings next Sprint",
+          "effects": [
+            {
+              "set": "undone",
+              "to": "\"releaseA\""
+            },
+            {
+              "set": "undoneAt",
+              "to": "t"
+            },
+            {
+              "add": "po",
+              "by": "-25"
+            },
+            {
+              "log": "Item A is released.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Two high security findings reach production in a banking app."
+        }
+      ]
+    },
+    "presentPrompt": {
+      "title": "Five items or three?",
+      "context": "The stakeholder lead wants to report five complete.",
+      "choices": [
+        {
+          "id": "onlyDone",
+          "label": "Present the three Done items as the Increment and explain items A and B and where they are in the backlog",
+          "effects": [
+            {
+              "set": "present",
+              "to": "\"onlyDone\""
+            },
+            {
+              "set": "presentAt",
+              "to": "t"
+            },
+            {
+              "add": "sh",
+              "by": "10"
+            },
+            {
+              "log": "Stakeholders see three Done and two in progress.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Presenting undone work as Done destroys the transparency inspection relies on."
+        },
+        {
+          "id": "vague",
+          "label": "Report 'most of the scope delivered'",
+          "effects": [
+            {
+              "set": "present",
+              "to": "\"vague\""
+            },
+            {
+              "set": "presentAt",
+              "to": "t"
+            },
+            {
+              "add": "sh",
+              "by": "-15"
+            },
+            {
+              "log": "A vague summary is given.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Not false, but stakeholders cannot tell what is usable."
+        },
+        {
+          "id": "claimFive",
+          "label": "Report all five items as complete",
+          "effects": [
+            {
+              "set": "present",
+              "to": "\"claimFive\""
+            },
+            {
+              "set": "presentAt",
+              "to": "t"
+            },
+            {
+              "add": "sh",
+              "by": "-25"
+            },
+            {
+              "log": "Five items are reported complete.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The board plans around features that do not exist."
+        }
+      ]
+    },
+    "doneDefPrompt": {
+      "title": "Should the Definition of Done loosen?",
+      "context": "A developer suggests dropping the security scan from the Definition of Done.",
+      "choices": [
+        {
+          "id": "keepDod",
+          "label": "Keep the security scan in the Definition of Done and plan to run scans earlier in the Sprint so findings surface sooner",
+          "effects": [
+            {
+              "set": "doneDef",
+              "to": "\"keepDod\""
+            },
+            {
+              "set": "doneDefAt",
+              "to": "t"
+            },
+            {
+              "add": "devs",
+              "by": "10"
+            },
+            {
+              "log": "Scans move earlier; the Definition stays.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "The Definition of Done sets the quality the Increment must meet; the team improves its work to meet it, not the other way round."
+        },
+        {
+          "id": "waive",
+          "label": "Allow the scan to be waived when time is short",
+          "effects": [
+            {
+              "set": "doneDef",
+              "to": "\"waive\""
+            },
+            {
+              "set": "doneDefAt",
+              "to": "t"
+            },
+            {
+              "add": "devs",
+              "by": "-15"
+            },
+            {
+              "log": "Waivers are allowed.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "A Definition of Done that can be waived stops meaning Done."
+        },
+        {
+          "id": "dropScan",
+          "label": "Remove the security scan from the Definition of Done",
+          "effects": [
+            {
+              "set": "doneDef",
+              "to": "\"dropScan\""
+            },
+            {
+              "set": "doneDefAt",
+              "to": "t"
+            },
+            {
+              "add": "devs",
+              "by": "-25"
+            },
+            {
+              "log": "The scan is removed.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Every future Increment can ship unscanned code."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the Sprint notes on what was Done and what was not.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "The Increment",
+          "criteria": "Three items Done; A and B back in the Product Backlog.",
+          "modelAnswer": "Three items met the Definition of Done. Item A failed its security scan and item B was half built; both returned to the Product Backlog."
+        },
+        {
+          "label": "Quality",
+          "criteria": "Definition of Done kept; scans earlier.",
+          "modelAnswer": "We kept the security scan in the Definition of Done and will run scans earlier in the Sprint."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "scrum",
+    "thresholds": {
+      "undoneShown": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Nothing undone released or presented as done (Scrum Guide 2020)."
+        }
+      },
+      "trustTarget": {
+        "value": 60,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Every team and stakeholder gauge at 60 of 100 or more at the end."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (undone == \"extend\") and (present == \"vague\") and (doneDef == \"waive\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "Ken Schwaber and Jeff Sutherland, The Scrum Guide (November 2020)",
+        "url": "https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf",
+        "checkedAt": "2026-11-16",
+        "note": "Read 2026-11-16 directly (the PDF). Daily Scrum: 'The purpose of the Daily Scrum is to inspect progress toward the Sprint Goal and adapt the Sprint Backlog as necessary'; 'a 15-minute event for the Developers of the Scrum Team'. Reused for REQ-336 from this course's csm-sprint-status-meeting-daily-scrum (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "undoneHarm": {
+      "label": "A vulnerability exploited",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and undone == \"releaseA\"",
+      "narrative": "Releasing undone work shipped an exploitable flaw."
+    },
+    "presentHarm": {
+      "label": "A public promise broken",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and present == \"claimFive\"",
+      "narrative": "Reporting undone work as Done led to a false announcement."
+    },
+    "doneDefHarm": {
+      "label": "Unscanned code shipped",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and doneDef == \"dropScan\"",
+      "narrative": "Dropping the scan let a known flaw into the next Increment."
+    },
+    "target": {
+      "label": "Done means Done",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (undone == \"backlog\") and (present == \"onlyDone\") and (doneDef == \"keepDod\") and record == \"honest\" and missCount <= undoneShown and minSupport >= trustTarget",
+      "narrative": "Stakeholders can trust what the team calls Done, and quality holds."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "undoneHarm",
+    "presentHarm",
+    "doneDefHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "undoneCrit",
+        "label": "Kept undone work out of the Increment and returned it to the Product Backlog",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "undone == \"backlog\"",
+            "score": "met",
+            "why": "Honest Increment."
+          },
+          {
+            "when": "undone == \"extend\"",
+            "score": "partial",
+            "why": "Broke the timebox."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Unsafe."
+          }
+        ]
+      },
+      {
+        "id": "presentCrit",
+        "label": "Presented only Done work as Done",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "present == \"onlyDone\"",
+            "score": "met",
+            "why": "Transparent."
+          },
+          {
+            "when": "present == \"vague\"",
+            "score": "partial",
+            "why": "Opaque."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "False."
+          }
+        ]
+      },
+      {
+        "id": "doneDefCrit",
+        "label": "Kept the Definition of Done and improved how the team meets it",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "doneDef == \"keepDod\"",
+            "score": "met",
+            "why": "Quality kept."
+          },
+          {
+            "when": "doneDef == \"waive\"",
+            "score": "partial",
+            "why": "Weakened."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Quality lowered."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(boardAt) and not isNull(pressureAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(boardAt) or not isNull(pressureAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 100)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "70 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the Sprint Backlog and the Definition of Done first."
+      },
+      {
+        "at": "Day 9",
+        "text": "Return undone work to the Product Backlog."
+      },
+      {
+        "at": "Day 10",
+        "text": "Present only what meets the Definition of Done."
+      },
+      {
+        "at": "Day 10",
+        "text": "Keep the Definition of Done and scan earlier."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "undoneHarm": {
+        "headline": "Done means Done",
+        "body": "Undone work returns to the Product Backlog."
+      },
+      "presentHarm": {
+        "headline": "Report honestly",
+        "body": "Only Done is Done."
+      },
+      "doneDefHarm": {
+        "headline": "Raise quality, don't lower Done",
+        "body": "Keep the Definition; improve the work."
+      },
+      "target": {
+        "headline": "Good: done means Done",
+        "body": "Undone work handled, reported and prevented honestly."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Work that does not meet the Definition of Done is not part of the Increment and cannot be released or presented as Done; it returns to the Product Backlog. Sprints are not extended to finish it. The team improves how it meets the Definition of Done rather than weakening it."
+  }
+}
