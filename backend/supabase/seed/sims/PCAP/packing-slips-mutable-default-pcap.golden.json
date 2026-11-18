@@ -1,0 +1,691 @@
+{
+  "slug": "packing-slips-mutable-default-pcap",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Dry run shows the list growing; None default with a new list; both tests pass; ship",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "dryrun",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "change",
+          "params": {
+            "f": "none"
+          },
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 8,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "pytest",
+          "seq": 5,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 11,
+          "seq": 6,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "ship",
+          "seq": 7,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 13,
+          "seq": 8,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 9,
+          "tick": 13
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 10,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "default",
+            "check": "tests"
+          },
+          "seq": 11,
+          "tick": 13
+        }
+      ],
+      "expect": {
+        "ending": "right",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "looked": "met",
+          "fixed": "met",
+          "shipped": "met",
+          "checked": "met",
+          "note": "met"
+        },
+        "kpis": {
+          "rightK": 412,
+          "restartsK": 0,
+          "sentAtMin": 11
+        },
+        "stateHash": "c96c71701fbabf22"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "copyReturn",
+      "title": "Returns a copy without reproducing the bug and ships untested: the default still grows",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "change",
+          "params": {
+            "f": "copy"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 5,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "ship",
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 7,
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 5,
+          "tick": 7
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "data",
+            "check": "none"
+          },
+          "seq": 7,
+          "tick": 7
+        }
+      ],
+      "expect": {
+        "ending": "wrongSent",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "looked": "missed",
+          "fixed": "missed",
+          "shipped": "missed",
+          "checked": "missed",
+          "note": "missed"
+        },
+        "kpis": {
+          "rightK": 0,
+          "restartsK": 0,
+          "sentAtMin": 5
+        },
+        "stateHash": "c07297b39955162c"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "clearFirst",
+      "title": "Clears the list first, sees a test fail but ships anyway: gift notes vanish",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "change",
+          "params": {
+            "f": "clear"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 5,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "dryrun",
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 8,
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "pytest",
+          "seq": 5,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 11,
+          "seq": 6,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "ship",
+          "seq": 7,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 13,
+          "seq": 8,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 9,
+          "tick": 13
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 10,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "default",
+            "check": "restart"
+          },
+          "seq": 11,
+          "tick": 13
+        }
+      ],
+      "expect": {
+        "ending": "wrongSent",
+        "class": "harm",
+        "rating": "bad",
+        "score": 25,
+        "criteria": {
+          "looked": "partial",
+          "fixed": "missed",
+          "shipped": "missed",
+          "checked": "partial",
+          "note": "partial"
+        },
+        "kpis": {
+          "rightK": 0,
+          "restartsK": 0,
+          "sentAtMin": 11
+        },
+        "stateHash": "3311fff78ca91138"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "restartOnly",
+      "title": "Restarts the worker twice and ships nothing",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "restart",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "dryrun",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 4,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "restart",
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 5,
+          "seq": 6,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 7,
+          "tick": 5
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 8,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "worker",
+            "check": "restart"
+          },
+          "seq": 9,
+          "tick": 5
+        }
+      ],
+      "expect": {
+        "ending": "notSent",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 33,
+        "criteria": {
+          "looked": "met",
+          "fixed": "missed",
+          "shipped": "met",
+          "checked": "missed",
+          "note": "missed"
+        },
+        "kpis": {
+          "rightK": 0,
+          "restartsK": 2,
+          "sentAtMin": 0
+        },
+        "stateHash": "23cae8ae3f009227"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "untested",
+      "title": "Changes the default before looking, then dry runs and ships without tests",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "change",
+          "params": {
+            "f": "none"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 5,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "dryrun",
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 8,
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "ship",
+          "seq": 5,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 10,
+          "seq": 6,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 8,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "default",
+            "check": "none"
+          },
+          "seq": 9,
+          "tick": 10
+        }
+      ],
+      "expect": {
+        "ending": "gaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 67,
+        "criteria": {
+          "looked": "partial",
+          "fixed": "met",
+          "shipped": "met",
+          "checked": "missed",
+          "note": "partial"
+        },
+        "kpis": {
+          "rightK": 412,
+          "restartsK": 0,
+          "sentAtMin": 8
+        },
+        "stateHash": "7474e95027f1633c"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "late",
+      "title": "The expert's fix and tests, then waits and ships after 14:00",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "dryrun",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "change",
+          "params": {
+            "f": "none"
+          },
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 8,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "pytest",
+          "seq": 5,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 11,
+          "seq": 6,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 7,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 21,
+          "seq": 8,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 9,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 31,
+          "seq": 10,
+          "tick": 21
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 11,
+          "tick": 31
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 41,
+          "seq": 12,
+          "tick": 31
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 13,
+          "tick": 41
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 51,
+          "seq": 14,
+          "tick": 41
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 15,
+          "tick": 51
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 61,
+          "seq": 16,
+          "tick": 51
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 61,
+          "seq": 17,
+          "tick": 55
+        },
+        {
+          "type": "act",
+          "action": "ship",
+          "seq": 18,
+          "tick": 61
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 63,
+          "seq": 19,
+          "tick": 61
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 20,
+          "tick": 63
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 21,
+          "tick": 63
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "default",
+            "check": "tests"
+          },
+          "seq": 22,
+          "tick": 63
+        }
+      ],
+      "expect": {
+        "ending": "gaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 100,
+        "criteria": {
+          "looked": "met",
+          "fixed": "met",
+          "shipped": "met",
+          "checked": "met",
+          "note": "met"
+        },
+        "kpis": {
+          "rightK": 412,
+          "restartsK": 0,
+          "sentAtMin": 61
+        },
+        "stateHash": "99993c5bb438be61"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    }
+  ]
+}

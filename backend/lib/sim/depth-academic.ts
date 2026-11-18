@@ -22,6 +22,7 @@ export const DEPTH_ACADEMIC: readonly DepthAcademicEntry[] = [
   { course: "MSCS", slug: "mscs-transfer-workers-deadlock", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "mscs-deadlock" },
   { course: "MSCS", slug: "mscs-freezer-bytes-little-endian", screen: "data", profile: "data", kind: "scenario", steps: "mscs-endian" },
   { course: "PYTHON", slug: "py-packing-slips-mutable-default", screen: "data", profile: "data", kind: "scenario", steps: "py-default" },
+  { course: "PCEP", slug: "pcep-seat-map-shared-rows", screen: "data", profile: "data", kind: "scenario", steps: "pcep-rows" },
   { course: "MSHI", slug: "sql-not-in-null-empty-list-mshi", screen: "data", profile: "data", kind: "band", steps: "da-mshi-sql-not-in-null-empty-list-mshi", base: "SQL/sql-not-in-null-empty-list" },
   { course: "MSHI", slug: "ethics-shared-credentials-mshi", screen: "session", profile: "professional-ethics", kind: "band", steps: "da-mshi-ethics-shared-credentials-mshi", base: "ISC2CC/cc-ethics-shared-credentials" },
   { course: "MSHI", slug: "phi-in-application-logs-mshi", screen: "board", profile: "cloud", kind: "band", steps: "da-mshi-phi-in-application-logs-mshi", base: "AWSDVA/phi-in-application-logs" },
@@ -56,6 +57,9 @@ export const DEPTH_ACADEMIC: readonly DepthAcademicEntry[] = [
   { course: "TSNODE", slug: "checkout-shipping-concatenated-tsnode", screen: "data", profile: "data", kind: "band", steps: "da-tsnode-checkout-shipping-concatenated-tsnode", base: "JAVASCRIPT/js-checkout-shipping-concatenated" },
   { course: "PTPREREQ", slug: "parkinson-orthostatic-ptprereq", screen: "treatment-session", profile: "physical-therapy", kind: "band", steps: "da-ptprereq-parkinson-orthostatic-ptprereq", base: "DPT/parkinson-freezing-session" },
   { course: "PTPREREQ", slug: "icu-mobility-new-rhythm-ptprereq", screen: "treatment-session", profile: "physical-therapy", kind: "band", steps: "da-ptprereq-icu-mobility-new-rhythm-ptprereq", base: "DPT/icu-early-mobility" },
+  { course: "PCAP", slug: "packing-slips-mutable-default-pcap", screen: "data", profile: "data", kind: "band", steps: "da-pcap-packing-slips-mutable-default-pcap", base: "PYTHON/py-packing-slips-mutable-default" },
+  { course: "PYTHON", slug: "seat-map-shared-rows-python", screen: "data", profile: "data", kind: "band", steps: "da-python-seat-map-shared-rows-python", base: "PCEP/pcep-seat-map-shared-rows" },
+  { course: "PCAP", slug: "seat-map-shared-rows-pcap", screen: "data", profile: "data", kind: "band", steps: "da-pcap-seat-map-shared-rows-pcap", base: "PCEP/pcep-seat-map-shared-rows" },
 ];
 
 // The day this round read its sources; every document's first source carries it.
