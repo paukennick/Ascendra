@@ -14,7 +14,7 @@
       "lines": [
         {
           "id": "firstLine",
-          "text": "tickets: cannot delete Pods in prod-video; payments Pods unlabelled; platform deployer blocked",
+          "text": "tickets: cannot delete Pods in prod-video; payments Pods unlabeled; platform deployer blocked",
           "when": "true",
           "at": "0",
           "error": "true"
@@ -292,7 +292,7 @@
           "kind": "act"
         },
         {
-          "finding": "Deletes of old unlabelled Pods are denied, payments is never evaluated, and the platform deployer is blocked outside kube-system."
+          "finding": "Deletes of old unlabeled Pods are denied, payments is never evaluated, and the platform deployer is blocked outside kube-system."
         },
         {
           "set": "busy",
@@ -426,7 +426,7 @@
               "if": "exc == \"clusterRole\"",
               "then": [
                 {
-                  "log": "Check-in 4: the cost report shows 300 new unlabelled Pods created by developers with edit, all exempt.",
+                  "log": "Check-in 4: the cost report shows 300 new unlabeled Pods created by developers with edit, all exempt.",
                   "kind": "bad"
                 }
               ]
@@ -536,7 +536,7 @@
   "prompts": {
     "opsPrompt": {
       "title": "Deletes are being blocked",
-      "context": "A crash-looping, unlabelled Pod in prod-video cannot be deleted.",
+      "context": "A crash-looping, unlabeled Pod in prod-video cannot be deleted.",
       "choices": [
         {
           "id": "createUpdate",
@@ -599,7 +599,7 @@
     },
     "selPrompt": {
       "title": "payments is never evaluated",
-      "context": "Production namespaces are labelled env=prod; payments has the label but not the prefix.",
+      "context": "Production namespaces are labeled env=prod; payments has the label but not the prefix.",
       "choices": [
         {
           "id": "nsSelector",
@@ -614,7 +614,7 @@
               "to": "t"
             },
             {
-              "log": "Every namespace labelled env=prod is in scope.",
+              "log": "Every namespace labeled env=prod is in scope.",
               "kind": "good"
             }
           ],
@@ -732,7 +732,7 @@
         {
           "label": "Match",
           "criteria": "No operations list meant deletes were checked; a name prefix missed payments; now CREATE and UPDATE with a namespaceSelector on env=prod.",
-          "modelAnswer": "Without operations the rule checked deletes; it matched names, so payments was missed. It now checks CREATE and UPDATE on namespaces labelled env=prod."
+          "modelAnswer": "Without operations the rule checked deletes; it matched names, so payments was missed. It now checks CREATE and UPDATE on namespaces labeled env=prod."
         },
         {
           "label": "Exclude",
@@ -794,7 +794,7 @@
       "class": "harm",
       "terminal": true,
       "when": "closed and exc == \"clusterRole\"",
-      "narrative": "Excluding the edit clusterRole exempted every developer; 300 unlabelled Pods appeared."
+      "narrative": "Excluding the edit clusterRole exempted every developer; 300 unlabeled Pods appeared."
     },
     "target": {
       "label": "A policy that selects what it means",

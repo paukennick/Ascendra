@@ -1,0 +1,853 @@
+{
+  "slug": "fmea-dispatch-takt-lean",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Gemba and failures read; takt and constraint; RPNs; poka-yoke and re-score; an honest record",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "gemba",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 6,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "fails",
+          "seq": 3,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 12,
+          "seq": 4,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 20,
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "choose",
+          "prompt": "taktPrompt",
+          "choice": "takt",
+          "seq": 6,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 40,
+          "seq": 7,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "rpnPrompt",
+          "choice": "rpn",
+          "seq": 8,
+          "tick": 40
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 60,
+          "seq": 9,
+          "tick": 40
+        },
+        {
+          "type": "choose",
+          "prompt": "actPrompt",
+          "choice": "pokayoke",
+          "seq": 10,
+          "tick": 60
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 80,
+          "seq": 11,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 80
+        }
+      ],
+      "expect": {
+        "ending": "target",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "taktCrit": "met",
+          "rpnCrit": "met",
+          "actCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0,
+          "supK": 7
+        },
+        "stateHash": "6eea7890ee1f7685"
+      },
+      "reasoning": {
+        "reflection": "met"
+      }
+    },
+    {
+      "id": "partialTakt",
+      "title": "Partly right on takt time, the rest on plan",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "gemba",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 6,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 20,
+          "seq": 3,
+          "tick": 6
+        },
+        {
+          "type": "choose",
+          "prompt": "taktPrompt",
+          "choice": "labels",
+          "seq": 4,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 40,
+          "seq": 5,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "rpnPrompt",
+          "choice": "rpn",
+          "seq": 6,
+          "tick": 40
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 60,
+          "seq": 7,
+          "tick": 40
+        },
+        {
+          "type": "choose",
+          "prompt": "actPrompt",
+          "choice": "pokayoke",
+          "seq": 8,
+          "tick": 60
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 80,
+          "seq": 9,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 10,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 11,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 12,
+          "tick": 80
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "taktCrit": "partial",
+          "rpnCrit": "met",
+          "actCrit": "met",
+          "evidenceCrit": "partial",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0,
+          "supK": 5
+        },
+        "stateHash": "dbfd4540f4e5effa"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "partialAct",
+      "title": "Partly right on the action, and a one-line record",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 20,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "taktPrompt",
+          "choice": "takt",
+          "seq": 2,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 2,
+          "to": 40,
+          "seq": 3,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "rpnPrompt",
+          "choice": "rpn",
+          "seq": 4,
+          "tick": 40
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 60,
+          "seq": 5,
+          "tick": 40
+        },
+        {
+          "type": "choose",
+          "prompt": "actPrompt",
+          "choice": "retrain",
+          "seq": 6,
+          "tick": 60
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 80,
+          "seq": 7,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 8,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "summary"
+          },
+          "seq": 9,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 10,
+          "tick": 80
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "taktCrit": "met",
+          "rpnCrit": "met",
+          "actCrit": "partial",
+          "evidenceCrit": "missed",
+          "recordCrit": "missed"
+        },
+        "kpis": {
+          "missK": 0,
+          "supK": 5
+        },
+        "stateHash": "213cce1ae54ab392"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "allPartial",
+      "title": "Every decision only partly right",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 20,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "taktPrompt",
+          "choice": "labels",
+          "seq": 2,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 2,
+          "to": 40,
+          "seq": 3,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "rpnPrompt",
+          "choice": "severityOnly",
+          "seq": 4,
+          "tick": 40
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 60,
+          "seq": 5,
+          "tick": 40
+        },
+        {
+          "type": "choose",
+          "prompt": "actPrompt",
+          "choice": "retrain",
+          "seq": 6,
+          "tick": 60
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 80,
+          "seq": 7,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 8,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 9,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 10,
+          "tick": 80
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "taktCrit": "partial",
+          "rpnCrit": "partial",
+          "actCrit": "partial",
+          "evidenceCrit": "missed",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0,
+          "supK": 5
+        },
+        "stateHash": "6f3835365e4cf4d3"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "badTakt",
+      "title": "Daily overtime instead of balancing",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "gemba",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 6,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "fails",
+          "seq": 3,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 12,
+          "seq": 4,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 20,
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "choose",
+          "prompt": "taktPrompt",
+          "choice": "overtime",
+          "seq": 6,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 40,
+          "seq": 7,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "rpnPrompt",
+          "choice": "rpn",
+          "seq": 8,
+          "tick": 40
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 60,
+          "seq": 9,
+          "tick": 40
+        },
+        {
+          "type": "choose",
+          "prompt": "actPrompt",
+          "choice": "pokayoke",
+          "seq": 10,
+          "tick": 60
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 80,
+          "seq": 11,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 80
+        }
+      ],
+      "expect": {
+        "ending": "taktHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "taktCrit": "missed",
+          "rpnCrit": "met",
+          "actCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1,
+          "supK": 4
+        },
+        "stateHash": "6fa7a8c9c4755630"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    },
+    {
+      "id": "badRpn",
+      "title": "The loudest complaint fixed first",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "gemba",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 6,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "fails",
+          "seq": 3,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 12,
+          "seq": 4,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 20,
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "choose",
+          "prompt": "taktPrompt",
+          "choice": "takt",
+          "seq": 6,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 40,
+          "seq": 7,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "rpnPrompt",
+          "choice": "loudest",
+          "seq": 8,
+          "tick": 40
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 60,
+          "seq": 9,
+          "tick": 40
+        },
+        {
+          "type": "choose",
+          "prompt": "actPrompt",
+          "choice": "pokayoke",
+          "seq": 10,
+          "tick": 60
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 80,
+          "seq": 11,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 80
+        }
+      ],
+      "expect": {
+        "ending": "rpnHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "taktCrit": "met",
+          "rpnCrit": "missed",
+          "actCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1,
+          "supK": 4
+        },
+        "stateHash": "5b234ecb2b9e988e"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    },
+    {
+      "id": "badAct",
+      "title": "Manual inspection of every parcel",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "gemba",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 6,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "fails",
+          "seq": 3,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 12,
+          "seq": 4,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 20,
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "choose",
+          "prompt": "taktPrompt",
+          "choice": "takt",
+          "seq": 6,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 40,
+          "seq": 7,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "rpnPrompt",
+          "choice": "rpn",
+          "seq": 8,
+          "tick": 40
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 60,
+          "seq": 9,
+          "tick": 40
+        },
+        {
+          "type": "choose",
+          "prompt": "actPrompt",
+          "choice": "inspectAll",
+          "seq": 10,
+          "tick": 60
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 80,
+          "seq": 11,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 80
+        }
+      ],
+      "expect": {
+        "ending": "actHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "taktCrit": "met",
+          "rpnCrit": "met",
+          "actCrit": "missed",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1,
+          "supK": 4
+        },
+        "stateHash": "08e9b2de5d8c5344"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    }
+  ]
+}
