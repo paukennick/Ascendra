@@ -18827,7 +18827,7 @@
       "title": "Short course name kept the new 'Exam Prep for' title prefix",
       "status": "fixed",
       "severity": "low",
-      "symptom": "With REQ-324 titles, shortCourseName's title fallback (no credential name) would print 'Exam Prep for CISSP®' cut to 18 characters in reminder and countdown emails.",
+      "symptom": "With REQ-324 titles, shortCourseName's title fallback (no credential name) would print 'Exam Prep for CISSP\u00ae' cut to 18 characters in reminder and countdown emails.",
       "how_detected": "review of title readers during REQ-324",
       "root_cause": "VENDOR_PREFIX listed the old 'Prep for' prefix only; a title-format change did not look at the readers that strip title prefixes.",
       "requirement": "REQ-324",
@@ -18850,7 +18850,7 @@
       "title": "Reminder short name cut a long credential name to its first words",
       "status": "fixed",
       "severity": "low",
-      "symptom": "With names on again, reminder and countdown emails for CISSP would call the course 'Information…' (the credential name without 'Certified', cut to 18 characters).",
+      "symptom": "With names on again, reminder and countdown emails for CISSP would call the course 'Information\u2026' (the credential name without 'Certified', cut to 18 characters).",
       "how_detected": "lib/unbranded.test.ts (REQ-324 short-name test)",
       "root_cause": "shortCourseName fell back to the exam code or an ellipsis; CISSP and similar exams have no code and are known by the acronym at the end of their name. REQ-319 had hidden it by nulling the names.",
       "requirement": "REQ-324",
@@ -19328,6 +19328,31 @@
       "no_test_reason": "A source-reading error, not code; prevention is to read the guide linked from the certification page before reporting an outline difference.",
       "prevention_rules": [],
       "prevention_notes": "Read the exam guide linked from the certification page (PDF where Google links one) before reporting an outline difference; note when the HTML page differs.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2505",
+      "date": "2026-11-18",
+      "title": "A reworded action label exceeded the 200-character schema limit",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "documents.test.ts 'seeded sim documents pass the linter' failed for AWSSCS/miner-instance-evidence-before-scale-in and its DOP band: actions.preserve.label too big (208 characters)",
+      "how_detected": "documents.test.ts milestone run",
+      "root_cause": "The verification pass lengthened the fix label (Standby to detach wording) and the builder's factory did not check label length; depth-cloud.test.ts does not run the full schema check.",
+      "requirement": "REQ-335",
+      "affected": [
+        "backend/supabase/seed/sims/AWSSCS/miner-instance-evidence-before-scale-in.sim.json"
+      ],
+      "fix_summary": "Label shortened to 128 characters; the factory now refuses labels over 200 characters",
+      "fix_commits": [
+        "1e1bcc6c"
+      ],
+      "regression_tests": [
+        "backend/lib/sim/documents.test.ts::seeded sim documents pass the linter"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Factory assertion on label length; documents.test.ts covers every seeded document.",
       "recurrence_of": ""
     }
   ]
