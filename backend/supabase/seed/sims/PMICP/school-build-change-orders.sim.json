@@ -1,0 +1,1163 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "school-build-change-orders",
+  "title": "Change orders on a school build: a change process that keeps up, value engineering, and scope against the outcome",
+  "screen": {
+    "type": "project-dashboard",
+    "level": 1,
+    "dashboard": {
+      "mode": "predictive",
+      "heading": "Middle school build, week {p}",
+      "commitments": [
+        {
+          "id": "out",
+          "label": "Core outcome",
+          "text": "Open for the fall term within 42 million dollars."
+        }
+      ],
+      "columns": [
+        {
+          "id": "open",
+          "label": "Open"
+        },
+        {
+          "id": "risk",
+          "label": "Off plan"
+        },
+        {
+          "id": "done",
+          "label": "Decided on plan"
+        }
+      ],
+      "items": [
+        {
+          "id": "wProc",
+          "label": "Change process",
+          "column": "proc == \"tiered\" ? \"done\" : proc == \"faster\" ? \"risk\" : proc == \"atRisk\" ? \"risk\" : \"open\"",
+          "when": "true",
+          "flag": "proc == \"atRisk\""
+        },
+        {
+          "id": "wEval",
+          "label": "Pending changes",
+          "column": "eval == \"outcome\" ? \"done\" : eval == \"first\" ? \"risk\" : eval == \"all\" ? \"risk\" : \"open\"",
+          "when": "true",
+          "flag": "eval == \"all\""
+        },
+        {
+          "id": "wVe",
+          "label": "Sprinkler upgrade",
+          "column": "ve == \"ve\" ? \"done\" : ve == \"cutScope\" ? \"risk\" : ve == \"skipCode\" ? \"risk\" : \"open\"",
+          "when": "true",
+          "flag": "ve == \"skipCode\""
+        }
+      ],
+      "issues": [
+        {
+          "id": "iProc",
+          "label": "Slow change approvals",
+          "when": "p >= 1",
+          "at": "604800",
+          "status": "{proc == \"tiered\" ? \"Tiered, fast change process\" : proc == \"faster\" ? \"Same process, reminder\" : proc == \"atRisk\" ? \"Building before approval\" : \"Due\"}",
+          "open": "proc == \"none\""
+        },
+        {
+          "id": "iEval",
+          "label": "Changes exceed contingency",
+          "when": "p >= 2",
+          "at": "1209600",
+          "status": "{eval == \"outcome\" ? \"Triaged against the outcome\" : eval == \"first\" ? \"First come, first served\" : eval == \"all\" ? \"All approved\" : \"Due\"}",
+          "open": "eval == \"none\""
+        },
+        {
+          "id": "iVe",
+          "label": "Code gap without funding",
+          "when": "p >= 3",
+          "at": "1814400",
+          "status": "{ve == \"ve\" ? \"Value engineering closes the gap\" : ve == \"cutScope\" ? \"Gym equipment cut\" : ve == \"skipCode\" ? \"Code item deferred\" : \"Due\"}",
+          "open": "ve == \"none\""
+        }
+      ],
+      "people": [
+        {
+          "id": "sSpon",
+          "label": "Sponsor",
+          "spokenLabel": "the sponsor's support",
+          "value": "spon",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sOwner",
+          "label": "Contract owner's representative",
+          "spokenLabel": "the owner's representative's support",
+          "value": "owner",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sTeam",
+          "label": "Site team",
+          "spokenLabel": "the site team's support",
+          "value": "team",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "events": [
+        {
+          "id": "mProc",
+          "label": "Change board",
+          "at": "604800",
+          "status": "{proc == \"tiered\" ? \"Tiered, fast change process\" : proc == \"faster\" ? \"Same process, reminder\" : proc == \"atRisk\" ? \"Building before approval\" : \"Due\"}"
+        },
+        {
+          "id": "mEval",
+          "label": "Budget review",
+          "at": "1209600",
+          "status": "{eval == \"outcome\" ? \"Triaged against the outcome\" : eval == \"first\" ? \"First come, first served\" : eval == \"all\" ? \"All approved\" : \"Due\"}"
+        },
+        {
+          "id": "mVe",
+          "label": "Inspection",
+          "at": "1814400",
+          "status": "{ve == \"ve\" ? \"Value engineering closes the gap\" : ve == \"cutScope\" ? \"Gym equipment cut\" : ve == \"skipCode\" ? \"Code item deferred\" : \"Due\"}"
+        }
+      ],
+      "meters": [
+        {
+          "id": "mSpi",
+          "label": "SPI",
+          "value": "{spi}"
+        },
+        {
+          "id": "mCpi",
+          "label": "CPI",
+          "value": "{cpi}"
+        }
+      ]
+    }
+  },
+  "objective": "Building and managing a change-order process: timing it appropriately in the project lifecycle and designing agile processes for rapid change orders",
+  "secondaryObjectives": [
+    "Evaluating scope changes against core project outcomes, weighing the benefits and downfalls of technology-assisted scope/change-order management",
+    "Applying scope-management tools and techniques (value engineering, cost-benefit analysis) to identify and close scope gaps"
+  ],
+  "sources": [
+    {
+      "cite": "PMI, PMI Construction Professional (PMI-CP) Examination Content Outline (February 2024): Contracts Management 50%, Stakeholder Engagement 30%, Strategy and Scope Management 15%, Project Governance 5%",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.scribd.com/document/712650910/PMICP-Exam-Content-Outline",
+      "note": "Read 2026-11-17 through a summarizing fetch of a copy hosted on Scribd: the domain weights only; the task text was not shown. The objective wording is the course seed's, built from PMI's outline read on 2026-09-27 (backend/supabase/seed/tracks/pm.ts); the claims task text is to verify against PMI's PDF. Reused for REQ-336 from this course's clinic-fitout-claim-pmicp (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the project, the figures and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the construction project manager for a fictional school district's new middle school. The steel frame is going up; change requests from the district arrive weekly and each takes six weeks to approve.",
+    "handover": [
+      "Change orders need three signatures and a paper form.",
+      "The core outcome: a school open for the fall term within the 42 million dollar budget."
+    ],
+    "howItWorks": [
+      "The dashboard shows the commitments, the work items, the risks and issues, the people's support and the milestones.",
+      "Move on a week at a time. A decision comes to you at each status meeting; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-02-08T09:00",
+    "tick": "1d",
+    "maxDuration": "84d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "spon": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "owner": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "team": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "proc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "tiered",
+        "faster",
+        "atRisk"
+      ],
+      "init": "none"
+    },
+    "procAt": {
+      "type": "time",
+      "init": null
+    },
+    "eval": {
+      "type": "enum",
+      "values": [
+        "none",
+        "outcome",
+        "first",
+        "all"
+      ],
+      "init": "none"
+    },
+    "evalAt": {
+      "type": "time",
+      "init": null
+    },
+    "ve": {
+      "type": "enum",
+      "values": [
+        "none",
+        "ve",
+        "cutScope",
+        "skipCode"
+      ],
+      "init": "none"
+    },
+    "veAt": {
+      "type": "time",
+      "init": null
+    },
+    "logAt": {
+      "type": "time",
+      "init": null
+    },
+    "budgetAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(spon, owner), team)"
+    },
+    "missCount": {
+      "expr": "((proc == \"atRisk\") ? 1 : 0) + ((eval == \"all\") ? 1 : 0) + ((ve == \"skipCode\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(proc == \"none\" or (proc == \"atRisk\") ? 1 : 0) + (eval == \"none\" or (eval == \"all\") ? 1 : 0) + (ve == \"none\" or (ve == \"skipCode\") ? 1 : 0)"
+    },
+    "spi": {
+      "expr": "1 - ((proc == \"faster\") ? 0.04 : (proc == \"atRisk\") ? 0.09 : 0) - ((eval == \"first\") ? 0.04 : (eval == \"all\") ? 0.09 : 0) - ((ve == \"cutScope\") ? 0.04 : (ve == \"skipCode\") ? 0.09 : 0)"
+    },
+    "cpi": {
+      "expr": "1 - ((proc == \"faster\") ? 0.03 : (proc == \"atRisk\") ? 0.08 : 0) - ((eval == \"first\") ? 0.03 : (eval == \"all\") ? 0.08 : 0) - ((ve == \"cutScope\") ? 0.03 : (ve == \"skipCode\") ? 0.08 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Change management",
+      "clock": "turns",
+      "actions": [
+        "log",
+        "budget"
+      ]
+    },
+    "close": {
+      "label": "Change record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "log": {
+      "label": "Read the change log",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(logAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "logAt",
+          "to": "t"
+        },
+        {
+          "log": "Read the change log.",
+          "kind": "act"
+        },
+        {
+          "finding": "14 pending changes; average approval 6 weeks; site crews stand by or proceed at risk."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "budget": {
+      "label": "Read the budget and contingency",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(budgetAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "budgetAt",
+          "to": "t"
+        },
+        {
+          "log": "Read the budget and contingency.",
+          "kind": "act"
+        },
+        {
+          "finding": "Contingency left: 1.1 million dollars; pending changes total 1.6 million."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "A tiered change process with an online log, changes triaged against the outcome, and the sprinkler gap closed by value engineering"
+                },
+                {
+                  "value": "summary",
+                  "label": "Changes managed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next status meeting",
+      "wait": {
+        "skipLabel": "Go to the next status meeting"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "proc == \"atRisk\"",
+              "then": [
+                {
+                  "log": "Week 2: the district rejects two changes already built; 140 thousand dollars of work must be removed.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "eval == \"all\"",
+              "then": [
+                {
+                  "log": "Week 3: the board refuses extra funds; work is suspended pending a budget decision.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "ve == \"skipCode\"",
+              "then": [
+                {
+                  "log": "Week 4: the fire marshal refuses the occupancy certificate; opening slips past the fall term.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "7d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The change review closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "7d"
+        }
+      ]
+    },
+    {
+      "id": "t_proc",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 1: approvals.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "procPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_eval",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 2: the pending changes.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "evalPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_ve",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 3: a scope gap.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "vePrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "procPrompt": {
+      "title": "Six weeks per change",
+      "context": "Crews wait or build at risk.",
+      "choices": [
+        {
+          "id": "tiered",
+          "label": "A tiered process: small changes under 25 thousand dollars approved on site within 48 hours by the owner's representative, larger ones weekly by a change board, all in a shared online log",
+          "effects": [
+            {
+              "set": "proc",
+              "to": "\"tiered\""
+            },
+            {
+              "set": "procAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "10"
+            },
+            {
+              "log": "Changes clear in days.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A change process sized by value and timed to the work avoids stand-by and risk."
+        },
+        {
+          "id": "faster",
+          "label": "Ask signatories to sign faster",
+          "effects": [
+            {
+              "set": "proc",
+              "to": "\"faster\""
+            },
+            {
+              "set": "procAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "-15"
+            },
+            {
+              "log": "A reminder goes out.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Still six weeks for small items."
+        },
+        {
+          "id": "atRisk",
+          "label": "Tell crews to build changes before approval",
+          "effects": [
+            {
+              "set": "proc",
+              "to": "\"atRisk\""
+            },
+            {
+              "set": "procAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "-25"
+            },
+            {
+              "log": "Crews build at risk.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Unapproved work may not be paid or may be rejected."
+        }
+      ]
+    },
+    "evalPrompt": {
+      "title": "1.6 million of changes, 1.1 million left",
+      "context": "Not all changes serve the outcome.",
+      "choices": [
+        {
+          "id": "outcome",
+          "label": "Evaluate each change against the outcome (open for fall, in budget): approve safety and code items, defer nice-to-haves to a later phase",
+          "effects": [
+            {
+              "set": "eval",
+              "to": "\"outcome\""
+            },
+            {
+              "set": "evalAt",
+              "to": "t"
+            },
+            {
+              "add": "owner",
+              "by": "10"
+            },
+            {
+              "log": "Changes are triaged by the outcome.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Scope changes are judged by what they do for the core outcome."
+        },
+        {
+          "id": "first",
+          "label": "Approve in the order received until contingency runs out",
+          "effects": [
+            {
+              "set": "eval",
+              "to": "\"first\""
+            },
+            {
+              "set": "evalAt",
+              "to": "t"
+            },
+            {
+              "add": "owner",
+              "by": "-15"
+            },
+            {
+              "log": "First come, first served.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Important late items may not be funded."
+        },
+        {
+          "id": "all",
+          "label": "Approve them all and request more budget",
+          "effects": [
+            {
+              "set": "eval",
+              "to": "\"all\""
+            },
+            {
+              "set": "evalAt",
+              "to": "t"
+            },
+            {
+              "add": "owner",
+              "by": "-25"
+            },
+            {
+              "log": "All approved.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The budget is exceeded and the board must find 500 thousand dollars."
+        }
+      ]
+    },
+    "vePrompt": {
+      "title": "A gap and no money",
+      "context": "Code requires a sprinkler upgrade; contingency is short.",
+      "choices": [
+        {
+          "id": "ve",
+          "label": "Run value engineering: an alternative roof finish with the same performance saves 280 thousand dollars, funding the sprinkler upgrade, with a cost-benefit record",
+          "effects": [
+            {
+              "set": "ve",
+              "to": "\"ve\""
+            },
+            {
+              "set": "veAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "10"
+            },
+            {
+              "log": "The gap is closed within budget.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Value engineering keeps function at lower cost; cost-benefit analysis documents it."
+        },
+        {
+          "id": "cutScope",
+          "label": "Cut the gym's equipment",
+          "effects": [
+            {
+              "set": "ve",
+              "to": "\"cutScope\""
+            },
+            {
+              "set": "veAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-15"
+            },
+            {
+              "log": "Gym equipment cut.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "It funds the gap but loses a core function."
+        },
+        {
+          "id": "skipCode",
+          "label": "Defer the sprinkler upgrade",
+          "effects": [
+            {
+              "set": "ve",
+              "to": "\"skipCode\""
+            },
+            {
+              "set": "veAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-25"
+            },
+            {
+              "log": "Upgrade deferred.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Without it, the building fails inspection."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the change record for the district's board.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Process",
+          "criteria": "Tiered approvals within 48 hours or weekly; online log.",
+          "modelAnswer": "Changes under 25 thousand dollars are approved on site within 48 hours; larger ones weekly, all in a shared log."
+        },
+        {
+          "label": "Scope",
+          "criteria": "Triaged against the outcome; value engineering funds the sprinkler.",
+          "modelAnswer": "Pending changes were triaged against opening in budget; a roof finish alternative saves 280 thousand dollars and funds the sprinkler upgrade."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "project",
+    "thresholds": {
+      "spiTarget": {
+        "value": 0.95,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "SPI at the close."
+        }
+      },
+      "cpiTarget": {
+        "value": 0.95,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "CPI at the close."
+        }
+      },
+      "stakeholderTarget": {
+        "value": 60,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Every stakeholder at 60 of 100 or more."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (proc == \"faster\") and (eval == \"first\") and (ve == \"cutScope\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "PMI, PMI Construction Professional (PMI-CP) Examination Content Outline (February 2024): Contracts Management 50%, Stakeholder Engagement 30%, Strategy and Scope Management 15%, Project Governance 5%",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.scribd.com/document/712650910/PMICP-Exam-Content-Outline",
+        "note": "Read 2026-11-17 through a summarizing fetch of a copy hosted on Scribd: the domain weights only; the task text was not shown. The objective wording is the course seed's, built from PMI's outline read on 2026-09-27 (backend/supabase/seed/tracks/pm.ts); the claims task text is to verify against PMI's PDF. Reused for REQ-336 from this course's clinic-fitout-claim-pmicp (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "procHarm": {
+      "label": "Rejected work torn out",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and proc == \"atRisk\"",
+      "narrative": "Two changes built before approval were rejected and removed."
+    },
+    "evalHarm": {
+      "label": "Work suspended",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and eval == \"all\"",
+      "narrative": "Approving everything overran the budget; the board suspended work."
+    },
+    "veHarm": {
+      "label": "No occupancy certificate",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and ve == \"skipCode\"",
+      "narrative": "Deferring the sprinkler upgrade failed inspection; opening slipped."
+    },
+    "target": {
+      "label": "Changes managed for the outcome",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (proc == \"tiered\") and (eval == \"outcome\") and (ve == \"ve\") and record == \"honest\" and spi >= spiTarget and cpi >= cpiTarget and minSupport >= stakeholderTarget",
+      "narrative": "Changes flow quickly, the budget holds, and the school opens on time."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "procHarm",
+    "evalHarm",
+    "veHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "procCrit",
+        "label": "Built a change-order process that keeps pace with the work",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "proc == \"tiered\"",
+            "score": "met",
+            "why": "Rapid and controlled."
+          },
+          {
+            "when": "proc == \"faster\"",
+            "score": "partial",
+            "why": "Slow."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Uncontrolled."
+          }
+        ]
+      },
+      {
+        "id": "evalCrit",
+        "label": "Evaluated scope changes against the core outcome",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "eval == \"outcome\"",
+            "score": "met",
+            "why": "Outcome-led."
+          },
+          {
+            "when": "eval == \"first\"",
+            "score": "partial",
+            "why": "Unprioritized."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Over budget."
+          }
+        ]
+      },
+      {
+        "id": "veCrit",
+        "label": "Closed the gap with value engineering and cost-benefit analysis",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "ve == \"ve\"",
+            "score": "met",
+            "why": "Closed."
+          },
+          {
+            "when": "ve == \"cutScope\"",
+            "score": "partial",
+            "why": "Lost function."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Non-compliant."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(logAt) and not isNull(budgetAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(logAt) or not isNull(budgetAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 100)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "70 or more"
+      },
+      {
+        "id": "spiK",
+        "label": "SPI at the close",
+        "value": "spi",
+        "format": "number",
+        "expert": "1.00"
+      },
+      {
+        "id": "cpiK",
+        "label": "CPI at the close",
+        "value": "cpi",
+        "format": "number",
+        "expert": "1.00"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the change log and the budget first."
+      },
+      {
+        "at": "Week 1",
+        "text": "Introduce tiered approval with an online log."
+      },
+      {
+        "at": "Week 2",
+        "text": "Triage changes against opening on time and in budget."
+      },
+      {
+        "at": "Week 3",
+        "text": "Value-engineer the roof finish to fund the sprinkler upgrade."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "procHarm": {
+        "headline": "A process that keeps up",
+        "body": "Tiered, timely approvals, never build unapproved."
+      },
+      "evalHarm": {
+        "headline": "Judge changes by the outcome",
+        "body": "Keep the school opening on time and in budget."
+      },
+      "veHarm": {
+        "headline": "Value-engineer",
+        "body": "Keep function, cut cost, close the gap."
+      },
+      "target": {
+        "headline": "Good: changes managed for the outcome",
+        "body": "A fast change process, outcome-based triage and value engineering."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A change-order process is sized by value and timed to the work, so small changes clear in days and none are built before approval. Scope changes are evaluated against the project's core outcomes. Value engineering keeps function while cutting cost, closing scope gaps within budget."
+  }
+}
