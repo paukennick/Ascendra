@@ -1,0 +1,1092 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pmo-service-catalog-slas",
+  "title": "Designing a PMO's services: who its customers are, a service catalog and service levels",
+  "screen": {
+    "type": "governance-board",
+    "level": 1,
+    "governance": {
+      "risks": [
+        {
+          "id": "rCusts",
+          "label": "Services not matched to customers",
+          "spokenLabel": "Services not matched to customers",
+          "owner": "\"PMO lead\"",
+          "rating": "custs == \"personas\" ? \"low\" : custs == \"execOnly\" ? \"medium\" : custs == \"assume\" ? \"critical\" : p >= 1 ? \"high\" : \"medium\"",
+          "appetite": "custs == \"personas\" ? \"within\" : custs == \"execOnly\" ? \"within\" : custs == \"assume\" ? \"above\" : p >= 1 ? \"above\" : \"within\"",
+          "status": "{custs == \"personas\" ? \"Personas for three groups\" : custs == \"execOnly\" ? \"Executives only\" : custs == \"assume\" ? \"Reports assumed\" : \"Open\"}"
+        },
+        {
+          "id": "rCat",
+          "label": "PMO offers no value",
+          "spokenLabel": "PMO offers no value",
+          "owner": "\"PMO lead\"",
+          "rating": "cat == \"catalog\" ? \"low\" : cat == \"everything\" ? \"medium\" : cat == \"policing\" ? \"critical\" : p >= 2 ? \"high\" : \"medium\"",
+          "appetite": "cat == \"catalog\" ? \"within\" : cat == \"everything\" ? \"within\" : cat == \"policing\" ? \"above\" : p >= 2 ? \"above\" : \"within\"",
+          "status": "{cat == \"catalog\" ? \"Catalog from needs\" : cat == \"everything\" ? \"Everything offered\" : cat == \"policing\" ? \"Status chasing kept\" : \"Open\"}"
+        },
+        {
+          "id": "rSla",
+          "label": "No service expectations",
+          "spokenLabel": "No service expectations",
+          "owner": "\"PMO lead\"",
+          "rating": "sla == \"slas\" ? \"low\" : sla == \"one\" ? \"medium\" : sla == \"noSla\" ? \"critical\" : p >= 3 ? \"high\" : \"medium\"",
+          "appetite": "sla == \"slas\" ? \"within\" : sla == \"one\" ? \"within\" : sla == \"noSla\" ? \"above\" : p >= 3 ? \"above\" : \"within\"",
+          "status": "{sla == \"slas\" ? \"SLA per service\" : sla == \"one\" ? \"One SLA\" : sla == \"noSla\" ? \"Best effort\" : \"Open\"}"
+        }
+      ],
+      "stakeholders": [
+        {
+          "id": "sExec",
+          "label": "Executive sponsor",
+          "spokenLabel": "the executive sponsor's support",
+          "value": "exec",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sCust",
+          "label": "PMO customers",
+          "spokenLabel": "the PMO customers' support",
+          "value": "cust",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sStaff",
+          "label": "PMO staff",
+          "spokenLabel": "the PMO staff's support",
+          "value": "staff",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "docket": [
+        {
+          "id": "dCusts",
+          "kind": "Customers",
+          "label": "Week 1: customers",
+          "status": "{custs == \"personas\" ? \"Personas for three groups\" : custs == \"execOnly\" ? \"Executives only\" : custs == \"assume\" ? \"Reports assumed\" : \"Due\"}",
+          "when": "p >= 1",
+          "flag": "p >= 1 and custs == \"none\""
+        },
+        {
+          "id": "dCat",
+          "kind": "Service catalog",
+          "label": "Week 2: catalog",
+          "status": "{cat == \"catalog\" ? \"Catalog from needs\" : cat == \"everything\" ? \"Everything offered\" : cat == \"policing\" ? \"Status chasing kept\" : \"Due\"}",
+          "when": "p >= 2",
+          "flag": "p >= 2 and cat == \"none\""
+        },
+        {
+          "id": "dSla",
+          "kind": "SLAs",
+          "label": "Week 3: SLAs",
+          "status": "{sla == \"slas\" ? \"SLA per service\" : sla == \"one\" ? \"One SLA\" : sla == \"noSla\" ? \"Best effort\" : \"Due\"}",
+          "when": "p >= 3",
+          "flag": "p >= 3 and sla == \"none\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Week",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Designing and implementing PMO services: a needs assessment, a service catalog, and an SLA framework for each offering",
+  "secondaryObjectives": [
+    "Managing potential and current PMO customers: identifying and categorizing them, and building personas for their differing needs"
+  ],
+  "sources": [
+    {
+      "cite": "PMI, PMI PMO Certified Professional (PMI-PMOCP) Examination Content Outline and Specifications, January 2025 (v2): Organizational Development and Alignment 16%, PMO Strategic Elements 18%, PMO Design and Structuring 18%, PMO Operation and Performance 15%, PMO Enhancement and Effectiveness 18%, People 15%",
+      "checkedAt": "2026-11-17",
+      "url": "https://cb405383.masteryexamprep-com.pages.dev/exams/pmi/pmocp/overview",
+      "note": "Read 2026-11-17 through a summarizing fetch of a study page (masteryexamprep, dated 2025-12-20) that cites PMI's outline of January 2025 (v2) for these weights. The page lists no task statements; it says questions reward 'governance realism: decision rights, thresholds, escalation paths, and reporting that drives decisions'. PMI's PDF (the course seed cites it) was not opened; the task wording is the course seed's, to verify. Reused for REQ-336 from this course's water-utility-rebalance-pmipmocp (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the project, the figures and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are setting up the PMO at Wexford Logistics, a fictional logistics company. Project managers see the PMO as 'the reporting police'; executives want portfolio visibility.",
+    "handover": [
+      "The PMO today: a status template and a monthly chase for reports.",
+      "Three customer groups: executives, project managers, functional managers."
+    ],
+    "howItWorks": [
+      "The board shows the risk register against the appetite, each stakeholder's support in words and the docket.",
+      "Move on a week at a time. A decision comes to you at each review; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-02-01T09:00",
+    "tick": "1d",
+    "maxDuration": "84d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "exec": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "cust": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "staff": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "custs": {
+      "type": "enum",
+      "values": [
+        "none",
+        "personas",
+        "execOnly",
+        "assume"
+      ],
+      "init": "none"
+    },
+    "custsAt": {
+      "type": "time",
+      "init": null
+    },
+    "cat": {
+      "type": "enum",
+      "values": [
+        "none",
+        "catalog",
+        "everything",
+        "policing"
+      ],
+      "init": "none"
+    },
+    "catAt": {
+      "type": "time",
+      "init": null
+    },
+    "sla": {
+      "type": "enum",
+      "values": [
+        "none",
+        "slas",
+        "one",
+        "noSla"
+      ],
+      "init": "none"
+    },
+    "slaAt": {
+      "type": "time",
+      "init": null
+    },
+    "needsAt": {
+      "type": "time",
+      "init": null
+    },
+    "todayAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(exec, cust), staff)"
+    },
+    "missCount": {
+      "expr": "((custs == \"assume\") ? 1 : 0) + ((cat == \"policing\") ? 1 : 0) + ((sla == \"noSla\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(custs == \"none\" or (custs == \"assume\") ? 1 : 0) + (cat == \"none\" or (cat == \"policing\") ? 1 : 0) + (sla == \"none\" or (sla == \"noSla\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "PMO design",
+      "clock": "turns",
+      "actions": [
+        "needs",
+        "today"
+      ]
+    },
+    "close": {
+      "label": "Design record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "needs": {
+      "label": "Interview each customer group",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(needsAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "needsAt",
+          "to": "t"
+        },
+        {
+          "log": "Interview each customer group.",
+          "kind": "act"
+        },
+        {
+          "finding": "Executives want portfolio decisions; project managers want scheduling help and fewer reports; functional managers want resource visibility."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "today": {
+      "label": "Review what the PMO does today",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(todayAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "todayAt",
+          "to": "t"
+        },
+        {
+          "log": "Review what the PMO does today.",
+          "kind": "act"
+        },
+        {
+          "finding": "80% of PMO time goes on chasing status reports nobody reads."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Personas from interviews, a catalog built from needs, and an SLA per service"
+                },
+                {
+                  "value": "summary",
+                  "label": "PMO designed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next review",
+      "wait": {
+        "skipLabel": "Go to the next review"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "custs == \"assume\"",
+              "then": [
+                {
+                  "log": "Week 2: project managers ignore the new report pack; adoption is near zero.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "cat == \"policing\"",
+              "then": [
+                {
+                  "log": "Week 3: the executive sponsor questions the PMO's budget: it produces reports but no decisions.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "sla == \"noSla\"",
+              "then": [
+                {
+                  "log": "Week 4: a project manager waits two weeks for scheduling help before a bid deadline and escalates.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "7d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The service design is approved.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "7d"
+        }
+      ]
+    },
+    {
+      "id": "t_custs",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 1: customers.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "custsPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_cat",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 2: services.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "catPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_sla",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 3: service levels.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "slaPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "custsPrompt": {
+      "title": "Who are the PMO's customers?",
+      "context": "Different groups want different things.",
+      "choices": [
+        {
+          "id": "personas",
+          "label": "Categorize three customer groups with personas and their needs, from the interviews",
+          "effects": [
+            {
+              "set": "custs",
+              "to": "\"personas\""
+            },
+            {
+              "set": "custsAt",
+              "to": "t"
+            },
+            {
+              "add": "cust",
+              "by": "1"
+            },
+            {
+              "log": "Personas guide the design.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Knowing each customer group's needs is the basis of a PMO's services."
+        },
+        {
+          "id": "execOnly",
+          "label": "Design for the executives only",
+          "effects": [
+            {
+              "set": "custs",
+              "to": "\"execOnly\""
+            },
+            {
+              "set": "custsAt",
+              "to": "t"
+            },
+            {
+              "add": "cust",
+              "by": "-1"
+            },
+            {
+              "log": "Executives only.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Project managers keep seeing the PMO as police."
+        },
+        {
+          "id": "assume",
+          "label": "Assume everyone wants better reports",
+          "effects": [
+            {
+              "set": "custs",
+              "to": "\"assume\""
+            },
+            {
+              "set": "custsAt",
+              "to": "t"
+            },
+            {
+              "add": "cust",
+              "by": "-2"
+            },
+            {
+              "log": "Reports for all.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Nobody asked for more reports."
+        }
+      ]
+    },
+    "catPrompt": {
+      "title": "What the PMO offers",
+      "context": "Needs differ by group.",
+      "choices": [
+        {
+          "id": "catalog",
+          "label": "A service catalog from the needs: portfolio decision support, scheduling clinic, resource capacity view, lighter reporting",
+          "effects": [
+            {
+              "set": "cat",
+              "to": "\"catalog\""
+            },
+            {
+              "set": "catAt",
+              "to": "t"
+            },
+            {
+              "add": "exec",
+              "by": "1"
+            },
+            {
+              "log": "The catalog is published.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A catalog makes the PMO's offer explicit and tied to needs."
+        },
+        {
+          "id": "everything",
+          "label": "Offer everything any PMO might do",
+          "effects": [
+            {
+              "set": "cat",
+              "to": "\"everything\""
+            },
+            {
+              "set": "catAt",
+              "to": "t"
+            },
+            {
+              "add": "exec",
+              "by": "-1"
+            },
+            {
+              "log": "A long catalog.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The PMO can't deliver all of it well."
+        },
+        {
+          "id": "policing",
+          "label": "Keep the status-chasing service as the core",
+          "effects": [
+            {
+              "set": "cat",
+              "to": "\"policing\""
+            },
+            {
+              "set": "catAt",
+              "to": "t"
+            },
+            {
+              "add": "exec",
+              "by": "-2"
+            },
+            {
+              "log": "Status chasing stays.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The PMO stays 'the police'."
+        }
+      ]
+    },
+    "slaPrompt": {
+      "title": "What customers can expect",
+      "context": "No service levels exist.",
+      "choices": [
+        {
+          "id": "slas",
+          "label": "An SLA per service (scheduling clinic within 2 days, capacity view refreshed weekly) with how performance is reported",
+          "effects": [
+            {
+              "set": "sla",
+              "to": "\"slas\""
+            },
+            {
+              "set": "slaAt",
+              "to": "t"
+            },
+            {
+              "add": "staff",
+              "by": "1"
+            },
+            {
+              "log": "SLAs are agreed.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "SLAs set expectations and let the PMO measure itself."
+        },
+        {
+          "id": "one",
+          "label": "One SLA for everything",
+          "effects": [
+            {
+              "set": "sla",
+              "to": "\"one\""
+            },
+            {
+              "set": "slaAt",
+              "to": "t"
+            },
+            {
+              "add": "staff",
+              "by": "-1"
+            },
+            {
+              "log": "One SLA.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Different services need different promises."
+        },
+        {
+          "id": "noSla",
+          "label": "No SLAs: best effort",
+          "effects": [
+            {
+              "set": "sla",
+              "to": "\"noSla\""
+            },
+            {
+              "set": "slaAt",
+              "to": "t"
+            },
+            {
+              "add": "staff",
+              "by": "-2"
+            },
+            {
+              "log": "No SLAs.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Customers can't rely on the services."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the PMO service design summary for the executive sponsor.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Customers and services",
+          "criteria": "Three personas; a catalog from their needs.",
+          "modelAnswer": "Executives, project managers and functional managers each have a persona; the catalog offers decision support, a scheduling clinic, a capacity view and lighter reporting."
+        },
+        {
+          "label": "Service levels",
+          "criteria": "An SLA per service, reported.",
+          "modelAnswer": "Each service has an SLA we report against monthly."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "governance",
+    "thresholds": {
+      "aboveAppetite": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No risk above appetite at the close without a treatment."
+        }
+      },
+      "supportTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Each key stakeholder at 6 of 10 or more at the close."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (custs == \"execOnly\") and (cat == \"everything\") and (sla == \"one\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "PMI, PMI PMO Certified Professional (PMI-PMOCP) Examination Content Outline and Specifications, January 2025 (v2): Organizational Development and Alignment 16%, PMO Strategic Elements 18%, PMO Design and Structuring 18%, PMO Operation and Performance 15%, PMO Enhancement and Effectiveness 18%, People 15%",
+        "checkedAt": "2026-11-17",
+        "url": "https://cb405383.masteryexamprep-com.pages.dev/exams/pmi/pmocp/overview",
+        "note": "Read 2026-11-17 through a summarizing fetch of a study page (masteryexamprep, dated 2025-12-20) that cites PMI's outline of January 2025 (v2) for these weights. The page lists no task statements; it says questions reward 'governance realism: decision rights, thresholds, escalation paths, and reporting that drives decisions'. PMI's PDF (the course seed cites it) was not opened; the task wording is the course seed's, to verify. Reused for REQ-336 from this course's water-utility-rebalance-pmipmocp (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "custsHarm": {
+      "label": "Services nobody wanted",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and custs == \"assume\"",
+      "narrative": "Project managers ignored the report pack; adoption was near zero."
+    },
+    "catHarm": {
+      "label": "A PMO without value",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and cat == \"policing\"",
+      "narrative": "The sponsor questioned the PMO's budget; it produced reports, not decisions."
+    },
+    "slaHarm": {
+      "label": "Customers let down",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and sla == \"noSla\"",
+      "narrative": "With no SLAs, a PM waited two weeks for help before a bid."
+    },
+    "target": {
+      "label": "A PMO designed around its customers",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (custs == \"personas\") and (cat == \"catalog\") and (sla == \"slas\") and record == \"honest\" and openCount <= aboveAppetite and minSupport >= supportTarget",
+      "narrative": "The PMO offers services its customers asked for, with commitments it measures."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "custsHarm",
+    "catHarm",
+    "slaHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "custsCrit",
+        "label": "Identified and categorized customers with personas",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "custs == \"personas\"",
+            "score": "met",
+            "why": "Customer-centred."
+          },
+          {
+            "when": "custs == \"execOnly\"",
+            "score": "partial",
+            "why": "One group."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No assessment."
+          }
+        ]
+      },
+      {
+        "id": "catCrit",
+        "label": "Designed a service catalog from the needs assessment",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "cat == \"catalog\"",
+            "score": "met",
+            "why": "Designed."
+          },
+          {
+            "when": "cat == \"everything\"",
+            "score": "partial",
+            "why": "Unfocused."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No value."
+          }
+        ]
+      },
+      {
+        "id": "slaCrit",
+        "label": "Set an SLA framework for each service",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sla == \"slas\"",
+            "score": "met",
+            "why": "Agreed."
+          },
+          {
+            "when": "sla == \"one\"",
+            "score": "partial",
+            "why": "Generic."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No commitment."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(needsAt) and not isNull(todayAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(needsAt) or not isNull(todayAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 10)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Interview each customer group before designing services."
+      },
+      {
+        "at": "Week 1",
+        "text": "Build personas for the three customer groups."
+      },
+      {
+        "at": "Week 2",
+        "text": "Publish a catalog built from the needs."
+      },
+      {
+        "at": "Week 3",
+        "text": "Set an SLA per service and report against it."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "custsHarm": {
+        "headline": "Know your customers",
+        "body": "Assess needs and build personas."
+      },
+      "catHarm": {
+        "headline": "Design from needs",
+        "body": "Build the catalog from customers' needs."
+      },
+      "slaHarm": {
+        "headline": "Commit to service levels",
+        "body": "Each service needs an SLA."
+      },
+      "target": {
+        "headline": "Good: a PMO designed around its customers",
+        "body": "Personas, a needs-based catalog and SLAs."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "PMO design starts from its customers: identify and categorize them, build personas, assess their needs. Services are made explicit in a catalog built from those needs, and each service has an SLA so customers know what to expect and the PMO can measure itself."
+  }
+}
