@@ -1,0 +1,1010 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "istio-canary-revision-upgrade",
+  "title": "Upgrading Istio with revisions: a canary control plane, moving namespaces and removing the old one",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "mesh@glenmoor:~$",
+      "lines": [
+        {
+          "id": "firstLine",
+          "text": "istioctl version: control plane 1.22.6 (end of life), data plane 1.22.6 (42 proxies)",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "lineMethod",
+          "text": "{method == \"revision\" ? \"1-23 revision running beside 1.22\" : method == \"inPlace\" ? \"In place to 1.23\" : method == \"skip\" ? \"In place to 1.24, skipping 1.23\" : \"\"}",
+          "when": "method != \"none\"",
+          "at": "timeAt(methodAt)",
+          "error": "method == \"skip\""
+        },
+        {
+          "id": "lineMove",
+          "text": "{move == \"oneByOne\" ? \"Moved one namespace at a time, verified\" : move == \"allLabels\" ? \"All relabelled; drifting over days\" : move == \"bothLabels\" ? \"Both labels: injection conflicts\" : \"\"}",
+          "when": "move != \"none\"",
+          "at": "timeAt(moveAt)",
+          "error": "move == \"bothLabels\""
+        },
+        {
+          "id": "lineOld",
+          "text": "{old == \"verifyRemove\" ? \"1.22 removed after zero proxies\" : old == \"keepOld\" ? \"1.22 left running\" : old == \"removeNow\" ? \"1.22 removed with a proxy on it\" : \"\"}",
+          "when": "old != \"none\"",
+          "at": "timeAt(oldAt)",
+          "error": "old == \"removeNow\""
+        }
+      ],
+      "nodes": [
+        {
+          "id": "nMethod",
+          "label": "control plane istiod",
+          "spokenLabel": "control plane istiod",
+          "kind": "control plane",
+          "status": "{method == \"revision\" ? \"1-23 revision running beside 1.22\" : method == \"inPlace\" ? \"In place to 1.23\" : method == \"skip\" ? \"In place to 1.24, skipping 1.23\" : \"Waiting\"}",
+          "tone": "method == \"revision\" ? \"up\" : method == \"inPlace\" ? \"degraded\" : method == \"skip\" ? \"down\" : p >= 1 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nMove",
+          "label": "namespace revision labels",
+          "spokenLabel": "namespace revision labels",
+          "kind": "namespaces",
+          "status": "{move == \"oneByOne\" ? \"Moved one namespace at a time, verified\" : move == \"allLabels\" ? \"All relabelled; drifting over days\" : move == \"bothLabels\" ? \"Both labels: injection conflicts\" : \"Waiting\"}",
+          "tone": "move == \"oneByOne\" ? \"up\" : move == \"allLabels\" ? \"degraded\" : move == \"bothLabels\" ? \"down\" : p >= 2 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nOld",
+          "label": "istiod 1.22",
+          "spokenLabel": "istiod 1.22",
+          "kind": "control plane",
+          "status": "{old == \"verifyRemove\" ? \"1.22 removed after zero proxies\" : old == \"keepOld\" ? \"1.22 left running\" : old == \"removeNow\" ? \"1.22 removed with a proxy on it\" : \"Waiting\"}",
+          "tone": "old == \"verifyRemove\" ? \"up\" : old == \"keepOld\" ? \"degraded\" : old == \"removeNow\" ? \"down\" : p >= 3 ? \"degraded\" : \"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "link0",
+          "from": "nMethod",
+          "to": "nMove",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        },
+        {
+          "id": "link1",
+          "from": "nMove",
+          "to": "nOld",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Check-in",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Plan and perform an Istio upgrade, canary (revision-based) or in-place, and move workloads between revisions safely",
+  "secondaryObjectives": [
+    "Install and configure Istio with istioctl or Helm: profiles, IstioOperator overlays, Helm charts (base, istiod, gateway) and verifying the installation"
+  ],
+  "sources": [
+    {
+      "cite": "CNCF Istio Certified Associate (ICA) curriculum: Installation, Upgrades, and Configuration 20%, Traffic Management 35%, Securing Workloads 25%, Troubleshooting 20%",
+      "checkedAt": "2026-11-17",
+      "url": "https://github.com/cncf/curriculum/tree/0a8cc08a502710a894e5724c2bec7b88404e5a6b",
+      "note": "The weights and objective wording are the course seed's (backend/supabase/seed/tracks/cncf-ecosystem.ts, read from the official curriculum by the course builder); on 2026-11-17 only the cncf/curriculum README was fetched, which names ICA but gives no file or version. Not re-read; to verify. Reused for REQ-336 from this course's retry-storm-one-bad-ratings-pod (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "OneUptime blog, 'How to Use istioctl proxy-status for Debugging' (2026-02-24)",
+      "checkedAt": "2026-11-17",
+      "url": "https://oneuptime.com/blog/post/2026-02-24-how-to-use-istioctl-proxy-status-for-debugging/view",
+      "note": "Found by search 2026-11-17 and read only through the search listing (title and address); to verify against the page. Used for: SYNCED, NOT SENT and STALE in istioctl proxy-status and what a STALE proxy means about istiod."
+    },
+    {
+      "cite": "OneUptime blog, 'How to Debug Data Plane Configuration Issues' (2026-02-24)",
+      "checkedAt": "2026-11-17",
+      "url": "https://oneuptime.com/blog/post/2026-02-24-how-to-debug-data-plane-configuration-issues/view",
+      "note": "Found by search 2026-11-17 and read only through the search listing (title and address); to verify against the page. Used for: istioctl proxy-config for listeners, routes, clusters and endpoints, and istioctl analyze."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The company, the mesh, the services and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You run the mesh at Glenmoor Energy, a fictional utility. The mesh is two minor versions behind and out of support. The upgrade must not interrupt the customer portal or the meter-reading APIs.",
+    "handover": [
+      "Current control plane: istiod 1.22, installed in place, namespaces labelled istio-injection=enabled.",
+      "Upgrades are supported one minor version at a time."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the map shows each component and its status in words.",
+      "Move on a check-in at a time. A decision comes to you at each check-in; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-04-19T08:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "method": {
+      "type": "enum",
+      "values": [
+        "none",
+        "revision",
+        "inPlace",
+        "skip"
+      ],
+      "init": "none"
+    },
+    "methodAt": {
+      "type": "time",
+      "init": null
+    },
+    "move": {
+      "type": "enum",
+      "values": [
+        "none",
+        "oneByOne",
+        "allLabels",
+        "bothLabels"
+      ],
+      "init": "none"
+    },
+    "moveAt": {
+      "type": "time",
+      "init": null
+    },
+    "old": {
+      "type": "enum",
+      "values": [
+        "none",
+        "verifyRemove",
+        "keepOld",
+        "removeNow"
+      ],
+      "init": "none"
+    },
+    "oldAt": {
+      "type": "time",
+      "init": null
+    },
+    "precheckAt": {
+      "type": "time",
+      "init": null
+    },
+    "labelsAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((method == \"skip\") ? 1 : 0) + ((move == \"bothLabels\") ? 1 : 0) + ((old == \"removeNow\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(method == \"none\" or (method == \"skip\") ? 1 : 0) + (move == \"none\" or (move == \"bothLabels\") ? 1 : 0) + (old == \"none\" or (old == \"removeNow\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The upgrade",
+      "clock": "turns",
+      "actions": [
+        "precheck",
+        "labels"
+      ]
+    },
+    "close": {
+      "label": "Change record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "precheck": {
+      "label": "istioctl x precheck",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(precheckAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "precheckAt",
+          "to": "t"
+        },
+        {
+          "output": "Info: upgrading from 1.22 to 1.23 is supported\nWarning: 1.22 to 1.24 skips a minor version"
+        },
+        {
+          "log": "You run the upgrade precheck.",
+          "kind": "act"
+        },
+        {
+          "finding": "The supported path is 1.22 to 1.23, then 1.23 to 1.24; skipping a minor version is not supported."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "labels": {
+      "label": "kubectl get ns -L istio-injection,istio.io/rev",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(labelsAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "labelsAt",
+          "to": "t"
+        },
+        {
+          "output": "portal     enabled\nmeters     enabled\nbilling    enabled"
+        },
+        {
+          "log": "You list the namespaces' labels.",
+          "kind": "act"
+        },
+        {
+          "finding": "All namespaces use istio-injection=enabled, which follows the default control plane; nothing pins a revision yet."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the change record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "A 1-23 canary revision (one minor step), namespaces moved one at a time and verified, and 1.22 removed when nothing used it"
+                },
+                {
+                  "value": "summary",
+                  "label": "Istio upgraded"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next check-in",
+      "wait": {
+        "skipLabel": "Go to the next check-in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "method == \"skip\"",
+              "then": [
+                {
+                  "log": "Check-in 2: 1.22 proxies reject part of the 1.24 configuration; the meters API's routes go missing and readings fail.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "move == \"bothLabels\"",
+              "then": [
+                {
+                  "log": "Check-in 3: restarted portal Pods start without sidecars and fail STRICT mTLS calls; the portal's login fails.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "old == \"removeNow\"",
+              "then": [
+                {
+                  "log": "Check-in 4: the nightly billing export runs on the old revision's template; it gets no certificate and fails.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "10min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The upgrade window closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "10min"
+        }
+      ]
+    },
+    {
+      "id": "t_method",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 1: the upgrade starts.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "methodPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_move",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 2: 1-23 is healthy.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "movePrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_old",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 3: all three namespaces are on 1-23.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "oldPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "methodPrompt": {
+      "title": "In place or canary?",
+      "context": "An in-place upgrade replaces istiod for everyone at once. A revision-based upgrade runs the new istiod beside the old one.",
+      "choices": [
+        {
+          "id": "revision",
+          "label": "Install 1.23 as a separate revision (istioctl install with revision 1-23) beside 1.22, verify it, and plan 1.24 the same way afterwards",
+          "effects": [
+            {
+              "set": "method",
+              "to": "\"revision\""
+            },
+            {
+              "set": "methodAt",
+              "to": "t"
+            },
+            {
+              "log": "istiod 1-23 runs beside 1.22.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A revision runs the new control plane alongside the old; workloads move when you choose, and you can move them back."
+        },
+        {
+          "id": "inPlace",
+          "label": "Upgrade in place to 1.23 during a quiet hour",
+          "effects": [
+            {
+              "set": "method",
+              "to": "\"inPlace\""
+            },
+            {
+              "set": "methodAt",
+              "to": "t"
+            },
+            {
+              "log": "istiod is upgraded in place.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Supported, but every proxy now talks to the new control plane at once and there is no side-by-side rollback."
+        },
+        {
+          "id": "skip",
+          "label": "Go straight to 1.24 in place to save a step",
+          "effects": [
+            {
+              "set": "method",
+              "to": "\"skip\""
+            },
+            {
+              "set": "methodAt",
+              "to": "t"
+            },
+            {
+              "log": "istiod jumps to 1.24 in place.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Skipping a minor version is unsupported; 1.22 proxies and a 1.24 control plane are outside the supported skew."
+        }
+      ]
+    },
+    "movePrompt": {
+      "title": "Move the workloads",
+      "context": "Workloads pick a control plane at injection, when their Pods start.",
+      "choices": [
+        {
+          "id": "oneByOne",
+          "label": "In billing first: replace istio-injection with istio.io/rev=1-23, restart its Deployments, check istioctl proxy-status shows them on 1-23 and traffic is healthy; then meters, then portal",
+          "effects": [
+            {
+              "set": "move",
+              "to": "\"oneByOne\""
+            },
+            {
+              "set": "moveAt",
+              "to": "t"
+            },
+            {
+              "log": "Namespaces move one by one, verified each time.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "The revision label picks the new control plane at the next restart; one namespace at a time keeps a bad step small."
+        },
+        {
+          "id": "allLabels",
+          "label": "Relabel all three namespaces at once and let Pods pick up 1-23 as they restart naturally",
+          "effects": [
+            {
+              "set": "move",
+              "to": "\"allLabels\""
+            },
+            {
+              "set": "moveAt",
+              "to": "t"
+            },
+            {
+              "log": "All namespaces relabelled; restarts happen over days.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Nothing breaks now, but the mesh runs mixed for days and a problem shows up wherever a Pod happens to restart."
+        },
+        {
+          "id": "bothLabels",
+          "label": "Add istio.io/rev=1-23 but keep istio-injection=enabled too",
+          "effects": [
+            {
+              "set": "move",
+              "to": "\"bothLabels\""
+            },
+            {
+              "set": "moveAt",
+              "to": "t"
+            },
+            {
+              "log": "Namespaces carry both labels.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "With both labels, injection is ambiguous; restarted Pods fail to get a sidecar or get the wrong one."
+        }
+      ]
+    },
+    "oldPrompt": {
+      "title": "Remove 1.22?",
+      "context": "proxy-status shows 41 proxies on 1-23 and one on 1.22: a CronJob's Pod that has not run since.",
+      "choices": [
+        {
+          "id": "verifyRemove",
+          "label": "Restart the CronJob's template so its next Pod injects 1-23, confirm proxy-status shows nothing on 1.22, then uninstall the 1.22 revision",
+          "effects": [
+            {
+              "set": "old",
+              "to": "\"verifyRemove\""
+            },
+            {
+              "set": "oldAt",
+              "to": "t"
+            },
+            {
+              "log": "Nothing uses 1.22; it is removed.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Remove the old revision only when no proxy depends on it."
+        },
+        {
+          "id": "keepOld",
+          "label": "Keep 1.22 running indefinitely in case",
+          "effects": [
+            {
+              "set": "old",
+              "to": "\"keepOld\""
+            },
+            {
+              "set": "oldAt",
+              "to": "t"
+            },
+            {
+              "log": "1.22 keeps running.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Nothing breaks, but an unsupported control plane stays in the cluster."
+        },
+        {
+          "id": "removeNow",
+          "label": "Uninstall 1.22 now",
+          "effects": [
+            {
+              "set": "old",
+              "to": "\"removeNow\""
+            },
+            {
+              "set": "oldAt",
+              "to": "t"
+            },
+            {
+              "log": "1.22 is uninstalled with one proxy still on it.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The CronJob's next Pod has no control plane for its revision and cannot get a certificate."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the change record: the upgrade method, how workloads moved and were verified, and when the old control plane was removed.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Method",
+          "criteria": "A canary revision one minor version at a time.",
+          "modelAnswer": "We installed 1.23 as revision 1-23 beside 1.22; 1.24 follows the same way."
+        },
+        {
+          "label": "Moving and removing",
+          "criteria": "One namespace at a time with istio.io/rev, verified by proxy-status; 1.22 removed at zero proxies.",
+          "modelAnswer": "Each namespace swapped istio-injection for istio.io/rev=1-23 and restarted, verified in proxy-status; 1.22 was removed when no proxy used it."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Service restored and the work closed within 60 minutes of the first report."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No fault introduced by the response itself."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (method == \"inPlace\") and (move == \"allLabels\") and (old == \"keepOld\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CNCF Istio Certified Associate (ICA) curriculum: Installation, Upgrades, and Configuration 20%, Traffic Management 35%, Securing Workloads 25%, Troubleshooting 20%",
+        "checkedAt": "2026-11-17",
+        "url": "https://github.com/cncf/curriculum/tree/0a8cc08a502710a894e5724c2bec7b88404e5a6b",
+        "note": "The weights and objective wording are the course seed's (backend/supabase/seed/tracks/cncf-ecosystem.ts, read from the official curriculum by the course builder); on 2026-11-17 only the cncf/curriculum README was fetched, which names ICA but gives no file or version. Not re-read; to verify. Reused for REQ-336 from this course's retry-storm-one-bad-ratings-pod (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "methodHarm": {
+      "label": "An unsupported jump",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and method == \"skip\"",
+      "narrative": "Jumping two minor versions in place left 1.22 proxies rejecting the new configuration; meter readings failed."
+    },
+    "moveHarm": {
+      "label": "Injection broke",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and move == \"bothLabels\"",
+      "narrative": "With both labels, restarted portal Pods came up without sidecars and failed STRICT calls; login failed."
+    },
+    "oldHarm": {
+      "label": "A job orphaned",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and old == \"removeNow\"",
+      "narrative": "Removing 1.22 while the CronJob still used it left the billing export without a certificate; it failed."
+    },
+    "target": {
+      "label": "Upgraded without interruption",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (method == \"revision\") and (move == \"oneByOne\") and (old == \"verifyRemove\") and record == \"honest\" and missCount <= newFaults and timeAt(doneAt) <= restoreWindow",
+      "narrative": "The mesh is on a supported version and no service was interrupted."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "methodHarm",
+    "moveHarm",
+    "oldHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "methodCrit",
+        "label": "Upgraded with a canary revision one minor version at a time",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "method == \"revision\"",
+            "score": "met",
+            "why": "Canary revision, supported step."
+          },
+          {
+            "when": "method == \"inPlace\"",
+            "score": "partial",
+            "why": "Supported, riskier."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Unsupported jump."
+          }
+        ]
+      },
+      {
+        "id": "moveCrit",
+        "label": "Moved namespaces one at a time and verified each",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "move == \"oneByOne\"",
+            "score": "met",
+            "why": "Gradual and verified."
+          },
+          {
+            "when": "move == \"allLabels\"",
+            "score": "partial",
+            "why": "Uncontrolled drift."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Conflicting labels."
+          }
+        ]
+      },
+      {
+        "id": "oldCrit",
+        "label": "Removed the old revision only when nothing used it",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "old == \"verifyRemove\"",
+            "score": "met",
+            "why": "Verified, then removed."
+          },
+          {
+            "when": "old == \"keepOld\"",
+            "score": "partial",
+            "why": "Old version left."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Removed while in use."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(precheckAt) and not isNull(labelsAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(precheckAt) or not isNull(labelsAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Run the precheck and list the namespaces' injection labels."
+      },
+      {
+        "at": "Check-in 1",
+        "text": "Install 1.23 as a revision beside the old control plane."
+      },
+      {
+        "at": "Check-in 2",
+        "text": "Relabel and restart one namespace at a time, checking proxy-status and traffic."
+      },
+      {
+        "at": "Check-in 3",
+        "text": "Confirm no proxy is on the old revision, then uninstall it."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "methodHarm": {
+        "headline": "One minor version at a time",
+        "body": "Upgrade through each minor version, preferably as a canary revision."
+      },
+      "moveHarm": {
+        "headline": "One injection label",
+        "body": "Replace istio-injection with istio.io/rev when moving a namespace to a revision."
+      },
+      "oldHarm": {
+        "headline": "Check proxy-status first",
+        "body": "Remove an old revision only when no proxy depends on it."
+      },
+      "target": {
+        "headline": "Good: upgraded without interruption",
+        "body": "A canary revision, gradual verified moves, and the old revision removed only when unused."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A revision-based (canary) upgrade installs the new istiod beside the old one; namespaces choose a control plane with istio.io/rev, and Pods pick it up at their next injection, so moves are gradual and reversible. Upgrade one minor version at a time. Replace istio-injection with the revision label rather than adding both, verify each move with istioctl proxy-status and traffic, and remove the old revision only when no proxy still uses it."
+  }
+}
