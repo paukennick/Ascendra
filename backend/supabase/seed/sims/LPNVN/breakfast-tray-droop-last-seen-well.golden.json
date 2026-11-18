@@ -1,0 +1,437 @@
+{
+  "slug": "breakfast-tray-droop-last-seen-well",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: F.A.S.T., NPO, last known well, 911 and the RN, vitals and glucose, medication list, document",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "fast",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "timeQ",
+          "choice": "time",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "npo",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "lkw",
+          "seq": 6,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "stroke"
+          },
+          "seq": 7,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "ems"
+          },
+          "seq": 8,
+          "tick": 25
+        },
+        {
+          "type": "teach",
+          "prompt": "fastQ",
+          "choice": "fast",
+          "seq": 9,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 10,
+          "tick": 25
+        },
+        {
+          "type": "chapter",
+          "chapter": "escalated",
+          "choice": "continue",
+          "seq": 11,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "meds",
+          "seq": 12,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 13,
+          "tick": 49
+        }
+      ],
+      "expect": {
+        "ending": "safe",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "reportC": "met",
+          "lkwC": "met",
+          "npoC": "met",
+          "lookC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 60,
+          "toKey": 65
+        },
+        "stateHash": "07839547597774ac"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Recognizes it and keeps him NPO, but calls 911 8 minutes later",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "fast",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "timeQ",
+          "choice": "time",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "npo",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "lkw",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 6,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "meds",
+          "seq": 7,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "stroke"
+          },
+          "seq": 8,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "ems"
+          },
+          "seq": 9,
+          "tick": 120
+        },
+        {
+          "type": "teach",
+          "prompt": "fastQ",
+          "choice": "fast",
+          "seq": 10,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 11,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "reportC": "partial",
+          "lkwC": "met",
+          "npoC": "met",
+          "lookC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 540,
+          "toKey": 60
+        },
+        "stateHash": "cb4a50513c738bb1"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "pills",
+      "title": "Calls 911 promptly but gives his pills first and never finds the last-known-well time",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "fast",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "timeQ",
+          "choice": "time",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "pills",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "stroke"
+          },
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "ems"
+          },
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "fastQ",
+          "choice": "fast",
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 8,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "reportC": "met",
+          "lkwC": "missed",
+          "npoC": "missed",
+          "lookC": "missed",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": -1
+        },
+        "stateHash": "e8a940c87d2d1cab"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "tired",
+      "title": "Failure: thinks he is tired, puts him to bed and leaves a message for rounds",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "fast",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "timeQ",
+          "choice": "time",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "tired"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "nap",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "provider"
+          },
+          "seq": 6,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "missed",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "reportC": "missed",
+          "lkwC": "missed",
+          "npoC": "missed",
+          "lookC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": -1
+        },
+        "stateHash": "45e973694f7695f4"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "sugar",
+      "title": "Failure: blames his sugar and gives his pills",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "sugar"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "pills",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "missed",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "reportC": "missed",
+          "lkwC": "missed",
+          "npoC": "missed",
+          "lookC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": -1,
+          "toKey": -1
+        },
+        "stateHash": "944c24bd28758bb1"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}
