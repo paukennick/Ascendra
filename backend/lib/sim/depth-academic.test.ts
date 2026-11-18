@@ -161,4 +161,21 @@ describe("REQ-333: the new cases behave as taught", () => {
     assert.equal(o.v("rowsAlteredOutsideFix"), 1406);
     assert.equal(docOf(S).endingOrder![0], "altered");
   });
+
+  test("MSHI breach: notify meets all three 60-day notices; the year-end log or 'deleted' leaves the rule unmet; an unchecked laptop is not proven", () => {
+    const S = "mshi-misdirected-email-breach-notice";
+    const e = driver(S, "incident");
+    for (const [a, p] of [["verify"], ["laptop", { l: "noNotice" }], ["assess"], ["decide", { e: "notify" }], ["letters"], ["media"], ["hhs"]] as [string, Record<string, string>?][]) e.act(a, p);
+    assert.equal(e.v("noticesOnTime"), true);
+    assert.equal(e.v("harborProven"), true);
+    const a = driver(S, "incident");
+    a.act("decide", { e: "annual" });
+    a.act("letters");
+    assert.equal(a.v("lettersOk"), true);
+    assert.equal(a.v("noticesOnTime"), false, "HHS turns on 500 or more in all, not per state");
+    const u = driver(S, "incident");
+    u.act("laptop", { l: "noNotice" });
+    assert.equal(u.v("harborProven"), false, "the burden of proof needs the device record first");
+    assert.equal(goldenOf(S).paths.find((p) => p.id === "waitForensics")!.expect.class, "harm");
+  });
 });

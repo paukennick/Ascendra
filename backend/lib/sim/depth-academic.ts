@@ -16,6 +16,7 @@ export interface DepthAcademicEntry {
 
 export const DEPTH_ACADEMIC: readonly DepthAcademicEntry[] = [
   { course: "MSHI", slug: "mshi-a1c-units-quality-dashboard", screen: "data", profile: "data", kind: "scenario", steps: "mshi-a1c" },
+  { course: "MSHI", slug: "mshi-misdirected-email-breach-notice", screen: "governance-board", profile: "governance", kind: "scenario", steps: "mshi-breach" },
 ];
 
 // The day this round read its sources; every document's first source carries it.
