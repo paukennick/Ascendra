@@ -1,0 +1,726 @@
+{
+  "slug": "nscacpt-watch-zone-on-a-beta-blocker",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Note and medications read; the beta-blocker explained; intensity by effort and the talk test; the watch's buzz ignored; a full record",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "readNote",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "explain",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 6,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "setIntensity",
+          "params": {
+            "how": "rpe"
+          },
+          "seq": 5,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 9,
+          "seq": 6,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "treadmill",
+          "seq": 7,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 34,
+          "seq": 8,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "keep",
+          "seq": 9,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 29,
+          "seq": 10,
+          "tick": 14
+        },
+        {
+          "type": "act",
+          "action": "talkTest",
+          "seq": 11,
+          "tick": 29
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 30,
+          "seq": 12,
+          "tick": 29
+        },
+        {
+          "type": "act",
+          "action": "closeSession",
+          "seq": 13,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 14,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "what": "full"
+          },
+          "seq": 15,
+          "tick": 30
+        }
+      ],
+      "expect": {
+        "ending": "rpeSession",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "method": "met",
+          "stop": "na",
+          "scope": "met",
+          "explain": "met",
+          "refer": "na",
+          "record": "met"
+        },
+        "kpis": {
+          "peakRpe": 5,
+          "trustEnd": 8
+        },
+        "stateHash": "8d3b1ea38c47d93c"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "zoneStopped",
+      "title": "Intensity by the watch's zone; chasing it makes him lightheaded; stopped at once and referred to his doctor",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "readNote",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "setIntensity",
+          "params": {
+            "how": "hr"
+          },
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 6,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "treadmill",
+          "seq": 5,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 31,
+          "seq": 6,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "chase",
+          "seq": 7,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 21,
+          "seq": 8,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "stopEx",
+          "seq": 9,
+          "tick": 14
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "seq": 10,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 17,
+          "seq": 11,
+          "tick": 14
+        },
+        {
+          "type": "act",
+          "action": "closeSession",
+          "seq": 12,
+          "tick": 17
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 13,
+          "tick": 17
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "what": "full"
+          },
+          "seq": 14,
+          "tick": 17
+        }
+      ],
+      "expect": {
+        "ending": "stopped",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 64,
+        "criteria": {
+          "method": "missed",
+          "stop": "met",
+          "scope": "met",
+          "explain": "missed",
+          "refer": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "peakRpe": 8,
+          "trustEnd": 7
+        },
+        "stateHash": "c213c1ca7181f422"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "reserveKept",
+      "title": "Heart-rate reserve as the method, but kept at a talkable pace when the watch buzzed; a one-line record",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "setIntensity",
+          "params": {
+            "how": "hrr"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "treadmill",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 28,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "keep",
+          "seq": 5,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 23,
+          "seq": 6,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "closeSession",
+          "seq": 7,
+          "tick": 23
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 8,
+          "tick": 23
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "what": "brief"
+          },
+          "seq": 9,
+          "tick": 23
+        }
+      ],
+      "expect": {
+        "ending": "gaps",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "method": "partial",
+          "stop": "na",
+          "scope": "met",
+          "explain": "missed",
+          "refer": "na",
+          "record": "partial"
+        },
+        "kpis": {
+          "peakRpe": 5,
+          "trustEnd": 6
+        },
+        "stateHash": "222763a870c1a644"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "zoneNoReferral",
+      "title": "Chasing the zone, stopped at the lightheadedness, but no word to his doctor",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "setIntensity",
+          "params": {
+            "how": "hr"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "treadmill",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 28,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "chase",
+          "seq": 5,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 18,
+          "seq": 6,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "stopEx",
+          "seq": 7,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "closeSession",
+          "seq": 8,
+          "tick": 11
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 9,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "what": "brief"
+          },
+          "seq": 10,
+          "tick": 11
+        }
+      ],
+      "expect": {
+        "ending": "stopped",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 43,
+        "criteria": {
+          "method": "missed",
+          "stop": "met",
+          "scope": "met",
+          "explain": "missed",
+          "refer": "missed",
+          "record": "partial"
+        },
+        "kpis": {
+          "peakRpe": 8,
+          "trustEnd": 6
+        },
+        "stateHash": "5c384f0a77985a67"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "pushedFaint",
+      "title": "Chasing the zone and urged on while lightheaded until his legs buckle; then 911",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "setIntensity",
+          "params": {
+            "how": "hr"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "treadmill",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 28,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "chase",
+          "seq": 5,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 18,
+          "seq": 6,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "pushOn",
+          "seq": 7,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 16,
+          "seq": 8,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "call911",
+          "seq": 9,
+          "tick": 15
+        },
+        {
+          "type": "skip",
+          "timer": "ems",
+          "instance": 5,
+          "to": 23,
+          "seq": 10,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "closeSession",
+          "seq": 11,
+          "tick": 23
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 12,
+          "tick": 23
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "what": "full"
+          },
+          "seq": 13,
+          "tick": 23
+        }
+      ],
+      "expect": {
+        "ending": "nearFaint",
+        "class": "harm",
+        "rating": "bad",
+        "score": 43,
+        "criteria": {
+          "method": "missed",
+          "stop": "missed",
+          "scope": "met",
+          "explain": "missed",
+          "refer": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "peakRpe": 8,
+          "trustEnd": 6
+        },
+        "stateHash": "c6a1d8f9d462775d"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "moveTheTablet",
+      "title": "A good effort-based session, then advice to move his beta-blocker so the watch zone works; nothing written",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "readNote",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "setIntensity",
+          "params": {
+            "how": "rpe"
+          },
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 6,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "treadmill",
+          "seq": 5,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 31,
+          "seq": 6,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "keep",
+          "seq": 7,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 26,
+          "seq": 8,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "stopEx",
+          "seq": 9,
+          "tick": 26
+        },
+        {
+          "type": "act",
+          "action": "medSkip",
+          "seq": 10,
+          "tick": 26
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 27,
+          "seq": 11,
+          "tick": 26
+        },
+        {
+          "type": "act",
+          "action": "closeSession",
+          "seq": 12,
+          "tick": 27
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 13,
+          "tick": 27
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "what": "nothing"
+          },
+          "seq": 14,
+          "tick": 27
+        }
+      ],
+      "expect": {
+        "ending": "medAdvice",
+        "class": "harm",
+        "rating": "bad",
+        "score": 20,
+        "criteria": {
+          "method": "met",
+          "stop": "na",
+          "scope": "missed",
+          "explain": "missed",
+          "refer": "na",
+          "record": "missed"
+        },
+        "kpis": {
+          "peakRpe": 5,
+          "trustEnd": 7
+        },
+        "stateHash": "d78aefa6a8d897bf"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    }
+  ]
+}
