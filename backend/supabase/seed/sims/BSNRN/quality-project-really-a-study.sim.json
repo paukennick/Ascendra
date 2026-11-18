@@ -1,0 +1,1226 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "quality-project-really-a-study",
+  "title": "A quality project that's really a study",
+  "screen": {
+    "type": "session",
+    "level": 2,
+    "session": {
+      "client": {
+        "name": "Marta Silva, your unit manager",
+        "presentation": "{pressure >= 8 ? \"Arms crossed, voice raised\" : pressure >= 6 ? \"Leaning in, talking fast\" : pressure >= 3 ? \"Standing at your desk with a folder\" : \"Sitting down, calmer\"}; {relation >= 6 ? \"she is listening to you\" : relation >= 3 ? \"she wants this over with\" : \"she has stopped looking at you\"}."
+      },
+      "gauges": [
+        {
+          "id": "pressure",
+          "label": "Pressure",
+          "spokenLabel": "Pressure on you",
+          "value": "pressure",
+          "max": 10,
+          "bands": [
+            3,
+            6,
+            8
+          ],
+          "words": [
+            "calm",
+            "pressing",
+            "insistent",
+            "angry"
+          ]
+        },
+        {
+          "id": "relation",
+          "label": "Working relationship",
+          "spokenLabel": "Working relationship",
+          "value": "relation",
+          "max": 10,
+          "bands": [
+            3,
+            6
+          ],
+          "words": [
+            "strained",
+            "steady",
+            "strong"
+          ]
+        },
+        {
+          "id": "known",
+          "label": "What you know",
+          "spokenLabel": "What you know",
+          "value": "known",
+          "max": 10,
+          "bands": [
+            3,
+            7
+          ],
+          "words": [
+            "little",
+            "some of it",
+            "the full picture"
+          ]
+        }
+      ],
+      "notes": [
+        {
+          "id": "ask",
+          "label": "The request",
+          "text": "Start randomizing patients to two mouth-care routines tomorrow, keep names and outcomes in a spreadsheet, publish it; no IRB.",
+          "when": "true"
+        },
+        {
+          "id": "policy",
+          "label": "Policy",
+          "text": "The IRB office decides whether a project is research (a quick determination, often within days). Identifiers stay in approved systems. Consent rules apply to research unless the IRB waives them.",
+          "when": "not isNull(policyAt)"
+        },
+        {
+          "id": "scope",
+          "label": "What you found out",
+          "text": "{not isNull(scopeAt) ? \"Patients would be randomized and the results written up as new knowledge for other hospitals.\" : \"\"} {not isNull(whyAt) ? \"The model article has no statement about consent or IRB approval in its methods or front and back matter.\" : \"\"} {not isNull(acctAt) ? \"The IRB office offers a determination meeting this week; nobody has asked.\" : \"\"}",
+          "when": "not isNull(scopeAt) or not isNull(whyAt) or not isNull(acctAt)"
+        },
+        {
+          "id": "logs",
+          "label": "Second request",
+          "text": "Put the spreadsheet with patient names and record numbers on the shared drive 'so the council can enter data'.",
+          "when": "not isNull(logsAskAt)",
+          "alert": "not isNull(logsAskAt) and logs == \"unset\""
+        }
+      ],
+      "record": {
+        "label": "Your note so far",
+        "items": [
+          {
+            "label": "Asked for an IRB determination this week and a quality-improvement version that can start now",
+            "when": "not isNull(routeAt)"
+          },
+          {
+            "label": "Kept identifiers off the shared drive",
+            "when": "logs == \"kept\""
+          },
+          {
+            "label": "Asked the IRB office and the nurse researcher to advise",
+            "when": "not isNull(escalateAt)"
+          }
+        ]
+      },
+      "readLabel": "Read the conversation"
+    }
+  },
+  "objective": "Ethical conduct of research and human subject protection",
+  "secondaryObjectives": [
+    "Check a study for informed consent, human rights protections and IRB approval in its methods or front and back matter, and treat their absence as a sign it may not have been conducted ethically"
+  ],
+  "sources": [
+    {
+      "cite": "AACN. The Essentials: Core Competencies for Professional Nursing Education (2026 edition, announced April 2026)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.aacnnursing.org/essentials",
+      "note": "Relayed from the BSN-RN course's earlier cases (read 2026-11-11, primary web page), not re-read: the course's domains follow the Essentials; domain placement is the course catalog's."
+    },
+    {
+      "cite": "Ascendra BSN-RN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Nurses Service Organization: Breaking Down the ANA Code of Ethics for Nurses: A Simplified Summary (2025 edition; no article date shown)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.nso.com/Learning/Artifacts/Articles/Breaking-Down-the-ANA-Code-of-Ethics-for-Nurses-A-Simplified-Summary",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: the 2025 edition (released January 2025, ten provisions): 'A nurse's primary commitment is to the recipient(s) of nursing care'; 'The nurse establishes a trusting relationship and advocates for the rights, health, and safety of recipient(s)', including protecting privacy and confidentiality; 'Nurses have authority over nursing practice and are responsible and accountable for their practice'; respect, transparency and civility with coworkers, and 'bullying behaviors should never be tolerated'. A secondary summary; the code itself was not opened. Learner text names 'your professional code', not the association."
+    },
+    {
+      "cite": "HHS Office for Human Research Protections: Quality Improvement Activities FAQs (no date shown)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.hhs.gov/ohrp/regulations-and-policy/guidance/faq/quality-improvement-activities",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: quality improvement is research only if 'designed to develop or contribute to generalizable knowledge'; 'the intent to publish is an insufficient criterion'; IRB review applies to non-exempt human subjects research under the regulations; an IRB may waive informed consent only under listed conditions such as minimal risk; 'Other applicable regulations or laws may require the informed consent of individuals'."
+    }
+  ],
+  "brief": {
+    "situation": "10:00 on a medical unit. You are the RN on the unit's practice council. Your manager Marta wants you to start a 'quality project' tomorrow: randomize patients to two mouth-care routines, collect their names, record numbers and pneumonia outcomes in a spreadsheet, and write it up for a nursing journal. She says IRB review 'takes months' and a quality project doesn't need it. She hands you a journal article as the model. Work out what is being asked, act on your professional code and the research rules, and keep the working relationship where you can.",
+    "handover": [
+      "Your professional code puts the patient first, including the rights of people who take part in research.",
+      "Hospital policy: anything that may be research, including quality projects designed to produce generalizable knowledge, goes to the IRB office for a determination before it starts; patient identifiers stay in approved systems."
+    ],
+    "howItWorks": [
+      "Choose what to ask or say. Each exchange takes a few minutes of the conversation; Marta answers at once, and the next choice waits for the exchange to finish.",
+      "The screen shows Marta, how hard she is pushing, your working relationship, what you know so far, and your note.",
+      "When the conversation ends you write your note and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "10:00",
+    "tick": "1min",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "logsDelay": {
+      "value": 480,
+      "source": {
+        "cite": "Author's scenario figure (REQ-334)",
+        "checkedAt": "2026-11-17",
+        "note": "Marta's second request comes eight minutes in."
+      },
+      "unit": "s"
+    },
+    "insistDelay": {
+      "value": 720,
+      "source": {
+        "cite": "Author's scenario figure (REQ-334)",
+        "checkedAt": "2026-11-17",
+        "note": "Marta insists twelve minutes in if nothing else has been offered."
+      },
+      "unit": "s"
+    },
+    "talkEnd": {
+      "value": 1800,
+      "source": {
+        "cite": "Author's scenario figure (REQ-334)",
+        "checkedAt": "2026-11-17",
+        "note": "Marta leaves after thirty minutes."
+      },
+      "unit": "s"
+    }
+  },
+  "state": {
+    "talking": {
+      "type": "bool",
+      "init": false
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "shared": {
+      "type": "bool",
+      "init": false
+    },
+    "threatened": {
+      "type": "bool",
+      "init": false
+    },
+    "posted": {
+      "type": "bool",
+      "init": false
+    },
+    "scopeAt": {
+      "type": "time",
+      "init": null
+    },
+    "whyAt": {
+      "type": "time",
+      "init": null
+    },
+    "acctAt": {
+      "type": "time",
+      "init": null
+    },
+    "policyAt": {
+      "type": "time",
+      "init": null
+    },
+    "ackAt": {
+      "type": "time",
+      "init": null
+    },
+    "declineAt": {
+      "type": "time",
+      "init": null
+    },
+    "routeAt": {
+      "type": "time",
+      "init": null
+    },
+    "logsAskAt": {
+      "type": "time",
+      "init": null
+    },
+    "escalateAt": {
+      "type": "time",
+      "init": null
+    },
+    "insistAt": {
+      "type": "time",
+      "init": null
+    },
+    "endAt": {
+      "type": "time",
+      "init": null
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "pressure": {
+      "type": "number",
+      "init": 5,
+      "min": 0,
+      "max": 10
+    },
+    "relation": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "known": {
+      "type": "number",
+      "init": 1,
+      "min": 0,
+      "max": 10
+    },
+    "logs": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "kept",
+        "off"
+      ],
+      "init": "unset"
+    },
+    "noteDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "factual",
+        "none"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "breaches": {
+      "expr": "(shared ? 1 : 0) + (logs == \"off\" ? 1 : 0)"
+    },
+    "routeInTime": {
+      "expr": "not isNull(routeAt) and timeAt(routeAt) <= actWindow"
+    },
+    "properChannel": {
+      "expr": "not threatened and not posted"
+    },
+    "escalatedIfNeeded": {
+      "expr": "isNull(insistAt) or not isNull(escalateAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "conversation": {
+      "label": "Conversation",
+      "clock": "turns",
+      "actions": [
+        "askScope",
+        "askWhy",
+        "askAcct",
+        "checkPolicy",
+        "ack",
+        "route",
+        "refuse",
+        "share",
+        "keepLogs",
+        "logsOff",
+        "escalate",
+        "threaten",
+        "post",
+        "wait",
+        "endTalk"
+      ]
+    },
+    "after": {
+      "label": "After the conversation",
+      "clock": "stopped",
+      "actions": [
+        "note"
+      ]
+    }
+  },
+  "initialPhase": "conversation",
+  "actions": {
+    "askScope": {
+      "label": "Ask what the project will do and what it is for",
+      "group": "Ask",
+      "available": "not talking and (isNull(scopeAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "scopeAt",
+          "to": "t"
+        },
+        {
+          "add": "known",
+          "by": "3"
+        },
+        {
+          "finding": "\"Randomize patients to two routines, compare pneumonia rates, and publish so other hospitals can use it.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askWhy": {
+      "label": "Ask how the model article handled consent and ethics review",
+      "group": "Ask",
+      "available": "not talking and (isNull(whyAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "whyAt",
+          "to": "t"
+        },
+        {
+          "add": "known",
+          "by": "2"
+        },
+        {
+          "add": "pressure",
+          "by": "-0.5"
+        },
+        {
+          "finding": "\"I didn't look. It doesn't say, actually.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askAcct": {
+      "label": "Ask whether anyone has asked the IRB office for a determination",
+      "group": "Ask",
+      "available": "not talking and (isNull(acctAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "acctAt",
+          "to": "t"
+        },
+        {
+          "add": "known",
+          "by": "2"
+        },
+        {
+          "finding": "\"No. Everyone says it takes months.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "checkPolicy": {
+      "label": "Check the hospital's research and quality-improvement policy",
+      "group": "Ask",
+      "available": "not talking and (isNull(policyAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "policyAt",
+          "to": "t"
+        },
+        {
+          "add": "known",
+          "by": "2"
+        },
+        {
+          "finding": "Sam waits while you read."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "ack": {
+      "label": "Acknowledge her goal: 'Pneumonia rates matter and you want to move fast'",
+      "group": "Respond",
+      "available": "not talking and (isNull(ackAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "ackAt",
+          "to": "t"
+        },
+        {
+          "add": "pressure",
+          "by": "-2"
+        },
+        {
+          "add": "relation",
+          "by": "1"
+        },
+        {
+          "finding": "\"Exactly. Patients are getting pneumonia now.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "route": {
+      "label": "Decline to start it as planned; offer to request an IRB determination this week and, meanwhile, run a non-randomized quality check of current mouth-care practice with no identifiers leaving the record",
+      "group": "Respond",
+      "available": "not talking and (isNull(routeAt) and not shared)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "declineAt",
+          "to": "t"
+        },
+        {
+          "set": "routeAt",
+          "to": "t"
+        },
+        {
+          "add": "pressure",
+          "by": "-2"
+        },
+        {
+          "add": "relation",
+          "by": "isNull(ackAt) ? 0 : 1"
+        },
+        {
+          "finding": "\"If the IRB will meet this week and we can start the audit now, fine. Can you set it up?\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "4min"
+        }
+      ]
+    },
+    "refuse": {
+      "label": "Refuse flatly: 'That's unethical. I won't do it.'",
+      "group": "Respond",
+      "available": "not talking and (isNull(declineAt) and not shared)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "declineAt",
+          "to": "t"
+        },
+        {
+          "add": "pressure",
+          "by": "3"
+        },
+        {
+          "add": "relation",
+          "by": "-3"
+        },
+        {
+          "finding": "\"Then I'll find someone who will.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "share": {
+      "label": "Start the randomization tomorrow as planned",
+      "group": "Respond",
+      "available": "not talking and (not shared and isNull(routeAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "shared",
+          "to": "true"
+        },
+        {
+          "add": "pressure",
+          "by": "-4"
+        },
+        {
+          "add": "relation",
+          "by": "1"
+        },
+        {
+          "log": "You assign patients to two routines without consent or ethics review.",
+          "kind": "bad"
+        },
+        {
+          "finding": "\"Great. I knew I could count on you.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "keepLogs": {
+      "label": "Decline to put identifiers on the shared drive",
+      "group": "Respond",
+      "available": "not talking and (not isNull(logsAskAt) and logs == \"unset\")",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "logs",
+          "to": "\"kept\""
+        },
+        {
+          "add": "pressure",
+          "by": "1"
+        },
+        {
+          "finding": "\"Okay. We'll use the approved system.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "logsOff": {
+      "label": "Put the spreadsheet on the shared drive",
+      "group": "Respond",
+      "available": "not talking and (not isNull(logsAskAt) and logs == \"unset\")",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "logs",
+          "to": "\"off\""
+        },
+        {
+          "add": "pressure",
+          "by": "-1"
+        },
+        {
+          "log": "Patient names and record numbers are now on a shared drive.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "escalate": {
+      "label": "Tell Marta you'll ask the IRB office and the nurse researcher to advise, and email them now",
+      "group": "Escalate",
+      "available": "not talking and (isNull(escalateAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "escalateAt",
+          "to": "t"
+        },
+        {
+          "add": "pressure",
+          "by": "-1"
+        },
+        {
+          "finding": "The nurse researcher: \"Good call. This looks like research. We'll do a determination Thursday and help design a QI version that can start now.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "4min"
+        }
+      ]
+    },
+    "threaten": {
+      "label": "Tell Marta you'll report her to the compliance hotline unless she drops it",
+      "group": "Escalate",
+      "available": "not talking and (not threatened)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "threatened",
+          "to": "true"
+        },
+        {
+          "add": "relation",
+          "by": "-4"
+        },
+        {
+          "add": "pressure",
+          "by": "2"
+        },
+        {
+          "finding": "\"Wow. Go ahead.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "post": {
+      "label": "Post in the council group chat that Marta wants to experiment on patients",
+      "group": "Escalate",
+      "available": "not talking and (not posted)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "posted",
+          "to": "true"
+        },
+        {
+          "add": "relation",
+          "by": "-5"
+        },
+        {
+          "log": "The post names Marta in front of the whole council.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Let Marta talk (2 min)",
+      "group": "Wait",
+      "available": "not talking and (true)",
+      "why": "Done.",
+      "effects": [
+        {
+          "log": "You listen.",
+          "kind": "act"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "endTalk": {
+      "label": "End the conversation and write your note",
+      "group": "Close",
+      "available": "not talking",
+      "why": "Let Marta finish.",
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "set": "endAt",
+          "to": "t"
+        },
+        {
+          "log": "The conversation ends.",
+          "kind": "act"
+        },
+        {
+          "phase": "after"
+        }
+      ]
+    },
+    "note": {
+      "label": "Write your note",
+      "group": "Document",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "note",
+              "label": "What you write",
+              "options": [
+                {
+                  "value": "factual",
+                  "label": "A factual note to the nurse researcher: what was proposed, the questions about consent and IRB, the plan agreed"
+                },
+                {
+                  "value": "none",
+                  "label": "Nothing: it worked out"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "noteDoc",
+          "to": "note"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Note: {note}.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "talk": {
+      "label": "Conversation",
+      "wait": {
+        "skipLabel": "Let the conversation continue"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figure (REQ-334)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each exchange takes and when each event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "talking",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "logsAsk",
+      "when": "isNull(logsAskAt) and t >= logsDelay and phase == \"conversation\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "logsAskAt",
+          "to": "t"
+        },
+        {
+          "add": "pressure",
+          "by": "1"
+        },
+        {
+          "log": "Marta: \"And put the spreadsheet with names and record numbers on the shared drive so the council can enter data.\"",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "insist",
+      "when": "isNull(insistAt) and t >= insistDelay and isNull(routeAt) and not shared and phase == \"conversation\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "insistAt",
+          "to": "t"
+        },
+        {
+          "add": "pressure",
+          "by": "2"
+        },
+        {
+          "log": "Marta: \"It's quality improvement. Just start tomorrow. I'll take responsibility.\"",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "leaves",
+      "when": "isNull(leftAt) and t >= talkEnd and phase == \"conversation\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "set": "endAt",
+          "to": "t"
+        },
+        {
+          "log": "Marta is called to a meeting and leaves. The conversation is over.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "after"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"after\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "reflection": {
+      "question": "For your note: what the ethical problem was, what you did about it and why, and how you dealt with your manager.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "The problem",
+          "criteria": "Names that randomizing patients and publishing to produce generalizable knowledge is likely research needing an IRB determination and consent rules, that identifiers on a shared drive breach privacy, and that an article with no consent or IRB statement is a warning sign.",
+          "modelAnswer": "Randomizing patients and publishing for other hospitals is research, not just QI, so it needs an IRB decision and consent rules. Names on a shared drive is a privacy problem, and the model article never mentions consent or IRB, which is a red flag."
+        },
+        {
+          "label": "Ask, then act",
+          "criteria": "Asks what the project does and is for, and checks the model article and whether anyone asked the IRB, before answering; declines and offers a route that meets the goal (a determination this week and a non-identifying practice audit now).",
+          "modelAnswer": "I asked what it was for and checked the article and the IRB question, then said not as planned and offered a determination this week plus an audit we can start now."
+        },
+        {
+          "label": "The relationship and the channel",
+          "criteria": "Acknowledges the goal; brings in the IRB office and nurse researcher, not threats or a public post; writes a factual note.",
+          "modelAnswer": "I agreed the goal matters, brought in the IRB office and the nurse researcher, and wrote it down."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "professional-ethics",
+    "thresholds": {
+      "actWindow": {
+        "value": 1200,
+        "source": {
+          "cite": "Professional-ethics outcome profile (docs/sims.md 9.2, 22.26), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "Declined and offered the IRB route within 20 minutes, before Marta leaves (author's figure)."
+        }
+      },
+      "canonBreaches": {
+        "value": 0,
+        "source": {
+          "cite": "Professional-ethics outcome profile (docs/sims.md 9.2, 22.26)",
+          "checkedAt": "2026-11-17",
+          "note": "No patients randomized without review and no identifiers on a shared drive."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and isNull(declineAt) and not shared and logs != \"off\"",
+      "class": "recovered",
+      "rationale": "Nothing unethical started, but the proposal was never answered.",
+      "source": {
+        "cite": "HHS Office for Human Research Protections: Quality Improvement Activities FAQs (no date shown)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.hhs.gov/ohrp/regulations-and-policy/guidance/faq/quality-improvement-activities",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: quality improvement is research only if 'designed to develop or contribute to generalizable knowledge'; 'the intent to publish is an insufficient criterion'; IRB review applies to non-exempt human subjects research under the regulations; an IRB may waive informed consent only under listed conditions such as minimal risk; 'Other applicable regulations or laws may require the informed consent of individuals'."
+      }
+    }
+  },
+  "endings": {
+    "breached": {
+      "label": "Human subjects unprotected",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and breaches > canonBreaches",
+      "narrative": "Patients were randomized without consent or ethics review, or their identifiers are on a shared drive."
+    },
+    "upheld": {
+      "label": "Patients protected, project moving",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and breaches <= canonBreaches and routeInTime and logs == \"kept\" and properChannel and escalatedIfNeeded and noteDoc == \"factual\" and relation >= 5",
+      "narrative": "You asked first, declined the unsafe plan with a route that keeps the goal, protected identifiers, and kept your manager with you."
+    },
+    "costly": {
+      "label": "Protected, at a cost",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Nothing unethical happened, but the answer came late, without a way forward, through threats or a post, or the relationship suffered."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no note."
+    }
+  },
+  "endingOrder": [
+    "breached",
+    "upheld",
+    "costly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "noShare",
+        "label": "Did not start research without review",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not shared",
+            "score": "met",
+            "why": "No one was randomized without review."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Patients were randomized without consent or review."
+          }
+        ]
+      },
+      {
+        "id": "logs",
+        "label": "Kept identifiers off the shared drive",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "logs == \"kept\"",
+            "score": "met",
+            "why": "Declined, with the reason."
+          },
+          {
+            "when": "logs == \"unset\"",
+            "score": "partial",
+            "why": "Never answered the second request."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Identifiers are on the shared drive."
+          }
+        ]
+      },
+      {
+        "id": "route",
+        "label": "Declined and offered the IRB route within 20 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "routeInTime",
+            "score": "met",
+            "why": "Offered at {timeAt(routeAt) / 60|0dp} min."
+          },
+          {
+            "when": "not isNull(routeAt) or not isNull(declineAt)",
+            "score": "partial",
+            "why": "{isNull(routeAt) ? \"Refused with no way forward.\" : \"Offered late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No answer, or a yes."
+          }
+        ]
+      },
+      {
+        "id": "channel",
+        "label": "Escalated, if needed, through the documented route, not threats or a public post",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "properChannel and escalatedIfNeeded",
+            "score": "met",
+            "why": "{isNull(escalateAt) ? \"No escalation was needed.\" : \"The IRB office and the nurse researcher are advising.\"}"
+          },
+          {
+            "when": "properChannel",
+            "score": "partial",
+            "why": "Marta kept pushing and the IRB office was never asked."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{posted ? \"A public post naming her.\" : \"A threat instead of a channel.\"}"
+          }
+        ]
+      },
+      {
+        "id": "diligence",
+        "label": "Found out what the project was for and checked the article and the IRB question before answering",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(scopeAt) and not isNull(whyAt) and (isNull(declineAt) or timeAt(whyAt) <= timeAt(declineAt))",
+            "score": "met",
+            "why": "Due diligence first."
+          },
+          {
+            "when": "not isNull(scopeAt) or not isNull(whyAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Answered without knowing what it touched."
+          }
+        ]
+      },
+      {
+        "id": "relation",
+        "label": "Kept a working relationship with Marta",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "relation >= 5",
+            "score": "met",
+            "why": "Still working together."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The relationship is strained."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "Wrote a factual note",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "noteDoc == \"factual\"",
+            "score": "met",
+            "why": "On record."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nothing written."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written research-ethics problem, ask then act, and channel",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minRoute",
+        "label": "Minutes until the proper route was offered",
+        "value": "isNull(routeAt) ? -1 : timeAt(routeAt) / 60",
+        "format": "number",
+        "expert": "10 or less"
+      },
+      {
+        "id": "breaches",
+        "label": "Research ethics breaches agreed to",
+        "value": "breaches",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "relation",
+        "label": "Working relationship with Marta at the end (of 10)",
+        "value": "round(relation)",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-6 min",
+        "text": "Ask what the project does and is for; check the model article for consent and IRB; acknowledge the goal."
+      },
+      {
+        "at": "6-10 min",
+        "text": "Decline as planned; offer an IRB determination this week and a non-identifying audit now."
+      },
+      {
+        "at": "8-14 min",
+        "text": "Keep identifiers off the shared drive."
+      },
+      {
+        "at": "After",
+        "text": "Bring in the nurse researcher and IRB office; write a factual note."
+      }
+    ],
+    "debrief": {
+      "upheld": {
+        "headline": "Patients protected, project moving",
+        "body": "You asked first, spotted the missing consent and IRB statements, declined with a route that keeps the goal, protected identifiers and kept the relationship. That is the expert path."
+      },
+      "costly": {
+        "headline": "Protected, at a cost",
+        "body": "The criteria show the cost: a late answer, a refusal with no way forward, a threat or a public post, or a relationship worse than it needed to be."
+      },
+      "breached": {
+        "headline": "Human subjects unprotected",
+        "body": "Randomizing patients without review or consent, or identifiers on a shared drive, breaks the protections research participants are owed."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No note was written before the run's limit."
+      }
+    },
+    "modelReasoning": "Quality improvement becomes research when it is designed to contribute to generalizable knowledge; the intent to publish alone does not decide it, but randomizing patients and writing it up for other hospitals does point to research, which needs an IRB determination and consent unless the IRB waives it. An article that never mentions consent or IRB approval is a warning sign. Acknowledge the goal, decline the plan as written, offer a determination this week and a non-identifying practice audit now, keep identifiers in approved systems, bring in the IRB office and nurse researcher, and write a factual note."
+  },
+  "safetyNote": "Teaching case for exam practice; fictional people. Not legal or clinical advice."
+}
