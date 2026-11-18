@@ -682,6 +682,20 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NREMTPARAMEDIC", "medic-polst-selective-daughter-wants-everything"),
   entry("NREMTPARAMEDIC", "medic-chest-stab-pulse-lost"),
   entry("NASMCPT", "cpt-twenty-four-weeks-leaking-fluid"),
+  band("ACECPT", "ace-low-glucose-mid-intervals"),
+  band("ACSMCPT", "acsm-low-glucose-mid-intervals"),
+  band("NCCPTCPT", "nccpt-low-glucose-mid-intervals"),
+  band("NSCACPT", "nscacpt-low-glucose-mid-intervals"),
+  band("ACECPT", "ace-six-weeks-off-make-it-up"),
+  band("ACSMCPT", "acsm-six-weeks-off-make-it-up"),
+  band("NCCPTCPT", "nccpt-six-weeks-off-make-it-up"),
+  band("ACECPT", "ace-watch-zone-on-a-beta-blocker"),
+  band("NSCACPT", "nscacpt-watch-zone-on-a-beta-blocker"),
+  band("NCCPTCPT", "nccpt-twenty-four-weeks-leaking-fluid"),
+  band("ACECPT", "ace-twenty-four-weeks-leaking-fluid"),
+  band("ACSMCPT", "acsm-twenty-four-weeks-leaking-fluid"),
+  band("NREMTEMT", "emt-line-down-on-the-car"),
+  band("NREMTAEMT", "aemt-low-sugar-now-says-no"),
   // ---- end REQ-338 ----
 ];
 
