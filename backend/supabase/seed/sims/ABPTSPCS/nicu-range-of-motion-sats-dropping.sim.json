@@ -1,0 +1,1054 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "nicu-range-of-motion-sats-dropping",
+  "title": "Stretches while the numbers drop",
+  "objective": "Intervention in the NICU and PICU and in early-intervention and school environments",
+  "secondaryObjectives": [
+    "Examination in special settings: neonatal intensive care, pediatric intensive care, burn unit, early intervention and school"
+  ],
+  "sources": [
+    {
+      "cite": "Specialist certification examination outline: pediatrics (the certifying board's published outline page)",
+      "checkedAt": "2026-11-08",
+      "url": "https://specialization.apta.org/become-a-specialist/pediatrics/specialist-certification-examination-outline-pediatrics",
+      "note": "Relayed from the pediatrics specialty course seed (backend/supabase/seed/tracks/pt-abpts.ts, outline pages read 2026-10-08 and 2026-11-04, OUTLINE_CHECKED_AT 2026-11-08), not re-read: Intervention (20%) is a tested area. Scope only; no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra pediatrics specialty course catalog (backend/supabase/seed/tracks/pt-abpts.ts, track ABPTSPCS)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "LaRossa MM. Understanding Preterm Infant Behavior in the NICU. Emory University School of Medicine, Department of Pediatrics, Neonatology (no date shown)",
+      "checkedAt": "2026-11-17",
+      "url": "https://med.emory.edu/departments/pediatrics/divisions/neonatology/dpc/nicubeh.html",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: stress cues include 'Color changes (pallor, flushing (turning red), and cyanosis (turning blue)', 'Changes in vital signs (heart rate, respiratory rate, blood pressure (BP), pulse ox rate)', gaze aversion, 'Finger splaying', hiccups, yawning and limb hyperextension; 'slow the pace of what you are doing or give the infant a break if signs of stress are noted'; 'Use of rolls and other supports to help keep the infant in a comfortable flexed position'; 'As the infant shows signs of stability the action can be resumed gradually'."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "11:00 in a level III NICU. You are the pediatric physical therapist. Baby Torres was born at 27 weeks and is now 31 weeks corrected age, on nasal CPAP, with tight hip and shoulder positioning from lying extended. You planned gentle range of motion and positioning after his care time.",
+    "handover": [
+      "His nurse says he 'had a rough morning' with two self-resolving desaturations during his bath.",
+      "Unit developmental care policy: watch for stress cues during handling; pause and contain for stress cues; stop and call the bedside nurse for a heart rate under 100 or saturation under 85% that does not recover quickly."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "11:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.03,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Handling through stress cues pushes him toward apnea and bradycardia. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.004,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "He recovers once contained and left to settle. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of apnea with bradycardia. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The bedside nurse told within 5 minutes of the stress cues (unit policy)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 min of recovery and planning."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.3,
+      "min": 0,
+      "max": 2
+    },
+    "stateAt": {
+      "type": "time",
+      "init": null
+    },
+    "handleAt": {
+      "type": "time",
+      "init": null
+    },
+    "recoverAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "state",
+        "handle",
+        "recover"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "rn",
+        "none"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "stress",
+        "fight",
+        "probe"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "pauseAt": {
+      "type": "time",
+      "init": null
+    },
+    "finishAt": {
+      "type": "time",
+      "init": null
+    },
+    "stimAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(isNull(handleAt) ? 156 : 156 - 80 * max(0, prog - 0.5))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(isNull(handleAt) ? 93 : 93 - 25 * max(0, prog - 0.45))",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (not isNull(pauseAt) ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Baby Torres, born at 27 weeks, now 31 weeks corrected, on nasal CPAP",
+        "presentation": "NICU physical therapy for positioning and gentle range of motion. {not isNull(pauseAt) ? \"Contained in flexion, resting.\" : \"\"}"
+      },
+      "vitals": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "colour": "ecg",
+          "alarm": {
+            "high": 190,
+            "low": 100
+          },
+          "announce": {
+            "bands": [
+              110,
+              100
+            ]
+          }
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "colour": "spo2",
+          "alarm": {
+            "low": 88
+          },
+          "announce": {
+            "bands": [
+              91,
+              88
+            ]
+          }
+        }
+      ],
+      "activity": "{not inClinic ? \"Session over; settled.\" : (not isNull(pauseAt) ? \"Tucked in flexion, hands to face, settling.\" : (not isNull(handleAt) ? \"Splayed fingers, arching, mottled, as the stretches continue.\" : \"Asleep in the incubator in a nest.\"))}",
+      "measures": [
+        {
+          "id": "stateResult",
+          "label": "Baseline",
+          "result": "Light sleep, pink, regular breathing, HR 156, SpO2 93%.",
+          "when": "not isNull(stateAt)"
+        },
+        {
+          "id": "handleResult",
+          "label": "Handling",
+          "result": "Finger splay, arching, mottling; HR falling, SpO2 falling.",
+          "when": "not isNull(handleAt)",
+          "flag": "true"
+        },
+        {
+          "id": "recoverResult",
+          "label": "Recovery",
+          "result": "HR back to 150s, SpO2 92% within 3 minutes.",
+          "when": "not isNull(recoverAt)"
+        }
+      ],
+      "dosage": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "Handling paused, contained in flexion",
+            "when": "not isNull(pauseAt)"
+          },
+          {
+            "label": "Bedside nurse told",
+            "when": "route == \"rn\""
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleStress",
+          "label": "Stress cues with a falling heart rate or saturation",
+          "text": "Pause, contain in flexion, let the infant recover; tell the nurse.",
+          "met": "not isNull(handleAt) and isNull(pauseAt)"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "state": {
+      "label": "Before touching: watch his state, color, breathing and monitor for 2 minutes",
+      "group": "Examine",
+      "available": "not testPending and isNull(stateAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"state\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "handle": {
+      "label": "Begin gentle hip and shoulder range of motion",
+      "group": "Examine",
+      "available": "not testPending and isNull(handleAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"handle\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "recover": {
+      "label": "Watch his recovery on the monitor",
+      "group": "Examine",
+      "available": "not testPending and isNull(recoverAt) and not isNull(pauseAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"recover\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "pause": {
+      "label": "Pause: stop moving him, contain him in flexion with your hands and the nest, quiet the area",
+      "group": "Treat",
+      "available": "isNull(pauseAt) and inClinic and not isNull(handleAt)",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "pauseAt",
+          "to": "t"
+        },
+        {
+          "log": "Hands still; hips and shoulders tucked into flexion, hands to face, in the nest; lights and voices down.",
+          "kind": "act"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Finish the full set of stretches quickly so he can rest after",
+      "group": "Treat",
+      "available": "isNull(finishAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "finishAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.4, 2)"
+        },
+        {
+          "log": "You push on through the stretches.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "stim": {
+      "label": "Rub his back briskly to stimulate breathing while continuing",
+      "group": "Treat",
+      "available": "isNull(stimAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "stimAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.2, 2)"
+        },
+        {
+          "log": "Brisk rubbing; he arches more.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "What are his cues telling you?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "stress",
+              "label": "Stress and disorganization cues (finger splay, arching, hiccups, mottling, falling heart rate and saturation): he cannot tolerate this handling now"
+            },
+            {
+              "value": "fight",
+              "label": "He is fighting the stretch; keep going"
+            },
+            {
+              "value": "probe",
+              "label": "Monitor artifact"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"stress\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"stress\""
+                },
+                {
+                  "log": "Stress cues; adapt.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"fight\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"fight\""
+                },
+                {
+                  "log": "Read as resistance.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"probe\""
+                },
+                {
+                  "log": "Read as artifact.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Tell",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "rn",
+              "label": "Tell the bedside nurse: stress cues with HR to 120 and SpO2 in the 80s during range of motion; paused and contained; recovering; plan shorter, cue-based sessions at care times"
+            },
+            {
+              "value": "none",
+              "label": "Say nothing; he recovered"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"rn\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"rn\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "His nurse watches the recovery with you and agrees to cluster future sessions with care times.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"none\""
+                },
+                {
+                  "log": "Not reported.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document his cues and tolerance, and change the plan to short, cue-based sessions with positioning",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Cues, vital signs and tolerance documented; plan: short cue-based sessions, positioning aids to support flexion.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "NICU, incubator 4",
+      "clock": "running",
+      "actions": [
+        "state",
+        "handle",
+        "recover",
+        "pause",
+        "finish",
+        "stim",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the test",
+      "wait": {
+        "skipLabel": "the test result"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each test or question takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"state\"",
+              "then": [
+                {
+                  "set": "stateAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Light sleep, pink, breathing regularly; heart rate 156, SpO2 93%.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"handle\"",
+              "then": [
+                {
+                  "set": "handleAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Within a minute: fingers splay, he arches and hiccups, his skin mottles, his heart rate drops toward 120 and his saturation into the 80s. Stress cues.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "recoverAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Contained, he settles: heart rate back to the 150s and SpO2 92% within 3 minutes.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "his recovery",
+      "wait": {
+        "skipLabel": "his recovery"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 min of recovery and planning."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "He is settled; the plan is changed.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What are Baby Torres's cues telling you, and what do you change?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "Finger splay, arching, hiccups, mottling and a falling heart rate and saturation are stress and disorganization cues; a 31-week infant on CPAP cannot tolerate this handling now.",
+          "modelAnswer": "He's stressed: fingers splayed, arching, hiccups, mottled, and his heart rate and sats are dropping. He can't handle this right now."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Pauses, contains him in flexion with hands to face, quiets the area, watches him recover, tells his nurse and changes to short, cue-based sessions with positioning.",
+          "modelAnswer": "Stop, tuck him into flexion with his hands to his face, quiet everything, let him recover, tell his nurse, and switch to short sessions that follow his cues."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "spo2Floor": {
+        "value": 88,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "escalateWindow": {
+        "value": 300,
+        "source": {
+          "cite": "Unit practice (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "The bedside nurse told within 5 minutes of the stress cues (unit policy)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Handling through stress cues an hour on is harm here.",
+      "source": {
+        "cite": "LaRossa MM. Understanding Preterm Infant Behavior in the NICU. Emory University School of Medicine, Department of Pediatrics, Neonatology (no date shown)",
+        "checkedAt": "2026-11-17",
+        "url": "https://med.emory.edu/departments/pediatrics/divisions/neonatology/dpc/nicubeh.html",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: stress cues include 'Color changes (pallor, flushing (turning red), and cyanosis (turning blue)', 'Changes in vital signs (heart rate, respiratory rate, blood pressure (BP), pulse ox rate)', gaze aversion, 'Finger splaying', hiccups, yawning and limb hyperextension; 'slow the pace of what you are doing or give the infant a break if signs of stress are noted'; 'Use of rolls and other supports to help keep the infant in a comfortable flexed position'; 'As the infant shows signs of stability the action can be resumed gradually'."
+      }
+    }
+  },
+  "endings": {
+    "brady": {
+      "label": "Apnea with bradycardia",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "He stops breathing; his heart rate falls to 70 and saturation to 60%; the nurse gives bag-mask breaths."
+    },
+    "safe": {
+      "label": "Cue-based handling",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"rn\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and isNull(finishAt) and isNull(stimAt) and (not isNull(pauseAt)) and (not isNull(stateAt))",
+      "narrative": "{timeAt(leftAt)|clock}: he recovered quickly, and the plan now follows his cues."
+    },
+    "safeGaps": {
+      "label": "Recovered, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: he recovered, but the nurse wasn't told promptly or he was handled through his cues."
+    },
+    "time_up": {
+      "label": "Session unfinished at 12:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "12:00."
+    }
+  },
+  "endingOrder": [
+    "brady",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "The bedside nurse told within 5 minutes of the stress cues",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"rn\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"rn\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "pauseC",
+        "label": "Paused and contained at the first stress cues",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(finishAt) or not isNull(stimAt)",
+            "score": "missed",
+            "why": "Pushed on or overstimulated."
+          },
+          {
+            "when": "not isNull(pauseAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Did not pause."
+          }
+        ]
+      },
+      {
+        "id": "baseC",
+        "label": "Observed state and vital signs before handling",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(stateAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No baseline."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Watched his recovery before deciding on more",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(recoverAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Read the cues as stress and adapted",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"stress\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"fight\"",
+            "score": "missed",
+            "why": "These are stress cues."
+          },
+          {
+            "when": "dxEnum == \"probe\"",
+            "score": "missed",
+            "why": "His color and posture changed too."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented and changed the plan",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: stress cues mean pause and contain; adapt the plan",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Stress cues to telling the nurse",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "11:00 to the pause",
+        "value": "isNull(pauseAt) ? -1 : timeAt(pauseAt)",
+        "format": "duration",
+        "expert": "under 4 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "11:00",
+        "text": "Baseline: light sleep, pink, HR 156, SpO2 93%."
+      },
+      {
+        "at": "~11:02",
+        "text": "Range of motion: finger splay, arching, mottling, numbers falling."
+      },
+      {
+        "at": "~11:03",
+        "text": "Pause and contain in flexion; quiet the area; tell his nurse."
+      },
+      {
+        "at": "~11:06",
+        "text": "Recovered; change to short cue-based sessions; document."
+      }
+    ],
+    "debrief": {
+      "brady": {
+        "headline": "Apnea with bradycardia",
+        "body": "Finger splay, arching, hiccups, mottling and falling vital signs are stress cues: pause, contain in flexion, quiet the area and let him recover."
+      },
+      "safe": {
+        "headline": "Cue-based handling",
+        "body": "You took a baseline, saw the stress cues, paused and contained him, told his nurse and changed the plan. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Recovered, with gaps",
+        "body": "Check whether you paused at the first cues, took a baseline and told the nurse."
+      },
+      "time_up": {
+        "headline": "Session unfinished at 12:00",
+        "body": "Pause, contain and decide in the session."
+      }
+    },
+    "modelReasoning": "In the NICU, preterm infants show stress and disorganization through color changes, vital sign changes, gaze aversion, finger splaying, hiccups, yawning and limb extension. Slow down or give the infant a break when stress signs appear, use supports to keep the infant flexed, and resume gradually as he stabilizes. Physical therapy in the NICU is cue-based: baseline first, short sessions at care times, positioning that supports flexion, and communication with the bedside nurse."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "cueQ": {
+      "during": "testT",
+      "ask": "While you handle him: which are preterm stress cues?",
+      "choices": [
+        {
+          "id": "cues",
+          "label": "Finger splay, arching or limb extension, hiccups, color and vital-sign changes"
+        },
+        {
+          "id": "sleep",
+          "label": "Quiet sleep"
+        },
+        {
+          "id": "suck",
+          "label": "Calm sucking on his hand"
+        }
+      ],
+      "expect": "cues",
+      "explain": "Stress cues include color changes, vital-sign changes, gaze aversion, finger splaying, hiccups and limb hyperextension.",
+      "source": {
+        "cite": "LaRossa MM. Understanding Preterm Infant Behavior in the NICU. Emory University School of Medicine, Department of Pediatrics, Neonatology (no date shown)",
+        "checkedAt": "2026-11-17",
+        "url": "https://med.emory.edu/departments/pediatrics/divisions/neonatology/dpc/nicubeh.html",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: stress cues include 'Color changes (pallor, flushing (turning red), and cyanosis (turning blue)', 'Changes in vital signs (heart rate, respiratory rate, blood pressure (BP), pulse ox rate)', gaze aversion, 'Finger splaying', hiccups, yawning and limb hyperextension; 'slow the pace of what you are doing or give the infant a break if signs of stress are noted'; 'Use of rolls and other supports to help keep the infant in a comfortable flexed position'; 'As the infant shows signs of stability the action can be resumed gradually'."
+      }
+    },
+    "respQ": {
+      "during": "leaveT",
+      "ask": "While he settles: what is the right response to stress cues?",
+      "choices": [
+        {
+          "id": "pause",
+          "label": "Slow down or give a break, support flexion, resume gradually once stable"
+        },
+        {
+          "id": "faster",
+          "label": "Go faster to finish"
+        },
+        {
+          "id": "stim",
+          "label": "Stimulate him more"
+        }
+      ],
+      "expect": "pause",
+      "explain": "Slow the pace or give the infant a break, use supports to keep him flexed, and resume gradually as he stabilizes.",
+      "source": {
+        "cite": "LaRossa MM. Understanding Preterm Infant Behavior in the NICU. Emory University School of Medicine, Department of Pediatrics, Neonatology (no date shown)",
+        "checkedAt": "2026-11-17",
+        "url": "https://med.emory.edu/departments/pediatrics/divisions/neonatology/dpc/nicubeh.html",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: stress cues include 'Color changes (pallor, flushing (turning red), and cyanosis (turning blue)', 'Changes in vital signs (heart rate, respiratory rate, blood pressure (BP), pulse ox rate)', gaze aversion, 'Finger splaying', hiccups, yawning and limb hyperextension; 'slow the pace of what you are doing or give the infant a break if signs of stress are noted'; 'Use of rolls and other supports to help keep the infant in a comfortable flexed position'; 'As the infant shows signs of stability the action can be resumed gradually'."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

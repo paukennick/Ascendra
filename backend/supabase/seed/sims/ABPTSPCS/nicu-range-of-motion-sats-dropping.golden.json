@@ -1,0 +1,444 @@
+{
+  "slug": "nicu-range-of-motion-sats-dropping",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: baseline, handling, pauses and contains, tells the nurse, watches recovery, changes the plan",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "state",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "cueQ",
+          "choice": "cues",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "handle",
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "pause",
+          "seq": 6,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "stress"
+          },
+          "seq": 7,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "rn"
+          },
+          "seq": 8,
+          "tick": 25
+        },
+        {
+          "type": "teach",
+          "prompt": "respQ",
+          "choice": "pause",
+          "seq": 9,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "recover",
+          "seq": 10,
+          "tick": 25
+        },
+        {
+          "type": "chapter",
+          "chapter": "escalated",
+          "choice": "continue",
+          "seq": 11,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 37
+        }
+      ],
+      "expect": {
+        "ending": "safe",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "reportC": "met",
+          "pauseC": "met",
+          "baseC": "met",
+          "lookC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": 125
+        },
+        "stateHash": "2276437add15da91"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateTell",
+      "title": "Pauses and contains at once, but tells the nurse 8 minutes later",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "state",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "cueQ",
+          "choice": "cues",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "handle",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "pause",
+          "seq": 5,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "recover",
+          "seq": 6,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "stress"
+          },
+          "seq": 7,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "rn"
+          },
+          "seq": 8,
+          "tick": 120
+        },
+        {
+          "type": "teach",
+          "prompt": "respQ",
+          "choice": "pause",
+          "seq": 9,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 10,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "reportC": "partial",
+          "pauseC": "met",
+          "baseC": "met",
+          "lookC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 480,
+          "toKey": 120
+        },
+        "stateHash": "38b0d1c5222b9206"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "noBaseline",
+      "title": "Skips the baseline and rubs his back briefly before pausing",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "handle",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "cueQ",
+          "choice": "cues",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "stim",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "pause",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "stress"
+          },
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "rn"
+          },
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "respQ",
+          "choice": "pause",
+          "seq": 8,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 9,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "reportC": "met",
+          "pauseC": "missed",
+          "baseC": "missed",
+          "lookC": "missed",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": 60
+        },
+        "stateHash": "5c16d1d70951fc43"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "pushed",
+      "title": "Failure: reads it as resistance and finishes the stretches",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "handle",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "cueQ",
+          "choice": "cues",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "fight"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "none"
+          },
+          "seq": 6,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "brady",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "reportC": "missed",
+          "pauseC": "missed",
+          "baseC": "missed",
+          "lookC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": -1
+        },
+        "stateHash": "d14a31046eaba540"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "artifact",
+      "title": "Failure: blames the monitor and stimulates him",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "handle",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "cueQ",
+          "choice": "cues",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "probe"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "stim",
+          "seq": 5,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "brady",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "reportC": "missed",
+          "pauseC": "missed",
+          "baseC": "missed",
+          "lookC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": -1,
+          "toKey": -1
+        },
+        "stateHash": "1667118fd4b74586"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}
