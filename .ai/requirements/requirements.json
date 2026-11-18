@@ -12472,6 +12472,46 @@
         "changelog"
       ],
       "risk_notes": []
+    },
+    {
+      "id": "REQ-339",
+      "category": "auth",
+      "title": "Biometric unlock never loses or replays an older session token",
+      "description": "Nick 2026-11-18 09:09 PT (Android, biometric on): had to sign in with a password again. Production: the last rotated token (11-17 23:57:49 PT) was never used; at 09:08:40 an older token was replayed outside the 10 s grace and the family was revoked. Fix: the native refresh token lives in one state machine (mobile/src/lib/tokenVault.ts): single-flight exchanges (unlock included), persist before use, seals that seal the newest token one at a time and delete latest/plain only when the seal covers them, a fallback to the other stored token before signing out, and OTA reloads wait for a refresh in flight (reloadGuard). The API client no longer refreshes on a 401 for a request sent with a since-replaced access token.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/src/lib/tokenVault.ts",
+        "mobile/src/lib/reloadGuard.ts",
+        "mobile/src/auth/AuthContext.tsx",
+        "mobile/src/api/client.ts",
+        "mobile/src/updates/useAppUpdates.ts",
+        "mobile/src/components/UpdateRequired.tsx",
+        "mobile/src/lib/sessionStore.ts"
+      ],
+      "acceptance_criteria": [
+        "Every rotated token is on a plain secure-store key before the exchange returns",
+        "A seal that finishes after a newer rotation keeps the newer token on the latest key",
+        "A failed seal puts the newest token on the plain key",
+        "Seals run one at a time",
+        "Unlock and refresh never send concurrently",
+        "An update reload waits for a refresh in flight or is skipped when silent",
+        "A refused token falls back to the other stored token before signing out",
+        "A 401 for a request sent with a replaced access token resends without refreshing"
+      ],
+      "validation_required": [
+        "cd mobile && npm test",
+        "cd mobile && npx tsc --noEmit",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Not verified on an Android device",
+        "An OS kill between the server rotation and the write still loses the token (FAIL-2555; server proposal pending the lead)",
+        "The 2.0.0 (4) preview APK gets this only by a cherry-picked OTA (branch fix/biometric-2-runtime-200) or by moving to the 2.1.0 APK"
+      ]
     }
   ]
 }
