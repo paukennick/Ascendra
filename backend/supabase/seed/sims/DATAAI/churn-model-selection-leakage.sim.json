@@ -1,0 +1,1004 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "churn-model-selection-leakage",
+  "title": "Choosing a churn model: a leaked feature, a misleading metric, and the recommendation to the business",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "churn_experiments (experiment tracker)",
+      "flags": [
+        {
+          "id": "fLeak",
+          "label": "Model C: 0.99 AUC",
+          "text": "{leak == \"drop\" ? \"Leak removed; C at 0.80 AUC on a time holdout\" : leak == \"flag\" ? \"C excluded\" : leak == \"shipC\" ? \"Leaky model C recommended\" : \"Open\"}",
+          "when": "p >= 1",
+          "severity": "error"
+        },
+        {
+          "id": "fMetric",
+          "label": "Choosing the evaluation metric",
+          "text": "{metric == \"precisionK\" ? \"Precision at the top 2,000; PR curve\" : metric == \"auc\" ? \"ROC AUC only\" : metric == \"accuracy\" ? \"Accuracy\" : \"Open\"}",
+          "when": "p >= 2",
+          "severity": "warning"
+        },
+        {
+          "id": "fComm",
+          "label": "Presenting the recommendation",
+          "text": "{comm == \"honest\" ? \"Model A with expected saves, limits and monitoring\" : comm == \"technical\" ? \"Technical export sent\" : comm == \"truncated\" ? \"Truncated-axis chart\" : \"Open\"}",
+          "when": "p >= 3",
+          "severity": "warning"
+        },
+        {
+          "id": "iFeats",
+          "label": "Read model C's top features",
+          "text": "Model C's top feature is 'cancellation_request_date', which only exists after a customer has decided to leave: target leakage.",
+          "when": "not isNull(featsAt)",
+          "severity": "info"
+        },
+        {
+          "id": "iEval",
+          "label": "Read the evaluation setup",
+          "text": "With 4% churn, a model that predicts 'no churn' for everyone is 96% accurate; precision at the top 2,000 matches the business's capacity.",
+          "when": "not isNull(evalAt)",
+          "severity": "info"
+        }
+      ],
+      "tables": [
+        {
+          "id": "checks",
+          "label": "Checks and decisions",
+          "spokenLabel": "checks and decisions",
+          "columns": [
+            {
+              "id": "check",
+              "label": "Check"
+            },
+            {
+              "id": "result",
+              "label": "Decision"
+            }
+          ],
+          "rows": [
+            {
+              "id": "rLeak",
+              "cells": [
+                "Model C's leakage",
+                "{leak == \"drop\" ? \"Leak removed; C at 0.80 AUC on a time holdout\" : leak == \"flag\" ? \"C excluded\" : leak == \"shipC\" ? \"Leaky model C recommended\" : \"Not decided\"}"
+              ],
+              "when": "p >= 1",
+              "flag": "leak == \"shipC\""
+            },
+            {
+              "id": "rMetric",
+              "cells": [
+                "Metric fit to the business",
+                "{metric == \"precisionK\" ? \"Precision at the top 2,000; PR curve\" : metric == \"auc\" ? \"ROC AUC only\" : metric == \"accuracy\" ? \"Accuracy\" : \"Not decided\"}"
+              ],
+              "when": "p >= 2",
+              "flag": "metric == \"accuracy\""
+            },
+            {
+              "id": "rComm",
+              "cells": [
+                "Communicating the result",
+                "{comm == \"honest\" ? \"Model A with expected saves, limits and monitoring\" : comm == \"technical\" ? \"Technical export sent\" : comm == \"truncated\" ? \"Truncated-axis chart\" : \"Not decided\"}"
+              ],
+              "when": "p >= 3",
+              "flag": "comm == \"truncated\""
+            }
+          ]
+        }
+      ],
+      "charts": [],
+      "code": [],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Step",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Analyzing experiment and testing results to justify a final model recommendation: performance evaluation, diagnostic plots, benchmarking, and requirements validation",
+  "secondaryObjectives": [
+    "Conducting the model design iteration process: design constraints, model selection, literature review, hyperparameter tuning, and experiment tracking",
+    "Translating and communicating results: choosing visualizations and reports for executive, domain, and peer audiences while avoiding deceptive charting and ensuring accessibility"
+  ],
+  "sources": [
+    {
+      "cite": "CompTIA DataAI DY0-001 V1 Exam Objectives, document version 8.0: Mathematics and Statistics 17%, Modeling, Analysis and Outcomes 24%, Machine Learning 24%, Operations and Processes 22%, Specialized Applications 13%",
+      "checkedAt": "2026-11-17",
+      "url": "https://lecbyo.files.cmp.optimizely.com/download/1d9743d4bef111ef808db6dd7849a8fd",
+      "note": "Read 2026-11-17 through a summarizing fetch of CompTIA's PDF. Relevant text: 'Class imbalance and mitigations' (oversampling the minority class, undersampling the majority class, SMOTE); 'Model drift causes' (data drift, concept drift); 'Explain the importance of DevOps and MLOps principles in data science' (model deployment, model performance monitoring). The objective wording here is the course seed's. Reused for REQ-336 from this course's loan-data-bias-dataai (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the systems, the data and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the data scientist at Lumen Mobile, a fictional phone carrier. Three churn models are in the experiment tracker; the retention team wants a recommendation today. Only 4% of customers churn each month.",
+    "handover": [
+      "Model C reports 99% accuracy and 0.99 AUC; models A and B report about 0.78 AUC.",
+      "The retention team can call 2,000 customers a month."
+    ],
+    "howItWorks": [
+      "The console shows the open dataset, its quality flags and a table of the checks and their results.",
+      "Move on a step at a time. A decision comes to you at each step; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-03-08T09:00",
+    "tick": "1min",
+    "maxDuration": "240min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "leak": {
+      "type": "enum",
+      "values": [
+        "none",
+        "drop",
+        "flag",
+        "shipC"
+      ],
+      "init": "none"
+    },
+    "leakAt": {
+      "type": "time",
+      "init": null
+    },
+    "metric": {
+      "type": "enum",
+      "values": [
+        "none",
+        "precisionK",
+        "auc",
+        "accuracy"
+      ],
+      "init": "none"
+    },
+    "metricAt": {
+      "type": "time",
+      "init": null
+    },
+    "comm": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "technical",
+        "truncated"
+      ],
+      "init": "none"
+    },
+    "commAt": {
+      "type": "time",
+      "init": null
+    },
+    "featsAt": {
+      "type": "time",
+      "init": null
+    },
+    "evalAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((leak == \"shipC\") ? 1 : 0) + ((metric == \"accuracy\") ? 1 : 0) + ((comm == \"truncated\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(leak == \"none\" or (leak == \"shipC\") ? 1 : 0) + (metric == \"none\" or (metric == \"accuracy\") ? 1 : 0) + (comm == \"none\" or (comm == \"truncated\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Model selection",
+      "clock": "turns",
+      "actions": [
+        "feats",
+        "eval"
+      ]
+    },
+    "close": {
+      "label": "Recommendation",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "feats": {
+      "label": "Read model C's top features",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(featsAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "featsAt",
+          "to": "t"
+        },
+        {
+          "log": "You read model C's feature importances.",
+          "kind": "act"
+        },
+        {
+          "finding": "Model C's top feature is 'cancellation_request_date', which only exists after a customer has decided to leave: target leakage."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "eval": {
+      "label": "Read the evaluation setup",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(evalAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "evalAt",
+          "to": "t"
+        },
+        {
+          "log": "You read how the models were evaluated.",
+          "kind": "act"
+        },
+        {
+          "finding": "With 4% churn, a model that predicts 'no churn' for everyone is 96% accurate; precision at the top 2,000 matches the business's capacity."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the recommendation",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the recommendation says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Model C's leakage found and fixed, models compared at the 2,000-call capacity, and model A recommended with its limits"
+                },
+                {
+                  "value": "summary",
+                  "label": "Model chosen"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next step",
+      "wait": {
+        "skipLabel": "Go to the next step"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "leak == \"shipC\"",
+              "then": [
+                {
+                  "log": "Step 2: in a production dry run, C's predictions are near random because cancellation dates don't exist yet.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "metric == \"accuracy\"",
+              "then": [
+                {
+                  "log": "Step 3: the 'most accurate' model flags almost nobody; the retention team calls customers at random for a month.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "comm == \"truncated\"",
+              "then": [
+                {
+                  "log": "Step 4: finance funds a large campaign expecting a big uplift; actual saves are a fraction of what the chart implied.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "20min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The recommendation is due.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "20min"
+        }
+      ]
+    },
+    {
+      "id": "t_leak",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Step 1: model C.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "leakPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_metric",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Step 2: the metric.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "metricPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_comm",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Step 3: the recommendation.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "commPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "leakPrompt": {
+      "title": "Too good to be true",
+      "context": "Model C uses a feature that exists only after churn is decided.",
+      "choices": [
+        {
+          "id": "drop",
+          "label": "Remove features that exist only after the outcome, retrain C, and re-evaluate on a time-based holdout",
+          "effects": [
+            {
+              "set": "leak",
+              "to": "\"drop\""
+            },
+            {
+              "set": "leakAt",
+              "to": "t"
+            },
+            {
+              "log": "Without the leak, C scores 0.80 AUC.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Target leakage inflates offline metrics and fails in production; a time-based holdout mirrors real use."
+        },
+        {
+          "id": "flag",
+          "label": "Exclude model C and choose between A and B",
+          "effects": [
+            {
+              "set": "leak",
+              "to": "\"flag\""
+            },
+            {
+              "set": "leakAt",
+              "to": "t"
+            },
+            {
+              "log": "C is excluded.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Safe, but C's other features might have been the best model."
+        },
+        {
+          "id": "shipC",
+          "label": "Recommend model C: the numbers are best",
+          "effects": [
+            {
+              "set": "leak",
+              "to": "\"shipC\""
+            },
+            {
+              "set": "leakAt",
+              "to": "t"
+            },
+            {
+              "log": "C is recommended.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "In production the leaked feature doesn't exist yet when predictions are made; the model is useless."
+        }
+      ]
+    },
+    "metricPrompt": {
+      "title": "Accuracy on 4% churn",
+      "context": "The team can call 2,000 customers a month.",
+      "choices": [
+        {
+          "id": "precisionK",
+          "label": "Compare models by precision and recall in the top 2,000 scored customers, with a precision-recall curve and a lift chart",
+          "effects": [
+            {
+              "set": "metric",
+              "to": "\"precisionK\""
+            },
+            {
+              "set": "metricAt",
+              "to": "t"
+            },
+            {
+              "log": "Model A's precision at 2,000 is 31% against 22% for B and 29% for C.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "With rare positives, accuracy is meaningless; precision at the capacity the business has is what matters."
+        },
+        {
+          "id": "auc",
+          "label": "Compare by ROC AUC only",
+          "effects": [
+            {
+              "set": "metric",
+              "to": "\"auc\""
+            },
+            {
+              "set": "metricAt",
+              "to": "t"
+            },
+            {
+              "log": "AUC is compared.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Better than accuracy, but it doesn't say how good the top 2,000 calls are."
+        },
+        {
+          "id": "accuracy",
+          "label": "Compare by accuracy",
+          "effects": [
+            {
+              "set": "metric",
+              "to": "\"accuracy\""
+            },
+            {
+              "set": "metricAt",
+              "to": "t"
+            },
+            {
+              "log": "Accuracy is compared.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "A model that predicts nobody churns scores 96%."
+        }
+      ]
+    },
+    "commPrompt": {
+      "title": "How to present it",
+      "context": "The audience is the retention director and the finance partner.",
+      "choices": [
+        {
+          "id": "honest",
+          "label": "Recommend model A with its precision at 2,000 and the expected saves, a lift chart with honest axes, its limits, and a plan to monitor it",
+          "effects": [
+            {
+              "set": "comm",
+              "to": "\"honest\""
+            },
+            {
+              "set": "commAt",
+              "to": "t"
+            },
+            {
+              "log": "Model A is recommended with its limits.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Executives need the decision, its expected value and its limits, in a chart that doesn't mislead."
+        },
+        {
+          "id": "technical",
+          "label": "Send the full experiment tracker export",
+          "effects": [
+            {
+              "set": "comm",
+              "to": "\"technical\""
+            },
+            {
+              "set": "commAt",
+              "to": "t"
+            },
+            {
+              "log": "The export goes out.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Accurate, but the director can't find the decision in it."
+        },
+        {
+          "id": "truncated",
+          "label": "Show a bar chart with the axis starting at 28% so A's lead looks dramatic",
+          "effects": [
+            {
+              "set": "comm",
+              "to": "\"truncated\""
+            },
+            {
+              "set": "commAt",
+              "to": "t"
+            },
+            {
+              "log": "A truncated chart is presented.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "A truncated axis makes a 2-point lead look huge; the budget is set on a false impression."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the recommendation: which model, the evidence that justifies it, and what it can't do.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Evidence",
+          "criteria": "Leak removed and time holdout; precision at 2,000 with a PR curve.",
+          "modelAnswer": "Model C leaked a post-churn feature; without it, on a time holdout, it scored 0.80. At the 2,000-call capacity, A's precision is 31%, C's 29%, B's 22%."
+        },
+        {
+          "label": "Communication",
+          "criteria": "Expected saves, honest chart, limits and monitoring.",
+          "modelAnswer": "We recommend A, with expected saves at 31% precision, an honest lift chart, its limits and a monitoring plan."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 7200,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "The right result delivered within 2 hours of the request."
+        }
+      },
+      "alteredRowsMax": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No data altered beyond the fix."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (leak == \"flag\") and (metric == \"auc\") and (comm == \"technical\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CompTIA DataAI DY0-001 V1 Exam Objectives, document version 8.0: Mathematics and Statistics 17%, Modeling, Analysis and Outcomes 24%, Machine Learning 24%, Operations and Processes 22%, Specialized Applications 13%",
+        "checkedAt": "2026-11-17",
+        "url": "https://lecbyo.files.cmp.optimizely.com/download/1d9743d4bef111ef808db6dd7849a8fd",
+        "note": "Read 2026-11-17 through a summarizing fetch of CompTIA's PDF. Relevant text: 'Class imbalance and mitigations' (oversampling the minority class, undersampling the majority class, SMOTE); 'Model drift causes' (data drift, concept drift); 'Explain the importance of DevOps and MLOps principles in data science' (model deployment, model performance monitoring). The objective wording here is the course seed's. Reused for REQ-336 from this course's loan-data-bias-dataai (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "leakHarm": {
+      "label": "A useless model shipped",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and leak == \"shipC\"",
+      "narrative": "In production the leaked feature was missing; model C's predictions were near random."
+    },
+    "metricHarm": {
+      "label": "A model that flags nobody",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and metric == \"accuracy\"",
+      "narrative": "The most accurate model flagged almost nobody; retention calls were wasted for a month."
+    },
+    "commHarm": {
+      "label": "A decision on a misleading chart",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and comm == \"truncated\"",
+      "narrative": "The truncated chart exaggerated A's lead; finance overfunded the campaign."
+    },
+    "target": {
+      "label": "A justified recommendation",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (leak == \"drop\") and (metric == \"precisionK\") and (comm == \"honest\") and record == \"honest\" and missCount <= alteredRowsMax and timeAt(doneAt) <= deliverWindow",
+      "narrative": "The retention team gets a model that works in production and an honest view of what it will deliver."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "leakHarm",
+    "metricHarm",
+    "commHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "leakCrit",
+        "label": "Removed the leaked feature and re-evaluated",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "leak == \"drop\"",
+            "score": "met",
+            "why": "Leak fixed."
+          },
+          {
+            "when": "leak == \"flag\"",
+            "score": "partial",
+            "why": "Discarded, not fixed."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Shipped leakage."
+          }
+        ]
+      },
+      {
+        "id": "metricCrit",
+        "label": "Evaluated with a metric that fits the imbalance and the business constraint",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "metric == \"precisionK\"",
+            "score": "met",
+            "why": "Business-fit metric."
+          },
+          {
+            "when": "metric == \"auc\"",
+            "score": "partial",
+            "why": "Not tied to capacity."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Misleading metric."
+          }
+        ]
+      },
+      {
+        "id": "commCrit",
+        "label": "Communicated the result honestly for an executive audience",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "comm == \"honest\"",
+            "score": "met",
+            "why": "Clear and honest."
+          },
+          {
+            "when": "comm == \"technical\"",
+            "score": "partial",
+            "why": "Wrong audience."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Deceptive chart."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(featsAt) and not isNull(evalAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(featsAt) or not isNull(evalAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the features and the evaluation setup first."
+      },
+      {
+        "at": "Step 1",
+        "text": "Remove post-outcome features and re-evaluate on a time-based holdout."
+      },
+      {
+        "at": "Step 2",
+        "text": "Compare by precision and recall at the 2,000 capacity."
+      },
+      {
+        "at": "Step 3",
+        "text": "Recommend A with expected value, an honest chart, limits and monitoring."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "leakHarm": {
+        "headline": "Check for leakage",
+        "body": "Features must exist at prediction time; evaluate on a time-based holdout."
+      },
+      "metricHarm": {
+        "headline": "Metrics fit the problem",
+        "body": "For rare outcomes, use precision and recall at the business's capacity."
+      },
+      "commHarm": {
+        "headline": "Don't chart deceptively",
+        "body": "Give executives the decision, the expected value and honest charts."
+      },
+      "target": {
+        "headline": "Good: a justified recommendation",
+        "body": "No leakage, a metric that fits, and honest communication."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Justifying a model means evaluating it the way it will be used: features available at prediction time (no target leakage), a time-based holdout, and metrics that fit the imbalance and the business constraint (precision and recall at capacity, not accuracy). Recommendations to executives give the decision, the expected value and the limits, with charts that don't mislead."
+  }
+}
