@@ -1,0 +1,875 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "unsigned-hotfix-blocked-by-binauthz",
+  "title": "Hotfix: an unsigned image is blocked, and someone wants the policy off",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "secops@cloudshell:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "14:05 deploy of refunds:hotfix-1 to pay-prod denied by Binary Authorization; refund batch at 15:00",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "15:00: refunds double-charged",
+          "when": "not isNull(missAt)",
+          "at": "timeAt(missAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "15:00: refunds correct",
+          "when": "not isNull(okAt)",
+          "at": "timeAt(okAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "policy",
+          "label": "Binary Authorization policy (pay-prod)",
+          "spokenLabel": "the deployment policy",
+          "kind": "Require attestations: ci-verified",
+          "status": "{harmed ? \"allow all images\" : fixed ? \"enforced\" : \"enforced\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "ci",
+          "label": "CI pipeline + attestor ci-verified",
+          "spokenLabel": "the CI pipeline",
+          "kind": "tests, scan, sign",
+          "status": "{fixed and not harmed ? \"hotfix built, scanned, attested\" : \"not run for the hotfix\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "img",
+          "label": "refunds hotfix image",
+          "spokenLabel": "the hotfix",
+          "kind": "Artifact Registry",
+          "status": "{harmed ? \"laptop build deployed\" : fixed ? \"CI build, attested\" : \"laptop build, unsigned\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "img",
+          "to": "policy",
+          "label": "admission",
+          "status": "{fixed and not harmed ? \"allowed\" : \"denied\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Configuring Binary Authorization to secure GKE clusters or Cloud Run",
+  "secondaryObjectives": [
+    "Automating CVE security scanning through a CI/CD pipeline"
+  ],
+  "sources": [
+    {
+      "cite": "Google Cloud, Professional Cloud Security Engineer exam guide: Section 1 Configuring access (~25%), Section 2 Securing communications and boundary protection (~22%), Section 3 Ensuring data protection (~23%), Section 4 Managing operations (~19%), Section 5 Supporting compliance requirements (~11%)",
+      "checkedAt": "2026-11-17",
+      "url": "https://services.google.com/fh/files/misc/professional_cloud_security_engineer_exam_guide_english.pdf",
+      "note": "Read through a summarizing fetch of the PDF on 2026-11-17 (no version or date printed). Quoted: 1.4 'Managing IAM and access control list (ACL) permissions'; 3.1 'Restricting access to Google Cloud data services (e.g., BigQuery, Cloud Storage, and Cloud SQL datastores)'. (read for this round by an earlier pass on 2026-11-17) (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "Google Cloud documentation, Binary Authorization: Key concepts",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.cloud.google.com/binary-authorization/docs/key-concepts",
+      "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: rule evaluation modes 'Allow all images', 'Disallow all images', 'Require attestations'; enforcement 'Block and Audit Log' versus 'Dry Run: Audit Log Only'; an attestation is a signed document over the image digest, verified by an attestor's public key; exempt images are always allowed via admissionWhitelistPatterns (patterns can match a whole registry path). The breakglass procedure is on a separate page not read here (to verify); the denial message wording is from memory."
+    }
+  ],
+  "brief": {
+    "situation": "You are the security engineer at Brisk Pay. A bug double-charges some card refunds; a developer built a one-line hotfix on a laptop, pushed it to Artifact Registry and tried to deploy it to the GKE cluster pay-prod. Binary Authorization denied it. The engineering lead asks you to 'turn the policy off for an hour'. The bank's refund batch runs at 15:00 and would hit the bug again.",
+    "handover": [
+      "pay-prod's policy requires an attestation from attestor ci-verified, created by the CI pipeline after tests and a vulnerability scan pass.",
+      "The CI pipeline takes about 15 minutes end to end."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the cluster's Binary Authorization policy, the attestor, and the two ways the hotfix can reach production.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "14:05",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineAt": {
+      "value": 3300,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "The bank's refund batch runs at 15:00, 55 minutes after the page."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "harmed": {
+      "type": "bool",
+      "init": false
+    },
+    "tried": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "denyAt": {
+      "type": "time",
+      "init": null
+    },
+    "policyshowAt": {
+      "type": "time",
+      "init": null
+    },
+    "scanAt": {
+      "type": "time",
+      "init": null
+    },
+    "pipelineAt": {
+      "type": "time",
+      "init": null
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "missAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "unattested",
+        "policy",
+        "registry"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "deny",
+        "policyshow",
+        "scan",
+        "pipeline",
+        "ci",
+        "breakglass",
+        "allowall",
+        "redeploy",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "deny": {
+      "label": "kubectl events for the failed deployment",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(denyAt)",
+          "then": [
+            {
+              "set": "denyAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "secops@cloudshell:~$ kubectl -n refunds get events --field-selector reason=FailedCreate | tail -1\n{fixed and not harmed ? \"(none: refunds-7d9 pods running image @sha256:91c2...)\" : \"Error creating: pods ... is forbidden: image policy webhook backend denied one or more images: Image europe-docker.pkg.dev/pay/refunds:hotfix-1 denied by Binary Authorization policy: No attestations found that were valid and signed by a key trusted by the attestor ci-verified\"}"
+        },
+        {
+          "finding": "The image has no attestation from ci-verified: it never went through the pipeline."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "policyshow": {
+      "label": "gcloud container binauthz policy export",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(policyshowAt)",
+          "then": [
+            {
+              "set": "policyshowAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "secops@cloudshell:~$ gcloud container binauthz policy export | grep -A3 clusterAdmissionRules\n  europe-west1.pay-prod:\n    evaluationMode: REQUIRE_ATTESTATION\n    enforcementMode: ENFORCED_BLOCK_AND_AUDIT_LOG\n    requireAttestationsBy: [projects/pay/attestors/ci-verified]"
+        },
+        {
+          "finding": "The policy does exactly what it should: only images that passed CI may run in production."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "scan": {
+      "label": "Vulnerability scan of the laptop image",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(scanAt)",
+          "then": [
+            {
+              "set": "scanAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "secops@cloudshell:~$ gcloud artifacts docker images describe .../refunds:hotfix-1 --show-package-vulnerability | grep -c CRITICAL\n2  (base image pulled from the developer's cache, 4 months old)"
+        },
+        {
+          "finding": "The laptop image is built on an old base with two critical vulnerabilities: the very thing the gate exists for."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "pipeline": {
+      "label": "CI pipeline status for the hotfix commit",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(pipelineAt)",
+          "then": [
+            {
+              "set": "pipelineAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "secops@cloudshell:~$ gh run list -R brisk/refunds --branch hotfix/double-refund\n{fixed and not harmed ? \"completed  success  build-test-scan-attest  (14 min)\" : \"(no runs: branch not pushed to the repository)\"}"
+        },
+        {
+          "finding": "The fix has not been pushed through CI at all."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "ci": {
+      "label": "Push the hotfix branch and run the pipeline (tests, scan, attestation), then deploy the attested digest",
+      "group": "Fix",
+      "available": "not busy and (not fixed and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "fixed",
+          "to": "true"
+        },
+        {
+          "output": "secops@cloudshell:~$ git push origin hotfix/double-refund && gh workflow run build-test-scan-attest --ref hotfix/double-refund\n(14 min: tests pass, scan 0 critical on current base, attestation by ci-verified)\nsecops@cloudshell:~$ kubectl -n refunds set image deploy/refunds refunds=europe-docker.pkg.dev/pay/refunds@sha256:91c2...\ndeployment.apps/refunds image updated"
+        },
+        {
+          "log": "The same one-line fix, built on the current base, scanned and attested, is admitted by the policy with nothing switched off.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "16min"
+        }
+      ]
+    },
+    "breakglass": {
+      "label": "Document the logged breakglass procedure for true emergencies, and add a fast hotfix lane to CI",
+      "group": "Fix",
+      "available": "not busy and (not planned and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "secops@cloudshell:~$ (runbook: breakglass annotation only with CISO approval; every use alerts and is reviewed)\nsecops@cloudshell:~$ git commit -am 'ci: hotfix lane runs unit tests + scan + attest in about 8 minutes'"
+        },
+        {
+          "log": "If CI ever cannot run in time, there is an audited emergency path instead of turning the policy off; usually the fast lane is enough.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "allowall": {
+      "label": "Set pay-prod's rule to 'Allow all images' for an hour",
+      "group": "Fix",
+      "available": "not busy and (not harmed)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "harmed",
+          "to": "true"
+        },
+        {
+          "output": "secops@cloudshell:~$ gcloud container binauthz policy import policy-allow-all.yaml\nUpdated policy."
+        },
+        {
+          "log": "The laptop image with two critical vulnerabilities runs in the payments cluster, and so could anything else pushed in that hour.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "redeploy": {
+      "label": "Retry the deployment with kubectl rollout restart",
+      "group": "Fix",
+      "available": "not busy and (not harmed and not tried)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tried",
+          "to": "true"
+        },
+        {
+          "output": "secops@cloudshell:~$ kubectl -n refunds rollout restart deploy/refunds\n(new pods denied: same image, same policy)"
+        },
+        {
+          "log": "Retrying admits nothing: the image still has no attestation.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Check the running image's digest and attestation, and run a test refund",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "secops@cloudshell:~$ kubectl -n refunds get deploy refunds -o jsonpath='...image'; gcloud container binauthz attestations list --attestor ci-verified --artifact-url ...; test refund R-TEST-77\n{harmed ? \"refunds:hotfix-1 (unattested, 2 critical CVEs) running\ntest refund charged once\" : fixed ? \"@sha256:91c2... attested by ci-verified\ntest refund charged once\" : \"old image running\ntest refund charged twice\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "unattested",
+                  "label": "The hotfix image was built on a laptop and never attested by CI"
+                },
+                {
+                  "value": "policy",
+                  "label": "The Binary Authorization policy was misconfigured"
+                },
+                {
+                  "value": "registry",
+                  "label": "Artifact Registry was unavailable"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-335)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "15:00: the refund batch runs on the fixed, attested image.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "missAt",
+              "to": "t"
+            },
+            {
+              "log": "15:00: the refund batch double-charges again.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why the deploy was denied, how you shipped the fix, and why the policy stayed on.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Reads the denial.",
+          "modelAnswer": "No attestation from ci-verified existed: the image was built on a laptop and pushed directly. Its scan showed two critical vulnerabilities from a four-month-old base."
+        },
+        {
+          "label": "Shipped",
+          "criteria": "Through the gate.",
+          "modelAnswer": "Pushed the branch and ran the pipeline: tests, scan and attestation in 14 minutes; deployed the attested digest before 15:00."
+        },
+        {
+          "label": "Policy on",
+          "criteria": "Knows what the gate protects.",
+          "modelAnswer": "Allow-all would have run an unscanned image with critical vulnerabilities in the payments cluster. A logged breakglass procedure and a faster hotfix lane now cover real emergencies."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3300,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The bank's refund batch runs at 15:00, 55 minutes after the page."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: Binary Authorization was turned off for the payments cluster."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed and not harmed",
+      "class": "harm",
+      "rationale": "Closing without the fix deployed lets the refund batch double-charge again.",
+      "source": {
+        "cite": "Google Cloud documentation, Binary Authorization: Key concepts",
+        "checkedAt": "2026-11-17",
+        "url": "https://docs.cloud.google.com/binary-authorization/docs/key-concepts",
+        "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: rule evaluation modes 'Allow all images', 'Disallow all images', 'Require attestations'; enforcement 'Block and Audit Log' versus 'Dry Run: Audit Log Only'; an attestation is a signed document over the image digest, verified by an attestor's public key; exempt images are always allowed via admissionWhitelistPatterns (patterns can match a whole registry path). The breakglass procedure is on a separate page not read here (to verify); the denial message wording is from memory."
+      }
+    }
+  },
+  "endings": {
+    "gateOff": {
+      "label": "Payments cluster without its image gate",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and harmed",
+      "narrative": "Allow-all let the unscanned laptop image, with two critical vulnerabilities, into production."
+    },
+    "doubleCharged": {
+      "label": "Refunds double-charged again",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(missAt)",
+      "narrative": "At 15:00 the fix was not running."
+    },
+    "attested": {
+      "label": "Hotfix through CI, attested, deployed",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(denyAt) and not isNull(policyshowAt) and not isNull(verifiedAt) and causeDoc == \"unattested\"",
+      "narrative": "The hotfix ran through CI, was attested and admitted; refunds are correct and the policy never changed."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The fix runs, but the breakglass runbook, the fast lane, the check or the record was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "gateOff",
+    "doubleCharged",
+    "attested",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Read the denial, the policy and the image's scan",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(denyAt) and not isNull(policyshowAt)",
+            "score": "met",
+            "why": "The key evidence, read before changing anything."
+          },
+          {
+            "when": "not isNull(denyAt) or not isNull(policyshowAt) or not isNull(scanAt) or not isNull(pipelineAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Attested fix running by 15:00 with the policy enforced",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and not harmed and isNull(missAt)",
+            "score": "met",
+            "why": "The right change, in time, without harm."
+          },
+          {
+            "when": "fixed or harmed",
+            "score": "partial",
+            "why": "{harmed ? \"Binary Authorization was turned off for the payments cluster.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never removed."
+          }
+        ]
+      },
+      {
+        "id": "lasting",
+        "label": "Breakglass procedure and fast lane; digest and refund checked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The lasting step taken and the result checked."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"unattested\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record names the wrong cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes that caused harm",
+        "value": "harmed ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "14:05-14:09",
+        "text": "Denied: no ci-verified attestation; policy requires it; laptop image has 2 critical CVEs; no CI run."
+      },
+      {
+        "at": "14:09-14:25",
+        "text": "Push and run CI; deploy the attested digest; breakglass runbook, fast lane."
+      },
+      {
+        "at": "14:25-14:27",
+        "text": "Attested digest running; test refund charged once."
+      }
+    ],
+    "debrief": {
+      "gateOff": {
+        "headline": "The gate was the point",
+        "body": "Binary Authorization ensures only images that passed CI run in production. The fix was to send the hotfix through CI, not to remove the check."
+      },
+      "doubleCharged": {
+        "headline": "Start the pipeline early",
+        "body": "A 15-minute pipeline fits in a 55-minute window if it starts at once."
+      },
+      "attested": {
+        "headline": "Good: fast and still verified",
+        "body": "You read the denial and the policy, saw the laptop image would have shipped critical vulnerabilities, sent the fix through CI in time, verified the digest and a refund, and gave the team an audited emergency path."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the evidence before the change, the lasting step, the check, or the cause in the record."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The deploy was denied because the image has no attestation from the CI attestor: it was built on a laptop, and its scan shows critical vulnerabilities. Send the one-line fix through the pipeline, which tests, scans and attests in about 15 minutes, and deploy that digest well before 15:00. Allow-all would put an unscanned image into the payments cluster; retrying admits nothing. Give the team an audited breakglass path and a faster hotfix lane."
+  }
+}
