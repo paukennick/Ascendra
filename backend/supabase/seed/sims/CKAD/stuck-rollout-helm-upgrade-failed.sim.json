@@ -1,0 +1,1011 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "stuck-rollout-helm-upgrade-failed",
+  "title": "A rollout stuck on failing readiness, a strategy that took every Pod down, and a half-applied Helm upgrade",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "oncall@pebblebrook:~$",
+      "lines": [
+        {
+          "id": "firstLine",
+          "text": "catalog: 0/6 available; readiness probe failed: HTTP 500 on /ready",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "lineUndo",
+          "text": "{undo == \"rollback\" ? \"Rolled back to revision 11; 6/6 available\" : undo == \"patchForward\" ? \"Fixed forward after 25 minutes\" : undo == \"recreate\" ? \"Deleted and re-created from a laptop copy\" : \"\"}",
+          "when": "undo != \"none\"",
+          "at": "timeAt(undoAt)",
+          "error": "undo == \"recreate\""
+        },
+        {
+          "id": "lineStrat",
+          "text": "{strat == \"surge\" ? \"maxUnavailable 0, maxSurge 25%\" : strat == \"half\" ? \"maxUnavailable 50%\" : strat == \"recreateStrat\" ? \"Recreate\" : \"\"}",
+          "when": "strat != \"none\"",
+          "at": "timeAt(stratAt)",
+          "error": "strat == \"recreateStrat\""
+        },
+        {
+          "id": "lineHelmfix",
+          "text": "{helmfix == \"helmRollback\" ? \"Rolled back to 6; next upgrade atomic\" : helmfix == \"kubectlFix\" ? \"Hand-fixed outside Helm\" : helmfix == \"uninstall\" ? \"Uninstalled to reinstall\" : \"\"}",
+          "when": "helmfix != \"none\"",
+          "at": "timeAt(helmfixAt)",
+          "error": "helmfix == \"uninstall\""
+        }
+      ],
+      "nodes": [
+        {
+          "id": "nUndo",
+          "label": "catalog Deployment",
+          "spokenLabel": "catalog Deployment",
+          "kind": "Deployment",
+          "status": "{undo == \"rollback\" ? \"Rolled back to revision 11; 6/6 available\" : undo == \"patchForward\" ? \"Fixed forward after 25 minutes\" : undo == \"recreate\" ? \"Deleted and re-created from a laptop copy\" : \"Waiting\"}",
+          "tone": "undo == \"rollback\" ? \"up\" : undo == \"patchForward\" ? \"degraded\" : undo == \"recreate\" ? \"down\" : p >= 1 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nStrat",
+          "label": "catalog rollout strategy",
+          "spokenLabel": "catalog rollout strategy",
+          "kind": "strategy",
+          "status": "{strat == \"surge\" ? \"maxUnavailable 0, maxSurge 25%\" : strat == \"half\" ? \"maxUnavailable 50%\" : strat == \"recreateStrat\" ? \"Recreate\" : \"Waiting\"}",
+          "tone": "strat == \"surge\" ? \"up\" : strat == \"half\" ? \"degraded\" : strat == \"recreateStrat\" ? \"down\" : p >= 2 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nHelmfix",
+          "label": "Helm release search",
+          "spokenLabel": "Helm release search",
+          "kind": "Helm release",
+          "status": "{helmfix == \"helmRollback\" ? \"Rolled back to 6; next upgrade atomic\" : helmfix == \"kubectlFix\" ? \"Hand-fixed outside Helm\" : helmfix == \"uninstall\" ? \"Uninstalled to reinstall\" : \"Waiting\"}",
+          "tone": "helmfix == \"helmRollback\" ? \"up\" : helmfix == \"kubectlFix\" ? \"degraded\" : helmfix == \"uninstall\" ? \"down\" : p >= 3 ? \"degraded\" : \"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "link0",
+          "from": "nUndo",
+          "to": "nStrat",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        },
+        {
+          "id": "link1",
+          "from": "nStrat",
+          "to": "nHelmfix",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Check-in",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Understand Deployments and perform rolling updates and rollbacks: strategy settings, rollout status, history, pause, resume and undo",
+  "secondaryObjectives": [
+    "Use the Helm package manager to deploy existing packages: repositories, search, values overrides, install, upgrade, rollback, history and uninstall",
+    "Implement common deployment strategies with Kubernetes primitives: blue/green with a Service selector switch and canary with weighted replica counts behind one Service"
+  ],
+  "sources": [
+    {
+      "cite": "CNCF CKAD Curriculum v1.37 (cncf/curriculum, pinned commit 0a8cc08a): Application Design and Build 20%, Application Deployment 20%, Application Observability and Maintenance 15%, Application Environment, Configuration and Security 25%, Services and Networking 20%",
+      "checkedAt": "2026-11-17",
+      "url": "https://github.com/cncf/curriculum/blob/0a8cc08a502710a894e5724c2bec7b88404e5a6b/CKAD_Curriculum_v1.37.pdf",
+      "note": "The curriculum was read in primary text on 2026-11-07 by the course builder (backend/supabase/seed/tracks/kubernetes.ts). On 2026-11-17 a third-party summary (slauger.github.io/kubestronaut/ckad/application-environment) confirmed the 25% domain and ConfigMaps and Secrets in it; the PDF itself was not re-read. The objective wording is the course seed's. Reused for REQ-336 from this course's crashloop-bad-configmap-ckad (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "OneUptime blog, 'How to Roll Out a Change, Watch Health Checks, and Undo a Bad Deploy' (2025-11-27)",
+      "checkedAt": "2026-11-17",
+      "url": "https://oneuptime.com/blog/post/2025-11-27-rollouts-health-undo/view",
+      "note": "Found by search 2026-11-17 and read only through the search listing (title and address); to verify against the page. Used for: kubectl rollout status, history and undo, and maxUnavailable and maxSurge during a rolling update."
+    },
+    {
+      "cite": "Helm documentation, helm rollback",
+      "checkedAt": "2026-11-17",
+      "url": "https://blog.helm.sh/docs/helm/helm_rollback",
+      "note": "Found by search 2026-11-17 and read only through the search listing (title and address); to verify against the page. Used for: rolling a release back to a previous revision, recorded as a new revision."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The company, the cluster, the applications and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the developer on call for the store front at Pebblebrook Toys, a fictional toy retailer. A release of the catalog service went out at 14:50. Half the catalog Pods are not ready, and the search team's Helm upgrade failed half-way an hour ago.",
+    "handover": [
+      "catalog Deployment: strategy RollingUpdate with maxUnavailable 100% and maxSurge 0 (copied from a batch job's manifest).",
+      "search: Helm release revision 7 failed during upgrade; revision 6 was healthy."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the map shows each component and its status in words.",
+      "Move on a check-in at a time. A decision comes to you at each check-in; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-03-09T15:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "undo": {
+      "type": "enum",
+      "values": [
+        "none",
+        "rollback",
+        "patchForward",
+        "recreate"
+      ],
+      "init": "none"
+    },
+    "undoAt": {
+      "type": "time",
+      "init": null
+    },
+    "strat": {
+      "type": "enum",
+      "values": [
+        "none",
+        "surge",
+        "half",
+        "recreateStrat"
+      ],
+      "init": "none"
+    },
+    "stratAt": {
+      "type": "time",
+      "init": null
+    },
+    "helmfix": {
+      "type": "enum",
+      "values": [
+        "none",
+        "helmRollback",
+        "kubectlFix",
+        "uninstall"
+      ],
+      "init": "none"
+    },
+    "helmfixAt": {
+      "type": "time",
+      "init": null
+    },
+    "statusAt": {
+      "type": "time",
+      "init": null
+    },
+    "helmAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((undo == \"recreate\") ? 1 : 0) + ((strat == \"recreateStrat\") ? 1 : 0) + ((helmfix == \"uninstall\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(undo == \"none\" or (undo == \"recreate\") ? 1 : 0) + (strat == \"none\" or (strat == \"recreateStrat\") ? 1 : 0) + (helmfix == \"none\" or (helmfix == \"uninstall\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The release",
+      "clock": "turns",
+      "actions": [
+        "status",
+        "helm"
+      ]
+    },
+    "close": {
+      "label": "Release record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "status": {
+      "label": "kubectl rollout status deploy/catalog; kubectl rollout history deploy/catalog",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(statusAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "statusAt",
+          "to": "t"
+        },
+        {
+          "output": "Waiting for deployment \"catalog\" rollout to finish: 0 of 6 updated replicas are available...\nREVISION 11 (previous, healthy), 12 (current: image catalog:4.2)"
+        },
+        {
+          "log": "You read the rollout's status and history.",
+          "kind": "act"
+        },
+        {
+          "finding": "Revision 12's Pods fail readiness (a missing config key); with maxUnavailable 100%, every old Pod was removed at once, so nothing serves."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "helm": {
+      "label": "helm history search -n search",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(helmAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "helmAt",
+          "to": "t"
+        },
+        {
+          "output": "REVISION 6 deployed (superseded)\nREVISION 7 failed: timed out waiting for the condition"
+        },
+        {
+          "log": "You read the Helm release history.",
+          "kind": "act"
+        },
+        {
+          "finding": "Revision 7 failed part-way; some resources are on 7 and some on 6. Revision 6 is the last good one."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the release record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "catalog undone to revision 11 and re-released with maxUnavailable 0, and search rolled back to Helm revision 6 with atomic upgrades from now on"
+                },
+                {
+                  "value": "summary",
+                  "label": "Releases recovered"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next check-in",
+      "wait": {
+        "skipLabel": "Go to the next check-in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "undo == \"recreate\"",
+              "then": [
+                {
+                  "log": "Check-in 2: the laptop's manifest is two releases old; the catalog comes back with last month's prices on 300 products.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "strat == \"recreateStrat\"",
+              "then": [
+                {
+                  "log": "Check-in 3: the fix rolls out with Recreate; the catalog is down for 90 seconds during the after-school peak.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "helmfix == \"uninstall\"",
+              "then": [
+                {
+                  "log": "Check-in 4: the uninstall removed the search index's volume claim; search is down for three hours while the index rebuilds.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "10min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The release window closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "10min"
+        }
+      ]
+    },
+    {
+      "id": "t_undo",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 1: the catalog is down.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "undoPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_strat",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 2: the fix is ready to release again.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "stratPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_helmfix",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 3: the search team asks for help.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "helmfixPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "undoPrompt": {
+      "title": "No catalog Pods available",
+      "context": "Revision 11 was healthy; revision 12 lacks a config key.",
+      "choices": [
+        {
+          "id": "rollback",
+          "label": "kubectl rollout undo deploy/catalog to revision 11, watch rollout status until 6/6 are available, then fix the config key before re-releasing",
+          "effects": [
+            {
+              "set": "undo",
+              "to": "\"rollback\""
+            },
+            {
+              "set": "undoAt",
+              "to": "t"
+            },
+            {
+              "log": "Revision 11 is back; 6/6 available.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "rollout undo returns the Deployment to a known-good revision; rollout status confirms it."
+        },
+        {
+          "id": "patchForward",
+          "label": "Add the missing key to the ConfigMap and restart the new Pods",
+          "effects": [
+            {
+              "set": "undo",
+              "to": "\"patchForward\""
+            },
+            {
+              "set": "undoAt",
+              "to": "t"
+            },
+            {
+              "log": "The key is added; the new Pods restart.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "It works, but the catalog stays down while you find and fix the key."
+        },
+        {
+          "id": "recreate",
+          "label": "Delete the Deployment and apply the old manifest from your laptop",
+          "effects": [
+            {
+              "set": "undo",
+              "to": "\"recreate\""
+            },
+            {
+              "set": "undoAt",
+              "to": "t"
+            },
+            {
+              "log": "The Deployment is deleted and re-created.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Deleting loses the rollout history, and your laptop's copy is two releases old."
+        }
+      ]
+    },
+    "stratPrompt": {
+      "title": "maxUnavailable 100%",
+      "context": "The strategy removes every old Pod before new ones are ready.",
+      "choices": [
+        {
+          "id": "surge",
+          "label": "Set maxUnavailable 0 and maxSurge 25%, so new Pods must be ready before old ones go, and release the fix",
+          "effects": [
+            {
+              "set": "strat",
+              "to": "\"surge\""
+            },
+            {
+              "set": "stratAt",
+              "to": "t"
+            },
+            {
+              "log": "The fix rolls out with no drop in capacity.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "With maxUnavailable 0 a rollout never removes a serving Pod until its replacement is ready."
+        },
+        {
+          "id": "half",
+          "label": "Set maxUnavailable 50%",
+          "effects": [
+            {
+              "set": "strat",
+              "to": "\"half\""
+            },
+            {
+              "set": "stratAt",
+              "to": "t"
+            },
+            {
+              "log": "Half the Pods may be unavailable.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Better than 100%, but a bad release still halves capacity at the peak."
+        },
+        {
+          "id": "recreateStrat",
+          "label": "Switch to the Recreate strategy so versions never mix",
+          "effects": [
+            {
+              "set": "strat",
+              "to": "\"recreateStrat\""
+            },
+            {
+              "set": "stratAt",
+              "to": "t"
+            },
+            {
+              "log": "Strategy set to Recreate.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Recreate stops every old Pod before starting new ones: every release is an outage."
+        }
+      ]
+    },
+    "helmfixPrompt": {
+      "title": "A half-applied upgrade",
+      "context": "Revision 7 failed part-way; revision 6 was healthy.",
+      "choices": [
+        {
+          "id": "helmRollback",
+          "label": "helm rollback search 6, confirm with helm history and the Pods, and use --atomic with a timeout for the next upgrade",
+          "effects": [
+            {
+              "set": "helmfix",
+              "to": "\"helmRollback\""
+            },
+            {
+              "set": "helmfixAt",
+              "to": "t"
+            },
+            {
+              "log": "Revision 8 (a rollback to 6) is deployed; search is healthy.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "helm rollback restores a known revision as a new one; --atomic rolls back by itself when an upgrade fails."
+        },
+        {
+          "id": "kubectlFix",
+          "label": "Fix the broken resources by hand with kubectl",
+          "effects": [
+            {
+              "set": "helmfix",
+              "to": "\"kubectlFix\""
+            },
+            {
+              "set": "helmfixAt",
+              "to": "t"
+            },
+            {
+              "log": "Resources are edited by hand.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Search works, but Helm's record no longer matches the cluster, and the next upgrade will fight your edits."
+        },
+        {
+          "id": "uninstall",
+          "label": "helm uninstall search and install it fresh",
+          "effects": [
+            {
+              "set": "helmfix",
+              "to": "\"uninstall\""
+            },
+            {
+              "set": "helmfixAt",
+              "to": "t"
+            },
+            {
+              "log": "The release is uninstalled.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Uninstall deletes the release's resources, including its index volume claim; search is down and its index must be rebuilt."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the release record: how the catalog and search were recovered, and what keeps the next release from taking them down.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Catalog",
+          "criteria": "rollout undo to the last good revision, verified with rollout status; strategy with maxUnavailable 0 and a surge.",
+          "modelAnswer": "We undid to revision 11 and confirmed 6/6 available; the strategy now has maxUnavailable 0 and maxSurge 25%."
+        },
+        {
+          "label": "Search",
+          "criteria": "helm rollback to revision 6, confirmed in history; --atomic for future upgrades.",
+          "modelAnswer": "helm rollback search 6 restored the last good revision; the next upgrade runs with --atomic and a timeout."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Service restored and the work closed within 60 minutes of the first report."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No fault introduced by the response itself."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (undo == \"patchForward\") and (strat == \"half\") and (helmfix == \"kubectlFix\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CNCF CKAD Curriculum v1.37 (cncf/curriculum, pinned commit 0a8cc08a): Application Design and Build 20%, Application Deployment 20%, Application Observability and Maintenance 15%, Application Environment, Configuration and Security 25%, Services and Networking 20%",
+        "checkedAt": "2026-11-17",
+        "url": "https://github.com/cncf/curriculum/blob/0a8cc08a502710a894e5724c2bec7b88404e5a6b/CKAD_Curriculum_v1.37.pdf",
+        "note": "The curriculum was read in primary text on 2026-11-07 by the course builder (backend/supabase/seed/tracks/kubernetes.ts). On 2026-11-17 a third-party summary (slauger.github.io/kubestronaut/ckad/application-environment) confirmed the 25% domain and ConfigMaps and Secrets in it; the PDF itself was not re-read. The objective wording is the course seed's. Reused for REQ-336 from this course's crashloop-bad-configmap-ckad (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "undoHarm": {
+      "label": "Old prices served",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and undo == \"recreate\"",
+      "narrative": "Re-creating the Deployment from a stale laptop copy served last month's prices on 300 products."
+    },
+    "stratHarm": {
+      "label": "A planned outage",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and strat == \"recreateStrat\"",
+      "narrative": "Recreate stopped every Pod before starting new ones; the catalog was down during the peak."
+    },
+    "helmfixHarm": {
+      "label": "Search index deleted",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and helmfix == \"uninstall\"",
+      "narrative": "helm uninstall removed the search index's claim; search was down three hours while it rebuilt."
+    },
+    "target": {
+      "label": "Recovered without losing anything",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (undo == \"rollback\") and (strat == \"surge\") and (helmfix == \"helmRollback\") and record == \"honest\" and missCount <= newFaults and timeAt(doneAt) <= restoreWindow",
+      "narrative": "Both services are back on known-good revisions and the next release can't take them down the same way."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "undoHarm",
+    "stratHarm",
+    "helmfixHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "undoCrit",
+        "label": "Rolled back to the last good revision with rollout undo",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "undo == \"rollback\"",
+            "score": "met",
+            "why": "Rolled back and verified."
+          },
+          {
+            "when": "undo == \"patchForward\"",
+            "score": "partial",
+            "why": "Slower than rolling back."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Lost history; stale manifest."
+          }
+        ]
+      },
+      {
+        "id": "stratCrit",
+        "label": "Set a strategy that keeps capacity while new Pods become ready",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "strat == \"surge\"",
+            "score": "met",
+            "why": "Capacity kept."
+          },
+          {
+            "when": "strat == \"half\"",
+            "score": "partial",
+            "why": "Half the capacity at risk."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Every release an outage."
+          }
+        ]
+      },
+      {
+        "id": "helmfixCrit",
+        "label": "Rolled the release back with Helm and made future upgrades atomic",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "helmfix == \"helmRollback\"",
+            "score": "met",
+            "why": "Rolled back, future upgrades safer."
+          },
+          {
+            "when": "helmfix == \"kubectlFix\"",
+            "score": "partial",
+            "why": "Drifted from Helm."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Deleted the release."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(statusAt) and not isNull(helmAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(statusAt) or not isNull(helmAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the rollout status and history, and the Helm history, before acting."
+      },
+      {
+        "at": "Check-in 1",
+        "text": "Undo to the last good revision and confirm with rollout status."
+      },
+      {
+        "at": "Check-in 2",
+        "text": "Use maxUnavailable 0 and a surge so readiness gates the rollout."
+      },
+      {
+        "at": "Check-in 3",
+        "text": "helm rollback to revision 6 and use --atomic next time."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "undoHarm": {
+        "headline": "Undo, don't recreate",
+        "body": "kubectl rollout undo goes back to a known revision without losing history."
+      },
+      "stratHarm": {
+        "headline": "Roll, keeping capacity",
+        "body": "RollingUpdate with maxUnavailable 0 keeps serving while new Pods become ready."
+      },
+      "helmfixHarm": {
+        "headline": "Roll back, don't uninstall",
+        "body": "helm rollback restores the last good revision; use --atomic for upgrades."
+      },
+      "target": {
+        "headline": "Good: recovered without losing anything",
+        "body": "Rollbacks to known revisions, a strategy that keeps capacity, and atomic Helm upgrades."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A Deployment keeps a revision history: kubectl rollout status shows progress, and rollout undo returns to a known-good revision without deleting anything. The strategy decides capacity during a rollout: maxUnavailable 0 with a surge means readiness gates every step, while maxUnavailable 100% or Recreate removes every serving Pod first. Helm keeps release revisions too: helm rollback restores one, --atomic undoes a failed upgrade, and uninstall deletes the release's resources."
+  }
+}
