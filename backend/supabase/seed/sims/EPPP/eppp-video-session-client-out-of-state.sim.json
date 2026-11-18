@@ -1,0 +1,1504 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "eppp-video-session-client-out-of-state",
+  "title": "Video session: she has logged in from another state",
+  "screen": {
+    "type": "session",
+    "level": 1,
+    "session": {
+      "client": {
+        "name": "Maya Chen",
+        "presentation": "{dropped and not reconnected ? \"The video is frozen on her face; the call has dropped\" : distress >= 6 ? \"Teary, glancing at the door behind her\" : distress >= 3 ? \"Tired, voice low\" : \"Calmer, sitting back\"}; {rapport >= 6 ? \"she is talking with you\" : rapport >= 3 ? \"she is careful with what she says\" : \"she has shut down\"}."
+      },
+      "gauges": [
+        {
+          "id": "rapport",
+          "label": "Rapport",
+          "spokenLabel": "Rapport",
+          "value": "rapport",
+          "max": 10,
+          "bands": [
+            3,
+            6
+          ],
+          "words": [
+            "guarded",
+            "warming",
+            "engaged"
+          ]
+        },
+        {
+          "id": "distress",
+          "label": "Distress",
+          "spokenLabel": "Distress",
+          "value": "distress",
+          "max": 10,
+          "bands": [
+            3,
+            6,
+            8
+          ],
+          "words": [
+            "settled",
+            "uneasy",
+            "distressed",
+            "overwhelmed"
+          ]
+        },
+        {
+          "id": "disclosure",
+          "label": "Disclosure",
+          "spokenLabel": "Disclosure",
+          "value": "disclosed",
+          "max": 10,
+          "bands": [
+            3,
+            7
+          ],
+          "words": [
+            "saying little",
+            "opening up",
+            "speaking freely"
+          ]
+        }
+      ],
+      "notes": [
+        {
+          "id": "where",
+          "label": "Where she is",
+          "text": "At her parents' home in Idaho for three weeks after her father's heart surgery. Cell number confirmed.",
+          "when": "locConfirmed",
+          "alert": "outOfState and not jurisdictionChecked"
+        },
+        {
+          "id": "room",
+          "label": "Her space",
+          "text": "{privacyAddressed ? \"On the back porch with earbuds; no one can hear.\" : \"Her mother is in the next room.\"}",
+          "when": "locConfirmed or ignoredPrivacy",
+          "alert": "not privacyAddressed and (locConfirmed or ignoredPrivacy)"
+        },
+        {
+          "id": "plan",
+          "label": "Emergency plan",
+          "text": "{emergencyUpdated ? \"Updated: her parents' address, her brother Kevin, the nearest emergency room.\" : \"On file: her Seattle address and roommate.\"}",
+          "when": "true"
+        },
+        {
+          "id": "call",
+          "label": "Connection",
+          "text": "{reconnected ? (calledBack ? \"Reconnected by phone.\" : \"She rejoined after eight minutes.\") : \"The call dropped.\"}",
+          "when": "dropped",
+          "alert": "dropped and not reconnected"
+        }
+      ],
+      "record": {
+        "label": "Session note so far",
+        "items": [
+          {
+            "label": "Location confirmed at {timeAt(locAt) / 60} min",
+            "when": "locConfirmed"
+          },
+          {
+            "label": "Jurisdiction to be checked before the next session",
+            "when": "jurisdictionChecked"
+          },
+          {
+            "label": "Emergency plan updated for Idaho",
+            "when": "emergencyUpdated"
+          },
+          {
+            "label": "Documented: plan {planDoc}",
+            "when": "documented"
+          }
+        ]
+      }
+    }
+  },
+  "objective": "Deliver telepsychology appropriately: competence, consent, privacy, emergencies and practice across jurisdictions",
+  "secondaryObjectives": [
+    "Apply ethical standards to technology-assisted services and social media"
+  ],
+  "sources": [
+    {
+      "cite": "APA, Office and technology checklist for telepsychological services (2020): at the start of each session 'Confirm patient's location and a phone number where the patient can be reached'; check that the client's space is private; have a backup plan for technical problems and for a crisis, and know the local resources (such as the nearest emergency room) where the client is",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.apa.org/topics/disasters-response/telepsychological-services-checklist",
+      "note": "Read 2026-11-17 on apa.org (summarizing fetch with short quotes). The checklist does not cover licensure."
+    },
+    {
+      "cite": "APA, Guidelines for the Practice of Telepsychology (2013; updated 2024): competence, consent to treatment and to the technology, confidentiality and security, emergencies, and interjurisdictional practice",
+      "checkedAt": "2026-11-17",
+      "url": "https://telehealth.org/news/the-apas-2024-telepsychology-guidelines-what-clinicians-need-to-know/",
+      "note": "Read 2026-11-17 only through this summary of the 2024 update (it does not quote the guidelines' text); the guidelines themselves were not opened. The summary says jurisdiction rules must be monitored 'as telehealth regulations evolve across states'."
+    },
+    {
+      "cite": "Washington Senate bill report on HB 1286 (2022), the Psychology Interjurisdictional Compact: a psychologist licensed in a compact state may practice telepsychology into another compact state only with an authorization from the compact's credentialing body, and follows the visited state's scope-of-practice rules",
+      "checkedAt": "2026-11-17",
+      "url": "https://lawfilesext.leg.wa.gov/biennium/2021-22/Htm/Bill%20Reports/Senate/1286-S%20SBA%20BH%2022.htm",
+      "note": "Read 2026-11-17 (summarizing fetch). Used only to describe how a compact authorization works; this case does not say which states belong to it, and the learner is not told whether Washington or Idaho does."
+    },
+    {
+      "cite": "APA, Ethical Principles of Psychologists and Code of Conduct (2002, amended 2010 and 2016, effective 2017-01-01): 1.04, 1.05 (reporting does not apply when an intervention would violate confidentiality rights), 3.04, 3.05(a)-(b) (multiple relationships not reasonably expected to impair or harm are not unethical), 4.01, 4.02, 4.05(b), 10.10(c)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.apa.org/ethics/code",
+      "note": "Read 2026-11-17 on apa.org (summarizing fetch with short quotes, e.g. 3.05(a) 'refrain from entering into a multiple relationship if' it could impair objectivity or risk harm; 10.10(c) 'prior to termination psychologists provide pretermination counseling and suggest alternative service providers'). Paraphrased, not reproduced."
+    },
+    {
+      "cite": "WAC 246-924-012 as the Washington jurisprudence course records it: clinical telehealth needs a one-time telemedicine training, compliance with the Uniform Telehealth Act (chapter 18.134 RCW), documented client agreement, and technology consistent with HIPAA and chapter 70.02 RCW",
+      "checkedAt": "2026-11-14",
+      "url": "https://app.leg.wa.gov/wac/default.aspx?cite=246-924-012",
+      "note": "Relayed from the course seed (wa-psych-jurisprudence.ts, read 2026-11-14); not re-read for this case."
+    },
+    {
+      "cite": "ASPPB, EPPP (Part 1-Knowledge) content areas: Ethical, legal and professional issues 16%; Assessment and diagnosis 16%; Treatment, intervention, prevention and supervision 15%; Cognitive-affective bases 13%; Growth and lifespan development 12%; Biological bases 10%",
+      "checkedAt": "2026-11-10",
+      "url": "https://asppb.net/?p=235",
+      "note": "Relayed from the EPPP course seed (backend/supabase/seed/tracks/eppp.ts, read 2026-11-10 and re-checked for the course); not re-read for this case."
+    },
+    {
+      "cite": "Ascendra EPPP (Part 1-Knowledge) course catalog (backend/supabase/seed/tracks/eppp.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    }
+  ],
+  "brief": {
+    "situation": "You are a licensed psychologist in Washington, licensed only in Washington. You have seen Maya Chen, 29 (a fictional client), weekly by video for five months for generalized anxiety; she signed a telehealth consent at intake and your emergency plan lists her Seattle address. Tonight's session starts on time; she looks exhausted and the room behind her is not her apartment. You have 50 minutes.",
+    "handover": [
+      "Generalized anxiety; improving; works remotely as a graphic designer; no history of suicidal thoughts or behavior.",
+      "Telehealth consent on file (video from home, how to reach you, what happens if the connection fails); emergency contact: her roommate in Seattle."
+    ],
+    "howItWorks": [
+      "Choose what to say and do from the action groups. Maya answers at once; then let the conversation continue, which moves the session clock by the minutes that exchange took.",
+      "Her rapport, distress and how much she discloses change with what you say. What she tells you depends on the trust you have built.",
+      "The hour ends at 50 minutes. After the session you write a short formulation and document."
+    ]
+  },
+  "clock": {
+    "start": "17:00",
+    "tick": "1min",
+    "maxDuration": "80min",
+    "calendar": "clock"
+  },
+  "params": {
+    "sessionEnd": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Common outpatient practice: a 50-minute session (the 'therapy hour')",
+        "checkedAt": "2026-11-17",
+        "note": "Author's scenario timing; the session can be ended earlier."
+      }
+    },
+    "easeRate": {
+      "value": 0.1,
+      "unit": "/min",
+      "source": {
+        "cite": "Simplified teaching model (author's)",
+        "checkedAt": "2026-11-17",
+        "note": "How rapport and distress move with each response is a teaching simplification for exam practice, not a validated model of a client."
+      }
+    },
+    "riseRate": {
+      "value": 0.05,
+      "unit": "/min",
+      "source": {
+        "cite": "Simplified teaching model (author's)",
+        "checkedAt": "2026-11-17",
+        "note": "How rapport and distress move with each response is a teaching simplification for exam practice, not a validated model of a client."
+      }
+    }
+  },
+  "state": {
+    "rapport": {
+      "type": "number",
+      "init": 5,
+      "min": 0,
+      "max": 10
+    },
+    "distress": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "disclosed": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "talking": {
+      "type": "bool",
+      "init": false
+    },
+    "reflectN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "walkedOut": {
+      "type": "bool",
+      "init": false
+    },
+    "locConfirmed": {
+      "type": "bool",
+      "init": false
+    },
+    "outOfState": {
+      "type": "bool",
+      "init": false
+    },
+    "phoneConfirmed": {
+      "type": "bool",
+      "init": false
+    },
+    "privacyAddressed": {
+      "type": "bool",
+      "init": false
+    },
+    "ignoredPrivacy": {
+      "type": "bool",
+      "init": false
+    },
+    "jurisdictionChecked": {
+      "type": "bool",
+      "init": false
+    },
+    "asUsualSaid": {
+      "type": "bool",
+      "init": false
+    },
+    "emergencyUpdated": {
+      "type": "bool",
+      "init": false
+    },
+    "feelingsExplored": {
+      "type": "bool",
+      "init": false
+    },
+    "copingPlanned": {
+      "type": "bool",
+      "init": false
+    },
+    "dropped": {
+      "type": "bool",
+      "init": false
+    },
+    "reconnected": {
+      "type": "bool",
+      "init": false
+    },
+    "calledBack": {
+      "type": "bool",
+      "init": false
+    },
+    "waitedOut": {
+      "type": "bool",
+      "init": false
+    },
+    "safetyAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "blamed": {
+      "type": "bool",
+      "init": false
+    },
+    "dismissed": {
+      "type": "bool",
+      "init": false
+    },
+    "planDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "checkFirst",
+        "asUsual",
+        "stop"
+      ],
+      "init": "none"
+    },
+    "emergencyDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "updated",
+        "onFile"
+      ],
+      "init": "none"
+    },
+    "locAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {},
+  "processes": [
+    {
+      "id": "settles",
+      "when": "phase == \"session\" and rapport >= 6",
+      "update": {
+        "distress": "distress - easeRate * dt / 60"
+      }
+    },
+    {
+      "id": "frays",
+      "when": "phase == \"session\" and rapport < 3",
+      "update": {
+        "distress": "distress + riseRate * dt / 60"
+      }
+    }
+  ],
+  "phases": {
+    "session": {
+      "label": "In session",
+      "clock": "turns",
+      "actions": [
+        "checkIn",
+        "reflect",
+        "confirmLocation",
+        "privacy",
+        "checkJurisdiction",
+        "asUsual",
+        "updateEmergency",
+        "explore",
+        "askSafety",
+        "copingPlan",
+        "blame",
+        "dismiss",
+        "callBack",
+        "waitForHer",
+        "endSession"
+      ]
+    },
+    "note": {
+      "label": "After the session",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "session",
+  "actions": {
+    "checkIn": {
+      "label": "Open-ended check-in: 'How are you doing tonight?'",
+      "group": "Open",
+      "available": "not talking and (not dropped or reconnected) and (disclosed < 1)",
+      "why": "You have opened the session.",
+      "effects": [
+        {
+          "log": "You ask an open question and give the client room to answer.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "0.5"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"Honestly? Not great. It's been a really long week.\" She rubs her eyes."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "reflect": {
+      "label": "Reflect what you hear (empathic reflection)",
+      "group": "Respond",
+      "available": "not talking and (not dropped or reconnected) and (reflectN < 4)",
+      "why": "You have reflected a lot already; move the session on.",
+      "effects": [
+        {
+          "log": "You reflect the feeling under what was said, without judging it.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "reflectN < 2 ? 1 : 0.5"
+        },
+        {
+          "add": "distress",
+          "by": "-0.5"
+        },
+        {
+          "add": "reflectN",
+          "by": "1"
+        },
+        {
+          "finding": "Maya nods. \"Yeah. I'm running on empty.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "confirmLocation": {
+      "label": "Confirm where she is right now and a phone number you can reach her on if the video drops",
+      "group": "Open",
+      "available": "not talking and (not dropped or reconnected) and (not locConfirmed)",
+      "why": "Confirmed.",
+      "effects": [
+        {
+          "log": "You ask where she is joining from tonight and which number to call if the video fails.",
+          "kind": "act"
+        },
+        {
+          "set": "locConfirmed",
+          "to": "true"
+        },
+        {
+          "set": "locAt",
+          "to": "t"
+        },
+        {
+          "set": "outOfState",
+          "to": "true"
+        },
+        {
+          "set": "phoneConfirmed",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"Oh, I'm at my parents' in Idaho. Dad had heart surgery Monday; I'm here three weeks to help. My cell's the same.\""
+        },
+        {
+          "log": "She is in another state. Your license is Washington's; the rules where she is decide whether you may practice there.",
+          "kind": "alarm"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "privacy": {
+      "label": "Check her privacy: who can hear, and offer headphones, another room, or the chat window",
+      "group": "Address",
+      "available": "not talking and (not dropped or reconnected) and (not privacyAddressed)",
+      "why": "Done.",
+      "effects": [
+        {
+          "log": "You ask whether anyone can hear her and offer options: headphones, a different room, or typing in the chat.",
+          "kind": "act"
+        },
+        {
+          "set": "privacyAddressed",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "0.5"
+        },
+        {
+          "finding": "\"Mom's in the kitchen right there.\" She moves to the back porch with earbuds. \"Better.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "checkJurisdiction": {
+      "label": "Tell her you need to check Idaho's rules, a temporary-practice allowance or a compact authorization, before more sessions while she is there, and why",
+      "group": "Address",
+      "available": "not talking and (not dropped or reconnected) and (outOfState and not jurisdictionChecked)",
+      "why": "Explained (confirm her location first).",
+      "effects": [
+        {
+          "log": "You explain that your license is Washington's, that Idaho's rules decide whether you can keep seeing her while she is there, and that you will check before the next session.",
+          "kind": "act"
+        },
+        {
+          "set": "jurisdictionChecked",
+          "to": "true"
+        },
+        {
+          "cases": [
+            {
+              "when": "rapport >= 5",
+              "then": [
+                {
+                  "finding": "\"Huh. I didn't think about that. Okay. Can we still talk tonight?\""
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "add": "rapport",
+                  "by": "-0.5"
+                },
+                {
+                  "finding": "\"So you might not be able to see me? Great. One more thing.\""
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "log": "Jurisdiction follows where the client is; check the visited state's rules before continuing there.",
+          "kind": "good"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "asUsual": {
+      "label": "Tell her nothing changes: weekly video sessions as usual for the three weeks",
+      "group": "Plan",
+      "available": "not talking and (not dropped or reconnected) and (outOfState and not asUsualSaid)",
+      "why": "Said.",
+      "effects": [
+        {
+          "log": "You tell her you will keep meeting weekly as usual.",
+          "kind": "act"
+        },
+        {
+          "set": "asUsualSaid",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "0.5"
+        },
+        {
+          "finding": "\"Good. I need this.\""
+        },
+        {
+          "log": "You do not know whether you are allowed to practice in Idaho. Practicing where you are not authorized puts her and your license at risk.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "updateEmergency": {
+      "label": "Update the emergency plan for these three weeks: her address there, a local contact, and the nearest emergency room",
+      "group": "Plan",
+      "available": "not talking and (not dropped or reconnected) and (outOfState and not emergencyUpdated)",
+      "why": "Updated (confirm her location first).",
+      "effects": [
+        {
+          "log": "You record her parents' address, her brother as a local contact, and the nearest emergency department.",
+          "kind": "act"
+        },
+        {
+          "set": "emergencyUpdated",
+          "to": "true"
+        },
+        {
+          "finding": "She gives the address and her brother's number. \"St. Luke's is ten minutes away.\""
+        },
+        {
+          "log": "Your plan named a Seattle address and roommate; in a crisis tonight you would need local help where she is.",
+          "kind": "good"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "explore": {
+      "label": "Explore what this week has been like: her father's surgery, caring for him, her own anxiety",
+      "group": "Explore",
+      "available": "not talking and (not dropped or reconnected) and (not feelingsExplored)",
+      "why": "Explored.",
+      "effects": [
+        {
+          "log": "You invite her to talk about the week.",
+          "kind": "act"
+        },
+        {
+          "set": "feelingsExplored",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "2"
+        },
+        {
+          "add": "rapport",
+          "by": "1"
+        },
+        {
+          "add": "distress",
+          "by": "-0.5"
+        },
+        {
+          "cases": [
+            {
+              "when": "privacyAddressed",
+              "then": [
+                {
+                  "finding": "\"I keep thinking he's going to die on my watch. I check his breathing at night. I haven't slept.\""
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "ignoredPrivacy",
+                  "to": "true"
+                },
+                {
+                  "finding": "She glances toward the kitchen and lowers her voice. \"It's fine. Dad's fine. Can we talk about something else?\""
+                },
+                {
+                  "log": "Her mother is within earshot; she cannot speak freely, and her privacy is at risk.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "4min"
+        }
+      ]
+    },
+    "askSafety": {
+      "label": "Ask directly, since she sounds overwhelmed, whether she has had thoughts of suicide",
+      "group": "Ask about risk",
+      "available": "not talking and (not dropped or reconnected) and (feelingsExplored and not safetyAsked)",
+      "why": "Asked.",
+      "effects": [
+        {
+          "log": "You ask directly about thoughts of suicide, without asking for details.",
+          "kind": "act"
+        },
+        {
+          "set": "safetyAsked",
+          "to": "true"
+        },
+        {
+          "finding": "\"No. Nothing like that. I'm just exhausted.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "copingPlan": {
+      "label": "Plan the next three weeks with her: sleep, shared care with her brother, a short daily worry window",
+      "group": "Plan",
+      "available": "not talking and (not dropped or reconnected) and (feelingsExplored and not copingPlanned)",
+      "why": "Planned.",
+      "effects": [
+        {
+          "log": "You plan the coming weeks with her: shifts with her brother, sleep, and the worry window she used before.",
+          "kind": "act"
+        },
+        {
+          "set": "copingPlanned",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "0.5"
+        },
+        {
+          "add": "distress",
+          "by": "-1"
+        },
+        {
+          "finding": "\"Okay. Alternate nights with Kevin. Worry window at four. I can do that.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "blame": {
+      "label": "Tell her she should have warned you before traveling, because this puts your license at risk",
+      "group": "Address",
+      "available": "not talking and (not dropped or reconnected) and (outOfState and not blamed)",
+      "why": "Said.",
+      "effects": [
+        {
+          "log": "You tell her she should have told you she was traveling.",
+          "kind": "act"
+        },
+        {
+          "set": "blamed",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "-3"
+        },
+        {
+          "add": "distress",
+          "by": "1.5"
+        },
+        {
+          "finding": "\"My dad had heart surgery. Sorry it's inconvenient for you.\""
+        },
+        {
+          "log": "Her location is yours to check at the start of each session; making it her fault ruptures the alliance.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "dismiss": {
+      "label": "Tell her caregiving stress is normal and she just needs to push through the three weeks",
+      "group": "Respond",
+      "available": "not talking and (not dropped or reconnected) and (not dismissed)",
+      "why": "Said.",
+      "effects": [
+        {
+          "log": "You tell her this is normal and she will get through it.",
+          "kind": "act"
+        },
+        {
+          "set": "dismissed",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "-2"
+        },
+        {
+          "add": "distress",
+          "by": "1"
+        },
+        {
+          "finding": "She stares at the screen. \"Okay.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "callBack": {
+      "label": "Call her cell phone, as agreed in the consent",
+      "group": "Reconnect",
+      "available": "not talking and (dropped and not reconnected and phoneConfirmed)",
+      "why": "Confirm a phone number first (or you are connected).",
+      "effects": [
+        {
+          "log": "You call the number she confirmed.",
+          "kind": "act"
+        },
+        {
+          "set": "reconnected",
+          "to": "true"
+        },
+        {
+          "set": "calledBack",
+          "to": "true"
+        },
+        {
+          "finding": "She picks up on the first ring. \"Sorry! Parents' Wi-Fi. Phone's fine.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "waitForHer": {
+      "label": "Wait for her to rejoin the video",
+      "group": "Reconnect",
+      "available": "not talking and (dropped and not reconnected)",
+      "why": "You are connected.",
+      "effects": [
+        {
+          "log": "You wait for the video to come back.",
+          "kind": "act"
+        },
+        {
+          "set": "reconnected",
+          "to": "true"
+        },
+        {
+          "set": "waitedOut",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "-0.5"
+        },
+        {
+          "add": "distress",
+          "by": "1"
+        },
+        {
+          "finding": "After eight minutes she rejoins, flustered. \"I didn't know if you'd call. I didn't have a number for you here.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "8min"
+        }
+      ]
+    },
+    "endSession": {
+      "label": "Close the session",
+      "group": "Close",
+      "available": "not talking",
+      "why": "Let the conversation continue first.",
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "log": "You close the session.",
+          "kind": "act"
+        },
+        {
+          "phase": "note"
+        }
+      ]
+    },
+    "document": {
+      "label": "Document the session and the plan",
+      "group": "Document",
+      "available": "not documented",
+      "why": "Documented.",
+      "params": [
+        {
+          "id": "note",
+          "kind": "form",
+          "label": "Session note",
+          "fields": [
+            {
+              "id": "plan",
+              "label": "Sessions while she is away",
+              "options": [
+                {
+                  "value": "checkFirst",
+                  "label": "Check Idaho's rules before the next session; continue only if authorized, otherwise a local referral or wait until she is back"
+                },
+                {
+                  "value": "asUsual",
+                  "label": "Weekly video sessions as usual for three weeks"
+                },
+                {
+                  "value": "stop",
+                  "label": "Sessions paused with no contact until she returns"
+                }
+              ]
+            },
+            {
+              "id": "emergency",
+              "label": "Emergency plan",
+              "options": [
+                {
+                  "value": "updated",
+                  "label": "Her location, callback number, a local contact and the nearest emergency room for these three weeks"
+                },
+                {
+                  "value": "onFile",
+                  "label": "The Washington plan on file"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "planDoc",
+          "to": "plan"
+        },
+        {
+          "set": "emergencyDoc",
+          "to": "emergency"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Documented: plan {planDoc}, emergency plan {emergencyDoc}.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "talk": {
+      "label": "The conversation goes on",
+      "wait": {
+        "skipLabel": "Let the conversation continue"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing",
+        "checkedAt": "2026-11-17",
+        "note": "Each exchange costs the minutes a real exchange of that kind takes, rounded to whole minutes."
+      },
+      "effects": [
+        {
+          "set": "talking",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "hourUp",
+      "when": "t >= sessionEnd and phase == \"session\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "log": "The 50-minute hour is up. The session ends here.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "note"
+        }
+      ]
+    },
+    {
+      "id": "walkOut",
+      "when": "rapport < 1 and phase == \"session\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "set": "walkedOut",
+          "to": "true"
+        },
+        {
+          "log": "Maya says she can't do this tonight and leaves the call before the hour is over.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"note\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "formulation"
+        }
+      ]
+    },
+    {
+      "id": "predict",
+      "when": "outOfState",
+      "mode": "once",
+      "effects": [
+        {
+          "prompt": "jurisdiction"
+        }
+      ]
+    },
+    {
+      "id": "drop",
+      "when": "t >= 1200 and phase == \"session\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "set": "dropped",
+          "to": "true"
+        },
+        {
+          "log": "The video freezes on Maya's face, then the call drops.",
+          "kind": "alarm"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "jurisdiction": {
+      "title": "Predict (not scored)",
+      "context": "Maya will be at her parents' in Idaho for three weeks. You are licensed only in Washington. Can you keep seeing her by video while she is there?",
+      "choices": [
+        {
+          "id": "depends",
+          "label": "It depends on Idaho's rules (a temporary-practice allowance or a compact authorization); check before the next session",
+          "effects": [
+            {
+              "log": "Prediction: check first.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Right. What matters is where the client is. Some states allow limited temporary practice; a compact authorization works only if both states belong and you hold one. Check before continuing there, and plan care around what you find."
+        },
+        {
+          "id": "yes",
+          "label": "Yes: your Washington license covers your clients wherever they are",
+          "effects": [
+            {
+              "log": "Prediction: license follows the psychologist.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "No. Jurisdiction follows the client's location. Practicing in a state where you are not authorized can be unlicensed practice there."
+        },
+        {
+          "id": "endNow",
+          "label": "No: end the session the moment you learn where she is",
+          "effects": [
+            {
+              "log": "Prediction: end now.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Too abrupt. Attend to her immediate wellbeing and safety tonight, then check the rules before any further sessions. Ending a distressed client's session without a plan risks harm (APA 3.04)."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "formulation": {
+      "question": "Write your formulation: what changed when she logged in from another state, and what you did about jurisdiction, privacy, emergencies and the dropped call.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Jurisdiction and consent",
+          "criteria": "Location confirmed at the start; practice is governed where the client is; you are licensed only in Washington, so Idaho's rules (temporary practice or a compact authorization) are checked before more sessions; not 'as usual'; tonight's session addresses her immediate needs.",
+          "modelAnswer": "I confirmed at the start that Maya is in Idaho for three weeks. The rules of the state where the client is decide whether I may practice there, and I am licensed only in Washington, so I will check Idaho's rules (a temporary-practice allowance, or a compact authorization if both states belong and I hold one) before another session. If I cannot practice there, we will arrange a local referral or wait until she is back. Tonight I attended to what she needed."
+        },
+        {
+          "label": "Privacy, emergencies and the dropped call",
+          "criteria": "Her mother within earshot: headphones, another room or chat; emergency plan updated with her address, a local contact and the nearest ER; a callback number confirmed at the start; when the video dropped, called her; risk asked about directly; a coping plan.",
+          "modelAnswer": "Her mother could hear, so she moved outside with earbuds before we went further. My emergency plan named Seattle, so I recorded her parents' address, her brother and the nearest emergency room. I had confirmed her cell at the start, so when the video dropped at 20 minutes I called her. She denied thoughts of suicide; we planned shared care with her brother, sleep, and a daily worry window."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "clinical-session",
+    "thresholds": {
+      "allianceTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Rapport at the close of the session."
+        }
+      },
+      "allianceRecovered": {
+        "value": 3,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-17"
+        }
+      },
+      "safetyWindow": {
+        "value": 600,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Location is confirmed within the first 10 minutes for full credit (the checklist puts it at the start of every session)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not locConfirmed",
+      "class": "harm",
+      "rationale": "Never learning where the client is leaves the jurisdiction question and the emergency plan wrong for the whole session.",
+      "source": {
+        "cite": "APA, Office and technology checklist for telepsychological services (2020): at the start of each session 'Confirm patient's location and a phone number where the patient can be reached'; check that the client's space is private; have a backup plan for technical problems and for a crisis, and know the local resources (such as the nearest emergency room) where the client is",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.apa.org/topics/disasters-response/telepsychological-services-checklist",
+        "note": "Read 2026-11-17 on apa.org (summarizing fetch with short quotes). The checklist does not cover licensure."
+      }
+    }
+  },
+  "endings": {
+    "walkout": {
+      "label": "She left the call",
+      "class": "harm",
+      "when": "walkedOut",
+      "terminal": true,
+      "narrative": "Maya left the call before the hour was over, exhausted and with nothing planned."
+    },
+    "unreachable": {
+      "label": "The call dropped and stayed down",
+      "class": "harm",
+      "when": "documented and not walkedOut and dropped and not reconnected",
+      "terminal": true,
+      "narrative": "The session ended with the video frozen. You had no confirmed number for her tonight, and she was in distress in another state."
+    },
+    "unauthorized": {
+      "label": "Practicing where you may not be authorized",
+      "class": "harm",
+      "when": "documented and not walkedOut and (not locConfirmed or planDoc == \"asUsual\")",
+      "terminal": true,
+      "narrative": "{locConfirmed ? \"Three weeks of weekly sessions are booked into a state whose rules you have not checked.\" : \"You never learned she was in Idaho; your emergency plan and your license both point to Washington.\"}"
+    },
+    "safeCare": {
+      "label": "Care that fits where she is",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and not walkedOut and locConfirmed and timeAt(locAt) <= safetyWindow and jurisdictionChecked and not asUsualSaid and planDoc == \"checkFirst\" and privacyAddressed and not ignoredPrivacy and emergencyUpdated and emergencyDoc == \"updated\" and calledBack and feelingsExplored and safetyAsked and copingPlanned and rapport >= allianceTarget",
+      "narrative": "Maya ends the call steadier, with a plan for the weeks with her father. You will check Idaho's rules tomorrow and call her with what you find."
+    },
+    "gaps": {
+      "label": "Safe, with gaps",
+      "class": "recovered",
+      "when": "documented and not walkedOut",
+      "terminal": true,
+      "narrative": "She is reachable and the plan is not unlawful, but parts of the setup or the care fell short."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "walkout",
+    "unreachable",
+    "unauthorized",
+    "safeCare",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "location",
+        "label": "Confirmed her location and a callback number at the start",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "locConfirmed and timeAt(locAt) <= safetyWindow",
+            "score": "met",
+            "why": "Confirmed {timeAt(locAt) / 60} min in."
+          },
+          {
+            "when": "locConfirmed",
+            "score": "partial",
+            "why": "Confirmed, but only {timeAt(locAt) / 60} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never asked where she was."
+          }
+        ]
+      },
+      {
+        "id": "jurisdiction",
+        "label": "Checked the rules where she is before continuing",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "jurisdictionChecked and not asUsualSaid and planDoc == \"checkFirst\"",
+            "score": "met",
+            "why": "Told her, and the plan waits on the rules."
+          },
+          {
+            "when": "planDoc == \"checkFirst\"",
+            "score": "partial",
+            "why": "The plan is right{asUsualSaid ? \", but she was told sessions continue as usual\" : \", but she was not told why\"}."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{planDoc == \"stop\" ? \"Sessions stopped with no plan.\" : \"Planned to practice in Idaho without knowing whether you may.\"}"
+          }
+        ]
+      },
+      {
+        "id": "privacyCrit",
+        "label": "Secured her privacy before the clinical conversation",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "privacyAddressed and not ignoredPrivacy",
+            "score": "met",
+            "why": "She moved somewhere private first."
+          },
+          {
+            "when": "privacyAddressed",
+            "score": "partial",
+            "why": "Addressed, but only after she had started talking within earshot."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Her mother could hear."
+          }
+        ]
+      },
+      {
+        "id": "emergency",
+        "label": "Updated the emergency plan for where she is",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "emergencyUpdated and emergencyDoc == \"updated\"",
+            "score": "met",
+            "why": "Local address, contact and emergency room recorded."
+          },
+          {
+            "when": "emergencyUpdated or emergencyDoc == \"updated\"",
+            "score": "partial",
+            "why": "Half done: {emergencyUpdated ? \"gathered but not recorded\" : \"recorded without asking her\"}."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The plan still points to Seattle."
+          }
+        ]
+      },
+      {
+        "id": "dropCrit",
+        "label": "Reconnected quickly when the video failed",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "calledBack",
+            "score": "met",
+            "why": "Called her confirmed number."
+          },
+          {
+            "when": "waitedOut",
+            "score": "partial",
+            "why": "Waited eight minutes for her to rejoin."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{dropped ? \"The session ended with the call down.\" : \"The session ended before the connection was tested.\"}"
+          }
+        ]
+      },
+      {
+        "id": "careCrit",
+        "label": "Attended to her week, her risk and her coping",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "feelingsExplored and not ignoredPrivacy and safetyAsked and copingPlanned",
+            "score": "met",
+            "why": "Heard her, asked about suicide directly, planned the weeks ahead."
+          },
+          {
+            "when": "feelingsExplored",
+            "score": "partial",
+            "why": "Heard her, but {safetyAsked ? \"no plan for the weeks ahead\" : \"did not ask about risk\"}."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Her week was never explored."
+          }
+        ]
+      },
+      {
+        "id": "alliance",
+        "label": "Kept the working alliance",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not walkedOut and rapport >= allianceTarget",
+            "score": "met",
+            "why": "Rapport at the close: {rapport|0dp} of 10."
+          },
+          {
+            "when": "not walkedOut and rapport >= allianceRecovered",
+            "score": "partial",
+            "why": "Rapport at the close: {rapport|0dp} of 10."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The alliance broke down."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "formulation",
+        "label": "Written formulation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToLoc",
+        "label": "Minutes to confirming her location",
+        "value": "isNull(locAt) ? -1 : timeAt(locAt) / 60",
+        "format": "number",
+        "expert": "10 or less"
+      },
+      {
+        "id": "rapportEnd",
+        "label": "Rapport at the close",
+        "value": "round(rapport)",
+        "format": "number",
+        "expert": "6 or more"
+      },
+      {
+        "id": "minutes",
+        "label": "Session minutes",
+        "value": "t / 60",
+        "format": "number",
+        "expert": "50 or less"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-5 min",
+        "text": "Check in; confirm where she is and a callback number: Idaho, three weeks."
+      },
+      {
+        "at": "5-15 min",
+        "text": "Secure her privacy; explain that you must check Idaho's rules before more sessions; update the emergency plan for where she is."
+      },
+      {
+        "at": "15-30 min",
+        "text": "Explore her week; when the video drops, call her cell; ask directly about suicide."
+      },
+      {
+        "at": "30-50 min",
+        "text": "Plan the weeks ahead; document the jurisdiction plan and the updated emergency plan."
+      }
+    ],
+    "debrief": {
+      "safeCare": {
+        "headline": "Good: telepsychology done carefully",
+        "body": "You confirmed her location at the start, secured her privacy, treated jurisdiction as a question about where she is, updated the emergency plan, and had a callback number when the video failed."
+      },
+      "gaps": {
+        "headline": "Safe, with gaps",
+        "body": "The criteria below show what was late or missing."
+      },
+      "walkout": {
+        "headline": "She left the call",
+        "body": "A distressed client on a screen can leave with one click. Settle the practicalities briefly and warmly, then attend to her."
+      },
+      "unreachable": {
+        "headline": "Unreachable",
+        "body": "The start of every video session is for the client's location and a number to call if the connection fails. Without them, a dropped call can leave a distressed client alone."
+      },
+      "unauthorized": {
+        "headline": "Practicing where you may not be authorized",
+        "body": "Jurisdiction follows the client. Before continuing while she is in another state, check its rules: a temporary-practice allowance, or a compact authorization if both states belong and you hold one."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was documented before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A video session starts with the client's location and a callback number. Maya is in Idaho for three weeks; you are licensed only in Washington, and the rules where the client is decide whether you may practice there, so check them (a temporary-practice allowance, or a compact authorization) before further sessions, and do not promise 'as usual'. Tonight, attend to her: secure privacy first (her mother is within earshot), update the emergency plan to her location (address, local contact, nearest emergency room), and use the callback number when the video drops. Explore her week, ask directly about suicide when she sounds overwhelmed, and plan the weeks ahead."
+  }
+}
