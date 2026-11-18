@@ -1,0 +1,979 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "jaw-wont-open-new-neck-lump",
+  "title": "The jaw won't open, and there's a new lump",
+  "objective": "Screen for trismus after head and neck cancer treatment (seen in 38% to 42% of patients), and flag atypical features such as opening under 15 mm, no clicking history or lymphadenopathy for referral",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "Specialist certification examination outline: oncology (the certifying board's published outline page)",
+      "checkedAt": "2026-11-08",
+      "url": "https://specialization.apta.org/become-a-specialist/oncology/specialist-certification-examination-outline-oncology",
+      "note": "Relayed from the oncology specialty course seed (backend/supabase/seed/tracks/pt-abpts.ts, outline pages read 2026-10-08 and 2026-11-04, OUTLINE_CHECKED_AT 2026-11-08), not re-read: Examination and reexamination (23%) is a tested area. Scope only; no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra oncology specialty course catalog (backend/supabase/seed/tracks/pt-abpts.ts, track ABPTSONC)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Santiago-Rosado LM, et al.. Trismus. StatPearls (updated 2022-10-27), StatPearls Publishing",
+      "checkedAt": "2026-11-04",
+      "note": "Relayed from the course seed (tag SP-TRIS; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: screen for trismus after head and neck cancer treatment (seen in 38% to 42% of patients) and flag atypical features such as opening under 15 mm, no clicking history or lymphadenopathy for referral (the course objective's wording)."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "10:00 in an outpatient oncology rehabilitation clinic. You are the physical therapist. Mr. Garza, 59, finished radiation for oropharyngeal cancer 14 months ago. His dentist referred him for 'radiation trismus, start jaw stretching'.",
+    "handover": [
+      "He says his jaw opening was 'fine until 2 months ago' and has been getting worse fast; eating is hard and his right ear aches.",
+      "Clinic policy: atypical or progressive features after head and neck cancer go back to the treating oncologist before treatment begins."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "10:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.01,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A possible recurrence goes unassessed. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.002,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Assessment is under way. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of recurrence found late. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The treating oncologist told within 5 minutes of the node (clinic policy: before treatment)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 min to finish the visit."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "openAt": {
+      "type": "time",
+      "init": null
+    },
+    "hxAt": {
+      "type": "time",
+      "init": null
+    },
+    "neckAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "open",
+        "hx",
+        "neck"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "onc",
+        "dentist"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "atyp",
+        "rad",
+        "tmd"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "stretchAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "pain": {
+      "expr": "round(clamp(4 + 4 * max(0, prog - 0.5), 0, 10))",
+      "unit": "/10",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (route == \"onc\" ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Mr. Garza, 59, 14 months after radiation for oropharyngeal cancer",
+        "presentation": "Referred for jaw stretching for 'radiation trismus'. {not isNull(stretchAt) ? \"Using a jaw stretching device.\" : \"\"}"
+      },
+      "vitals": [
+        {
+          "id": "pain",
+          "label": "Pain",
+          "spokenLabel": "Pain, out of 10",
+          "value": "pain",
+          "unit": "/10",
+          "colour": "neutral",
+          "alarm": {
+            "high": 8
+          },
+          "announce": {
+            "bands": [
+              6,
+              8
+            ]
+          }
+        }
+      ],
+      "activity": "{not inClinic ? \"Visit over.\" : (not isNull(stretchAt) ? \"Forcing the jaw device open, wincing.\" : \"Seated, hand on his jaw.\")}",
+      "measures": [
+        {
+          "id": "openResult",
+          "label": "Opening",
+          "result": "12 mm.",
+          "when": "not isNull(openAt)"
+        },
+        {
+          "id": "hxResult",
+          "label": "History",
+          "result": "Onset 2 months ago, 12 months after radiation; rapid progression; no clicking; ear pain; 4 kg weight loss.",
+          "when": "not isNull(hxAt)"
+        },
+        {
+          "id": "neckResult",
+          "label": "Neck",
+          "result": "A firm, fixed 2 cm node in the right upper neck.",
+          "when": "not isNull(neckAt)",
+          "flag": "true"
+        }
+      ],
+      "dosage": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "Mouth opening measured",
+            "when": "not isNull(openAt)"
+          },
+          {
+            "label": "Aggressive stretching",
+            "when": "not isNull(stretchAt)"
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleAtyp",
+          "label": "Atypical trismus features",
+          "text": "Opening under 15 mm, a new lump or no clicking history: refer to the oncologist before stretching.",
+          "met": "not isNull(neckAt) and isNull(callAt)"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "open": {
+      "label": "Measure maximal interincisal opening",
+      "group": "Examine",
+      "available": "not testPending and isNull(openAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"open\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "hx": {
+      "label": "History: onset, progression, clicking, ear pain, weight, swallowing",
+      "group": "Examine",
+      "available": "not testPending and isNull(hxAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"hx\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "neck": {
+      "label": "Palpate the neck and jaw",
+      "group": "Examine",
+      "available": "not testPending and isNull(neckAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"neck\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "stretch": {
+      "label": "Start aggressive jaw stretching with a device as referred",
+      "group": "Treat",
+      "available": "isNull(stretchAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "stretchAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.2, 2)"
+        },
+        {
+          "log": "Forced stretching; severe pain, no gain.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Is this simple radiation trismus?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "atyp",
+              "label": "Atypical: opening under 15 mm, rapid recent progression, no clicking, ear pain, weight loss and a fixed neck node: possible recurrence; refer before treating"
+            },
+            {
+              "value": "rad",
+              "label": "Typical radiation fibrosis trismus"
+            },
+            {
+              "value": "tmd",
+              "label": "Temporomandibular disorder"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"atyp\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"atyp\""
+                },
+                {
+                  "log": "Atypical trismus; possible recurrence.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"rad\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"rad\""
+                },
+                {
+                  "log": "Read as radiation trismus.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"tmd\""
+                },
+                {
+                  "log": "Read as TMD.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Refer",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "onc",
+              "label": "Call his radiation oncologist today: opening 12 mm, rapid progression 12 months after treatment, no clicking, ear pain, 4 kg loss, fixed 2 cm right neck node"
+            },
+            {
+              "value": "dentist",
+              "label": "Write to the dentist that therapy has started"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"onc\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"onc\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "His oncologist books him for an urgent examination and imaging this week.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"dentist\""
+                },
+                {
+                  "log": "A letter goes to the dentist.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Explain why stretching waits, and document the measurements",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Measurements and findings documented; he understands why.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Oncology rehab clinic",
+      "clock": "running",
+      "actions": [
+        "open",
+        "hx",
+        "neck",
+        "stretch",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the test",
+      "wait": {
+        "skipLabel": "the test result"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each test or question takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"open\"",
+              "then": [
+                {
+                  "set": "openAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Maximal interincisal opening 12 mm.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"hx\"",
+              "then": [
+                {
+                  "set": "hxAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Started 2 months ago, a year after radiation; getting worse quickly; no clicking history; right ear pain; lost 4 kg.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "neckAt",
+                  "to": "t"
+                },
+                {
+                  "log": "A firm, fixed 2 cm lymph node in the right upper neck.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the end of the visit",
+      "wait": {
+        "skipLabel": "the end of the visit"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 min to finish the visit."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "He leaves with an urgent oncology appointment.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "Is this simple radiation trismus?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "Trismus affects 38-42% after head and neck cancer, but opening under 15 mm, rapid onset a year after treatment, no clicking, ear pain, weight loss and a fixed neck node are atypical and raise concern for recurrence.",
+          "modelAnswer": "Probably not. Trismus is common after head and neck cancer, but 12 mm, a fast change a year out, no clicking, ear pain, weight loss and a fixed node are red flags for recurrence."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Holds stretching, calls the treating oncologist the same day, explains and documents.",
+          "modelAnswer": "No stretching yet. Call his oncologist today, explain to him and document."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "spo2Floor": {
+        "value": 88,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "escalateWindow": {
+        "value": 300,
+        "source": {
+          "cite": "Unit practice (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "The treating oncologist told within 5 minutes of the node (clinic policy: before treatment)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Atypical trismus unreferred an hour on is harm here.",
+      "source": {
+        "cite": "Santiago-Rosado LM, et al.. Trismus. StatPearls (updated 2022-10-27), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-TRIS; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: screen for trismus after head and neck cancer treatment (seen in 38% to 42% of patients) and flag atypical features such as opening under 15 mm, no clicking history or lymphadenopathy for referral (the course objective's wording)."
+      }
+    }
+  },
+  "endings": {
+    "delay": {
+      "label": "Recurrence found late",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "After weeks of painful stretching, a recurrence is found at a more advanced stage."
+    },
+    "safe": {
+      "label": "Atypical features flagged",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"onc\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and (not isNull(openAt) and not isNull(neckAt)) and isNull(stretchAt)",
+      "narrative": "{timeAt(leftAt)|clock}: he has an urgent oncology visit before any stretching."
+    },
+    "safeGaps": {
+      "label": "Referred, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: he is referred, but late or after forced stretching."
+    },
+    "time_up": {
+      "label": "Undecided at 11:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "11:00 and no referral."
+    }
+  },
+  "endingOrder": [
+    "delay",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "The treating oncologist told within 5 minutes of finding the node",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"onc\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"onc\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "screenC",
+        "label": "Measured opening and screened for atypical features",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(openAt) and not isNull(neckAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not both."
+          }
+        ]
+      },
+      {
+        "id": "noStretchC",
+        "label": "Did not start aggressive stretching before referral",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(stretchAt)",
+            "score": "missed",
+            "why": "Stretched."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Held."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Took the onset and progression history",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(hxAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Flagged atypical trismus for referral",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"atyp\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"rad\"",
+            "score": "missed",
+            "why": "The node and pattern are atypical."
+          },
+          {
+            "when": "dxEnum == \"tmd\"",
+            "score": "missed",
+            "why": "No clicking; a node."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Explained and documented",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: atypical trismus features mean refer before treating",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Node found to the referral",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "10:00 to opening measured",
+        "value": "isNull(openAt) ? -1 : timeAt(openAt)",
+        "format": "duration",
+        "expert": "under 3 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "10:00",
+        "text": "Opening 12 mm."
+      },
+      {
+        "at": "~10:01",
+        "text": "Neck: fixed 2 cm node."
+      },
+      {
+        "at": "~10:02",
+        "text": "Call his oncologist."
+      },
+      {
+        "at": "~10:04",
+        "text": "History; explain; document."
+      }
+    ],
+    "debrief": {
+      "delay": {
+        "headline": "Recurrence found late",
+        "body": "Trismus is common after head and neck cancer, but opening under 15 mm, rapid new progression, no clicking and a neck node are atypical: refer before treating."
+      },
+      "safe": {
+        "headline": "Atypical features flagged",
+        "body": "You measured, screened for atypical features, found the node and called within minutes. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Referred, with gaps",
+        "body": "Check whether you stretched first and how soon you referred."
+      },
+      "time_up": {
+        "headline": "Undecided at 11:00",
+        "body": "Refer atypical features the same visit."
+      }
+    },
+    "modelReasoning": "Trismus is seen in 38-42% of patients after head and neck cancer treatment. Screen and flag atypical features for referral: opening under 15 mm, no clicking history, lymphadenopathy, and a new or rapidly progressive course. Mr. Garza has all of them plus ear pain and weight loss, so refer to his oncologist before treating."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "atypQ": {
+      "during": "testT",
+      "ask": "While you examine: which trismus features are atypical and need referral?",
+      "choices": [
+        {
+          "id": "atyp",
+          "label": "Opening under 15 mm, no clicking history, lymphadenopathy"
+        },
+        {
+          "id": "click",
+          "label": "A clicking jaw"
+        },
+        {
+          "id": "none",
+          "label": "None; all trismus is typical"
+        }
+      ],
+      "expect": "atyp",
+      "explain": "Flag opening under 15 mm, no clicking history or lymphadenopathy for referral.",
+      "source": {
+        "cite": "Santiago-Rosado LM, et al.. Trismus. StatPearls (updated 2022-10-27), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-TRIS; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: screen for trismus after head and neck cancer treatment (seen in 38% to 42% of patients) and flag atypical features such as opening under 15 mm, no clicking history or lymphadenopathy for referral (the course objective's wording)."
+      }
+    },
+    "commonQ": {
+      "during": "leaveT",
+      "ask": "While he books: how common is trismus after head and neck cancer treatment?",
+      "choices": [
+        {
+          "id": "forty",
+          "label": "About 38-42% of patients"
+        },
+        {
+          "id": "rare",
+          "label": "Under 1%"
+        },
+        {
+          "id": "all",
+          "label": "Everyone"
+        }
+      ],
+      "expect": "forty",
+      "explain": "Trismus is seen in 38% to 42% of patients after head and neck cancer treatment.",
+      "source": {
+        "cite": "Santiago-Rosado LM, et al.. Trismus. StatPearls (updated 2022-10-27), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-TRIS; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: screen for trismus after head and neck cancer treatment (seen in 38% to 42% of patients) and flag atypical features such as opening under 15 mm, no clicking history or lymphadenopathy for referral (the course objective's wording)."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}
