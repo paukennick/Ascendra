@@ -540,6 +540,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   // Cloud courses, round of 2026-11-17 (evening). New cases and bands,
   // listed in lib/sim/depth-cloud.ts. Keep these together. ----
   entry("AWSDEA", "s3-eventbridge-rule-never-fires"),
+  entry("AWSDEA", "redshift-idle-transaction-blocks-load"),
   // ---- end REQ-335 ----
   // ---- REQ-323 (docs/sims.md 22.32): health breadth and nursing depth of the
   // 2026-11-17 round. Bands first, then new cases. Keep these together. ----

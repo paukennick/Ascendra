@@ -186,4 +186,21 @@ describe("what each new depth cloud case teaches (REQ-335)", () => {
     assert.equal(ok.value("missAt"), null);
     assert.equal(ok.value("okAt") !== null, true);
   });
+  test("AWSDEA redshift-idle-transaction-blocks-load: a reboot rolls the load back; more WLM slots change nothing; ending the idle holder makes the review", () => {
+    const d = docOf("redshift-idle-transaction-blocks-load");
+    const h = driver(d);
+    h.act("reboot");
+    assert.equal(h.value("harmed"), true, "reboot causes harm");
+    until(h, 46);
+    assert.notEqual(h.value("missAt"), null);
+    const n = driver(d);
+    n.act("wlmslots");
+    until(n, 46);
+    assert.notEqual(n.value("missAt"), null, "wlmslots changes nothing");
+    const ok = driver(d);
+    ok.act("terminate");
+    until(ok, 46);
+    assert.equal(ok.value("missAt"), null);
+    assert.equal(ok.value("okAt") !== null, true);
+  });
 });
