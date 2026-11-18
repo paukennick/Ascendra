@@ -7670,3 +7670,149 @@ SAMHSA SAFE-T (PEP24-01-036, product page only); RCW 71.05.120 (Legislature PDF)
 Med 2012); Abderhalden et al., BMC Psychiatry 2006 (Broset checklist); the Keppra label (revised 8/2023).
 Relayed, not re-read: RCW 70.02.050 and HIPAA FAQ 520 (2026-11-14), 988 (2026-11-10), 42 CFR 482.13(e)
 (2026-11-14), and the exam outlines from the course seeds.
+
+### 22.42 EMS and fitness depth of the 2026-11-17 round (REQ-338)
+
+Nick, 2026-11-17 (19:51 PT): "Courses have no sims still like the MS Health
+Informatics. Some still have 1 or two. Let's build those out more robustly."
+The robust rule of the round: every unit with an objective that fits the
+selection rule gets a sim whose main objective sits in it; a course under 60
+objectives has at least 4 sims (8 from 60); the heaviest units first; a unit
+where nothing fits honestly is recorded as no fit. This builder's courses:
+the four NREMT levels on the bedside screen, and the personal trainer,
+nutrition coach and strength and conditioning courses on the client trainer
+screen. No engine, renderer, schema or migration change; engine 1.2
+throughout; every case on an existing screen. `lib/sim/ems-fitness-depth.test.ts`
+pins every document by slug and checks each course against the target.
+
+**Scope of practice (EMS).** Each case keeps to its level under the National
+EMS Scope of Practice Model 2019 with Change Notices 1.0 and 2.0 (DOT HS 813
+151, 2021; read 2026-11-17, no newer model found) and the NASEMSO National
+Model EMS Clinical Guidelines v3.0 (2022; NASEMSO's page, read 2026-11-17,
+still presents Version 3 as current). The EMR measures by hand and cools,
+positions, controls bleeding and hands over; it transports nothing and checks
+no glucose. The EMT adds pulse oximetry, glucose, oral glucose, destination
+choice and a refusal process with medical direction. The AEMT adds IV access
+and fluids, nebulized albuterol and CPAP, capnography, aspirin, sublingual
+nitroglycerin and 12-lead acquisition and transmission (the receiving
+physician interprets it). The paramedic adds rhythm interpretation,
+synchronized cardioversion, needle decompression and IO access. Out-of-scope
+or harmful choices are offered as traps (approaching an energized car,
+oral fluids to a confused runner, accepting a confused man's refusal,
+nitroglycerin after sildenafil with a marginal pressure, an unsynchronized
+shock, intubating against a POLST, epinephrine before decompression in a
+traumatic arrest).
+
+**Drugs** appear only at labeled doses: aspirin 324 mg chewed, nitroglycerin
+0.4 mg sublingual, albuterol 2.5 mg nebulized (NASEMSO's 5 mg is above the
+inhalation solution's label, so the case uses 2.5 mg repeated), adenosine
+6 mg then 12 mg rapid IV, epinephrine 1 mg only as a trap. Sedation before
+cardioversion is "per the agency protocol" with no drug or dose.
+
+#### New cases (bedside, EMS)
+
+| Course / slug | Unit (weight) | Objective (abridged) | Core of the case | Steps |
+|---|---|---|---|---|
+| NREMTEMR/emr-line-down-on-the-car | Scene Size-up and Safety (21) | Recognize an electrical hazard and keep yourself and bystanders out of danger | Assume the line is live; 35 ft perimeter and the utility in 2 min; stop the onlooker; driver stays in, then jumps clear feet together when the car smokes | emr-wire |
+| NREMTEMR/emr-finish-line-confused-runner | Secondary Assessment (6) | Recognize heat stroke and begin active cooling | Confusion means heat stroke; ice-water tub at once; no thermometer, so cool until alert; nothing by mouth; cool first, transport second | emr-heat |
+| NREMTEMR/emr-head-cut-wants-to-drive-home | Operations (12) | Implied consent; when a patient lacks capacity to refuse | Head injury plus alcohol, disoriented: no valid refusal; keep him engaged, keys with a friend, a deputy, no restraint alone; airway when he fades | emr-capacity |
+| NREMTEMT/emt-head-bump-on-a-blood-thinner | Secondary Assessment (7) | History findings that change urgency or destination | Apixaban plus a head strike at 79: field triage yellow, trauma center; reassess GCS; side and suction when she vomits | emt-fall |
+| NREMTEMT/emt-low-sugar-now-says-no | Operations (12) | Capacity, risks, medical direction, documenting a refusal | Confused at 46 mg/dL: no capacity, oral glucose, recheck; alert: capacity back; glipizide risk, medical direction; never force | emt-refusal |
+| NREMTAEMT/aemt-copd-tripod-cpap | Airway (11) | Asthma and COPD with nebulized bronchodilators and CPAP | Albuterol early, CPAP 5 to 10, oxygen titrated not 15 L/min, capnography; drowsy and EtCO2 rising: CPAP off, BVM, intercept | aemt-copd |
+| NREMTAEMT/aemt-chest-pressure-pill-last-night | Cardiology (13) | When a nitrate is contraindicated or risky | Sildenafil last night and a pressure of 102: no nitroglycerin; aspirin, 12-lead transmitted, IV; inferior STEMI with RV involvement; PCI center | aemt-nitro |
+| NREMTAEMT/aemt-belly-pain-fainted-in-bathroom | Clinical Judgment (33) | Clinical judgment steps for abdominal pain with shock | Cues to hypotheses: ruptured ectopic; flat, carried, short scene, IV and boluses en route with reassessment; the surgical ED, not her clinic | aemt-ectopic |
+| NREMTPARAMEDIC/medic-racing-heart-pressure-falling | Clinical Judgment (36) | Prioritize, act and evaluate for an unstable tachycardia | Unstable by every AHA sign: pads, SYNC checked, sedation if no delay, synchronized shock; no Valsalva; an unsynchronized shock causes VF | medic-svt |
+| NREMTPARAMEDIC/medic-assisted-living-fever-confused | Medical/OB/GYN (26) | Recognize sepsis and septic shock; fluids early | Pneumonia with MAP 60: 500 mL boluses toward 65, lungs checked between each, about 30 mL/kg at most, sepsis alert | medic-sepsis |
+| NREMTPARAMEDIC/medic-polst-selective-daughter-wants-everything | EMS Operations (10) | Consent, capacity and advance directives such as POLST | Valid POLST: no CPR, Selective Treatments; CPAP and transport, no intubation; explain to the daughter; medical direction | medic-polst |
+| NREMTPARAMEDIC/medic-chest-stab-pulse-lost | Trauma (8) | Recognize traumatic arrest and treat its reversible causes | Bilateral decompression first (pulse back), vented seal, scoop and go to Level I; no medical-arrest epinephrine | medic-trauma |
+
+#### New cases (trainer, fitness)
+
+| Course / slug | Unit (weight) | Objective (abridged) | Core of the case | Steps |
+|---|---|---|---|---|
+| NASMCPT/cpt-low-glucose-mid-intervals | Professional Development (10) | Legal and risk-management basics: emergency response | Type 1 diabetes, shaking mid-intervals: stop, 15 g fast carbohydrate, recheck at 15 min, no more intervals; cannot swallow: nothing by mouth, his glucagon, 911; no insulin advice; incident report | cpt-lowglucose |
+| NASMCPT/cpt-six-weeks-off-make-it-up | Client Relations (15) | Handling lapses without losing the client | Barriers without blame; activity guidelines; half volume after six weeks off; an if-then fallback; dark urine on day 2 means medical care today | cpt-lapse |
+| NASMCPT/cpt-watch-zone-on-a-beta-blocker | Basic and Applied Sciences (15) | Exercise physiology: acute responses | Metoprolol blunts the heart rate, so the watch's zone overstates effort; RPE and the talk test; stop for lightheadedness; no medication advice | cpt-beta |
+| NASMCPT/cpt-twenty-four-weeks-leaking-fluid | Program Design (20) | Program design for special populations (prenatal) | Modified session (talk test, incline, no Olympic lifts); fluid leakage and cramping: stop and call labor and delivery triage now | cpt-prenatal |
+| NASMCNC/cnc-losing-too-fast-and-thirsty | Practical Nutrition Coaching (25) | Weight management with a modest deficit; when weight change is a referral question | 11 lb in a month while eating more, thirsty, up at night: her physician this week; no diagnosis, no diabetic plan, no tighter deficit | cnc-weightloss |
+| NSCACSCS/cscs-first-day-back-collapse-in-heat | Organization and Administration (8) | Unsafe training: temperature-induced illness | Day one after five weeks: half volume, 1:4, tub ready; confusion: 911, immersion within a minute, out at 38.9 C on the athletic trainer's reading inside 30 min | cscs-heat |
+| NSCACSCS/cscs-shuttle-test-trait-on-file | Program Implementation (12) | Administering testing: readiness and rest between trials | Sickle cell trait: no timed all-out shuttles early; readiness check finds a cold, so held out; a slump with soft muscles: stop, 911, oxygen | cscs-sickle |
+| NSCACSCS/cscs-winter-return-gut-check-squats | Program Design (23) | Exercise selection for the training period and injury-risk reduction | The head coach's 100-squat gut check after a break: a 50% transition week instead, explained; dark urine on day 2: hospital now | cscs-return |
+
+#### Bands (4.7)
+
+Each band changes only objective, secondary objectives, sources and (for a
+different role) the brief; actions, scoring and endings are the base's, which
+the test compares, so the scope is identical.
+
+| Course / band slug | Base | Objective (abridged) |
+|---|---|---|
+| ACECPT/ace-low-glucose-mid-intervals | NASMCPT low glucose | Emergency response within scope, incident documentation |
+| ACSMCPT/acsm-low-glucose-mid-intervals | NASMCPT low glucose | Risk management, emergency procedures and documentation |
+| NCCPTCPT/nccpt-low-glucose-mid-intervals | NASMCPT low glucose | Trainer and client safety: emergency protocols |
+| NSCACPT/nscacpt-low-glucose-mid-intervals | NASMCPT low glucose | Emergency action plans and incident documentation |
+| ACECPT/ace-six-weeks-off-make-it-up | NASMCPT lapse | Recognizing and responding to lapses |
+| ACSMCPT/acsm-six-weeks-off-make-it-up | NASMCPT lapse | Educating on activity guidelines and self-monitoring |
+| NCCPTCPT/nccpt-six-weeks-off-make-it-up | NASMCPT lapse | Monitoring progress and recognizing over-training |
+| ACECPT/ace-watch-zone-on-a-beta-blocker | NASMCPT beta-blocker | Leveraging technology in program monitoring |
+| NSCACPT/nscacpt-watch-zone-on-a-beta-blocker | NASMCPT beta-blocker | Special populations within medical recommendations |
+| NCCPTCPT/nccpt-twenty-four-weeks-leaking-fluid | NASMCPT prenatal | Modifications for prenatal and hypertensive clients |
+| ACECPT/ace-twenty-four-weeks-leaking-fluid | NASMCPT prenatal | Modifying programs for changing health conditions |
+| ACSMCPT/acsm-twenty-four-weeks-leaking-fluid | NASMCPT prenatal | Progressions and modifications for special populations |
+| NREMTEMT/emt-line-down-on-the-car | NREMTEMR downed line | Recognize scene hazards and decide whether the scene is safe (brief: an EMT on the first engine) |
+| NREMTAEMT/aemt-low-sugar-now-says-no | NREMTEMT refusal | Consent, refusal and capacity in the field (brief: an AEMT; IV dextrose only if he could not swallow) |
+
+Not banded on purpose: the nutrition coach's greens-and-warfarin case for the
+trainers' supplement objectives (its text speaks as a coach throughout, and a
+band may not change actions); EMS cases across levels where the higher level
+would act differently (the AEMT shock case for the paramedic, who adds TXA;
+the paramedic STEMI case for the AEMT, who does not interpret a 12-lead).
+
+#### Coverage, before and after
+
+| Course (objectives) | Sims before | After | Units with a main-objective sim (after) | No fit |
+|---|---|---|---|---|
+| NREMTEMR (43) | 2 | 5 | all 5: Scene Size-up, Primary Assessment, Secondary Assessment, Treatment and Transport, Operations | none |
+| NREMTEMT (59) | 2 | 5 | all 5 (Scene Size-up by the downed-line band) | none |
+| NREMTAEMT (39) | 2 | 6 | all 6 (EMS Operations by the refusal band) | none |
+| NREMTPARAMEDIC (59) | 2 | 6 | all 6 | none |
+| ACECPT (21) | 2 | 6 | all 4: Onboarding and Assessments, Program Design (beta-blocker), Modification and Progression (lapse, prenatal), Risk Management (low glucose) | none |
+| ACSMCPT (20) | 2 | 5 | all 4: Consultation, Programming (squat; prenatal), Leadership and Education (lapse), Legal and Professional (low glucose) | none |
+| NASMCPT (31) | 2 | 6 | 5 of 6: Sciences (beta-blocker), Client Relations (lapse), Assessment, Program Design (prenatal), Professional Development (low glucose) | Exercise Technique: technique coaching with nothing time-critical unfolding and no objective passing the screen; the squat case covers it as secondary |
+| NASMCNC (29) | 3 | 4 | all 4 (Practical Nutrition Coaching by the weight-loss case) | none |
+| NCCPTCPT (25) | 2 | 5 | 4 of 6: Intake, Program Design (prenatal), Technique (squat; lapse), Professional Practice (low glucose) | Applied Science and Nutrition: knowledge units with no objective passing the screen; the nutrition decisions are taught in the coach's own scope |
+| NSCACPT (18) | 2 | 4 | all 4: Consultation, Program Planning (beta-blocker), Execution, Safety (low glucose) | none |
+| NSCACSCS (37) | 1 | 4 | 4 of 7: Program Design (return from break), Exercise Technique, Program Implementation (sickle cell trait), Organization and Administration (heat) | the three Scientific Foundations units (exercise science, sport psychology, nutrition), as briefed |
+| **Total** | **22** | **56** | 20 new cases and 14 bands | |
+
+**Sources** (each document says how each was read): read 2026-11-17: the
+2019 Scope of Practice Model record and PDF (DOT HS 813 151); NASEMSO v3.0 in
+the Iowa HHS copy (Patient Refusals, Hypoglycemia, Hyperthermia, Electrical
+Injuries, Tachycardia with a Pulse, Shock, DNR/Advance Directives, Traumatic
+Cardiac Arrest, OB/GYN and Abdominal Pain, Respiratory Distress and Airway,
+Head Injury) and NASEMSO's own page; the ACS field triage handout (2021);
+ESFI on downed lines (modified 2025-02-20); the AHA 2025 adult
+tachyarrhythmia algorithm (accessible text); the National POLST Form (May
+2025); the ADA hypoglycemia infographic (2025 Standards); the CSCCa and NSCA
+joint transition-period guidelines (Strength Cond J 2019; first 100,000
+characters); the NSCA task-force introduction (2017; recommendations not
+read); the Korey Stringer Institute on exertional sickling; CDC on diabetes
+symptoms (RestoredCDC archive of the 2024 page) and on weight loss (2025);
+ODPHP's top 10 of the Physical Activity Guidelines (2025-11-19); Porcari,
+"Ask ACE" on beta-blockers (2024); a Perinatology.com summary of the 2019
+Canadian pregnancy guideline and ACOG Committee Opinion 804 (the guidelines
+themselves were not read). Relayed, not re-read: NASEMSO's ACS/STEMI section
+(REQ-241, 2026-11-11), the NREMT test plans and the fitness exam outlines
+from the course seeds. Every rate, delay and effect size is the author's
+teaching figure and says so (FLAG where no source gives a number).
+
+**Findings while authoring** (FAIL-2530, FAIL-2531; caught by the validator
+before any golden was written): a trainer case reused one id for a reading
+and a rule (the screen's ids share one namespace), and three noProgress
+rationales were too short for the validator. Both are pinned by the REQ-338
+test. Also caught and fixed while building: string concatenation inside a
+template slot (the expression language has none; written as two slots), a
+tile color outside the schema's list, a heat case whose patient warmed again
+after leaving the tub, and golden scripts that waited on the wrong timer.
+`time_up` is reached by one golden path (EMR heat stroke with no ambulance
+requested) and by none of the others, as in earlier rounds.
