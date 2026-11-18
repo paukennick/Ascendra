@@ -1,0 +1,501 @@
+{
+  "slug": "medic-racing-heart-pressure-falling",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: unstable recognized; pads, IV, SYNC checked, sedation per protocol, synchronized shock; pressure and a 12-lead; load and notify",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "monitor",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "pads",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "iv",
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "unst",
+          "choice": "all",
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "sync",
+          "seq": 8,
+          "tick": 90
+        },
+        {
+          "type": "act",
+          "action": "sedate",
+          "seq": 9,
+          "tick": 90
+        },
+        {
+          "type": "act",
+          "action": "shock",
+          "seq": 10,
+          "tick": 180
+        },
+        {
+          "type": "chapter",
+          "chapter": "converted",
+          "choice": "continue",
+          "seq": 11,
+          "tick": 180
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 12,
+          "tick": 180
+        },
+        {
+          "type": "act",
+          "action": "ecg12",
+          "seq": 13,
+          "tick": 180
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "seq": 14,
+          "tick": 180
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "seq": 15,
+          "tick": 180
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 16,
+          "tick": 210
+        }
+      ],
+      "expect": {
+        "ending": "converted",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "cv": "met",
+          "stable": "met",
+          "eval": "met",
+          "sed": "met",
+          "notify": "met"
+        },
+        "kpis": {
+          "toCv": 180
+        },
+        "stateHash": "1910b4c5589799c4"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "adenosineFirst",
+      "title": "Two doses of adenosine first, then pads, SYNC and the shock without sedation; no 12-lead",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "monitor",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "iv",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "unst",
+          "choice": "all",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "adenosine",
+          "seq": 5,
+          "tick": 90
+        },
+        {
+          "type": "act",
+          "action": "adenosine",
+          "seq": 6,
+          "tick": 150
+        },
+        {
+          "type": "act",
+          "action": "pads",
+          "seq": 7,
+          "tick": 210
+        },
+        {
+          "type": "act",
+          "action": "sync",
+          "seq": 8,
+          "tick": 210
+        },
+        {
+          "type": "act",
+          "action": "shock",
+          "seq": 9,
+          "tick": 210
+        },
+        {
+          "type": "chapter",
+          "chapter": "converted",
+          "choice": "continue",
+          "seq": 10,
+          "tick": 210
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 11,
+          "tick": 210
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "seq": 12,
+          "tick": 210
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "seq": 13,
+          "tick": 210
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 14,
+          "tick": 240
+        }
+      ],
+      "expect": {
+        "ending": "arrived",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "cv": "met",
+          "stable": "met",
+          "eval": "partial",
+          "sed": "partial",
+          "notify": "met"
+        },
+        "kpis": {
+          "toCv": 210
+        },
+        "stateHash": "9348a9233f5b8935"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "valsalvaFirst",
+      "title": "A Valsalva attempt in a confused, hypotensive patient, then a late sedated synchronized shock",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "monitor",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "vagal",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "iv",
+          "seq": 4,
+          "tick": 90
+        },
+        {
+          "type": "teach",
+          "prompt": "unst",
+          "choice": "all",
+          "seq": 5,
+          "tick": 90
+        },
+        {
+          "type": "act",
+          "action": "pads",
+          "seq": 6,
+          "tick": 180
+        },
+        {
+          "type": "act",
+          "action": "sync",
+          "seq": 7,
+          "tick": 180
+        },
+        {
+          "type": "act",
+          "action": "sedate",
+          "seq": 8,
+          "tick": 240
+        },
+        {
+          "type": "act",
+          "action": "shock",
+          "seq": 9,
+          "tick": 330
+        },
+        {
+          "type": "chapter",
+          "chapter": "converted",
+          "choice": "continue",
+          "seq": 10,
+          "tick": 330
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 11,
+          "tick": 330
+        },
+        {
+          "type": "act",
+          "action": "ecg12",
+          "seq": 12,
+          "tick": 330
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "seq": 13,
+          "tick": 330
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "seq": 14,
+          "tick": 330
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 15,
+          "tick": 360
+        }
+      ],
+      "expect": {
+        "ending": "arrived",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "cv": "partial",
+          "stable": "missed",
+          "eval": "met",
+          "sed": "missed",
+          "notify": "met"
+        },
+        "kpis": {
+          "toCv": 330
+        },
+        "stateHash": "740e15d4774672f5"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "unsynced",
+      "title": "Pads on and a shock without SYNC: ventricular fibrillation, then CPR and defibrillation",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "monitor",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "pads",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "shock",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "defib",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "chapter",
+          "chapter": "converted",
+          "choice": "continue",
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 7,
+          "tick": 30
+        }
+      ],
+      "expect": {
+        "ending": "vf",
+        "class": "harm",
+        "rating": "bad",
+        "score": 25,
+        "criteria": {
+          "cv": "missed",
+          "stable": "met",
+          "eval": "missed",
+          "sed": "partial",
+          "notify": "missed"
+        },
+        "kpis": {
+          "toCv": 0
+        },
+        "stateHash": "862e4faf7fea1828"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "noShock",
+      "title": "IV and two doses of adenosine, then transport without a shock; her pressure falls until she arrests",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "monitor",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "iv",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "unst",
+          "choice": "all",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "adenosine",
+          "seq": 4,
+          "tick": 90
+        },
+        {
+          "type": "act",
+          "action": "adenosine",
+          "seq": 5,
+          "tick": 150
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "seq": 6,
+          "tick": 210
+        }
+      ],
+      "expect": {
+        "ending": "vf",
+        "class": "harm",
+        "rating": "bad",
+        "score": 25,
+        "criteria": {
+          "cv": "missed",
+          "stable": "met",
+          "eval": "missed",
+          "sed": "partial",
+          "notify": "missed"
+        },
+        "kpis": {
+          "toCv": -1
+        },
+        "stateHash": "d13fc1870963b2cc"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}
