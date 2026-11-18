@@ -1,0 +1,999 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pipeline-blue-green-slo-iam",
+  "title": "A delivery pipeline's choices: blue-green or in-place, an SLO-based rollback, and the pipeline's cloud credentials",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "ops@oakhurst:~$",
+      "lines": [
+        {
+          "id": "firstLine",
+          "text": "postmortem: two outages from in-place releases this quarter (42 min total)",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "lineStrategy",
+          "text": "{strategy == \"bluegreen\" ? \"Blue-green with instant switch-back\" : strategy == \"rolling\" ? \"Rolling, one at a time\" : strategy == \"inPlaceFast\" ? \"In-place, faster\" : \"\"}",
+          "when": "strategy != \"none\"",
+          "at": "timeAt(strategyAt)",
+          "error": "strategy == \"inPlaceFast\""
+        },
+        {
+          "id": "lineSlo",
+          "text": "{slo == \"sloGate\" ? \"Automatic rollback on SLI breach\" : slo == \"manualWatch\" ? \"Manual watching\" : slo == \"noCheck\" ? \"Blue deleted after switch\" : \"\"}",
+          "when": "slo != \"none\"",
+          "at": "timeAt(sloAt)",
+          "error": "slo == \"noCheck\""
+        },
+        {
+          "id": "lineIam",
+          "text": "{iam == \"oidc\" ? \"OIDC; deploy-only role; old key deleted\" : iam == \"rotate\" ? \"Rotated admin key\" : iam == \"leave\" ? \"Old admin key kept\" : \"\"}",
+          "when": "iam != \"none\"",
+          "at": "timeAt(iamAt)",
+          "error": "iam == \"leave\""
+        }
+      ],
+      "nodes": [
+        {
+          "id": "nStrategy",
+          "label": "release strategy",
+          "spokenLabel": "release strategy",
+          "kind": "pipeline",
+          "status": "{strategy == \"bluegreen\" ? \"Blue-green with instant switch-back\" : strategy == \"rolling\" ? \"Rolling, one at a time\" : strategy == \"inPlaceFast\" ? \"In-place, faster\" : \"Waiting\"}",
+          "tone": "strategy == \"bluegreen\" ? \"up\" : strategy == \"rolling\" ? \"degraded\" : strategy == \"inPlaceFast\" ? \"down\" : p >= 1 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nSlo",
+          "label": "post-release checks",
+          "spokenLabel": "post-release checks",
+          "kind": "pipeline",
+          "status": "{slo == \"sloGate\" ? \"Automatic rollback on SLI breach\" : slo == \"manualWatch\" ? \"Manual watching\" : slo == \"noCheck\" ? \"Blue deleted after switch\" : \"Waiting\"}",
+          "tone": "slo == \"sloGate\" ? \"up\" : slo == \"manualWatch\" ? \"degraded\" : slo == \"noCheck\" ? \"down\" : p >= 2 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nIam",
+          "label": "pipeline cloud credentials",
+          "spokenLabel": "pipeline cloud credentials",
+          "kind": "IAM",
+          "status": "{iam == \"oidc\" ? \"OIDC; deploy-only role; old key deleted\" : iam == \"rotate\" ? \"Rotated admin key\" : iam == \"leave\" ? \"Old admin key kept\" : \"Waiting\"}",
+          "tone": "iam == \"oidc\" ? \"up\" : iam == \"rotate\" ? \"degraded\" : iam == \"leave\" ? \"down\" : p >= 3 ? \"degraded\" : \"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "link0",
+          "from": "nStrategy",
+          "to": "nSlo",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        },
+        {
+          "id": "link1",
+          "from": "nSlo",
+          "to": "nIam",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Check-in",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Continuous delivery techniques: canary, blue-green, rolling, and in-place deployment strategies",
+  "secondaryObjectives": [
+    "Application service-level concepts: SLOs, SLAs, uptime, MTTR, and feedback loops",
+    "Securing connections to providers: CLI, SDK, and IAM configuration for automated delivery pipelines"
+  ],
+  "sources": [
+    {
+      "cite": "CompTIA AutoOps+ AT0-001 V1 Exam Objectives, document version 1.2: Automation Coding Concepts 31%, System Configuration 25%, Continuous Integration 24%, Continuous Delivery 20%",
+      "checkedAt": "2026-11-17",
+      "url": "https://lecbyo.files.cmp.optimizely.com/download/8ef85dd4c6f611f0af744a719477d0a7",
+      "note": "Read 2026-11-17 through a summarizing fetch of CompTIA's PDF. Relevant text: 1.4 'Given a scenario, troubleshoot common issues with the code life cycle' (syntax errors, runtime errors); 2.4 'Given a scenario, troubleshoot common issues with system configuration' (syntax errors specific to configuration files); 3.2 'Explain workflow management concepts in CI' (automated rollbacks). The objective wording here is the course seed's. Reused for REQ-336 from this course's py-import-crash-traceback-autoopsplus (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the systems, the data and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You own the delivery pipeline for Oakhurst Bank's mobile API, a fictional bank. Releases have been in-place and caused two outages this quarter. The API has a 99.9% monthly availability SLO.",
+    "handover": [
+      "The pipeline deploys in place to four servers behind a load balancer.",
+      "The pipeline uses a long-lived cloud access key with administrator rights stored as a CI variable."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the map shows each component and its status in words.",
+      "Move on a check-in at a time. A decision comes to you at each check-in; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-05-24T10:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "strategy": {
+      "type": "enum",
+      "values": [
+        "none",
+        "bluegreen",
+        "rolling",
+        "inPlaceFast"
+      ],
+      "init": "none"
+    },
+    "strategyAt": {
+      "type": "time",
+      "init": null
+    },
+    "slo": {
+      "type": "enum",
+      "values": [
+        "none",
+        "sloGate",
+        "manualWatch",
+        "noCheck"
+      ],
+      "init": "none"
+    },
+    "sloAt": {
+      "type": "time",
+      "init": null
+    },
+    "iam": {
+      "type": "enum",
+      "values": [
+        "none",
+        "oidc",
+        "rotate",
+        "leave"
+      ],
+      "init": "none"
+    },
+    "iamAt": {
+      "type": "time",
+      "init": null
+    },
+    "histAt": {
+      "type": "time",
+      "init": null
+    },
+    "credsAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((strategy == \"inPlaceFast\") ? 1 : 0) + ((slo == \"noCheck\") ? 1 : 0) + ((iam == \"leave\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(strategy == \"none\" or (strategy == \"inPlaceFast\") ? 1 : 0) + (slo == \"none\" or (slo == \"noCheck\") ? 1 : 0) + (iam == \"none\" or (iam == \"leave\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The pipeline work",
+      "clock": "turns",
+      "actions": [
+        "hist",
+        "creds"
+      ]
+    },
+    "close": {
+      "label": "Change record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "hist": {
+      "label": "Read the release history and error budget",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(histAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "histAt",
+          "to": "t"
+        },
+        {
+          "output": "In-place releases: 2 failures, 42 min down. Error budget for the month: 43 min, 30 used."
+        },
+        {
+          "log": "You read the history.",
+          "kind": "act"
+        },
+        {
+          "finding": "In-place releases take every server down at once on a bad build; 30 of the month's 43 minutes of error budget are gone."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "creds": {
+      "label": "Read the pipeline's cloud credentials",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(credsAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "credsAt",
+          "to": "t"
+        },
+        {
+          "output": "CI variable CLOUD_KEY: long-lived access key, AdministratorAccess, created 3 years ago"
+        },
+        {
+          "log": "You read the credentials.",
+          "kind": "act"
+        },
+        {
+          "finding": "A three-year-old administrator key in CI: anyone who can read CI variables or a leaked log can control the whole account."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the change record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Blue-green with an SLO-based automatic rollback, and OIDC short-lived deploy-only credentials replacing the admin key"
+                },
+                {
+                  "value": "summary",
+                  "label": "Pipeline updated"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next check-in",
+      "wait": {
+        "skipLabel": "Go to the next check-in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "strategy == \"inPlaceFast\"",
+              "then": [
+                {
+                  "log": "Check-in 2: the next in-place release has a bad config; all four servers fail for 18 minutes, exhausting the error budget.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "slo == \"noCheck\"",
+              "then": [
+                {
+                  "log": "Check-in 3: a release with a memory leak degrades after 8 minutes; blue is gone, and a redeploy takes 25 minutes, breaking the SLO.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "iam == \"leave\"",
+              "then": [
+                {
+                  "log": "Check-in 4: a debug step prints environment variables to a public build log; the admin key is used to start crypto-mining instances within hours.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "10min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The pipeline changes are done.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "10min"
+        }
+      ]
+    },
+    {
+      "id": "t_strategy",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 1: the release strategy.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "strategyPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_slo",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 2: the rollback signal.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "sloPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_iam",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 3: the credentials.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "iamPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "strategyPrompt": {
+      "title": "In-place releases keep breaking",
+      "context": "The load balancer can switch between two target groups.",
+      "choices": [
+        {
+          "id": "bluegreen",
+          "label": "Blue-green: deploy to an idle green group, run smoke tests, switch the load balancer, keep blue for instant rollback",
+          "effects": [
+            {
+              "set": "strategy",
+              "to": "\"bluegreen\""
+            },
+            {
+              "set": "strategyAt",
+              "to": "t"
+            },
+            {
+              "log": "Blue-green is in the pipeline.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Blue-green tests the new version beside the old and rolls back by switching traffic."
+        },
+        {
+          "id": "rolling",
+          "label": "Rolling, one server at a time",
+          "effects": [
+            {
+              "set": "strategy",
+              "to": "\"rolling\""
+            },
+            {
+              "set": "strategyAt",
+              "to": "t"
+            },
+            {
+              "log": "Rolling releases.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Better than in place, but rollback is another slow roll."
+        },
+        {
+          "id": "inPlaceFast",
+          "label": "Keep in-place and deploy faster",
+          "effects": [
+            {
+              "set": "strategy",
+              "to": "\"inPlaceFast\""
+            },
+            {
+              "set": "strategyAt",
+              "to": "t"
+            },
+            {
+              "log": "In-place stays.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "A bad build still takes every server down at once."
+        }
+      ]
+    },
+    "sloPrompt": {
+      "title": "When to switch back",
+      "context": "Error budget: 13 minutes left this month.",
+      "choices": [
+        {
+          "id": "sloGate",
+          "label": "After the switch, watch the error rate and latency SLIs for 10 minutes and switch back automatically if they breach the SLO-based threshold",
+          "effects": [
+            {
+              "set": "slo",
+              "to": "\"sloGate\""
+            },
+            {
+              "set": "sloAt",
+              "to": "t"
+            },
+            {
+              "log": "Releases now roll back on SLI breaches.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A feedback loop tied to the SLO keeps MTTR short and protects the error budget."
+        },
+        {
+          "id": "manualWatch",
+          "label": "Have the releaser watch dashboards for 10 minutes",
+          "effects": [
+            {
+              "set": "slo",
+              "to": "\"manualWatch\""
+            },
+            {
+              "set": "sloAt",
+              "to": "t"
+            },
+            {
+              "log": "Manual watching.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Works if someone is watching closely; slower to react."
+        },
+        {
+          "id": "noCheck",
+          "label": "Delete blue right after the switch to save cost",
+          "effects": [
+            {
+              "set": "slo",
+              "to": "\"noCheck\""
+            },
+            {
+              "set": "sloAt",
+              "to": "t"
+            },
+            {
+              "log": "Blue is deleted after each switch.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "No old version to go back to; rollback means a full redeploy."
+        }
+      ]
+    },
+    "iamPrompt": {
+      "title": "An old admin key in CI",
+      "context": "The CI system supports OIDC federation with the cloud.",
+      "choices": [
+        {
+          "id": "oidc",
+          "label": "Use OIDC federation so the pipeline assumes a deploy-only role with short-lived credentials, then delete the old key",
+          "effects": [
+            {
+              "set": "iam",
+              "to": "\"oidc\""
+            },
+            {
+              "set": "iamAt",
+              "to": "t"
+            },
+            {
+              "log": "Short-lived deploy-only credentials; the old key is deleted.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Federated, short-lived credentials scoped to deploying remove the standing admin key."
+        },
+        {
+          "id": "rotate",
+          "label": "Rotate the key and keep it",
+          "effects": [
+            {
+              "set": "iam",
+              "to": "\"rotate\""
+            },
+            {
+              "set": "iamAt",
+              "to": "t"
+            },
+            {
+              "log": "The key is rotated.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Fresh, but still long-lived and still administrator."
+        },
+        {
+          "id": "leave",
+          "label": "Leave the key: it has never leaked",
+          "effects": [
+            {
+              "set": "iam",
+              "to": "\"leave\""
+            },
+            {
+              "set": "iamAt",
+              "to": "t"
+            },
+            {
+              "log": "The key stays.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "One leaked CI log gives full account control."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the change record: the new release strategy, how rollback is triggered, and how the pipeline authenticates now.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Delivery",
+          "criteria": "Blue-green with smoke tests; automatic rollback on SLI breach.",
+          "modelAnswer": "Releases go to the idle group, pass smoke tests, take traffic, and switch back automatically if SLIs breach."
+        },
+        {
+          "label": "Credentials",
+          "criteria": "OIDC to a deploy-only role; old key deleted.",
+          "modelAnswer": "The pipeline federates with OIDC to a deploy-only role; the admin key is deleted."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Service restored and the work closed within 60 minutes of the first report."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No fault introduced by the response itself."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (strategy == \"rolling\") and (slo == \"manualWatch\") and (iam == \"rotate\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CompTIA AutoOps+ AT0-001 V1 Exam Objectives, document version 1.2: Automation Coding Concepts 31%, System Configuration 25%, Continuous Integration 24%, Continuous Delivery 20%",
+        "checkedAt": "2026-11-17",
+        "url": "https://lecbyo.files.cmp.optimizely.com/download/8ef85dd4c6f611f0af744a719477d0a7",
+        "note": "Read 2026-11-17 through a summarizing fetch of CompTIA's PDF. Relevant text: 1.4 'Given a scenario, troubleshoot common issues with the code life cycle' (syntax errors, runtime errors); 2.4 'Given a scenario, troubleshoot common issues with system configuration' (syntax errors specific to configuration files); 3.2 'Explain workflow management concepts in CI' (automated rollbacks). The objective wording here is the course seed's. Reused for REQ-336 from this course's py-import-crash-traceback-autoopsplus (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "strategyHarm": {
+      "label": "Another full outage",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and strategy == \"inPlaceFast\"",
+      "narrative": "An in-place release took all four servers down for 18 minutes and exhausted the error budget."
+    },
+    "sloHarm": {
+      "label": "The SLO broken",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and slo == \"noCheck\"",
+      "narrative": "With blue deleted, rolling back a leaking release took a 25-minute redeploy; the SLO was broken."
+    },
+    "iamHarm": {
+      "label": "The admin key abused",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and iam == \"leave\"",
+      "narrative": "A build log leaked the admin key; it was used to run crypto-mining instances."
+    },
+    "target": {
+      "label": "Safe releases, safe pipeline",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (strategy == \"bluegreen\") and (slo == \"sloGate\") and (iam == \"oidc\") and record == \"honest\" and missCount <= newFaults and timeAt(doneAt) <= restoreWindow",
+      "narrative": "Releases can't take the API down for long, and the pipeline holds no standing admin key."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "strategyHarm",
+    "sloHarm",
+    "iamHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "strategyCrit",
+        "label": "Chose a strategy that keeps the old version ready to take traffic back",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "strategy == \"bluegreen\"",
+            "score": "met",
+            "why": "Instant rollback."
+          },
+          {
+            "when": "strategy == \"rolling\"",
+            "score": "partial",
+            "why": "Slower rollback."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Same risk."
+          }
+        ]
+      },
+      {
+        "id": "sloCrit",
+        "label": "Rolled back automatically on SLO signals",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "slo == \"sloGate\"",
+            "score": "met",
+            "why": "SLO-driven feedback."
+          },
+          {
+            "when": "slo == \"manualWatch\"",
+            "score": "partial",
+            "why": "Manual."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Removed rollback."
+          }
+        ]
+      },
+      {
+        "id": "iamCrit",
+        "label": "Replaced the static admin key with short-lived, least-privilege credentials",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "iam == \"oidc\"",
+            "score": "met",
+            "why": "Least privilege, short-lived."
+          },
+          {
+            "when": "iam == \"rotate\"",
+            "score": "partial",
+            "why": "Still over-privileged."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Standing admin key."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(histAt) and not isNull(credsAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(histAt) or not isNull(credsAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the release history, error budget and pipeline credentials first."
+      },
+      {
+        "at": "Check-in 1",
+        "text": "Deploy blue-green with smoke tests and keep blue for rollback."
+      },
+      {
+        "at": "Check-in 2",
+        "text": "Roll back automatically on SLI breaches after the switch."
+      },
+      {
+        "at": "Check-in 3",
+        "text": "Federate with OIDC to a deploy-only role and delete the old key."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "strategyHarm": {
+        "headline": "Keep the old version ready",
+        "body": "Blue-green or canary releases can roll back by moving traffic."
+      },
+      "sloHarm": {
+        "headline": "Keep rollback cheap",
+        "body": "Watch SLIs after the switch and keep the old version until it passes."
+      },
+      "iamHarm": {
+        "headline": "No standing admin keys",
+        "body": "Federate with short-lived, least-privilege roles."
+      },
+      "target": {
+        "headline": "Good: safe releases, safe pipeline",
+        "body": "Blue-green, SLO feedback and least-privilege credentials."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Deployment strategies trade speed against blast radius: in place risks everything at once; rolling limits it; blue-green and canary keep the old version ready so rollback is a traffic switch. Tie rollback to SLIs measured against the SLO to keep MTTR and error-budget burn low. Pipelines should authenticate with short-lived, least-privilege credentials through federation rather than long-lived administrator keys."
+  }
+}
