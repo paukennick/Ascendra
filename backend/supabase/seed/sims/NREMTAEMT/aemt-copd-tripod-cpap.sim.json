@@ -1,0 +1,1210 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "aemt-copd-tripod-cpap",
+  "title": "Tripod on the porch",
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 130
+          },
+          "announce": {
+            "bands": [
+              110,
+              130
+            ]
+          },
+          "colour": "ecg",
+          "hiddenUntil": "probeOn"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "high": 34
+          },
+          "announce": {
+            "bands": [
+              28,
+              34
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "vAt > 0"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 88
+          },
+          "announce": {
+            "bands": [
+              90,
+              86
+            ]
+          },
+          "colour": "spo2",
+          "hiddenUntil": "probeOn"
+        },
+        {
+          "id": "etco2",
+          "label": "EtCO2",
+          "spokenLabel": "End-tidal carbon dioxide",
+          "value": "etco2",
+          "unit": "mmHg",
+          "alarm": {
+            "high": 60
+          },
+          "announce": {
+            "bands": [
+              50,
+              60
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "capnoOn"
+        }
+      ],
+      "infusions": "Oxygen: {o2 == \"none\" ? \"room air\" : o2 == \"nc\" ? \"nasal cannula, titrated\" : o2 == \"nrb\" ? \"non-rebreather, 15 L/min\" : \"through CPAP\"}. CPAP: {cpapP} cmH2O{cpapOn ? \"\" : \" (off)\"}. Albuterol nebulizers: {nebs}. BVM: {bvmOn ? \"assisting\" : \"no\"}. {isNull(departAt) ? \"On scene\" : isNull(arrivedAt) ? \"En route\" : \"Arrived\"}.",
+      "banner": [
+        {
+          "when": "sev < 0.85",
+          "text": "Walt, 71, sits tripod on his porch chair, lips pursed, three words per breath."
+        },
+        {
+          "when": "sev >= 0.85",
+          "text": "Walt's head is nodding; his breaths are getting shallow."
+        }
+      ]
+    }
+  },
+  "objective": "Manage asthma and COPD exacerbations with nebulized bronchodilators and CPAP within AEMT scope",
+  "secondaryObjectives": [
+    "Apply CPAP for respiratory distress and recognize when it is failing",
+    "Assess oxygenation and ventilation with pulse oximetry and waveform capnography",
+    "Generate solutions within AEMT scope and decide when a paramedic intercept is needed"
+  ],
+  "sources": [
+    {
+      "cite": "National Registry of EMTs. AEMT examination test plan",
+      "checkedAt": "2026-11-09",
+      "url": "https://www.nremt.org/getmedia/ae90d9db-c974-49e1-a43b-f1dddd4ea365/AEMT-Test-Plan_Public_final",
+      "note": "Relayed from the course seed (backend/supabase/seed/tracks/ems.ts and labs/ems-sources.ts, read in NREMT's own documents 2026-11-09); not re-read for this case. Airway, Respiration and Ventilation: bronchodilators and CPAP within AEMT scope; recognize when CPAP is failing."
+    },
+    {
+      "cite": "NASEMSO. National Model EMS Clinical Guidelines, Version 3.0 (March 2022): Respiratory Distress (Includes Bronchospasm, Pulmonary Edema); Airway Management",
+      "checkedAt": "2026-11-17",
+      "url": "https://nasemso.org/?p=223",
+      "note": "Read 2026-11-17 in the full text Iowa HHS hosts (https://hhs.iowa.gov/media/198/download) through summarizing fetches with quotes; NASEMSO's own page, read the same day, still presents Version 3 (2022) as current and names no later version. Albuterol nebulized for bronchospasm, repeated for ongoing distress; noninvasive ventilation (CPAP) for severe distress, considered early; start PEEP at 5 cmH2O and raise in 2-3 cmH2O steps to the lowest effective pressure; if the patient worsens on CPAP (worse mental status, rising EtCO2, vomiting), 'remove CPAP/BiPAP and escalate airway management options'; target SpO2 94-98%, and 'permissive hypoxia (SPO2 >= 90%) may be appropriate in patients with COPD'; avoid nitrates within 48 hours of a phosphodiesterase inhibitor. The guideline's albuterol dose for distress (5 mg) is above the inhalation solution's labeled 2.5 mg; the case uses the labeled 2.5 mg dose, repeated."
+    },
+    {
+      "cite": "NHTSA. National EMS Scope of Practice Model 2019: Including Change Notices 1.0 and 2.0 (DOT HS 813 151, 2021-08-01)",
+      "checkedAt": "2026-11-17",
+      "url": "https://rosap.ntl.bts.gov/view/dot/56917",
+      "note": "Read 2026-11-17: the record page (title, report number, date; the change notices add intramuscular injection, vaccination in a public health emergency and nasal swab collection at EMT and above) and the PDF's skill tables through a summarizing fetch whose table columns were partly unclear, so placement was checked against the course's own reading (backend/supabase/seed/labs/ems-sources.ts, 2026-11-09) and REQ-241's reading (2026-11-11). EMR: oxygen, BVM, naloxone (intranasal or auto-injector), unit-dose hazmat antidote auto-injectors, tourniquet, wound packing, emergency moves, manual stabilization; no pulse oximetry, glucose monitoring or transport. EMT adds pulse oximetry, glucose monitoring, oral glucose, aspirin, the patient's own nitroglycerin, an inhaled bronchodilator, CPAP, the epinephrine auto-injector. AEMT adds IV and IO access, non-medicated IV fluids, supraglottic airways, waveform capnography, sublingual nitroglycerin and a limited list of IV and IM drugs (dextrose, naloxone). Paramedic adds 12-lead interpretation, manual defibrillation, synchronized cardioversion, transcutaneous pacing, needle chest decompression, intubation and medicated infusions. No newer model was found on 2026-11-17."
+    },
+    {
+      "cite": "Ascendra NREMT AEMT course catalog (backend/supabase/seed/tracks/ems.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Ascendra teaching model (REQ-338, authored)",
+      "checkedAt": "2026-11-17",
+      "note": "His work of breathing as one severity score: untreated it climbs about 0.012 a minute; each 2.5 mg albuterol nebulizer lowers it 0.08, CPAP 0.02 a minute, BVM assistance 0.03 a minute; 15 L/min oxygen without titration adds 0.008 a minute (carbon dioxide retention in COPD); he becomes drowsy at 0.85 and stops breathing at 1.0. FLAG: authored figures, not a validated model. Simplified teaching model written for exam practice; not a validated physiological model."
+    }
+  ],
+  "brief": {
+    "situation": "16:10. You are an AEMT on an ambulance with an EMT partner. Walt, 71, has COPD and called because he can't catch his breath. Worse since yesterday's cold; his inhaler isn't helping.",
+    "handover": [
+      "You carry oxygen, albuterol 2.5 mg nebulizer doses, CPAP, a BVM, a capnograph and a pulse oximeter.",
+      "A paramedic intercept can meet you if requested (about 10 minutes); the hospital is 15 minutes away.",
+      "Within AEMT scope: oxygen, nebulized albuterol, CPAP, BVM, capnography, IV access. No intubation; paramedics manage advanced airways."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated seconds per real second. Pause any time.",
+      "Every assessment and treatment takes the time it would on a real call. Scene time and the drive run on the clock.",
+      "Partway through you are asked to explain your decisions in writing. The case ends when care is handed over, then a debrief scores what you did."
+    ]
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice; follow your local protocols and medical direction.",
+  "clock": {
+    "start": "16:10",
+    "tick": "1s",
+    "maxDuration": "45min",
+    "calendar": "clock"
+  },
+  "params": {
+    "rise": {
+      "value": 0.012,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (REQ-338, authored)",
+        "checkedAt": "2026-11-17",
+        "note": "FLAG: stands in for a number no guideline gives. Untreated rise in work of breathing. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "nebDrop": {
+      "value": 0.08,
+      "source": {
+        "cite": "Ascendra teaching model (REQ-338, authored)",
+        "checkedAt": "2026-11-17",
+        "note": "FLAG: stands in for a number no guideline gives. One albuterol 2.5 mg nebulizer. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "cpapRate": {
+      "value": 0.02,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (REQ-338, authored)",
+        "checkedAt": "2026-11-17",
+        "note": "FLAG: stands in for a number no guideline gives. CPAP effect per minute. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "bvmRate": {
+      "value": 0.03,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (REQ-338, authored)",
+        "checkedAt": "2026-11-17",
+        "note": "FLAG: stands in for a number no guideline gives. Assisted BVM ventilation per minute. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "retain": {
+      "value": 0.008,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (REQ-338, authored)",
+        "checkedAt": "2026-11-17",
+        "note": "FLAG: stands in for a number no guideline gives. Untitrated high-flow oxygen in COPD: carbon dioxide retention; NASEMSO allows permissive SpO2 of 90% or more in COPD. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "nebTime": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A nebulizer takes about 5 minutes; a repeat after it finishes. Authored for the case; real times vary."
+      }
+    },
+    "alsEta": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Paramedic intercept about 10 minutes. Authored for the case; real times vary."
+      }
+    },
+    "loadTime": {
+      "value": 180,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Stair chair and load: about 3 minutes. Authored for the case; real times vary."
+      }
+    },
+    "driveTime": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Fifteen minutes to the emergency department. Authored for the case; real times vary."
+      }
+    },
+    "vitalsTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A set of vital signs: about 1 minute. Authored for the case; real times vary."
+      }
+    }
+  },
+  "state": {
+    "sev": {
+      "type": "number",
+      "init": 0.62,
+      "min": 0,
+      "max": 1.2
+    },
+    "o2": {
+      "type": "enum",
+      "values": [
+        "none",
+        "nc",
+        "nrb",
+        "cpap"
+      ],
+      "init": "none"
+    },
+    "probeOn": {
+      "type": "bool",
+      "init": false
+    },
+    "capnoOn": {
+      "type": "bool",
+      "init": false
+    },
+    "cpapOn": {
+      "type": "bool",
+      "init": false
+    },
+    "bvmOn": {
+      "type": "bool",
+      "init": false
+    },
+    "nebRunning": {
+      "type": "bool",
+      "init": false
+    },
+    "vPending": {
+      "type": "bool",
+      "init": false
+    },
+    "cpapP": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 15,
+      "unit": "cmH2O"
+    },
+    "nebs": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 6
+    },
+    "vAt": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000,
+      "unit": "s"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "o2At": {
+      "type": "time",
+      "init": null
+    },
+    "nrbAt": {
+      "type": "time",
+      "init": null
+    },
+    "neb1At": {
+      "type": "time",
+      "init": null
+    },
+    "cpapAt": {
+      "type": "time",
+      "init": null
+    },
+    "drowsyAt": {
+      "type": "time",
+      "init": null
+    },
+    "bvmAt": {
+      "type": "time",
+      "init": null
+    },
+    "offCpapAt": {
+      "type": "time",
+      "init": null
+    },
+    "alsAt": {
+      "type": "time",
+      "init": null
+    },
+    "alsHere": {
+      "type": "time",
+      "init": null
+    },
+    "departAt": {
+      "type": "time",
+      "init": null
+    },
+    "arrivedAt": {
+      "type": "time",
+      "init": null
+    },
+    "notifyAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstVAt": {
+      "type": "time",
+      "init": null
+    },
+    "capnoAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "spo2": {
+      "expr": "round(clamp(96 - 22 * sev + (o2 == \"nc\" ? 6 : o2 == \"nrb\" ? 12 : o2 == \"cpap\" ? 9 : 0) + (bvmOn ? 6 : 0), 60, 100))",
+      "unit": "%",
+      "precision": 0
+    },
+    "etco2": {
+      "expr": "round(clamp(30 + 40 * sev, 20, 90))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "round(sev >= 0.85 ? 10 : clamp(14 + 26 * sev, 12, 40))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "hr": {
+      "expr": "round(clamp(80 + 50 * sev, 60, 160))",
+      "unit": "/min",
+      "precision": 0
+    }
+  },
+  "processes": [
+    {
+      "id": "breath",
+      "when": "isNull(arrivedAt)",
+      "update": {
+        "sev": "clamp(sev + (rise + (o2 == \"nrb\" ? retain : 0) - (cpapOn ? cpapRate : 0) - (bvmOn ? bvmRate : 0)) * dt / 60, 0, 1.2)"
+      }
+    }
+  ],
+  "phases": {
+    "call": {
+      "label": "On the call",
+      "clock": "running",
+      "actions": [
+        "look",
+        "vitals",
+        "probe",
+        "capno",
+        "nc",
+        "nrb",
+        "neb",
+        "cpap",
+        "raise",
+        "offCpap",
+        "bvm",
+        "als",
+        "transport",
+        "notify"
+      ]
+    }
+  },
+  "initialPhase": "call",
+  "actions": {
+    "look": {
+      "label": "Primary assessment and lung sounds",
+      "group": "Assess",
+      "available": "isNull(lookAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Tripod, pursed lips, accessory muscles; diffuse wheeze, poor air movement at both bases; alert, three-word sentences.",
+          "kind": "find"
+        }
+      ]
+    },
+    "vitals": {
+      "label": "Vital signs",
+      "group": "Assess",
+      "available": "not vPending",
+      "why": "Already measuring.",
+      "effects": [
+        {
+          "set": "vPending",
+          "to": "true"
+        },
+        {
+          "set": "probeOn",
+          "to": "true"
+        },
+        {
+          "schedule": "vitalsT",
+          "after": "vitalsTime"
+        },
+        {
+          "log": "Cuff, oximeter, count."
+        }
+      ]
+    },
+    "probe": {
+      "label": "Pulse oximeter on",
+      "group": "Assess",
+      "available": "not probeOn",
+      "why": "Already on.",
+      "effects": [
+        {
+          "set": "probeOn",
+          "to": "true"
+        },
+        {
+          "log": "Oximeter on."
+        }
+      ]
+    },
+    "capno": {
+      "label": "Waveform capnography by nasal cannula sampling (or in the CPAP circuit)",
+      "group": "Assess",
+      "available": "not capnoOn",
+      "why": "Already on.",
+      "effects": [
+        {
+          "set": "capnoOn",
+          "to": "true"
+        },
+        {
+          "if": "isNull(capnoAt)",
+          "then": [
+            {
+              "set": "capnoAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Capnography on: a shark-fin waveform."
+        }
+      ]
+    },
+    "nc": {
+      "label": "Oxygen by nasal cannula, titrated to SpO2 about 90-92%",
+      "group": "Treat",
+      "available": "o2 == \"none\" or o2 == \"nrb\"",
+      "why": "Already on oxygen.",
+      "effects": [
+        {
+          "set": "o2",
+          "to": "\"nc\""
+        },
+        {
+          "if": "isNull(o2At)",
+          "then": [
+            {
+              "set": "o2At",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Nasal cannula, titrated."
+        }
+      ]
+    },
+    "nrb": {
+      "label": "Non-rebreather at 15 L/min and leave it there",
+      "group": "Treat",
+      "available": "o2 == \"none\" or o2 == \"nc\"",
+      "why": "Already on.",
+      "effects": [
+        {
+          "set": "o2",
+          "to": "\"nrb\""
+        },
+        {
+          "if": "isNull(o2At)",
+          "then": [
+            {
+              "set": "o2At",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(nrbAt)",
+          "then": [
+            {
+              "set": "nrbAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Non-rebreather at 15 L/min."
+        }
+      ]
+    },
+    "neb": {
+      "label": "Albuterol 2.5 mg nebulized",
+      "group": "Treat",
+      "available": "not nebRunning and nebs < 3",
+      "why": "One nebulizer at a time; three at most here.",
+      "effects": [
+        {
+          "set": "nebRunning",
+          "to": "true"
+        },
+        {
+          "add": "nebs",
+          "by": "1"
+        },
+        {
+          "if": "isNull(neb1At)",
+          "then": [
+            {
+              "set": "neb1At",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "sev",
+          "to": "max(0, sev - nebDrop)"
+        },
+        {
+          "schedule": "nebT",
+          "after": "nebTime"
+        },
+        {
+          "log": "Albuterol 2.5 mg running {cpapOn ? \"in line with the CPAP\" : \"by mask\"}."
+        }
+      ]
+    },
+    "cpap": {
+      "label": "CPAP at 5 cmH2O, coached on, oxygen through the circuit",
+      "group": "Treat",
+      "available": "not cpapOn and isNull(drowsyAt) and not bvmOn",
+      "why": "Not for a drowsy patient, or already on.",
+      "effects": [
+        {
+          "set": "cpapOn",
+          "to": "true"
+        },
+        {
+          "set": "cpapP",
+          "to": "5"
+        },
+        {
+          "set": "o2",
+          "to": "\"cpap\""
+        },
+        {
+          "if": "isNull(cpapAt)",
+          "then": [
+            {
+              "set": "cpapAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "CPAP on at 5 cmH2O; he holds the mask after a minute of coaching.",
+          "kind": "good"
+        }
+      ]
+    },
+    "raise": {
+      "label": "Raise CPAP by 2-3 cmH2O (to 10 at most)",
+      "group": "Treat",
+      "available": "cpapOn and cpapP < 10",
+      "why": "Not on CPAP, or at 10.",
+      "effects": [
+        {
+          "set": "cpapP",
+          "to": "min(10, cpapP + 2.5)"
+        },
+        {
+          "set": "sev",
+          "to": "max(0, sev - 0.03)"
+        },
+        {
+          "log": "CPAP up to {cpapP} cmH2O."
+        }
+      ]
+    },
+    "offCpap": {
+      "label": "CPAP failing (drowsy, EtCO2 rising): take it off and escalate",
+      "group": "Treat",
+      "available": "cpapOn",
+      "why": "Not on CPAP.",
+      "effects": [
+        {
+          "set": "cpapOn",
+          "to": "false"
+        },
+        {
+          "if": "isNull(offCpapAt)",
+          "then": [
+            {
+              "set": "offCpapAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "o2",
+          "to": "\"nrb\""
+        },
+        {
+          "log": "CPAP off; non-rebreather on while you set up the BVM."
+        }
+      ]
+    },
+    "bvm": {
+      "label": "Assist his breaths with a BVM and oxygen",
+      "group": "Treat",
+      "available": "not bvmOn and not cpapOn",
+      "why": "Take CPAP off first, or already assisting.",
+      "effects": [
+        {
+          "set": "bvmOn",
+          "to": "true"
+        },
+        {
+          "if": "isNull(bvmAt)",
+          "then": [
+            {
+              "set": "bvmAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "BVM: you squeeze with his breaths, slowly.",
+          "kind": "good"
+        }
+      ]
+    },
+    "als": {
+      "label": "Request a paramedic intercept",
+      "group": "Call",
+      "available": "isNull(alsAt)",
+      "why": "Already requested.",
+      "effects": [
+        {
+          "if": "isNull(alsAt)",
+          "then": [
+            {
+              "set": "alsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "schedule": "alsT",
+          "after": "alsEta"
+        },
+        {
+          "log": "Medic 9 will meet you.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "transport": {
+      "label": "Load and go",
+      "group": "Transport",
+      "available": "isNull(departAt)",
+      "why": "Already moving.",
+      "effects": [
+        {
+          "if": "isNull(departAt)",
+          "then": [
+            {
+              "set": "departAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "schedule": "arriveT",
+          "after": "loadTime + driveTime"
+        },
+        {
+          "log": "Stair chair, load, go; treatment continues."
+        }
+      ]
+    },
+    "notify": {
+      "label": "Notify the hospital: COPD exacerbation, CPAP, response, ETA",
+      "group": "Transport",
+      "available": "not isNull(departAt) and isNull(notifyAt)",
+      "why": "Once moving.",
+      "effects": [
+        {
+          "if": "isNull(notifyAt)",
+          "then": [
+            {
+              "set": "notifyAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Hospital notified.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "nebT": {
+      "label": "nebulizer",
+      "wait": {
+        "skipLabel": "the nebulizer (about 5 min)",
+        "routine": true
+      },
+      "instances": "one",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 5 minutes. Authored for the case; real times vary."
+      },
+      "effects": [
+        {
+          "set": "nebRunning",
+          "to": "false"
+        },
+        {
+          "log": "Nebulizer finished."
+        }
+      ]
+    },
+    "vitalsT": {
+      "label": "vital signs",
+      "wait": {
+        "skipLabel": "the vital signs (about 1 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 1 minute. Authored for the case; real times vary."
+      },
+      "effects": [
+        {
+          "set": "vPending",
+          "to": "false"
+        },
+        {
+          "set": "vAt",
+          "to": "t"
+        },
+        {
+          "if": "isNull(firstVAt)",
+          "then": [
+            {
+              "set": "firstVAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "HR {hr}, RR {rr}, SpO2 {spo2}%, BP 158/92.",
+          "kind": "find"
+        }
+      ]
+    },
+    "alsT": {
+      "label": "the intercept",
+      "wait": {
+        "skipLabel": "the paramedic intercept (about 10 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 minutes. Authored for the case; real times vary."
+      },
+      "effects": [
+        {
+          "if": "isNull(alsHere)",
+          "then": [
+            {
+              "set": "alsHere",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "The paramedic joins you{bvmOn ? \" and takes over the airway\" : \"\"}.",
+          "kind": "good"
+        },
+        {
+          "if": "bvmOn",
+          "then": [
+            {
+              "set": "sev",
+              "to": "max(0, sev - 0.1)"
+            }
+          ]
+        }
+      ]
+    },
+    "arriveT": {
+      "label": "arrival",
+      "wait": {
+        "skipLabel": "arrival at the hospital"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Load and drive. Authored for the case; real times vary."
+      },
+      "effects": [
+        {
+          "if": "isNull(arrivedAt)",
+          "then": [
+            {
+              "set": "arrivedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "At the emergency department.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "drowsy",
+      "when": "sev >= 0.85 and isNull(drowsyAt)",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "isNull(drowsyAt)",
+          "then": [
+            {
+              "set": "drowsyAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "His head nods; EtCO2 climbs; his breaths are shallow and slower.",
+          "kind": "alarm"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "why": {
+      "trigger": "t >= 480",
+      "question": "What are you treating, how will you know it is working, and what would tell you CPAP is failing?",
+      "parts": [
+        {
+          "label": "Treatment",
+          "criteria": "COPD exacerbation with severe distress: albuterol nebulized (labeled 2.5 mg, repeated), CPAP early for severe distress, oxygen titrated to about 90% or more rather than high-flow, capnography.",
+          "modelAnswer": "A COPD exacerbation in severe distress: albuterol 2.5 mg by nebulizer, repeated, CPAP early at 5 cmH2O and up, oxygen titrated to about 90-92% and capnography to watch his ventilation."
+        },
+        {
+          "label": "Failing",
+          "criteria": "Worsening mental status, rising EtCO2, slowing or shallow breaths or vomiting mean CPAP is failing: take it off, assist with a BVM, and get paramedics for an advanced airway.",
+          "modelAnswer": "If he gets drowsy, EtCO2 climbs or he vomits, CPAP is failing: off, BVM assist, and the paramedic intercept for an advanced airway."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "not isNull(arrivedAt) and sev >= 0.7",
+      "class": "recovered",
+      "rationale": "He reached the hospital still in severe distress; treatment came too late or too little.",
+      "source": {
+        "cite": "NASEMSO. National Model EMS Clinical Guidelines, Version 3.0 (March 2022): Respiratory Distress (Includes Bronchospasm, Pulmonary Edema); Airway Management",
+        "checkedAt": "2026-11-17",
+        "url": "https://nasemso.org/?p=223",
+        "note": "Read 2026-11-17 in the full text Iowa HHS hosts (https://hhs.iowa.gov/media/198/download) through summarizing fetches with quotes; NASEMSO's own page, read the same day, still presents Version 3 (2022) as current and names no later version. Albuterol nebulized for bronchospasm, repeated for ongoing distress; noninvasive ventilation (CPAP) for severe distress, considered early; start PEEP at 5 cmH2O and raise in 2-3 cmH2O steps to the lowest effective pressure; if the patient worsens on CPAP (worse mental status, rising EtCO2, vomiting), 'remove CPAP/BiPAP and escalate airway management options'; target SpO2 94-98%, and 'permissive hypoxia (SPO2 >= 90%) may be appropriate in patients with COPD'; avoid nitrates within 48 hours of a phosphodiesterase inhibitor. The guideline's albuterol dose for distress (5 mg) is above the inhalation solution's labeled 2.5 mg; the case uses the labeled 2.5 mg dose, repeated."
+      }
+    }
+  },
+  "endings": {
+    "arrest": {
+      "label": "He stopped breathing",
+      "class": "harm",
+      "terminal": true,
+      "when": "sev >= 1.0",
+      "narrative": "{t|clock}: Walt's breathing stops; he is too tired to go on."
+    },
+    "better": {
+      "label": "Breathing easier on arrival",
+      "class": "target",
+      "terminal": true,
+      "when": "not isNull(arrivedAt) and sev < 0.5 and isNull(drowsyAt) and not isNull(neb1At) and timeAt(neb1At) <= 300 and not isNull(cpapAt) and timeAt(cpapAt) <= 480 and isNull(nrbAt) and capnoOn",
+      "narrative": "{timeAt(arrivedAt)|clock}: Walt arrives speaking in sentences on CPAP, SpO2 {spo2}%, EtCO2 {etco2}."
+    },
+    "arrived": {
+      "label": "Arrived, by a harder route",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not isNull(arrivedAt)",
+      "narrative": "{timeAt(arrivedAt)|clock}: he arrives alive, but {not isNull(drowsyAt) ? \"he tired out on the way and needed his breaths assisted\" : not isNull(nrbAt) ? \"high-flow oxygen without titration worked against him\" : \"CPAP or the bronchodilator came late\"}."
+    },
+    "time_up": {
+      "label": "45 minutes",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "Forty-five minutes and he has not reached the hospital."
+    }
+  },
+  "endingOrder": [
+    "arrest",
+    "better",
+    "arrived"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "neb",
+        "label": "Albuterol within 5 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(neb1At) and timeAt(neb1At) <= 300",
+            "score": "met",
+            "why": "At {timeAt(neb1At)|clock}."
+          },
+          {
+            "when": "not isNull(neb1At)",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "None."
+          }
+        ]
+      },
+      {
+        "id": "cpap",
+        "label": "CPAP within 8 minutes for severe distress",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(cpapAt) and timeAt(cpapAt) <= 480",
+            "score": "met",
+            "why": "At {timeAt(cpapAt)|clock}."
+          },
+          {
+            "when": "not isNull(cpapAt)",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No CPAP."
+          }
+        ]
+      },
+      {
+        "id": "fail",
+        "label": "Drowsy and EtCO2 rising: CPAP off, BVM, paramedics",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(drowsyAt)",
+            "score": "na",
+            "why": "He never tired."
+          },
+          {
+            "when": "not isNull(bvmAt) and timeAt(bvmAt) - timeAt(drowsyAt) <= 90 and not isNull(alsAt)",
+            "score": "met",
+            "why": "Escalated within 90 seconds."
+          },
+          {
+            "when": "not isNull(bvmAt)",
+            "score": "partial",
+            "why": "BVM, but late or no intercept."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No escalation."
+          }
+        ]
+      },
+      {
+        "id": "o2",
+        "label": "Oxygen titrated, not left at 15 L/min",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(nrbAt) and not isNull(o2At)",
+            "score": "met",
+            "why": "Titrated."
+          },
+          {
+            "when": "not isNull(nrbAt) and not isNull(offCpapAt)",
+            "score": "partial",
+            "why": "High flow only while setting up the BVM."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "High flow left on, or no oxygen."
+          }
+        ]
+      },
+      {
+        "id": "capno",
+        "label": "Capnography used",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "capnoOn",
+            "score": "met",
+            "why": "On."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not used."
+          }
+        ]
+      },
+      {
+        "id": "notify",
+        "label": "Hospital notified",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(notifyAt)",
+            "score": "met",
+            "why": "Notified."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No notification."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: treatment and CPAP failure",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toCpap",
+        "label": "Arrival to CPAP",
+        "value": "isNull(cpapAt) ? -1 : timeAt(cpapAt)",
+        "format": "duration",
+        "expert": "under 6 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "16:10",
+        "text": "Tripod, three-word sentences, wheeze: severe COPD exacerbation. Oximeter and capnography; albuterol 2.5 mg nebulized; oxygen titrated."
+      },
+      {
+        "at": "16:13",
+        "text": "CPAP at 5, raised to 7.5-10; albuterol in line; vital signs."
+      },
+      {
+        "at": "16:16",
+        "text": "Load and go; repeat albuterol; notify. If he tires: CPAP off, BVM, intercept."
+      }
+    ],
+    "debrief": {
+      "better": {
+        "headline": "Breathing easier on arrival",
+        "body": "Bronchodilator early, CPAP early, oxygen titrated and capnography watched. That is the expert path within AEMT scope."
+      },
+      "arrived": {
+        "headline": "Arrived, by a harder route",
+        "body": "Check how soon CPAP went on, whether oxygen was titrated, and how fast you escalated when he tired."
+      },
+      "arrest": {
+        "headline": "He tired out",
+        "body": "Without early CPAP and bronchodilators, or with CPAP left on a drowsy patient, his breathing stopped. Drowsiness and rising EtCO2 mean escalate: BVM and paramedics."
+      },
+      "time_up": {
+        "headline": "Not at the hospital",
+        "body": "Forty-five minutes passed."
+      }
+    },
+    "modelReasoning": "A COPD exacerbation with severe distress: pulse oximetry and capnography; albuterol 2.5 mg nebulized (the labeled dose), repeated; CPAP early, starting at 5 cmH2O and raising in 2-3 cmH2O steps; oxygen titrated to about 90-92% (NASEMSO allows permissive SpO2 of 90% or more in COPD) rather than 15 L/min. Reassess; if he becomes drowsy, EtCO2 rises or he vomits, CPAP is failing: take it off, assist with a BVM and get a paramedic intercept for an advanced airway. Load early, keep treating en route, notify."
+  },
+  "chapters": [
+    {
+      "id": "onCpap",
+      "label": "CPAP on",
+      "when": "cpapOn"
+    }
+  ],
+  "teaching": {
+    "target": {
+      "during": "nebT",
+      "ask": "While the nebulizer runs: what SpO2 are you aiming for in Walt?",
+      "choices": [
+        {
+          "id": "ninety",
+          "label": "About 90-92%"
+        },
+        {
+          "id": "hundred",
+          "label": "100%"
+        },
+        {
+          "id": "eighty",
+          "label": "Anything above 80%"
+        }
+      ],
+      "expect": "ninety",
+      "explain": "NASEMSO targets 94-98% in general but says permissive hypoxia (SpO2 90% or more) may be appropriate in COPD; high-flow oxygen can drive carbon dioxide retention.",
+      "source": {
+        "cite": "NASEMSO. National Model EMS Clinical Guidelines, Version 3.0 (March 2022): Respiratory Distress (Includes Bronchospasm, Pulmonary Edema); Airway Management",
+        "checkedAt": "2026-11-17",
+        "url": "https://nasemso.org/?p=223",
+        "note": "Read 2026-11-17 in the full text Iowa HHS hosts (https://hhs.iowa.gov/media/198/download) through summarizing fetches with quotes; NASEMSO's own page, read the same day, still presents Version 3 (2022) as current and names no later version. Albuterol nebulized for bronchospasm, repeated for ongoing distress; noninvasive ventilation (CPAP) for severe distress, considered early; start PEEP at 5 cmH2O and raise in 2-3 cmH2O steps to the lowest effective pressure; if the patient worsens on CPAP (worse mental status, rising EtCO2, vomiting), 'remove CPAP/BiPAP and escalate airway management options'; target SpO2 94-98%, and 'permissive hypoxia (SPO2 >= 90%) may be appropriate in patients with COPD'; avoid nitrates within 48 hours of a phosphodiesterase inhibitor. The guideline's albuterol dose for distress (5 mg) is above the inhalation solution's labeled 2.5 mg; the case uses the labeled 2.5 mg dose, repeated."
+      }
+    }
+  }
+}
