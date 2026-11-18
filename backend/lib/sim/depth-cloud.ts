@@ -13,4 +13,6 @@ export const DEPTH_CLOUD: readonly CloudEntry[] = [
   { course: "AWSDEA", slug: "rds-update-without-where-pitr-dea", screen: "board", profile: "cloud", kind: "band", steps: "dc-awsdea-rds-update-without-where-pitr-dea", base: "AWSSOA/rds-update-without-where-pitr" },
   { course: "AWSSAP", slug: "sqs-visibility-shorter-than-work", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "sap-sqs-visibility" },
   { course: "AWSSAP", slug: "onprem-cannot-resolve-private-zone", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "sap-hybrid-dns" },
+  { course: "AWSSAP", slug: "region-scp-blocks-global-services", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "sap-scp-region" },
+  { course: "AWSSAP", slug: "cross-account-share-kms-denied", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "sap-kms-cross-account" },
 ];

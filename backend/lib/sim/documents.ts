@@ -548,6 +548,8 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   band("AWSDEA", "rds-update-without-where-pitr-dea"),
   entry("AWSSAP", "sqs-visibility-shorter-than-work"),
   entry("AWSSAP", "onprem-cannot-resolve-private-zone"),
+  entry("AWSSAP", "region-scp-blocks-global-services"),
+  entry("AWSSAP", "cross-account-share-kms-denied"),
   // ---- end REQ-335 ----
   // ---- REQ-323 (docs/sims.md 22.32): health breadth and nursing depth of the
   // 2026-11-17 round. Bands first, then new cases. Keep these together. ----

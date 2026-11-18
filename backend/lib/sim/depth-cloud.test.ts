@@ -288,4 +288,38 @@ describe("what each new depth cloud case teaches (REQ-335)", () => {
     assert.equal(ok.value("missAt"), null);
     assert.equal(ok.value("okAt") !== null, true);
   });
+  test("AWSSAP region-scp-blocks-global-services: detaching the SCP removes the residency control; AdministratorAccess cannot beat an SCP deny; a NotAction exemption makes the launch", () => {
+    const d = docOf("region-scp-blocks-global-services");
+    const h = driver(d);
+    h.act("detach");
+    assert.equal(h.value("harmed"), true, "detach causes harm");
+    until(h, 56);
+    assert.notEqual(h.value("missAt"), null);
+    const n = driver(d);
+    n.act("admin");
+    until(n, 56);
+    assert.notEqual(n.value("missAt"), null, "admin changes nothing");
+    const ok = driver(d);
+    ok.act("exempt");
+    until(ok, 56);
+    assert.equal(ok.value("missAt"), null);
+    assert.equal(ok.value("okAt") !== null, true);
+  });
+  test("AWSSAP cross-account-share-kms-denied: copying to SSE-S3 escapes the key's controls; more S3 permissions change nothing; Decrypt on both policies builds the report", () => {
+    const d = docOf("cross-account-share-kms-denied");
+    const h = driver(d);
+    h.act("plain");
+    assert.equal(h.value("harmed"), true, "plain causes harm");
+    until(h, 56);
+    assert.notEqual(h.value("missAt"), null);
+    const n = driver(d);
+    n.act("s3perm");
+    until(n, 56);
+    assert.notEqual(n.value("missAt"), null, "s3perm changes nothing");
+    const ok = driver(d);
+    ok.act("grant");
+    until(ok, 56);
+    assert.equal(ok.value("missAt"), null);
+    assert.equal(ok.value("okAt") !== null, true);
+  });
 });
