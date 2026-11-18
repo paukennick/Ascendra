@@ -1,0 +1,1100 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "gitops-store-fleet-patterns",
+  "title": "GitOps for 40 store clusters and 60 teams: reconciler placement, repository layout and reconciliation triggers",
+  "screen": {
+    "type": "governance-board",
+    "level": 1,
+    "governance": {
+      "risks": [
+        {
+          "id": "rWhere",
+          "label": "Store clusters out of contact with the central reconciler",
+          "spokenLabel": "Store clusters out of contact with the central reconciler",
+          "owner": "\"Platform architect\"",
+          "rating": "where == \"agents\" ? \"low\" : where == \"hubAll\" ? \"medium\" : where == \"scripts\" ? \"critical\" : p >= 1 ? \"high\" : \"medium\"",
+          "appetite": "where == \"agents\" ? \"within\" : where == \"hubAll\" ? \"within\" : where == \"scripts\" ? \"above\" : p >= 1 ? \"above\" : \"within\"",
+          "status": "{where == \"agents\" ? \"In-cluster agents at the edge; hub for regions\" : where == \"hubAll\" ? \"Central hub for all 43\" : where == \"scripts\" ? \"CI pushes to stores\" : \"Open\"}"
+        },
+        {
+          "id": "rLayout",
+          "label": "Environments diverging through branch cherry-picks",
+          "spokenLabel": "Environments diverging through branch cherry-picks",
+          "owner": "\"Platform architect\"",
+          "rating": "layout == \"dirs\" ? \"low\" : layout == \"mono\" ? \"medium\" : layout == \"branches\" ? \"critical\" : p >= 2 ? \"high\" : \"medium\"",
+          "appetite": "layout == \"dirs\" ? \"within\" : layout == \"mono\" ? \"within\" : layout == \"branches\" ? \"above\" : p >= 2 ? \"above\" : \"within\"",
+          "status": "{layout == \"dirs\" ? \"Environment directories; promotion by pull request\" : layout == \"mono\" ? \"Monorepo with CODEOWNERS\" : layout == \"branches\" ? \"Branch per environment\" : \"Open\"}"
+        },
+        {
+          "id": "rTrigger",
+          "label": "Changes slow to apply or missed",
+          "spokenLabel": "Changes slow to apply or missed",
+          "owner": "\"Platform architect\"",
+          "rating": "trigger == \"both\" ? \"low\" : trigger == \"pollOnly\" ? \"medium\" : trigger == \"webhookOnly\" ? \"critical\" : p >= 3 ? \"high\" : \"medium\"",
+          "appetite": "trigger == \"both\" ? \"within\" : trigger == \"pollOnly\" ? \"within\" : trigger == \"webhookOnly\" ? \"above\" : p >= 3 ? \"above\" : \"within\"",
+          "status": "{trigger == \"both\" ? \"Webhooks with a polling fallback\" : trigger == \"pollOnly\" ? \"Polling every 3 minutes\" : trigger == \"webhookOnly\" ? \"Webhooks only\" : \"Open\"}"
+        }
+      ],
+      "stakeholders": [
+        {
+          "id": "sPlatform",
+          "label": "Platform lead",
+          "spokenLabel": "the platform lead's support",
+          "value": "platform",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sSecurity",
+          "label": "Security lead",
+          "spokenLabel": "the security lead's support",
+          "value": "security",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sTeams",
+          "label": "Application teams",
+          "spokenLabel": "the application teams' support",
+          "value": "teams",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "docket": [
+        {
+          "id": "dWhere",
+          "kind": "Pattern: reconciler placement",
+          "label": "Week 1: where reconcilers run",
+          "status": "{where == \"agents\" ? \"In-cluster agents at the edge; hub for regions\" : where == \"hubAll\" ? \"Central hub for all 43\" : where == \"scripts\" ? \"CI pushes to stores\" : \"Due\"}",
+          "when": "p >= 1",
+          "flag": "p >= 1 and where == \"none\""
+        },
+        {
+          "id": "dLayout",
+          "kind": "Pattern: state store management",
+          "label": "Week 2: repository layout and promotion",
+          "status": "{layout == \"dirs\" ? \"Environment directories; promotion by pull request\" : layout == \"mono\" ? \"Monorepo with CODEOWNERS\" : layout == \"branches\" ? \"Branch per environment\" : \"Due\"}",
+          "when": "p >= 2",
+          "flag": "p >= 2 and layout == \"none\""
+        },
+        {
+          "id": "dTrigger",
+          "kind": "Pattern: pull versus event-driven",
+          "label": "Week 3: how reconciliation is triggered",
+          "status": "{trigger == \"both\" ? \"Webhooks with a polling fallback\" : trigger == \"pollOnly\" ? \"Polling every 3 minutes\" : trigger == \"webhookOnly\" ? \"Webhooks only\" : \"Due\"}",
+          "when": "p >= 3",
+          "flag": "p >= 3 and trigger == \"none\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Week",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Architecture patterns: in-cluster versus external reconcilers, hub-and-spoke for many clusters, and state store management (monorepo, repo per team or environment)",
+  "secondaryObjectives": [
+    "Select patterns for a given scenario and explain the trade-offs between them",
+    "Pull versus event-driven: scheduled reconciliation versus webhook-triggered reconciliation, and their trade-offs for latency and robustness",
+    "Deployment and release patterns: environment promotion through branches or directories, release by pull request, and tagging and pinning versions"
+  ],
+  "sources": [
+    {
+      "cite": "CNCF Certified GitOps Associate (CGOA) curriculum: GitOps Terminology 20%, GitOps Principles 30%, Related Practices 16%, GitOps Patterns 20%, Tooling 14%",
+      "checkedAt": "2026-11-17",
+      "url": "https://kube-dojo.github.io/k8s/cgoa",
+      "note": "On 2026-11-17 the weights were confirmed through a third-party study page (kube-dojo.github.io/k8s/cgoa, summarizing fetch): 'Continuously Reconciled: Agents continuously observe and reconcile actual state', with drift detection and correction under terminology. The official curriculum (cncf/curriculum) was not re-read; the objective wording is the course seed's (backend/supabase/seed/tracks/cncf-ecosystem.ts). Reused for REQ-336 from this course's service-selector-no-endpoints-cgoa (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "OpenGitOps, GitOps Principles v1.0.0 (opengitops.dev)",
+      "checkedAt": "2026-11-17",
+      "url": "https://opengitops.dev/",
+      "note": "Found by search 2026-11-17 and read only through the search listing (title and address); to verify against the page. Used for: the four principles: declarative, versioned and immutable, pulled automatically, continuously reconciled."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The company, the clusters, the teams and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the platform architect at Brightwell Grocers, a fictional supermarket chain. It is moving 40 in-store edge clusters and three regional clusters to GitOps. Store links drop for hours at a time. Sixty development teams will deliver to the fleet.",
+    "handover": [
+      "The draft design: one central reconciler in the head office pushing to all 43 clusters, one repository with a branch per environment.",
+      "The review board decides the pattern for the whole fleet."
+    ],
+    "howItWorks": [
+      "The board shows the risk register against the appetite, each stakeholder's support in words and the docket.",
+      "Move on a week at a time. A decision comes to you at each design review; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-02-01T09:00",
+    "tick": "1d",
+    "maxDuration": "84d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "platform": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "security": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "teams": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "where": {
+      "type": "enum",
+      "values": [
+        "none",
+        "agents",
+        "hubAll",
+        "scripts"
+      ],
+      "init": "none"
+    },
+    "whereAt": {
+      "type": "time",
+      "init": null
+    },
+    "layout": {
+      "type": "enum",
+      "values": [
+        "none",
+        "dirs",
+        "mono",
+        "branches"
+      ],
+      "init": "none"
+    },
+    "layoutAt": {
+      "type": "time",
+      "init": null
+    },
+    "trigger": {
+      "type": "enum",
+      "values": [
+        "none",
+        "both",
+        "pollOnly",
+        "webhookOnly"
+      ],
+      "init": "none"
+    },
+    "triggerAt": {
+      "type": "time",
+      "init": null
+    },
+    "linksAt": {
+      "type": "time",
+      "init": null
+    },
+    "repoAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(platform, security), teams)"
+    },
+    "missCount": {
+      "expr": "((where == \"scripts\") ? 1 : 0) + ((layout == \"branches\") ? 1 : 0) + ((trigger == \"webhookOnly\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(where == \"none\" or (where == \"scripts\") ? 1 : 0) + (layout == \"none\" or (layout == \"branches\") ? 1 : 0) + (trigger == \"none\" or (trigger == \"webhookOnly\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The design reviews",
+      "clock": "turns",
+      "actions": [
+        "links",
+        "repo"
+      ]
+    },
+    "close": {
+      "label": "Pattern decision",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "links": {
+      "label": "Read the store network report",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(linksAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "linksAt",
+          "to": "t"
+        },
+        {
+          "log": "You read the store network report.",
+          "kind": "act"
+        },
+        {
+          "finding": "Store links were down for more than an hour 31 times last quarter; a central reconciler would lose contact with a store for each of those hours."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "repo": {
+      "label": "Read the draft repository layout",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(repoAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "repoAt",
+          "to": "t"
+        },
+        {
+          "log": "You read the draft layout.",
+          "kind": "act"
+        },
+        {
+          "finding": "The draft has branches dev, staging and prod with fixes cherry-picked between them; 14 commits already differ between staging and prod that nobody can explain."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Record the pattern decision",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the decision says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "In-cluster agents at the edge and a hub for the regions, environment directories with team repositories and promotion by pull request, and webhooks with a polling fallback, each with its trade-off"
+                },
+                {
+                  "value": "summary",
+                  "label": "GitOps pattern approved"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next design review",
+      "wait": {
+        "skipLabel": "Go to the next design review"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "where == \"scripts\"",
+              "then": [
+                {
+                  "log": "Week 2: a price-label fix reaches only the 27 stores whose links were up; 13 stores print wrong prices for a weekend.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "layout == \"branches\"",
+              "then": [
+                {
+                  "log": "Week 3: a security fix cherry-picked to staging is missed for prod; prod runs the vulnerable version for three weeks.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "trigger == \"webhookOnly\"",
+              "then": [
+                {
+                  "log": "Week 4: webhooks sent during a link outage are lost; 9 stores never apply a tax-rate change until someone notices at the tills.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "7d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The pattern is decided.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "7d"
+        }
+      ]
+    },
+    {
+      "id": "t_where",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 1: reconciler placement.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "wherePrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_layout",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 2: repository layout.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "layoutPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_trigger",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 3: reconciliation triggers.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "triggerPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "wherePrompt": {
+      "title": "Central hub or an agent per store?",
+      "context": "A hub-and-spoke reconciler is simple to run but needs each cluster's credentials and a live link. An in-cluster agent per store needs only read access to Git.",
+      "choices": [
+        {
+          "id": "agents",
+          "label": "Run an in-cluster reconciler in each store cluster pulling from Git; use hub-and-spoke only for the three regional clusters on reliable links",
+          "effects": [
+            {
+              "set": "where",
+              "to": "\"agents\""
+            },
+            {
+              "set": "whereAt",
+              "to": "t"
+            },
+            {
+              "add": "platform",
+              "by": "1"
+            },
+            {
+              "log": "Agents per store; a hub for the regions.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "In-cluster agents keep reconciling through link outages and need no inbound credentials; a hub suits a few reliably connected clusters."
+        },
+        {
+          "id": "hubAll",
+          "label": "Keep the central hub for all 43 clusters and accept the gaps",
+          "effects": [
+            {
+              "set": "where",
+              "to": "\"hubAll\""
+            },
+            {
+              "set": "whereAt",
+              "to": "t"
+            },
+            {
+              "add": "platform",
+              "by": "-1"
+            },
+            {
+              "log": "One hub for everything.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Simple to operate, but stores drift for every hour their link is down, and the hub holds every cluster's credentials."
+        },
+        {
+          "id": "scripts",
+          "label": "Have CI push to each store with kubectl when its link is up",
+          "effects": [
+            {
+              "set": "where",
+              "to": "\"scripts\""
+            },
+            {
+              "set": "whereAt",
+              "to": "t"
+            },
+            {
+              "add": "platform",
+              "by": "-2"
+            },
+            {
+              "log": "CI pushes to stores opportunistically.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "That is not GitOps: nothing reconciles, and stores that missed a push stay on old versions."
+        }
+      ]
+    },
+    "layoutPrompt": {
+      "title": "Branches per environment or directories?",
+      "context": "Sixty teams; three environments; staging and prod already differ by 14 unexplained commits.",
+      "choices": [
+        {
+          "id": "dirs",
+          "label": "One trunk with a directory per environment (overlays), a repository per team for its apps plus a platform repository; promote by pull request with pinned versions",
+          "effects": [
+            {
+              "set": "layout",
+              "to": "\"dirs\""
+            },
+            {
+              "set": "layoutAt",
+              "to": "t"
+            },
+            {
+              "add": "teams",
+              "by": "1"
+            },
+            {
+              "log": "Directories per environment; promotion by pull request.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Directories on one branch make the difference between environments visible in one diff; per-team repositories match ownership."
+        },
+        {
+          "id": "mono",
+          "label": "A single monorepo for all 60 teams with directories per environment and CODEOWNERS",
+          "effects": [
+            {
+              "set": "layout",
+              "to": "\"mono\""
+            },
+            {
+              "set": "layoutAt",
+              "to": "t"
+            },
+            {
+              "add": "teams",
+              "by": "-1"
+            },
+            {
+              "log": "One monorepo with CODEOWNERS.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Promotion is visible, but 60 teams in one repository means noisy reviews and broad write access."
+        },
+        {
+          "id": "branches",
+          "label": "Keep a branch per environment and cherry-pick fixes forward",
+          "effects": [
+            {
+              "set": "layout",
+              "to": "\"branches\""
+            },
+            {
+              "set": "layoutAt",
+              "to": "t"
+            },
+            {
+              "add": "teams",
+              "by": "-2"
+            },
+            {
+              "log": "Branches per environment stay.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Cherry-picks drift: what is in prod can no longer be read from one place."
+        }
+      ]
+    },
+    "triggerPrompt": {
+      "title": "Polling or webhooks?",
+      "context": "Teams want changes live within a minute. The reconcilers poll Git every 3 minutes by default; webhooks can trigger them at once.",
+      "choices": [
+        {
+          "id": "both",
+          "label": "Use webhooks to trigger reconciliation at once, and keep periodic polling as the fallback for missed webhooks",
+          "effects": [
+            {
+              "set": "trigger",
+              "to": "\"both\""
+            },
+            {
+              "set": "triggerAt",
+              "to": "t"
+            },
+            {
+              "add": "security",
+              "by": "1"
+            },
+            {
+              "log": "Webhooks plus a polling fallback.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Event-driven for latency, scheduled for robustness: a missed webhook is caught on the next poll."
+        },
+        {
+          "id": "pollOnly",
+          "label": "Polling only, every 3 minutes",
+          "effects": [
+            {
+              "set": "trigger",
+              "to": "\"pollOnly\""
+            },
+            {
+              "set": "triggerAt",
+              "to": "t"
+            },
+            {
+              "add": "security",
+              "by": "-1"
+            },
+            {
+              "log": "Polling stays at 3 minutes.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Robust but slow; the one-minute target is missed."
+        },
+        {
+          "id": "webhookOnly",
+          "label": "Webhooks only, with polling turned off to save API calls",
+          "effects": [
+            {
+              "set": "trigger",
+              "to": "\"webhookOnly\""
+            },
+            {
+              "set": "triggerAt",
+              "to": "t"
+            },
+            {
+              "add": "security",
+              "by": "-2"
+            },
+            {
+              "log": "Polling is turned off.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "A webhook lost during a store's outage is never retried; that store never reconciles the change."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the pattern decision for the fleet: which patterns you chose for reconciler placement, repository layout and triggers, and the trade-off of each.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Placement and layout",
+          "criteria": "In-cluster agents for unreliable stores, a hub for the regions; directories per environment and team repositories with promotion by pull request.",
+          "modelAnswer": "Stores lose links often, so each runs its own reconciler; the three regions share a hub. One trunk with environment directories and per-team repositories; promotion is a pull request."
+        },
+        {
+          "label": "Triggers",
+          "criteria": "Webhooks for latency with polling as the fallback.",
+          "modelAnswer": "Webhooks trigger reconciliation at once; polling every few minutes catches what a webhook misses."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "governance",
+    "thresholds": {
+      "aboveAppetite": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No risk above appetite at the close without a treatment."
+        }
+      },
+      "supportTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Each key stakeholder at 6 of 10 or more at the close."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (where == \"hubAll\") and (layout == \"mono\") and (trigger == \"pollOnly\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CNCF Certified GitOps Associate (CGOA) curriculum: GitOps Terminology 20%, GitOps Principles 30%, Related Practices 16%, GitOps Patterns 20%, Tooling 14%",
+        "checkedAt": "2026-11-17",
+        "url": "https://kube-dojo.github.io/k8s/cgoa",
+        "note": "On 2026-11-17 the weights were confirmed through a third-party study page (kube-dojo.github.io/k8s/cgoa, summarizing fetch): 'Continuously Reconciled: Agents continuously observe and reconcile actual state', with drift detection and correction under terminology. The official curriculum (cncf/curriculum) was not re-read; the objective wording is the course seed's (backend/supabase/seed/tracks/cncf-ecosystem.ts). Reused for REQ-336 from this course's service-selector-no-endpoints-cgoa (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "whereHarm": {
+      "label": "Stores left on old versions",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and where == \"scripts\"",
+      "narrative": "CI pushes reached only the stores whose links were up; 13 stores printed wrong prices for a weekend."
+    },
+    "layoutHarm": {
+      "label": "A fix missing from production",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and layout == \"branches\"",
+      "narrative": "A cherry-picked security fix never reached the prod branch; production ran the vulnerable version for three weeks."
+    },
+    "triggerHarm": {
+      "label": "Changes silently missed",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and trigger == \"webhookOnly\"",
+      "narrative": "Webhooks lost during link outages were never retried; 9 stores never applied a tax-rate change."
+    },
+    "target": {
+      "label": "Patterns that fit the fleet",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (where == \"agents\") and (layout == \"dirs\") and (trigger == \"both\") and record == \"honest\" and openCount <= aboveAppetite and minSupport >= supportTarget",
+      "narrative": "The fleet reconciles through link outages, promotion is visible, and changes land fast without being missed."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "whereHarm",
+    "layoutHarm",
+    "triggerHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "whereCrit",
+        "label": "Chose in-cluster reconcilers for the unreliable edge and a hub only where links are reliable",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "where == \"agents\"",
+            "score": "met",
+            "why": "Placement fits the links."
+          },
+          {
+            "when": "where == \"hubAll\"",
+            "score": "partial",
+            "why": "Works, with gaps and concentrated credentials."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Push without reconciliation."
+          }
+        ]
+      },
+      {
+        "id": "layoutCrit",
+        "label": "Chose a layout that promotes by pull request between environment directories with team ownership",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "layout == \"dirs\"",
+            "score": "met",
+            "why": "Visible promotion and ownership."
+          },
+          {
+            "when": "layout == \"mono\"",
+            "score": "partial",
+            "why": "Visible, but ownership is blurry."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Kept diverging branches."
+          }
+        ]
+      },
+      {
+        "id": "triggerCrit",
+        "label": "Combined webhooks for speed with polling for robustness",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "trigger == \"both\"",
+            "score": "met",
+            "why": "Fast and robust."
+          },
+          {
+            "when": "trigger == \"pollOnly\"",
+            "score": "partial",
+            "why": "Robust, slower."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No fallback for missed events."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(linksAt) and not isNull(repoAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(linksAt) or not isNull(repoAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 10)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the network report and the draft repository layout first."
+      },
+      {
+        "at": "Week 1",
+        "text": "Put an in-cluster reconciler in each store; keep hub-and-spoke for the regions."
+      },
+      {
+        "at": "Week 2",
+        "text": "Use environment directories on one trunk, team repositories and promotion by pull request."
+      },
+      {
+        "at": "Week 3",
+        "text": "Trigger by webhook and keep polling as the fallback."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "whereHarm": {
+        "headline": "Reconcile at the edge",
+        "body": "An in-cluster agent pulls and reconciles whenever the link allows; a push only reaches who is reachable."
+      },
+      "layoutHarm": {
+        "headline": "Promote, don't cherry-pick",
+        "body": "Environment directories and promotion by pull request keep what differs visible."
+      },
+      "triggerHarm": {
+        "headline": "Events for speed, polling for safety",
+        "body": "Keep scheduled reconciliation as the fallback for event-driven triggers."
+      },
+      "target": {
+        "headline": "Good: patterns that fit the fleet",
+        "body": "Placement fits the network, the layout fits ownership, and triggers trade latency against robustness well."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Reconciler placement follows connectivity and trust: an in-cluster agent pulls and reconciles whenever it can reach Git and needs no inbound credentials, while a hub-and-spoke reconciler is simpler for a few reliably connected clusters but holds every cluster's credentials. Store desired state so promotion is visible: environment directories (overlays) on one trunk, per-team repositories for ownership, promotion by pull request; branches per environment drift through cherry-picks. Webhooks cut latency, and polling remains the fallback when events are lost."
+  }
+}
