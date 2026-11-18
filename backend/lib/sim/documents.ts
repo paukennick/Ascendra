@@ -728,6 +728,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("BSNRN", "handover-argument-skip-the-pump-check"),
   entry("BSNRN", "quality-project-really-a-study"),
   entry("CCRNNEO", "consent-through-the-twelve-year-old"),
+  entry("ABPTSGCS", "quiet-not-lazy-day-three-hip-fracture"),
   // ---- end REQ-334 ----
 ];
 

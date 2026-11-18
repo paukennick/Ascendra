@@ -1,0 +1,1135 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "quiet-not-lazy-day-three-hip-fracture",
+  "title": "Quiet, not lazy",
+  "objective": "Recognize delirium as an acute, fluctuating disturbance of attention, awareness and cognition, in hyperactive, hypoactive or mixed forms; the quiet hypoactive form is the one most often missed",
+  "secondaryObjectives": [
+    "Treat polypharmacy (regular use of 5 or more medicines) as a risk factor in older adults, linked to falls, frailty, disability and death",
+    "Pharmacology in older adults: polypharmacy, fall-risk medications and exercise interactions"
+  ],
+  "sources": [
+    {
+      "cite": "Specialist certification examination outline: geriatrics (the certifying board's published outline page)",
+      "checkedAt": "2026-11-08",
+      "url": "https://specialization.apta.org/become-a-specialist/geriatrics/specialist-certification-examination-outline-geriatrics",
+      "note": "Relayed from the geriatrics specialty course seed (backend/supabase/seed/tracks/pt-abpts.ts, outline pages read 2026-10-08 and 2026-11-04, OUTLINE_CHECKED_AT 2026-11-08), not re-read: Knowledge areas (15%) is a tested area. Scope only; no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra geriatrics specialty course catalog (backend/supabase/seed/tracks/pt-abpts.ts, track ABPTSGCS)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Ramirez Echeverria ML, et al.. Delirium. StatPearls (updated 2026-01-10), StatPearls Publishing",
+      "checkedAt": "2026-11-04",
+      "note": "Relayed from the course seed (tag SP-DEL; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: delirium is an acute, fluctuating disturbance of attention, awareness and cognition, in hyperactive, hypoactive or mixed forms; the quiet hypoactive form is the one most often missed (the course objective's wording)."
+    },
+    {
+      "cite": "Varghese D, et al.. Polypharmacy. StatPearls (updated 2024-02-12), StatPearls Publishing",
+      "checkedAt": "2026-11-04",
+      "note": "Relayed from the course seed (tag SP-POLY; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: polypharmacy (regular use of 5 or more medicines) is a risk factor in older adults, linked to falls, frailty, disability and death (the course objective's wording)."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "09:30 on an orthopedic ward. You are the acute care physical therapist. Mrs. Okafor, 84, is on day 3 after hip fracture repair. The nurse's note says she was 'unmotivated' and declined physical therapy yesterday. Her daughter says she was 'sharp as a tack' and doing her own crossword last week.",
+    "handover": [
+      "The surgeon's order: weight bearing as tolerated, walk twice a day.",
+      "Hospital policy: report any acute change in mental status to the nurse and the medical team straight away."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "09:30",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.008,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "An unrecognized delirium deepens and her fall risk climbs. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.002,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It eases once the team is looking for the cause. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of fall on a new hip. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The nurse and team told within 5 minutes of finding inattention (hospital policy: straight away)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min to finish the session."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "attnAt": {
+      "type": "time",
+      "init": null
+    },
+    "baseAt": {
+      "type": "time",
+      "init": null
+    },
+    "medsAt": {
+      "type": "time",
+      "init": null
+    },
+    "vitalsAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "attn",
+        "base",
+        "meds",
+        "vitals"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "team",
+        "note"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "del",
+        "motiv",
+        "dementia"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "walkAt": {
+      "type": "time",
+      "init": null
+    },
+    "refuseAt": {
+      "type": "time",
+      "init": null
+    },
+    "bedAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(isNull(walkAt) ? 92 : 104)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(isNull(walkAt) ? 128 : 112)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.58)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(isNull(walkAt) ? 94 : 92)",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (route == \"team\" ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Mrs. Okafor, 84, day 3 after hip fracture repair",
+        "presentation": "Sleepy and quiet in bed; staff note says 'unmotivated, declined PT yesterday'. {not isNull(walkAt) ? \"Standing at the walker.\" : \"\"}"
+      },
+      "vitals": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "colour": "ecg",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              105,
+              120
+            ]
+          }
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "announce": {
+            "bands": [
+              160,
+              180
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "colour": "spo2",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              93,
+              90
+            ]
+          }
+        }
+      ],
+      "activity": "{not inClinic ? \"Session over.\" : (not isNull(walkAt) ? \"Standing, swaying, eyes half closed.\" : \"In bed, drowsy, picking at the sheet.\")}",
+      "measures": [
+        {
+          "id": "attnResult",
+          "label": "Attention",
+          "result": "Stops after 'December, November'; drifts off mid-task.",
+          "when": "not isNull(attnAt)",
+          "flag": "true"
+        },
+        {
+          "id": "baseResult",
+          "label": "Baseline",
+          "result": "Sharp last week; muddled since the night after surgery; better and worse through the day.",
+          "when": "not isNull(baseAt)"
+        },
+        {
+          "id": "medsResult",
+          "label": "Medicines",
+          "result": "Eleven regular medicines, plus the ordered sedating medicine given overnight and an opioid for pain.",
+          "when": "not isNull(medsAt)"
+        },
+        {
+          "id": "vitalsResult",
+          "label": "Vitals",
+          "result": "HR 92, BP 128/74, SpO2 94%; no bowel movement since surgery.",
+          "when": "not isNull(vitalsAt)"
+        }
+      ],
+      "dosage": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "Nurse and team told of an acute change",
+            "when": "route == \"team\""
+          },
+          {
+            "label": "Session adapted",
+            "when": "not isNull(bedAt)"
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleDel",
+          "label": "Inattention that is new and fluctuating",
+          "text": "Possible hypoactive delirium: an acute change to report, not a motivation problem.",
+          "met": "not isNull(attnAt) and isNull(callAt)"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "attn": {
+      "label": "Test attention: ask her to say the months backward from December",
+      "group": "Examine",
+      "available": "not testPending and isNull(attnAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"attn\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "base": {
+      "label": "Ask her daughter about her usual thinking and when this started",
+      "group": "Examine",
+      "available": "not testPending and isNull(baseAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"base\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "meds": {
+      "label": "Review her medication record",
+      "group": "Examine",
+      "available": "not testPending and isNull(medsAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"meds\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "vitals": {
+      "label": "Check vital signs and ask about pain, bladder and bowels",
+      "group": "Examine",
+      "available": "not testPending and isNull(vitalsAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"vitals\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "walk": {
+      "label": "Get her up and walk her with the walker: 'she just needs pushing'",
+      "group": "Treat",
+      "available": "isNull(walkAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "walkAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.6, 2)"
+        },
+        {
+          "log": "She stands, sways with her eyes half closed, and her knees give way.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "refuse": {
+      "label": "Document 'patient declined, unmotivated' and move on",
+      "group": "Treat",
+      "available": "isNull(refuseAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "refuseAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.3, 2)"
+        },
+        {
+          "log": "Documented as declined, unmotivated.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "bed": {
+      "label": "Adapt today: short bed-level and sitting work, glasses and hearing aid on, orient her, daylight on",
+      "group": "Treat",
+      "available": "isNull(bedAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "bedAt",
+          "to": "t"
+        },
+        {
+          "log": "Bed-level exercise and supported sitting at the edge of the bed; glasses and hearing aid on; oriented to day and place; blinds up.",
+          "kind": "act"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Why is she quiet and 'unmotivated'?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "del",
+              "label": "Possible hypoactive delirium: an acute, fluctuating loss of attention since surgery, with polypharmacy and sedating medicines as likely contributors"
+            },
+            {
+              "value": "motiv",
+              "label": "Low motivation; she needs firmer encouragement"
+            },
+            {
+              "value": "dementia",
+              "label": "Underlying dementia"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"del\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"del\""
+                },
+                {
+                  "log": "Possible hypoactive delirium.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"motiv\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"motiv\""
+                },
+                {
+                  "log": "Read as motivation.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"dementia\""
+                },
+                {
+                  "log": "Read as dementia.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Report",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "team",
+              "label": "Tell her nurse and page the medical team: acute inattention since surgery, fluctuating, sleepy; eleven medicines plus overnight sedating medicine and an opioid; ask for delirium assessment and a medication review"
+            },
+            {
+              "value": "note",
+              "label": "Write it in your note for the team to see later"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"team\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"team\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "The team assesses her for delirium, looks for causes and reviews her medicines; the overnight sedating medicine is stopped.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"note\""
+                },
+                {
+                  "log": "Noted.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document the attention test, the change from baseline and the adapted plan",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Attention test, baseline, contributors and plan documented.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Orthopedic ward",
+      "clock": "running",
+      "actions": [
+        "attn",
+        "base",
+        "meds",
+        "vitals",
+        "walk",
+        "refuse",
+        "bed",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the test",
+      "wait": {
+        "skipLabel": "the test result"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each test or question takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"attn\"",
+              "then": [
+                {
+                  "set": "attnAt",
+                  "to": "t"
+                },
+                {
+                  "log": "She stops after 'December, November' and drifts off mid-task: inattention.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"base\"",
+              "then": [
+                {
+                  "set": "baseAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Her daughter: sharp and independent last week; muddled since the night after surgery, better in the mornings, worse at night. Acute onset, fluctuating.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"meds\"",
+              "then": [
+                {
+                  "set": "medsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Eleven regular medicines, plus the ordered sedating medicine given overnight and an opioid for pain: polypharmacy, with several that cloud thinking and raise fall risk.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "vitalsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Heart rate 92, BP 128/74, SpO2 94%; no bowel movement since surgery.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the end of the session",
+      "wait": {
+        "skipLabel": "the end of the session"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min to finish the session."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "The session ends; the team is assessing her.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "Why is Mrs. Okafor quiet and 'unmotivated', and what do you do?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "Possible hypoactive delirium: she cannot sustain attention, the change began after surgery and fluctuates, and she was sharp last week; eleven medicines plus overnight sedating medicine and an opioid are likely contributors.",
+          "modelAnswer": "She's probably got hypoactive delirium. She can't keep her attention, it started after surgery and comes and goes, and she was sharp last week. Her pile of meds and the overnight sedative may be part of it."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Report the acute change to the nurse and medical team now with the medication concern; adapt the session to bed-level and sitting work with orientation aids; no forced walking; document.",
+          "modelAnswer": "Tell the nurse and team now and flag the meds, keep today to bed and sitting work with her glasses and hearing aid on, don't force walking, and write it up."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "spo2Floor": {
+        "value": 88,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "escalateWindow": {
+        "value": 300,
+        "source": {
+          "cite": "Unit practice (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "The nurse and team told within 5 minutes of finding inattention (hospital policy: straight away)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "An unrecognized delirium an hour on is harm here.",
+      "source": {
+        "cite": "Varghese D, et al.. Polypharmacy. StatPearls (updated 2024-02-12), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-POLY; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: polypharmacy (regular use of 5 or more medicines) is a risk factor in older adults, linked to falls, frailty, disability and death (the course objective's wording)."
+      }
+    }
+  },
+  "endings": {
+    "fall": {
+      "label": "Fall on a new hip",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "She sways, her knees buckle and she goes down on her repaired hip before you can hold her."
+    },
+    "safe": {
+      "label": "Delirium recognized",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"team\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and (not isNull(attnAt) and not isNull(baseAt)) and isNull(walkAt) and isNull(refuseAt) and (not isNull(bedAt))",
+      "narrative": "{timeAt(leftAt)|clock}: the team is treating possible delirium and her medicines are under review."
+    },
+    "safeGaps": {
+      "label": "Recognized, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: the team knows, but late, or she was pushed or labeled first."
+    },
+    "time_up": {
+      "label": "Unrecognized at 10:30",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "10:30 and nobody has named the change."
+    }
+  },
+  "endingOrder": [
+    "fall",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "The nurse and medical team told within 5 minutes of the attention test",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"team\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"team\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "attnC",
+        "label": "Tested attention and established the acute change from baseline",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(attnAt) and not isNull(baseAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not assessed."
+          }
+        ]
+      },
+      {
+        "id": "safeC",
+        "label": "Adapted the session safely, without forcing walking or labeling her unmotivated",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(walkAt) or not isNull(refuseAt)",
+            "score": "missed",
+            "why": "Forced walking or labeled unmotivated."
+          },
+          {
+            "when": "not isNull(bedAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not adapted."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Reviewed medicines and vital signs for contributors",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(medsAt) and not isNull(vitalsAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(medsAt) or not isNull(vitalsAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Recognized possible hypoactive delirium",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"del\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"motiv\"",
+            "score": "missed",
+            "why": "Inattention that came on acutely and fluctuates is delirium until shown otherwise."
+          },
+          {
+            "when": "dxEnum == \"dementia\"",
+            "score": "missed",
+            "why": "She was sharp last week: the change is acute."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: acute fluctuating inattention is delirium until shown otherwise; report and adapt",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Inattention found to the report",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "09:30 to the attention test",
+        "value": "isNull(attnAt) ? -1 : timeAt(attnAt)",
+        "format": "duration",
+        "expert": "under 3 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "09:30",
+        "text": "Months backward: inattention."
+      },
+      {
+        "at": "~09:31",
+        "text": "Daughter: sharp last week, fluctuating since surgery."
+      },
+      {
+        "at": "~09:32",
+        "text": "Tell the nurse and page the team, flag the medicines."
+      },
+      {
+        "at": "~09:35",
+        "text": "Medicines and vitals; adapted bed-level session; document."
+      }
+    ],
+    "debrief": {
+      "fall": {
+        "headline": "Fall on a new hip",
+        "body": "A quiet, sleepy older adult after surgery may have hypoactive delirium, the form most often missed. Test attention, compare with baseline, report it, and adapt the session."
+      },
+      "safe": {
+        "headline": "Delirium recognized",
+        "body": "You tested attention, found an acute fluctuating change from her baseline, adapted the session and told the team within minutes. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Recognized, with gaps",
+        "body": "Check whether you tested attention, how soon you reported, and how you handled the session."
+      },
+      "time_up": {
+        "headline": "Unrecognized at 10:30",
+        "body": "Recognize and report delirium in the session."
+      }
+    },
+    "modelReasoning": "Delirium is an acute, fluctuating disturbance of attention, awareness and cognition; the quiet hypoactive form is the one most often missed and is easily mislabeled as low motivation. Mrs. Okafor fails a simple attention task, was sharp last week and fluctuates through the day. Polypharmacy (5 or more regular medicines) is a risk factor linked to falls, and she is on eleven plus sedating medicine. Report the acute change to the team, adapt the session and do not force walking."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "formQ": {
+      "during": "testT",
+      "ask": "While you assess: which form of delirium is most often missed?",
+      "choices": [
+        {
+          "id": "hypo",
+          "label": "Hypoactive: quiet, sleepy, withdrawn"
+        },
+        {
+          "id": "hyper",
+          "label": "Hyperactive: agitated, pulling at lines"
+        },
+        {
+          "id": "none",
+          "label": "All are recognized equally"
+        }
+      ],
+      "expect": "hypo",
+      "explain": "The quiet hypoactive form is the one most often missed.",
+      "source": {
+        "cite": "Ramirez Echeverria ML, et al.. Delirium. StatPearls (updated 2026-01-10), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-DEL; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: delirium is an acute, fluctuating disturbance of attention, awareness and cognition, in hyperactive, hypoactive or mixed forms; the quiet hypoactive form is the one most often missed (the course objective's wording)."
+      }
+    },
+    "polyQ": {
+      "during": "leaveT",
+      "ask": "While you finish: what counts as polypharmacy?",
+      "choices": [
+        {
+          "id": "five",
+          "label": "Regular use of 5 or more medicines"
+        },
+        {
+          "id": "two",
+          "label": "Any 2 medicines"
+        },
+        {
+          "id": "ten",
+          "label": "Only 10 or more"
+        }
+      ],
+      "expect": "five",
+      "explain": "Polypharmacy is regular use of 5 or more medicines, a risk factor for falls, frailty, disability and death.",
+      "source": {
+        "cite": "Varghese D, et al.. Polypharmacy. StatPearls (updated 2024-02-12), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-POLY; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: polypharmacy (regular use of 5 or more medicines) is a risk factor in older adults, linked to falls, frailty, disability and death (the course objective's wording)."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}
