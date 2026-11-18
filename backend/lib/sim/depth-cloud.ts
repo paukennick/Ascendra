@@ -23,4 +23,6 @@ export const DEPTH_CLOUD: readonly CloudEntry[] = [
   { course: "AZ120", slug: "hana-log-writes-slow-no-write-accelerator", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "az120-writeacc" },
   { course: "AZ120", slug: "hana-vip-unreachable-tcp-timestamps", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "az120-lbprobe" },
   { course: "AZ120", slug: "baseline-policy-denies-hana-vm-size", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "az120-policy" },
+  { course: "AZ120", slug: "stale-udr-to-retired-nva-az120", screen: "terminal", profile: "infrastructure", kind: "band", steps: "dc-az120-stale-udr-to-retired-nva-az120", base: "AZ700/stale-udr-to-retired-nva" },
+  { course: "AZ120", slug: "backup-vault-sabotage-az120", screen: "security-console", profile: "security", kind: "band", steps: "dc-az120-backup-vault-sabotage-az120", base: "SC500/sc500-backup-vault-sabotage" },
 ];
