@@ -1202,7 +1202,10 @@ export const REQ314_SLUGS: { trainer: readonly string[]; facility: readonly stri
 };
 export const REQ314_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => [...REQ314_SLUGS.trainer, ...REQ314_SLUGS.facility, ...REQ314_SLUGS.sandbox].includes(e.slug));
 
-export const CNC_SESSION_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "NASMCNC" && e.slug.startsWith("cnc-") && !REQ314_SLUGS.trainer.includes(e.slug));
+// wave/2026-11-18 (a recurrence of FAIL-2002): named by slug, the REQ-282 set,
+// so REQ-338's NASMCNC case (cnc-losing-too-fast-and-thirsty) does not join it.
+const CNC_FIRST_SET = ["cnc-crash-diet-request", "cnc-greens-powder-warfarin"];
+export const CNC_SESSION_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "NASMCNC" && CNC_FIRST_SET.includes(e.slug) && !REQ314_SLUGS.trainer.includes(e.slug));
 export const CNC_OBJECTIVES: Readonly<Record<string, string>> = {
   "cnc-crash-diet-request":
     "Recognizing when to refer to a registered dietitian nutritionist or physician: a diagnosed condition, a suspected eating disorder, pregnancy or breastfeeding needs beyond general guidance, or medications affected by diet",
@@ -1230,7 +1233,17 @@ export const ASWB_OBJECTIVES: Readonly<Record<string, string>> = {
 // REQ-311: the Scrum Sprint documents on the project dashboard (Sprint mode)
 // and the objective titles they are registered to (active objectives of PSMI
 // and CSM; a CSM document is a band of the PSMI one).
-export const SCRUM_DASHBOARD_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "PSMI" || e.course === "CSM");
+// wave/2026-11-18 (a recurrence of FAIL-2002): named by slug, the REQ-311 set,
+// so REQ-336's PSMI and CSM cases and bands do not join it.
+const SCRUM_FIRST_SET = [
+  "sprint-status-meeting-daily-scrum",
+  "sprint-goal-becomes-obsolete",
+  "csm-sprint-goal-becomes-obsolete",
+  "sprint-release-before-review",
+  "csm-sprint-release-before-review",
+  "csm-sprint-status-meeting-daily-scrum",
+];
+export const SCRUM_DASHBOARD_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => (e.course === "PSMI" || e.course === "CSM") && SCRUM_FIRST_SET.includes(e.slug));
 export const SCRUM_OBJECTIVES: Readonly<Record<string, string>> = {
   "sprint-status-meeting-daily-scrum": "Running a Daily Scrum as the Developers' planning event rather than a status report",
   "sprint-goal-becomes-obsolete": "Deciding what happens when a Sprint Goal becomes obsolete, and who may cancel a Sprint",
@@ -1245,7 +1258,9 @@ export const SCRUM_OBJECTIVES: Readonly<Record<string, string>> = {
 // (REQ-308; Version 5 has no practices-in-detail unit, so the desk serves the
 // problem, error and known error outcome and the value chain and service
 // level terms).
-export const DESK_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "ITIL5FND");
+// wave/2026-11-18 (a recurrence of FAIL-2002): named by slug, the REQ-311 desk,
+// so REQ-336's ITIL5FND cases do not join it.
+export const DESK_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "ITIL5FND" && e.slug === "monday-service-desk-wifi-problem");
 export const ITIL5_DESK_OBJECTIVES: Readonly<Record<string, readonly string[]>> = {
   "monday-service-desk-wifi-problem": [
     "Distinguishing a problem, an error and a known error in an operational scenario",
