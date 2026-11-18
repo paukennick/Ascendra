@@ -666,6 +666,10 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NASMCPT", "cpt-six-weeks-off-make-it-up"),
   entry("NASMCPT", "cpt-watch-zone-on-a-beta-blocker"),
   entry("NASMCNC", "cnc-losing-too-fast-and-thirsty"),
+  entry("NSCACSCS", "cscs-first-day-back-collapse-in-heat"),
+  entry("NSCACSCS", "cscs-shuttle-test-trait-on-file"),
+  entry("NSCACSCS", "cscs-winter-return-gut-check-squats"),
+  entry("NREMTEMR", "emr-line-down-on-the-car"),
   // ---- end REQ-338 ----
 ];
 
