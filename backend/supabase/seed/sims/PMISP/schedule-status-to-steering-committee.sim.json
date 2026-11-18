@@ -1,0 +1,1163 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "schedule-status-to-steering-committee",
+  "title": "Reporting a slipping schedule: status for the steering committee, corrective action and its impact, and a scope question",
+  "screen": {
+    "type": "project-dashboard",
+    "level": 1,
+    "dashboard": {
+      "mode": "predictive",
+      "heading": "Library system replacement, schedule status, week {p}",
+      "commitments": [
+        {
+          "id": "obj",
+          "label": "Objective",
+          "text": "Go live in all 12 branches by 1 September."
+        }
+      ],
+      "columns": [
+        {
+          "id": "open",
+          "label": "Open"
+        },
+        {
+          "id": "risk",
+          "label": "Off plan"
+        },
+        {
+          "id": "done",
+          "label": "Decided on plan"
+        }
+      ],
+      "items": [
+        {
+          "id": "wRep",
+          "label": "Steering status",
+          "column": "rep == \"honest\" ? \"done\" : rep == \"amber\" ? \"risk\" : rep == \"green\" ? \"risk\" : \"open\"",
+          "when": "true",
+          "flag": "rep == \"green\""
+        },
+        {
+          "id": "wCa",
+          "label": "Recovery options",
+          "column": "ca == \"impacts\" ? \"done\" : ca == \"crew\" ? \"risk\" : ca == \"compress\" ? \"risk\" : \"open\"",
+          "when": "true",
+          "flag": "ca == \"compress\""
+        },
+        {
+          "id": "wScope",
+          "label": "Phased go-live",
+          "column": "scope == \"tell\" ? \"done\" : scope == \"baselineOnly\" ? \"risk\" : scope == \"quiet\" ? \"risk\" : \"open\"",
+          "when": "true",
+          "flag": "scope == \"quiet\""
+        }
+      ],
+      "issues": [
+        {
+          "id": "iRep",
+          "label": "Committee unaware of the slip",
+          "when": "p >= 1",
+          "at": "604800",
+          "status": "{rep == \"honest\" ? \"Variance, cause, forecast and options reported\" : rep == \"amber\" ? \"Amber without figures\" : rep == \"green\" ? \"Green while three weeks late\" : \"Due\"}",
+          "open": "rep == \"none\""
+        },
+        {
+          "id": "iCa",
+          "label": "Recovery without a decision",
+          "when": "p >= 2",
+          "at": "1209600",
+          "status": "{ca == \"impacts\" ? \"Options with impacts; committee decides\" : ca == \"crew\" ? \"Crew booked without approval\" : ca == \"compress\" ? \"Testing cut to make the date\" : \"Due\"}",
+          "open": "ca == \"none\""
+        },
+        {
+          "id": "iScope",
+          "label": "Stakeholders unaware of new dates",
+          "when": "p >= 3",
+          "at": "1814400",
+          "status": "{scope == \"tell\" ? \"Baseline updated; affected stakeholders told\" : scope == \"baselineOnly\" ? \"Baseline updated, nobody told\" : scope == \"quiet\" ? \"Dates edited without control\" : \"Due\"}",
+          "open": "scope == \"none\""
+        }
+      ],
+      "people": [
+        {
+          "id": "sSpon",
+          "label": "Sponsor",
+          "spokenLabel": "the sponsor's support",
+          "value": "spon",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sTeam",
+          "label": "Project team",
+          "spokenLabel": "the team's support",
+          "value": "team",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sCust",
+          "label": "Customer",
+          "spokenLabel": "the customer's support",
+          "value": "cust",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "events": [
+        {
+          "id": "mRep",
+          "label": "Steering committee",
+          "at": "604800",
+          "status": "{rep == \"honest\" ? \"Variance, cause, forecast and options reported\" : rep == \"amber\" ? \"Amber without figures\" : rep == \"green\" ? \"Green while three weeks late\" : \"Due\"}"
+        },
+        {
+          "id": "mCa",
+          "label": "Recovery decision",
+          "at": "1209600",
+          "status": "{ca == \"impacts\" ? \"Options with impacts; committee decides\" : ca == \"crew\" ? \"Crew booked without approval\" : ca == \"compress\" ? \"Testing cut to make the date\" : \"Due\"}"
+        },
+        {
+          "id": "mScope",
+          "label": "Branch go-lives",
+          "at": "1814400",
+          "status": "{scope == \"tell\" ? \"Baseline updated; affected stakeholders told\" : scope == \"baselineOnly\" ? \"Baseline updated, nobody told\" : scope == \"quiet\" ? \"Dates edited without control\" : \"Due\"}"
+        }
+      ],
+      "meters": [
+        {
+          "id": "mSpi",
+          "label": "SPI",
+          "value": "{spi}"
+        },
+        {
+          "id": "mCpi",
+          "label": "CPI",
+          "value": "{cpi}"
+        }
+      ]
+    }
+  },
+  "objective": "Providing verbal/written schedule status updates and corrective-action impacts to senior management and stakeholders",
+  "secondaryObjectives": [
+    "Communicating schedule issues that could impact scope or the schedule management plan to relevant stakeholders",
+    "Generating and maintaining schedule visibility with the project manager and stakeholders"
+  ],
+  "sources": [
+    {
+      "cite": "PMI, PMI Scheduling Professional (PMI-SP) Examination Content Outline (2012, revision mark 4/20): Schedule Strategy 14%, Planning and Development 31%, Monitoring and Controlling 35%, Closeout 6%, Stakeholder Communications 14%",
+      "checkedAt": "2026-11-17",
+      "url": "https://mail.mosaicprojects.com.au/PDF-Gen/PMI-SP_exam_outline.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch of a copy of PMI's PDF hosted by a consultancy. Relevant text: Monitoring and Controlling Task 3 'Perform schedule analysis and audit ... in order to identify and report project schedule, status, changes, impacts or issues'; Task 5 'Incorporate approved risk mitigation activities into the schedule, by utilizing defined change control processes'; Task 6 'Update the schedule model and document schedule baseline changes, received through formal change-control processes'. The objective wording here is the course seed's. Reused for REQ-336 from this course's clinic-fitout-variance-pmisp (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the project, the figures and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the scheduler for a county library system's catalog replacement, a fictional project. Data migration is three weeks behind; the steering committee meets monthly and the project manager asks you to prepare the schedule status.",
+    "handover": [
+      "SPI 0.88 on migration; the go-live depends on it.",
+      "The vendor offers a weekend migration crew for 18,000 dollars."
+    ],
+    "howItWorks": [
+      "The dashboard shows the commitments, the work items, the risks and issues, the people's support and the milestones.",
+      "Move on a week at a time. A decision comes to you at each status meeting; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-03-08T09:00",
+    "tick": "1d",
+    "maxDuration": "84d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "spon": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "team": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "cust": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "rep": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "amber",
+        "green"
+      ],
+      "init": "none"
+    },
+    "repAt": {
+      "type": "time",
+      "init": null
+    },
+    "ca": {
+      "type": "enum",
+      "values": [
+        "none",
+        "impacts",
+        "crew",
+        "compress"
+      ],
+      "init": "none"
+    },
+    "caAt": {
+      "type": "time",
+      "init": null
+    },
+    "scope": {
+      "type": "enum",
+      "values": [
+        "none",
+        "tell",
+        "baselineOnly",
+        "quiet"
+      ],
+      "init": "none"
+    },
+    "scopeAt": {
+      "type": "time",
+      "init": null
+    },
+    "varAt": {
+      "type": "time",
+      "init": null
+    },
+    "optsAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(spon, team), cust)"
+    },
+    "missCount": {
+      "expr": "((rep == \"green\") ? 1 : 0) + ((ca == \"compress\") ? 1 : 0) + ((scope == \"quiet\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(rep == \"none\" or (rep == \"green\") ? 1 : 0) + (ca == \"none\" or (ca == \"compress\") ? 1 : 0) + (scope == \"none\" or (scope == \"quiet\") ? 1 : 0)"
+    },
+    "spi": {
+      "expr": "1 - ((rep == \"amber\") ? 0.04 : (rep == \"green\") ? 0.09 : 0) - ((ca == \"crew\") ? 0.04 : (ca == \"compress\") ? 0.09 : 0) - ((scope == \"baselineOnly\") ? 0.04 : (scope == \"quiet\") ? 0.09 : 0)"
+    },
+    "cpi": {
+      "expr": "1 - ((rep == \"amber\") ? 0.03 : (rep == \"green\") ? 0.08 : 0) - ((ca == \"crew\") ? 0.03 : (ca == \"compress\") ? 0.08 : 0) - ((scope == \"baselineOnly\") ? 0.03 : (scope == \"quiet\") ? 0.08 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Schedule reporting",
+      "clock": "turns",
+      "actions": [
+        "var",
+        "opts"
+      ]
+    },
+    "close": {
+      "label": "Status record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "var": {
+      "label": "Analyze the migration variance",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(varAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "varAt",
+          "to": "t"
+        },
+        {
+          "log": "You analyze the variance.",
+          "kind": "act"
+        },
+        {
+          "finding": "Migration is three weeks behind because branch records needed manual cleanup; SPI 0.88; go-live forecast 22 September."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "opts": {
+      "label": "Model the recovery options",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(optsAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "optsAt",
+          "to": "t"
+        },
+        {
+          "log": "You model the options.",
+          "kind": "act"
+        },
+        {
+          "finding": "Weekend crew: go-live 4 September, 18,000 dollars. Phased go-live (8 branches 1 September, 4 in October): on time for most, no cost."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the status record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "SPI 0.88 and the forecast reported, options with impacts and the committee's decision, and the baseline change communicated"
+                },
+                {
+                  "value": "summary",
+                  "label": "Status reported"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next status meeting",
+      "wait": {
+        "skipLabel": "Go to the next status meeting"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "rep == \"green\"",
+              "then": [
+                {
+                  "log": "Week 2: the committee approves a September marketing campaign for the go-live date the schedule can't meet.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "ca == \"compress\"",
+              "then": [
+                {
+                  "log": "Week 3: branches go live with migration errors; 4,000 patron holds are lost.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "scope == \"quiet\"",
+              "then": [
+                {
+                  "log": "Week 4: four branches close for training on 1 September for a system that isn't coming until October.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "7d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The status cycle closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "7d"
+        }
+      ]
+    },
+    {
+      "id": "t_rep",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 1: the steering committee.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "repPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_ca",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 2: the committee asks for a recommendation.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "caPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_scope",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 3: a phased go-live changes scope per date.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "scopePrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "repPrompt": {
+      "title": "What to report",
+      "context": "SPI 0.88; forecast 22 September.",
+      "choices": [
+        {
+          "id": "honest",
+          "label": "Report SPI 0.88, the cause, the 22 September forecast and the recovery options with their impacts",
+          "effects": [
+            {
+              "set": "rep",
+              "to": "\"honest\""
+            },
+            {
+              "set": "repAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "10"
+            },
+            {
+              "log": "The committee sees the real status and options.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Senior management needs the variance, its cause and the forecast to decide."
+        },
+        {
+          "id": "amber",
+          "label": "Report amber with 'recovery in progress'",
+          "effects": [
+            {
+              "set": "rep",
+              "to": "\"amber\""
+            },
+            {
+              "set": "repAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-15"
+            },
+            {
+              "log": "Amber, no figures.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The committee can't decide without numbers."
+        },
+        {
+          "id": "green",
+          "label": "Report green: the team will catch up",
+          "effects": [
+            {
+              "set": "rep",
+              "to": "\"green\""
+            },
+            {
+              "set": "repAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-25"
+            },
+            {
+              "log": "Green is reported.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Reporting green hides a decision the committee needs to make."
+        }
+      ]
+    },
+    "caPrompt": {
+      "title": "Which recovery?",
+      "context": "Two options with different impacts.",
+      "choices": [
+        {
+          "id": "impacts",
+          "label": "Present both options with schedule, cost and scope impacts and recommend the phased go-live, leaving the decision to the committee",
+          "effects": [
+            {
+              "set": "ca",
+              "to": "\"impacts\""
+            },
+            {
+              "set": "caAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "10"
+            },
+            {
+              "log": "The committee chooses the phased go-live.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Corrective actions are presented with their impacts so the right level decides."
+        },
+        {
+          "id": "crew",
+          "label": "Book the weekend crew yourself",
+          "effects": [
+            {
+              "set": "ca",
+              "to": "\"crew\""
+            },
+            {
+              "set": "caAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "-15"
+            },
+            {
+              "log": "The crew is booked.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "It may help, but spending isn't the scheduler's call."
+        },
+        {
+          "id": "compress",
+          "label": "Cut migration testing to make the date",
+          "effects": [
+            {
+              "set": "ca",
+              "to": "\"compress\""
+            },
+            {
+              "set": "caAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "-25"
+            },
+            {
+              "log": "Testing is cut.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Cutting quality to hold the date moves the problem into go-live."
+        }
+      ]
+    },
+    "scopePrompt": {
+      "title": "Who needs to know?",
+      "context": "The phased go-live means four branches go live in October.",
+      "choices": [
+        {
+          "id": "tell",
+          "label": "Update the schedule baseline through change control, and tell the four branch managers and the communications team with their new dates",
+          "effects": [
+            {
+              "set": "scope",
+              "to": "\"tell\""
+            },
+            {
+              "set": "scopeAt",
+              "to": "t"
+            },
+            {
+              "add": "cust",
+              "by": "10"
+            },
+            {
+              "log": "Stakeholders get the new dates.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A change that affects scope dates goes through change control and to everyone it affects."
+        },
+        {
+          "id": "baselineOnly",
+          "label": "Update the baseline only",
+          "effects": [
+            {
+              "set": "scope",
+              "to": "\"baselineOnly\""
+            },
+            {
+              "set": "scopeAt",
+              "to": "t"
+            },
+            {
+              "add": "cust",
+              "by": "-15"
+            },
+            {
+              "log": "The baseline changes.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The branches plan staff training for the old date."
+        },
+        {
+          "id": "quiet",
+          "label": "Change dates in the tool without change control",
+          "effects": [
+            {
+              "set": "scope",
+              "to": "\"quiet\""
+            },
+            {
+              "set": "scopeAt",
+              "to": "t"
+            },
+            {
+              "add": "cust",
+              "by": "-25"
+            },
+            {
+              "log": "Dates are edited directly.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Uncontrolled edits leave stakeholders and the record out of step."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the status record: what you reported, how the recovery was decided and who was told.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Status",
+          "criteria": "SPI 0.88, cause, 22 September forecast.",
+          "modelAnswer": "Migration ran at SPI 0.88 because records needed cleanup; the forecast was 22 September."
+        },
+        {
+          "label": "Decision and communication",
+          "criteria": "Options with impacts; phased go-live chosen; baseline changed through control; branches told.",
+          "modelAnswer": "The committee chose the phased go-live from the options' impacts; the baseline changed through change control and the four branches were told."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "project",
+    "thresholds": {
+      "spiTarget": {
+        "value": 0.95,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "SPI at the close."
+        }
+      },
+      "cpiTarget": {
+        "value": 0.95,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "CPI at the close."
+        }
+      },
+      "stakeholderTarget": {
+        "value": 60,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Every stakeholder at 60 of 100 or more."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (rep == \"amber\") and (ca == \"crew\") and (scope == \"baselineOnly\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "PMI, PMI Scheduling Professional (PMI-SP) Examination Content Outline (2012, revision mark 4/20): Schedule Strategy 14%, Planning and Development 31%, Monitoring and Controlling 35%, Closeout 6%, Stakeholder Communications 14%",
+        "checkedAt": "2026-11-17",
+        "url": "https://mail.mosaicprojects.com.au/PDF-Gen/PMI-SP_exam_outline.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch of a copy of PMI's PDF hosted by a consultancy. Relevant text: Monitoring and Controlling Task 3 'Perform schedule analysis and audit ... in order to identify and report project schedule, status, changes, impacts or issues'; Task 5 'Incorporate approved risk mitigation activities into the schedule, by utilizing defined change control processes'; Task 6 'Update the schedule model and document schedule baseline changes, received through formal change-control processes'. The objective wording here is the course seed's. Reused for REQ-336 from this course's clinic-fitout-variance-pmisp (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "repHarm": {
+      "label": "Decisions on false status",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and rep == \"green\"",
+      "narrative": "Reported green, the committee launched a campaign for a date the project couldn't meet."
+    },
+    "caHarm": {
+      "label": "Errors at go-live",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and ca == \"compress\"",
+      "narrative": "Cutting migration testing caused errors at go-live; 4,000 patron holds were lost."
+    },
+    "scopeHarm": {
+      "label": "Branches closed for nothing",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and scope == \"quiet\"",
+      "narrative": "Four branches closed for training on a date the system no longer met."
+    },
+    "target": {
+      "label": "Visible schedule, informed decisions",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (rep == \"honest\") and (ca == \"impacts\") and (scope == \"tell\") and record == \"honest\" and spi >= spiTarget and cpi >= cpiTarget and minSupport >= stakeholderTarget",
+      "narrative": "The committee decided on real status and every branch knew its date."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "repHarm",
+    "caHarm",
+    "scopeHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "repCrit",
+        "label": "Reported the variance, cause and forecast honestly",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "rep == \"honest\"",
+            "score": "met",
+            "why": "Honest status."
+          },
+          {
+            "when": "rep == \"amber\"",
+            "score": "partial",
+            "why": "Vague."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Misreported."
+          }
+        ]
+      },
+      {
+        "id": "caCrit",
+        "label": "Gave each corrective action's schedule, cost and scope impact for the decision",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "ca == \"impacts\"",
+            "score": "met",
+            "why": "Decision supported."
+          },
+          {
+            "when": "ca == \"crew\"",
+            "score": "partial",
+            "why": "Outside authority, partial."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Hidden quality cost."
+          }
+        ]
+      },
+      {
+        "id": "scopeCrit",
+        "label": "Communicated the scope and plan change to the stakeholders it affects",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "scope == \"tell\"",
+            "score": "met",
+            "why": "Communicated."
+          },
+          {
+            "when": "scope == \"baselineOnly\"",
+            "score": "partial",
+            "why": "Not communicated."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Uncontrolled."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(varAt) and not isNull(optsAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(varAt) or not isNull(optsAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 100)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "70 or more"
+      },
+      {
+        "id": "spiK",
+        "label": "SPI at the close",
+        "value": "spi",
+        "format": "number",
+        "expert": "1.00"
+      },
+      {
+        "id": "cpiK",
+        "label": "CPI at the close",
+        "value": "cpi",
+        "format": "number",
+        "expert": "1.00"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Analyze the variance and the options' impacts first."
+      },
+      {
+        "at": "Week 1",
+        "text": "Report SPI, cause, forecast and options with impacts."
+      },
+      {
+        "at": "Week 2",
+        "text": "Present both options' impacts and recommend, leaving the decision to the committee."
+      },
+      {
+        "at": "Week 3",
+        "text": "Update the baseline through change control and tell the affected stakeholders."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "repHarm": {
+        "headline": "Report what the schedule says",
+        "body": "Variance, cause and forecast, honestly."
+      },
+      "caHarm": {
+        "headline": "Show the impacts",
+        "body": "Corrective actions come with their impacts and go to the decision maker."
+      },
+      "scopeHarm": {
+        "headline": "Control and communicate changes",
+        "body": "Baseline changes go through control and to the people affected."
+      },
+      "target": {
+        "headline": "Good: visible schedule, informed decisions",
+        "body": "Honest status, corrective actions with impacts, and controlled, communicated changes."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Schedule status for senior management gives the variance (SPI), its cause and the forecast, and corrective actions are presented with their schedule, cost and scope impacts so the right level decides. Changes to the baseline go through change control and are communicated to the stakeholders they affect."
+  }
+}
