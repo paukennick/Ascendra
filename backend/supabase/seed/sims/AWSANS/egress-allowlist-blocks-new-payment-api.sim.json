@@ -1,0 +1,876 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "egress-allowlist-blocks-new-payment-api",
+  "title": "Cutover: the new payment provider's API is blocked at the egress firewall",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "neteng@bastion:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "21:10 checkout: payment API calls to api.paynorth.example time out since 21:00; old provider ends 23:00",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "23:00: no payments possible",
+          "when": "not isNull(missAt)",
+          "at": "timeAt(missAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "23:00: payments via new provider",
+          "when": "not isNull(okAt)",
+          "at": "timeAt(okAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "app",
+          "label": "Checkout services (workload VPC)",
+          "spokenLabel": "the checkout services",
+          "kind": "call the payment API",
+          "status": "{fixed and not harmed ? \"payments succeed\" : \"timing out\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "nfw",
+          "label": "Network Firewall (inspection VPC)",
+          "spokenLabel": "the egress firewall",
+          "kind": "allow list egress-allow",
+          "status": "{harmed ? \"pass-all rule added\" : fixed ? \"allows api.paynorth.example\" : \"drops api.paynorth.example\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "pay",
+          "label": "api.paynorth.example",
+          "spokenLabel": "the payment provider's API",
+          "kind": "TLS 443",
+          "status": "{fixed and not harmed ? \"reached\" : \"never reached\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "app",
+          "to": "nfw",
+          "label": "egress",
+          "status": "{fixed and not harmed ? \"allowed\" : \"dropped\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Securing outbound traffic flows from AWS: Network Firewall, proxies, Gateway Load Balancers",
+  "secondaryObjectives": [
+    "Network monitoring and logging services: CloudWatch, AWS CloudTrail, VPC Traffic Mirroring, VPC flow logs, Transit Gateway Network Manager",
+    "Auditing network security configuration with AWS Firewall Manager, security groups, and AWS Trusted Advisor"
+  ],
+  "sources": [
+    {
+      "cite": "AWS Certified Advanced Networking - Specialty (ANS-C01) exam guide: Network Design 30%, Network Implementation 26%, Network Management and Operation 20%, Network Security, Compliance, and Governance 24%",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.aws.amazon.com/aws-certification/latest/userguide/advanced-networking-specialty-01-domain1.html",
+      "note": "Domain 1 page read through a summarizing fetch on 2026-11-17: 'This domain accounts for 30% of the exam content'; Task 1.3 skill 'Integrating load balancers with existing application deployments'; knowledge of 'Configuration options for load balancer target groups'. The other domains' weights and wording are the course seed's (backend/supabase/seed/tracks/aws.ts); their pages were not re-read. (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "AWS documentation (AWS Network Firewall), Stateful domain list rule groups",
+      "checkedAt": "2026-11-18",
+      "url": "https://docs.aws.amazon.com/network-firewall/latest/developerguide/stateful-rule-groups-domain-names.md",
+      "note": "Read through a summarizing fetch on 2026-11-18. For Allow, 'the firewall denies traffic of the specified protocol type that does not match the domain specifications' (default action order); '.example.com matches example.com and matches all subdomains'; HTTPS is matched on the TLS SNI and HTTP on the Host header, not IP addresses; for traffic from other VPCs through a transit gateway, HOME_NET must include their CIDR ranges."
+    }
+  ],
+  "brief": {
+    "situation": "You are the network engineer at Halsey Retail. All outbound traffic from the workload VPCs passes through AWS Network Firewall in a central inspection VPC, with a domain allow list: anything not listed is dropped. Tonight checkout switches to a new payment provider whose API is api.paynorth.example. Since the 21:00 switch every payment call times out. The old provider's contract ends at 23:00, when its API stops accepting requests.",
+    "handover": [
+      "The firewall policy uses default action order; the allow list rule group is egress-allow (TLS_SNI and HTTP_HOST).",
+      "The change request for the new provider listed only the provider's website, www.paynorth.example."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the checkout services, the inspection VPC's firewall and its domain allow list, and the payment provider.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "21:10",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineAt": {
+      "value": 6600,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "The old provider's API stops at 23:00, 110 minutes after the page; after that, no checkout can take payment."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "harmed": {
+      "type": "bool",
+      "init": false
+    },
+    "tried": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "alertsAt": {
+      "type": "time",
+      "init": null
+    },
+    "listAt": {
+      "type": "time",
+      "init": null
+    },
+    "homenetAt": {
+      "type": "time",
+      "init": null
+    },
+    "docsAt": {
+      "type": "time",
+      "init": null
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "missAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "sni",
+        "sg",
+        "provider"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "alerts",
+        "list",
+        "homenet",
+        "docs",
+        "allow",
+        "guard",
+        "passall",
+        "ip",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "alerts": {
+      "label": "Firewall alert log for the payment calls (last 15 minutes)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(alertsAt)",
+          "then": [
+            {
+              "set": "alertsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@bastion:~$ aws logs filter-log-events --log-group-name /nfw/egress/alert --filter-pattern paynorth --start-time $(date -d '-15 min' +%s)000 --query 'events[].message' --output text | head -3\n{fixed and not harmed ? \"(no drops for paynorth since 21:3x)\" : \"event_type: alert, tls.sni: api.paynorth.example, action: blocked\n(repeated 4,210 times)\"}"
+        },
+        {
+          "finding": "The firewall drops TLS to api.paynorth.example: its SNI is not on the allow list."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "list": {
+      "label": "The allow list's targets",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(listAt)",
+          "then": [
+            {
+              "set": "listAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@bastion:~$ aws network-firewall describe-rule-group --rule-group-name egress-allow --type STATEFUL --query 'RuleGroup.RulesSource.RulesSourceList.[Targets,TargetTypes,GeneratedRulesType]'\n{fixed and not harmed ? \"[.oldpay.example, www.paynorth.example, api.paynorth.example, ...], [TLS_SNI, HTTP_HOST], ALLOWLIST\" : \"[.oldpay.example, www.paynorth.example, ...], [TLS_SNI, HTTP_HOST], ALLOWLIST\"}"
+        },
+        {
+          "finding": "Only the website was added; an explicit name matches only itself."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "homenet": {
+      "label": "The rule group's HOME_NET",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(homenetAt)",
+          "then": [
+            {
+              "set": "homenetAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@bastion:~$ aws network-firewall describe-rule-group --rule-group-name egress-allow --type STATEFUL --query 'RuleGroup.RuleVariables.IPSets.HOME_NET.Definition'\n[10.0.0.0/8]"
+        },
+        {
+          "finding": "HOME_NET already covers the workload VPCs behind the transit gateway."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "docs": {
+      "label": "The provider's integration guide: hostnames to allow",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(docsAt)",
+          "then": [
+            {
+              "set": "docsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@bastion:~$ (PayNorth integration guide, section 'Network')\nAllow outbound TLS 443 to api.paynorth.example and hooks.paynorth.example; do not pin IP addresses."
+        },
+        {
+          "finding": "Two API hostnames are needed, and the provider asks for name-based rules."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "allow": {
+      "label": "Add api.paynorth.example and hooks.paynorth.example as explicit names to egress-allow",
+      "group": "Fix",
+      "available": "not busy and (not fixed and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "fixed",
+          "to": "true"
+        },
+        {
+          "output": "neteng@bastion:~$ aws network-firewall update-rule-group --rule-group-name egress-allow --type STATEFUL --update-token $TOKEN --rules-source 'RulesSourceList=Targets=.oldpay.example,www.paynorth.example,api.paynorth.example,hooks.paynorth.example,...,TargetTypes=TLS_SNI,HTTP_HOST,GeneratedRulesType=ALLOWLIST'\n(rule group updated; policy sync about a minute)"
+        },
+        {
+          "log": "TLS connections whose SNI is one of the provider's two API names now pass; everything else not listed is still dropped.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "guard": {
+      "label": "Make vendor hostnames a required field of payment-provider change requests, and alarm on dropped SNI for payment domains",
+      "group": "Fix",
+      "available": "not busy and (not planned and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "neteng@bastion:~$ (change template: 'outbound hostnames per vendor guide' required, reviewed by network)\nneteng@bastion:~$ aws logs put-metric-filter --log-group-name /nfw/egress/alert --filter-name paynorth-drops --filter-pattern 'blocked paynorth' ... ; aws cloudwatch put-metric-alarm ... threshold 1"
+        },
+        {
+          "log": "The next vendor change lists the right names, and any drop toward a payment domain alarms at once.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "passall": {
+      "label": "Add a pass rule for all TCP 443 egress until after the cutover",
+      "group": "Fix",
+      "available": "not busy and (not harmed)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "harmed",
+          "to": "true"
+        },
+        {
+          "output": "neteng@bastion:~$ aws network-firewall create-rule-group --rule-group-name temp-pass-443 ... 'pass tcp $HOME_NET any -> any 443' and attach at higher priority\n(attached)"
+        },
+        {
+          "log": "Payments work, and every workload can now reach any host on 443, including the exfiltration paths the allow list exists to stop.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ip": {
+      "label": "Add the IP addresses api.paynorth.example resolves to into the workload security groups",
+      "group": "Fix",
+      "available": "not busy and (not harmed and not tried)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tried",
+          "to": "true"
+        },
+        {
+          "output": "neteng@bastion:~$ aws ec2 authorize-security-group-egress --group-id sg-checkout --ip-permissions ... 198.51.100.40/32 443\n(added)"
+        },
+        {
+          "log": "The security group already allowed 443 out; the firewall drops by SNI, not by security group: still blocked.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Run a test payment and re-read the alert log",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@bastion:~$ curl -s -o /dev/null -w code https://api.paynorth.example/v2/ping; test payment from checkout-canary\n{harmed ? \"200\nauthorized (temp-pass-443 matched)\" : fixed ? \"200\nauthorized, 640 ms\" : \"timed out\nfailed: gateway timeout\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "sni",
+                  "label": "The allow list named only www.paynorth.example, so TLS to api.paynorth.example was dropped by SNI"
+                },
+                {
+                  "value": "sg",
+                  "label": "The checkout security group blocked port 443"
+                },
+                {
+                  "value": "provider",
+                  "label": "The provider's API was down"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-335)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "23:00: the old provider stops; checkout pays through PayNorth.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "missAt",
+              "to": "t"
+            },
+            {
+              "log": "23:00: the old provider stops and checkout cannot take payments.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why payment calls failed, what you changed, and how vendor changes avoid it.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Reads the drops.",
+          "modelAnswer": "The egress firewall's domain allow list drops TLS whose SNI it does not name; the change added www.paynorth.example, which matches only itself, so api.paynorth.example was dropped."
+        },
+        {
+          "label": "Changed",
+          "criteria": "Two names.",
+          "modelAnswer": "Added api.paynorth.example and hooks.paynorth.example as explicit names; test payments passed. A pass-all rule opens every workload's egress; security group changes cannot affect an SNI drop."
+        },
+        {
+          "label": "Vendor changes",
+          "criteria": "Template and alarm.",
+          "modelAnswer": "Change requests must list the vendor's hostnames, and drops toward payment domains alarm."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The old provider's API stops at 23:00, 110 minutes after the page; after that, no checkout can take payment."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: A pass-all rule for 443 opened every workload's egress."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed and not harmed",
+      "class": "harm",
+      "rationale": "Closing with the API name missing leaves checkout unable to pay after 23:00.",
+      "source": {
+        "cite": "AWS documentation (AWS Network Firewall), Stateful domain list rule groups",
+        "checkedAt": "2026-11-18",
+        "url": "https://docs.aws.amazon.com/network-firewall/latest/developerguide/stateful-rule-groups-domain-names.md",
+        "note": "Read through a summarizing fetch on 2026-11-18. For Allow, 'the firewall denies traffic of the specified protocol type that does not match the domain specifications' (default action order); '.example.com matches example.com and matches all subdomains'; HTTPS is matched on the TLS SNI and HTTP on the Host header, not IP addresses; for traffic from other VPCs through a transit gateway, HOME_NET must include their CIDR ranges."
+      }
+    }
+  },
+  "endings": {
+    "egressOpen": {
+      "label": "Egress opened to everything on 443",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and harmed",
+      "narrative": "Checkout pays, and every workload can now reach any host on port 443."
+    },
+    "noPayments": {
+      "label": "No way to take payments",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(missAt)",
+      "narrative": "At 23:00 the old provider stopped and the new one was still blocked."
+    },
+    "allowed": {
+      "label": "Provider allowed by name, guarded",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(alertsAt) and not isNull(listAt) and not isNull(verifiedAt) and causeDoc == \"sni\"",
+      "narrative": "The two API names are allowed, test payments pass, and change requests and alarms cover the next vendor."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Payments work, but the change template, the alarm, the check or the record was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "egressOpen",
+    "noPayments",
+    "allowed",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Read the drops and the allow list",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(alertsAt) and not isNull(listAt)",
+            "score": "met",
+            "why": "The key evidence, read before changing anything."
+          },
+          {
+            "when": "not isNull(alertsAt) or not isNull(listAt) or not isNull(homenetAt) or not isNull(docsAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Payments through the new provider by 23:00, allow list intact",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and not harmed and isNull(missAt)",
+            "score": "met",
+            "why": "The right change, in time, without harm."
+          },
+          {
+            "when": "fixed or harmed",
+            "score": "partial",
+            "why": "{harmed ? \"A pass-all rule for 443 opened every workload's egress.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never removed."
+          }
+        ]
+      },
+      {
+        "id": "lasting",
+        "label": "Change template and drop alarm; payment checked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The lasting step taken and the result checked."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"sni\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record names the wrong cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes that caused harm",
+        "value": "harmed ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "21:10-21:14",
+        "text": "Drops on SNI api.paynorth.example; only www on the list; HOME_NET fine; vendor needs api and hooks."
+      },
+      {
+        "at": "21:14-21:22",
+        "text": "Add the two names; change template and alarm."
+      },
+      {
+        "at": "21:22-21:24",
+        "text": "API 200; test payment authorized."
+      }
+    ],
+    "debrief": {
+      "egressOpen": {
+        "headline": "Add the names, keep the allow list",
+        "body": "A domain allow list drops what it does not name. Add the provider's API hostnames; a pass-all rule removes the control for every workload."
+      },
+      "noPayments": {
+        "headline": "Explicit names match only themselves",
+        "body": "www.paynorth.example does not cover api.paynorth.example. The SNI the client sends must be on the list."
+      },
+      "allowed": {
+        "headline": "Good: a narrow egress change",
+        "body": "You read the drops by SNI and the allow list, checked HOME_NET and the vendor's hostnames, added exactly those names, verified a payment, and fixed the change template with an alarm."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the evidence before the change, the lasting step, the check, or the cause in the record."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Timeouts to one new provider behind a domain allow list point at the list. The alert log shows drops on SNI api.paynorth.example, and the list names only www.paynorth.example, which matches only itself. Add the provider's two API hostnames as explicit names and verify a payment. A pass-all 443 rule removes the control for everyone; security groups cannot override a firewall SNI drop. Then require vendor hostnames in change requests and alarm on drops."
+  }
+}
