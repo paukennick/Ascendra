@@ -138,17 +138,17 @@ describe("Export my data downloads a JSON file on the web (FAIL-905)", () => {
 describe("the legal version the app shows (FAIL-901)", () => {
   test("the app sends the legal version on every request, and it is the text it carries", () => {
     assert.equal(LEGAL_VERSION_HEADER, "X-Ascendra-Legal");
-    // REQ-327: both the Terms and the Privacy Policy are 2026-11-18.
-    assert.equal(TERMS_VERSION, "2026-11-18");
+    // REQ-331: the Privacy Policy is 2026-11-19 (reviewers), the newer of the two.
+    assert.equal(TERMS_VERSION, "2026-11-19");
     assert.match(read("src", "api", "client.ts"), /\[LEGAL_VERSION_HEADER\]: TERMS_VERSION/);
     const backend = readFileSync(join(root, "..", "backend", "lib", "legal.ts"), "utf8");
     assert.match(backend, new RegExp(`LEGAL_VERSION_HEADER = "${LEGAL_VERSION_HEADER}"`));
   });
-  test("each document carries its own version and date: the Terms and the Privacy Policy are 2026-11-18 (REQ-327), Cookies 2026-11-16 (REQ-306)", () => {
+  test("each document carries its own version and date: the Terms 2026-11-18 (REQ-327), the Privacy Policy 2026-11-19 (REQ-331), Cookies 2026-11-16 (REQ-306)", () => {
     const content = read("src", "content", "legal.ts");
     const expected: Record<string, [string, string]> = {
       TERMS: ["2026-11-18", "November 18, 2026"],
-      PRIVACY: ["2026-11-18", "November 18, 2026"],
+      PRIVACY: ["2026-11-19", "November 19, 2026"],
       COOKIES: ["2026-11-16", "November 16, 2026"],
     };
     for (const [n, want] of Object.entries(expected)) {
@@ -267,7 +267,8 @@ describe("website analytics in the policy (REQ-261)", () => {
     // simulations); the analytics text above is unchanged.
     assert.equal(TERMS.version, "2026-11-18");
     // REQ-306 moved both again (2026-11-16); the analytics text above is unchanged.
-    assert.equal(PRIVACY.version, "2026-11-18");
+    // REQ-331 moved the Privacy Policy alone to 2026-11-19 (reviewers).
+    assert.equal(PRIVACY.version, "2026-11-19");
     assert.equal(COOKIES.version, "2026-11-16");
   });
 });
@@ -327,12 +328,40 @@ describe("18+ simulations in any course are disclosed (REQ-327)", () => {
     assert.match(privacy, /Nothing is asked until you open such a course or simulation/);
     assert.match(privacy, /To check you're old enough for content meant for adults \(mental health courses, and simulations on sensitive topics/);
     assert.match(privacy, /that content stays locked and the rest of Ascendra stays open; if it shows someone under \$\{OWNER\.minimumAge\}, we also review the account/);
-    assert.match(privacy, /age confirmations and date of birth, coach and support data: while your account is open/);
+    assert.match(privacy, /age confirmations and date of birth, coach, support and reviewer feedback data: while your account is open/);
     assert.doesNotMatch(privacy, /Age for mental health courses:|courses meant for adults \(mental health courses\)/);
     assert.doesNotMatch(terms, /Mental health courses are for adults only: before you start each one/);
   });
   test("the FAQ says the same", () => {
     assert.match(faq, /Why do some courses and simulations ask my age and date of birth\?/);
     assert.match(faq, /Simulations on sensitive topics in any course/);
+  });
+});
+
+// REQ-331 (Nick, 2026-11-17: reviewers): the Privacy Policy 2026-11-19 names
+// the reviewer mark and its areas (account_access, migration 088) and the
+// reviewer feedback (reviewer_feedback, 088), why it is kept and for how long.
+// It is not emailed and not sent to the AI model, so sections 4 and 5 say nothing of it.
+describe("reviewers are disclosed (REQ-331)", () => {
+  const src = read("src", "content", "legal.ts");
+  const privacy = src.slice(src.indexOf("export const PRIVACY: LegalDoc"), src.indexOf("export const COOKIES: LegalDoc"));
+  // The text of one numbered section of the Privacy Policy, up to the next title.
+  const section = (n: string) => {
+    const at = privacy.indexOf(`title: "${n}`);
+    assert.ok(at >= 0, n);
+    const next = privacy.indexOf("title: ", at + 10);
+    return privacy.slice(at, next < 0 ? undefined : next);
+  };
+  test("section 1 names the reviewer mark, its areas and the feedback", () => {
+    assert.match(section("1."), /unrestricted access or marks it as a reviewer/);
+    assert.match(section("1."), /for a reviewer, the subject areas they review/);
+    assert.match(section("1."), /Reviewer feedback: if you are a reviewer, the feedback you send with the reviewer form/);
+    assert.match(section("1."), /Only the operator sees it/);
+  });
+  test("section 3 says why and section 6 how long; sections 4 and 5 are unchanged", () => {
+    assert.match(section("3."), /improve courses from reviewer feedback/);
+    assert.match(section("6."), /coach, support and reviewer feedback data: while your account is open/);
+    assert.doesNotMatch(section("4."), /review(er)? feedback/i);
+    assert.doesNotMatch(section("5."), /review(er)? feedback/i);
   });
 });

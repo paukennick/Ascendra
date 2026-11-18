@@ -66,6 +66,16 @@
 // is unchanged. Both documents are one new version, 2026-11-18 (the Privacy
 // Policy was already 2026-11-17): everyone agrees once more. No lawyer has
 // reviewed this text.
+//
+// 2026-11-19 (REQ-331, Nick, 2026-11-17 17:52 PT: "label a user as a
+// reviewer"): the Privacy Policy alone. Section 1 widens the access-grant
+// bullet (a reviewer mark and the subject areas recorded with it, migration
+// 088 account_access.reviewer_at / reviewer_areas) and adds reviewer feedback
+// (reviewer_feedback, 088); section 3 adds improving courses from it and
+// section 6 keeps it while the account is open. It is not emailed and not
+// sent to the AI model, so sections 4 and 5 are unchanged. The Terms stay
+// 2026-11-18: everyone is asked to accept the Privacy Policy once more. No
+// lawyer has reviewed this text.
 
 import { TRADEMARK_OWNERS } from "../lib/vendor";
 
@@ -225,8 +235,8 @@ export const TERMS: LegalDoc = {
 // while paid plans are off.
 export const PRIVACY: LegalDoc = {
   title: "Privacy Policy",
-  version: "2026-11-18",
-  updated: "November 18, 2026",
+  version: "2026-11-19",
+  updated: "November 19, 2026",
   intro:
     "This policy explains what Ascendra stores about you, why, who else handles it, how long it is kept, and what you can do about it. It describes what the app actually stores and sends today.",
   sections: [
@@ -239,7 +249,8 @@ export const PRIVACY: LegalDoc = {
         "• Learning milestones: a short record of milestones — a lesson started or finished, a review or practice exam done, a placement check finished, the welcome steps completed, an exam result reported, and the steps of a lesson (a guess made or skipped, which explanation card you reached, guided practice skipped, key terms opened, a level changed, why you're taking a course answered or put aside and where you were asked, that question's card shown in a lesson, a suggestion to move a unit's level down and whether you said “Not now”, and whether a typed guess was close, partly right or off) — with the time, the course it belongs to, and for lesson steps your level, the card number or how many seconds it took. It holds no answer text. We use it, only ourselves, to see whether Ascendra is helping people learn (for example, how many new learners finish a first lesson).",
         "• AI coach: the messages you send the coach and its replies.",
         "• Support: tickets, course requests and problem reports about a lesson, question, lab or coach reply that you send (a coach-reply report includes the reply you reported), with your account email so we can reply, and our replies.",
-        "• Access grants: if the operator gives an email address unrestricted access, that address (even before an account uses it), who gave it, its dates and any note, and a record of grants, changes and when an account with it reached the AI safety limit.",
+        "• Reviewer feedback: if you are a reviewer, the feedback you send with the reviewer form — the name and role you enter, the courses or simulations it is about, what you tried, your ratings and comments, whether you'd recommend Ascendra and whether we may contact you about it — and when you sent or last changed it. Only the operator sees it.",
+        "• Access grants: if the operator gives an email address unrestricted access or marks it as a reviewer, that address (even before an account uses it), who gave it, its dates, any note and, for a reviewer, the subject areas they review, and a record of grants, changes and when an account with it reached the AI safety limit.",
         "• Agreements: which versions of these terms, this policy and the study notice you accepted, how (at sign-up or in the app) and when; and, for accounts made since 2026-11-10, that you confirmed you are 16 or older, and when.",
         "• Age for adults-only content (mental health courses, and simulations on sensitive topics such as suicide-risk assessment or behavioral emergencies in any course): when you first open or start any of it, your date of birth (asked once, the first time) and when you entered it; you can't change it in the app afterwards. Then, per course, that you confirmed you are 18 or older and that what you entered is true to the best of your knowledge, with the date, the version of the notice you saw, where you were asked, and whether it was for a whole mental health course or for that course's adults-only simulations. Nothing is asked until you open such a course or simulation. We use your date of birth only to check that you're old enough for this content.",
         "• Questions you report: when you use “Report a problem” on a question, the reason you chose and any note you write, with the question it is about.",
@@ -260,7 +271,7 @@ export const PRIVACY: LegalDoc = {
         "• To improve review timing: we compare predicted recall with how you actually did, to check the memory model before it is used to schedule reviews. While we check it, no one is shown these numbers and they change nothing in your study.",
         "• To check, in aggregate and only ourselves, that Ascendra is actually helping people learn.",
         "• To see, in aggregate, which pages of the website are used and how fast they load, so we can fix what is slow (section 4).",
-        "• To answer support requests and fix reported content.",
+        "• To answer support requests, fix reported content and improve courses from reviewer feedback.",
         "• To send account email: verification, password resets and security alerts. We don't send marketing email.",
       ],
     },
@@ -293,7 +304,7 @@ export const PRIVACY: LegalDoc = {
     {
       title: "6. How long we keep it",
       body: [
-        "• Account, study (including answers, milestones and exam results), age confirmations and date of birth, coach and support data: while your account is open.",
+        "• Account, study (including answers, milestones and exam results), age confirmations and date of birth, coach, support and reviewer feedback data: while your account is open.",
         "• Sign-in and security event log: 90 days.",
         "• Signed-in sessions: a session ends after 30 days without use in the app, or 14 days on the web.",
         "• Ended or expired sessions: 30 days after they end.",
