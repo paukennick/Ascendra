@@ -1,0 +1,846 @@
+{
+  "slug": "image-admission-unsigned-critical-cve",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Scan and admission read; blocked and rebuilt minimal; signed images from the approved registry; SBOMs attached; an honest record",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "scan",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "adm",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 5,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 10,
+          "seq": 5,
+          "tick": 5
+        },
+        {
+          "type": "choose",
+          "prompt": "cvePrompt",
+          "choice": "rebuild",
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 20,
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "choose",
+          "prompt": "admitPrompt",
+          "choice": "policy",
+          "seq": 8,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 30,
+          "seq": 9,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "sbomPrompt",
+          "choice": "attach",
+          "seq": 10,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 40,
+          "seq": 11,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 40
+        }
+      ],
+      "expect": {
+        "ending": "target",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "cveCrit": "met",
+          "admitCrit": "met",
+          "sbomCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0
+        },
+        "stateHash": "617c091dd92a6375"
+      },
+      "reasoning": {
+        "reflection": "met"
+      }
+    },
+    {
+      "id": "partialCve",
+      "title": "Partly right on the critical CVE, the rest on plan",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "scan",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 10,
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "choose",
+          "prompt": "cvePrompt",
+          "choice": "patchOnly",
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 20,
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "choose",
+          "prompt": "admitPrompt",
+          "choice": "policy",
+          "seq": 6,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 30,
+          "seq": 7,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "sbomPrompt",
+          "choice": "attach",
+          "seq": 8,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 40,
+          "seq": 9,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 10,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 11,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 12,
+          "tick": 40
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "cveCrit": "partial",
+          "admitCrit": "met",
+          "sbomCrit": "met",
+          "evidenceCrit": "partial",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0
+        },
+        "stateHash": "0d734449730bbda4"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "partialSbom",
+      "title": "Partly right on the SBOM, and a one-line record",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 10,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "cvePrompt",
+          "choice": "rebuild",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 2,
+          "to": 20,
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "choose",
+          "prompt": "admitPrompt",
+          "choice": "policy",
+          "seq": 4,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 30,
+          "seq": 5,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "sbomPrompt",
+          "choice": "adhoc",
+          "seq": 6,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 40,
+          "seq": 7,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 8,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "summary"
+          },
+          "seq": 9,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 10,
+          "tick": 40
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "cveCrit": "met",
+          "admitCrit": "met",
+          "sbomCrit": "partial",
+          "evidenceCrit": "missed",
+          "recordCrit": "missed"
+        },
+        "kpis": {
+          "missK": 0
+        },
+        "stateHash": "2cc605f4f79c92d2"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "allPartial",
+      "title": "Every decision only partly right",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 10,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "cvePrompt",
+          "choice": "patchOnly",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 2,
+          "to": 20,
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "choose",
+          "prompt": "admitPrompt",
+          "choice": "registryOnly",
+          "seq": 4,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 30,
+          "seq": 5,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "sbomPrompt",
+          "choice": "adhoc",
+          "seq": 6,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 40,
+          "seq": 7,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 8,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 9,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 10,
+          "tick": 40
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "cveCrit": "partial",
+          "admitCrit": "partial",
+          "sbomCrit": "partial",
+          "evidenceCrit": "missed",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0
+        },
+        "stateHash": "ebbdd177e573712a"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "badCve",
+      "title": "Shipped with a reachable, exploitable critical",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "scan",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "adm",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 5,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 10,
+          "seq": 5,
+          "tick": 5
+        },
+        {
+          "type": "choose",
+          "prompt": "cvePrompt",
+          "choice": "ship",
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 20,
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "choose",
+          "prompt": "admitPrompt",
+          "choice": "policy",
+          "seq": 8,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 30,
+          "seq": 9,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "sbomPrompt",
+          "choice": "attach",
+          "seq": 10,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 40,
+          "seq": 11,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 40
+        }
+      ],
+      "expect": {
+        "ending": "cveHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "cveCrit": "missed",
+          "admitCrit": "met",
+          "sbomCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1
+        },
+        "stateHash": "f602a18f758c0b2e"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    },
+    {
+      "id": "badAdmit",
+      "title": "Admission left open; a typo-squatted image runs",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "scan",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "adm",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 5,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 10,
+          "seq": 5,
+          "tick": 5
+        },
+        {
+          "type": "choose",
+          "prompt": "cvePrompt",
+          "choice": "rebuild",
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 20,
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "choose",
+          "prompt": "admitPrompt",
+          "choice": "open",
+          "seq": 8,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 30,
+          "seq": 9,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "sbomPrompt",
+          "choice": "attach",
+          "seq": 10,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 40,
+          "seq": 11,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 40
+        }
+      ],
+      "expect": {
+        "ending": "admitHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "cveCrit": "met",
+          "admitCrit": "missed",
+          "sbomCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1
+        },
+        "stateHash": "091dc3bad95f2817"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    },
+    {
+      "id": "badSbom",
+      "title": "No SBOMs; three days to find affected images",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "scan",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "adm",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 5,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 10,
+          "seq": 5,
+          "tick": 5
+        },
+        {
+          "type": "choose",
+          "prompt": "cvePrompt",
+          "choice": "rebuild",
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 20,
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "choose",
+          "prompt": "admitPrompt",
+          "choice": "policy",
+          "seq": 8,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 30,
+          "seq": 9,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "sbomPrompt",
+          "choice": "skip",
+          "seq": 10,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 40,
+          "seq": 11,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 40
+        }
+      ],
+      "expect": {
+        "ending": "sbomHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "cveCrit": "met",
+          "admitCrit": "met",
+          "sbomCrit": "missed",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1
+        },
+        "stateHash": "9e3aaf6c521fea5a"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    }
+  ]
+}
