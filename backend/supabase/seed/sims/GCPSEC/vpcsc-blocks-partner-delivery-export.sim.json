@@ -1,0 +1,876 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "vpcsc-blocks-partner-delivery-export",
+  "title": "Deadline: the perimeter blocks the nightly export to the partner's bucket",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "secops@cloudshell:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "21:10 job export-cro failed: 'Request is prohibited by organization's policy. vpcServiceControlsUniqueId: 7Hq...'; delivery due 22:00",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "22:00: delivery missed",
+          "when": "not isNull(missAt)",
+          "at": "timeAt(missAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "22:00: extract delivered",
+          "when": "not isNull(okAt)",
+          "at": "timeAt(okAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "per",
+          "label": "Perimeter trials-perimeter",
+          "spokenLabel": "the service perimeter",
+          "kind": "enforced since 14:00",
+          "status": "{harmed ? \"trials-data removed from the perimeter\" : fixed ? \"egress rule: sa-export to cro-share storage writes\" : \"no egress rules\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "job",
+          "label": "export-cro (sa-export)",
+          "spokenLabel": "the export job",
+          "kind": "writes de-identified extract",
+          "status": "{fixed and not harmed ? \"writing\" : \"denied leaving the perimeter\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "cro",
+          "label": "cro-share / cro-share-inbound",
+          "spokenLabel": "the partner's bucket",
+          "kind": "outside the perimeter",
+          "status": "{fixed and not harmed ? \"extract delivered\" : \"nothing delivered\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "job",
+          "to": "cro",
+          "label": "storage.objects.create",
+          "status": "{fixed and not harmed ? \"allowed by egress rule\" : \"egress violation\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Identifying use cases for, and configuring, VPC Service Controls",
+  "secondaryObjectives": [
+    "Restricting access to Google Cloud data services: BigQuery, Cloud Storage, Cloud SQL",
+    "Configuring and analyzing Cloud Audit Logs and data access logs"
+  ],
+  "sources": [
+    {
+      "cite": "Google Cloud, Professional Cloud Security Engineer exam guide: Section 1 Configuring access (~25%), Section 2 Securing communications and boundary protection (~22%), Section 3 Ensuring data protection (~23%), Section 4 Managing operations (~19%), Section 5 Supporting compliance requirements (~11%)",
+      "checkedAt": "2026-11-17",
+      "url": "https://services.google.com/fh/files/misc/professional_cloud_security_engineer_exam_guide_english.pdf",
+      "note": "Read through a summarizing fetch of the PDF on 2026-11-17 (no version or date printed). Quoted: 1.4 'Managing IAM and access control list (ACL) permissions'; 3.1 'Restricting access to Google Cloud data services (e.g., BigQuery, Cloud Storage, and Cloud SQL datastores)'. (read for this round by an earlier pass on 2026-11-17) (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "Google Codelabs, 'VPC Service Controls Basic Tutorial II - Troubleshooting Egress Violation'",
+      "checkedAt": "2026-11-17",
+      "url": "https://codelabs.developers.google.com/codelabs/vpc-sc-beginnerlab-2",
+      "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: a denied request's audit log shows the violation reason, an egressViolations entry (request leaving the perimeter), the source project, the targetResource project and the principalEmail, with a vpcServiceControlsUniqueId to filter; the fix is an egress rule applied with --set-egress-policies whose egressFrom names the identities and whose egressTo names serviceName storage.googleapis.com, method selectors and the target project's resources; IAM is a separate check. The violation reason used in the case (RESOURCES_NOT_IN_SAME_SERVICE_PERIMETER) and dry-run behavior are from memory of the VPC Service Controls troubleshooting pages (to verify)."
+    }
+  ],
+  "brief": {
+    "situation": "You are the security engineer at Northgate Clinical Research. Today the perimeter trials-perimeter, around project trials-data, moved from dry run to enforced. Tonight's export job, which writes a de-identified extract to the contract research partner's bucket in project cro-share (outside the perimeter), fails. The contract requires delivery by 22:00.",
+    "handover": [
+      "The export runs as sa-export@trials-data; only it should write to cro-share, and only to bucket cro-share-inbound.",
+      "The dry-run logs for the last two weeks were never reviewed."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the perimeter around trials-data, the partner's project outside it and the export that crosses.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "21:10",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineAt": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "The contract requires delivery by 22:00, 50 minutes after the failure."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "harmed": {
+      "type": "bool",
+      "init": false
+    },
+    "tried": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "logAt": {
+      "type": "time",
+      "init": null
+    },
+    "dryAt": {
+      "type": "time",
+      "init": null
+    },
+    "perimAt": {
+      "type": "time",
+      "init": null
+    },
+    "iamAt": {
+      "type": "time",
+      "init": null
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "missAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "egress",
+        "iam",
+        "job"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "log",
+        "dry",
+        "perim",
+        "iam",
+        "egress",
+        "review",
+        "remove",
+        "iamagain",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "log": {
+      "label": "Audit log entry for vpcServiceControlsUniqueId 7Hq...",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(logAt)",
+          "then": [
+            {
+              "set": "logAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "secops@cloudshell:~$ gcloud logging read 'protoPayload.metadata.vpcServiceControlsUniqueId=\"7Hq...\"' --format=json | jq '.[0].protoPayload.metadata | (.violationReason, .egressViolations[0])'\n{fixed and not harmed ? \"(no new violations since the rule)\" : \"RESOURCES_NOT_IN_SAME_SERVICE_PERIMETER\nsource: projects/trials-data  targetResource: projects/cro-share  servicePerimeter: trials-perimeter  principal: sa-export@trials-data\"}"
+        },
+        {
+          "finding": "An egress violation: sa-export is writing from inside the perimeter to a project outside it."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "dry": {
+      "label": "Dry-run violations of the last 14 days",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(dryAt)",
+          "then": [
+            {
+              "set": "dryAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "secops@cloudshell:~$ gcloud logging read 'protoPayload.metadata.dryRun=true AND protoPayload.metadata.servicePerimeterName:\"trials-perimeter\"' --freshness 14d --format='value(protoPayload.authenticationInfo.principalEmail,protoPayload.methodName)' | sort | uniq -c\n 14 sa-export@trials-data  google.storage.objects.create\n  3 analyst-x@northgate  bigquery.tables.getData"
+        },
+        {
+          "finding": "Dry run had predicted this export every night; it also shows three analyst reads from outside that should stay blocked."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "perim": {
+      "label": "gcloud access-context-manager perimeters describe trials-perimeter",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(perimAt)",
+          "then": [
+            {
+              "set": "perimAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "secops@cloudshell:~$ gcloud access-context-manager perimeters describe trials-perimeter --format='yaml(status.resources,status.restrictedServices,status.egressPolicies)'\nresources: [projects/trials-data]\nrestrictedServices: [bigquery.googleapis.com, storage.googleapis.com]\n{harmed ? \"(trials-data no longer in resources)\" : fixed ? \"egressPolicies: [sa-export -> projects/cro-share storage.objects.create]\" : \"egressPolicies: []\"}"
+        },
+        {
+          "finding": "Storage is restricted and there is no egress rule for the export."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "iam": {
+      "label": "Does sa-export have IAM on the partner bucket?",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(iamAt)",
+          "then": [
+            {
+              "set": "iamAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "secops@cloudshell:~$ gsutil iam get gs://cro-share-inbound | grep sa-export\nserviceAccount:sa-export@trials-data.iam.gserviceaccount.com  roles/storage.objectCreator"
+        },
+        {
+          "finding": "IAM already allows it: the perimeter, a separate check, is what blocks it."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "egress": {
+      "label": "Add an egress rule: sa-export may call storage.objects.create on projects/cro-share only; apply to trials-perimeter",
+      "group": "Fix",
+      "available": "not busy and (not fixed and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "fixed",
+          "to": "true"
+        },
+        {
+          "output": "secops@cloudshell:~$ cat egress-cro.yaml\n- egressFrom: identities: [serviceAccount:sa-export@trials-data.iam.gserviceaccount.com]\n  egressTo: operations: [serviceName: storage.googleapis.com, methodSelectors: [method: google.storage.objects.create]]\n            resources: [projects/cro-share]\nsecops@cloudshell:~$ gcloud access-context-manager perimeters update trials-perimeter --set-egress-policies=egress-cro.yaml\nsecops@cloudshell:~$ gcloud run jobs execute export-cro"
+        },
+        {
+          "log": "Only this identity, only object creation, only into the partner's project may cross the perimeter; everything else, including the analyst reads, stays blocked.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "review": {
+      "label": "Review the remaining dry-run findings with the data owner and require a dry-run review before any perimeter is enforced",
+      "group": "Fix",
+      "available": "not busy and (not planned and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "secops@cloudshell:~$ (review DR-2211: analyst-x's reads from outside: keep blocked; ticket to use the in-perimeter workbench)\n(perimeter change runbook: 14 days dry run, every finding resolved or accepted before enforce)"
+        },
+        {
+          "log": "The other predicted violations are decided on purpose, and the next perimeter is enforced only after its dry-run log has been read.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "remove": {
+      "label": "Remove trials-data from the perimeter until the export finishes",
+      "group": "Fix",
+      "available": "not busy and (not harmed)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "harmed",
+          "to": "true"
+        },
+        {
+          "output": "secops@cloudshell:~$ gcloud access-context-manager perimeters update trials-perimeter --remove-resources=projects/123456\nUpdated."
+        },
+        {
+          "log": "The export runs, and the trial data has no perimeter: any identity with IAM access can copy it anywhere, the analyst reads included.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "iamagain": {
+      "label": "Grant sa-export Storage Admin on the partner bucket",
+      "group": "Fix",
+      "available": "not busy and (not harmed and not tried)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tried",
+          "to": "true"
+        },
+        {
+          "output": "secops@cloudshell:~$ gsutil iam ch serviceAccount:sa-export@trials-data.iam.gserviceaccount.com:roles/storage.admin gs://cro-share-inbound\n(updated)"
+        },
+        {
+          "log": "IAM was already sufficient; the perimeter denies the request before IAM matters.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Check the export's result and that the analyst read is still blocked",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "secops@cloudshell:~$ gcloud run jobs executions describe ...; gsutil ls gs://cro-share-inbound/2026-11-17/; (dry-run style check) analyst-x read\n{harmed ? \"SUCCEEDED; extract present\nanalyst-x read: allowed (no perimeter)\" : fixed ? \"SUCCEEDED; extract-2026-11-17.parquet present\nanalyst-x read: still denied (ingress)\" : \"FAILED: egress violation\n(empty)\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "egress",
+                  "label": "The newly enforced perimeter had no egress rule for the approved export"
+                },
+                {
+                  "value": "iam",
+                  "label": "sa-export lacked IAM on the partner bucket"
+                },
+                {
+                  "value": "job",
+                  "label": "The export job's code failed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-335)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "22:00: the extract is in the partner's bucket on time.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "missAt",
+              "to": "t"
+            },
+            {
+              "log": "22:00: delivery missed; contract penalty clause triggered.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why the export failed after enforcement, what you allowed and how narrowly, and what happens before the next enforcement.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Reads the violation.",
+          "modelAnswer": "The audit log showed an egress violation from trials-data to cro-share by sa-export: storage is restricted in trials-perimeter, enforced today, with no egress rule. The dry-run log had predicted it every night for two weeks."
+        },
+        {
+          "label": "Allowed",
+          "criteria": "One identity, one method, one target.",
+          "modelAnswer": "An egress rule for sa-export, storage.objects.create, projects/cro-share. Removing the project from the perimeter would have opened the trial data to any IAM-authorized copy; more IAM changes nothing."
+        },
+        {
+          "label": "Before enforcing",
+          "criteria": "Reads the dry run.",
+          "modelAnswer": "The remaining findings were reviewed with the data owner, and perimeters are enforced only after their dry-run log is resolved."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The contract requires delivery by 22:00, 50 minutes after the failure."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: The trial data project was taken out of its perimeter."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed and not harmed",
+      "class": "harm",
+      "rationale": "Closing without an egress rule misses the partner's delivery deadline.",
+      "source": {
+        "cite": "Google Codelabs, 'VPC Service Controls Basic Tutorial II - Troubleshooting Egress Violation'",
+        "checkedAt": "2026-11-17",
+        "url": "https://codelabs.developers.google.com/codelabs/vpc-sc-beginnerlab-2",
+        "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: a denied request's audit log shows the violation reason, an egressViolations entry (request leaving the perimeter), the source project, the targetResource project and the principalEmail, with a vpcServiceControlsUniqueId to filter; the fix is an egress rule applied with --set-egress-policies whose egressFrom names the identities and whose egressTo names serviceName storage.googleapis.com, method selectors and the target project's resources; IAM is a separate check. The violation reason used in the case (RESOURCES_NOT_IN_SAME_SERVICE_PERIMETER) and dry-run behavior are from memory of the VPC Service Controls troubleshooting pages (to verify)."
+      }
+    }
+  },
+  "endings": {
+    "perimeterRemoved": {
+      "label": "Trial data outside its perimeter",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and harmed",
+      "narrative": "Removing the project delivered the extract and left the trial data with no exfiltration control."
+    },
+    "deliveryMissed": {
+      "label": "Partner delivery missed",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(missAt)",
+      "narrative": "At 22:00 the export was still denied at the perimeter."
+    },
+    "egressRule": {
+      "label": "Narrow egress rule, delivery made, dry run reviewed",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(logAt) and not isNull(dryAt) and not isNull(verifiedAt) and causeDoc == \"egress\"",
+      "narrative": "A precise egress rule let the export through on time; the other findings were reviewed and stay blocked."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The extract was delivered, but the dry-run review, the runbook, the check or the record was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "perimeterRemoved",
+    "deliveryMissed",
+    "egressRule",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Read the violation and the dry-run history",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(logAt) and not isNull(dryAt)",
+            "score": "met",
+            "why": "The key evidence, read before changing anything."
+          },
+          {
+            "when": "not isNull(logAt) or not isNull(dryAt) or not isNull(perimAt) or not isNull(iamAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Delivered by 22:00 with the perimeter in force",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and not harmed and isNull(missAt)",
+            "score": "met",
+            "why": "The right change, in time, without harm."
+          },
+          {
+            "when": "fixed or harmed",
+            "score": "partial",
+            "why": "{harmed ? \"The trial data project was taken out of its perimeter.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never removed."
+          }
+        ]
+      },
+      {
+        "id": "lasting",
+        "label": "Dry-run findings reviewed, runbook changed; both directions checked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The lasting step taken and the result checked."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"egress\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record names the wrong cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes that caused harm",
+        "value": "harmed ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "21:10-21:14",
+        "text": "Egress violation sa-export to cro-share; dry run predicted it 14 nights; no egress policies; IAM already allows it."
+      },
+      {
+        "at": "21:14-21:20",
+        "text": "Egress rule for sa-export, objects.create, cro-share; run the export; review the other findings."
+      },
+      {
+        "at": "21:20-21:22",
+        "text": "Extract delivered; analyst read still denied."
+      }
+    ],
+    "debrief": {
+      "perimeterRemoved": {
+        "headline": "Open one door, not the walls",
+        "body": "VPC Service Controls exists to stop data leaving. A precise egress rule lets the one approved flow out and keeps everything else in."
+      },
+      "deliveryMissed": {
+        "headline": "Perimeters are not IAM",
+        "body": "A request must pass both IAM and the perimeter. The audit log's egress violation names what to allow in an egress rule."
+      },
+      "egressRule": {
+        "headline": "Good: perimeter kept, flow allowed",
+        "body": "You read the violation, used the dry-run history, allowed exactly one identity, method and target, checked both the export and a blocked read, and made dry-run review part of enforcement."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the evidence before the change, the lasting step, the check, or the cause in the record."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The audit log shows an egress violation: the approved export identity writing from inside the newly enforced perimeter to the partner's project outside it. IAM already allows it; the perimeter is a separate check. Add an egress rule for exactly that identity, method and target project, run the export, and confirm other flows stay blocked. Removing the project from the perimeter removes the protection; more IAM does nothing. Read dry-run logs before enforcing next time."
+  }
+}
