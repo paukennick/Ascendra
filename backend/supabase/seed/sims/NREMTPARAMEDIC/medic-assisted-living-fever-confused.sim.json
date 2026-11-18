@@ -1,0 +1,1161 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "medic-assisted-living-fever-confused",
+  "title": "Fever, confusion and a low pressure",
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              110,
+              130
+            ]
+          },
+          "colour": "ecg",
+          "hiddenUntil": "monOn"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure, last measured",
+          "value": [
+            "vSbp",
+            "vDbp"
+          ],
+          "unit": "mmHg",
+          "sub": "MAP {vMap}",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90,
+              80
+            ]
+          },
+          "colour": "art",
+          "hiddenUntil": "vAt > 0"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              90
+            ]
+          },
+          "colour": "spo2",
+          "hiddenUntil": "monOn"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "high": 28
+          },
+          "announce": {
+            "bands": [
+              22,
+              28
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "monOn"
+        }
+      ],
+      "infusions": "Oxygen: {isNull(o2At) ? \"room air\" : \"nasal cannula, titrated\"}. IV: {isNull(ivAt) ? \"none\" : \"two lines\"}; normal saline {fluid} mL. Lungs last checked: {isNull(lungAt) ? \"never\" : (crackles ? \"crackles both bases\" : \"crackles right base only\")}. {isNull(departAt) ? \"On scene\" : isNull(arrivedAt) ? \"En route\" : \"Arrived\"}.",
+      "banner": [
+        {
+          "when": "isNull(departAt)",
+          "text": "Edith, 82, in bed at an assisted living home, hot to the touch, picking at the sheets, not making sense."
+        },
+        {
+          "when": "crackles",
+          "text": "Edith is working harder to breathe; wet crackles at both bases."
+        }
+      ]
+    }
+  },
+  "objective": "Recognize sepsis and septic shock and begin fluids early",
+  "secondaryObjectives": [
+    "Evaluate the response to treatment and change the plan when the patient does not improve",
+    "Analyze cues to choose among competing hypotheses in an undifferentiated patient"
+  ],
+  "sources": [
+    {
+      "cite": "National Registry of EMTs. Paramedic examination test plan",
+      "checkedAt": "2026-11-09",
+      "url": "https://www.nremt.org/getmedia/1f27af23-e889-4edc-8041-55d1854d66ed/Paramedic-Test-Plan_1July2024",
+      "note": "Relayed from the course seed (backend/supabase/seed/tracks/ems.ts and labs/ems-sources.ts, read in NREMT's own documents 2026-11-09); not re-read for this case. Medical/Obstetrics/Gynecology: recognize sepsis and septic shock and begin fluids early."
+    },
+    {
+      "cite": "NASEMSO. National Model EMS Clinical Guidelines, Version 3.0 (March 2022): Shock",
+      "checkedAt": "2026-11-17",
+      "url": "https://nasemso.org/?p=223",
+      "note": "Read 2026-11-17 in the full text Iowa HHS hosts (https://hhs.iowa.gov/media/198/download) through summarizing fetches with quotes; NASEMSO's own page, read the same day, still presents Version 3 (2022) as current and names no later version. Septic shock: early IV fluid in rapid predetermined boluses up to 30 mL/kg, stopping at the MAP goal (65 mmHg) or if pulmonary edema develops; withhold further fluid if the patient worsens or rales develop; vasopressors only when shock does not respond to fluid; advance notice to the hospital."
+    },
+    {
+      "cite": "NHTSA. National EMS Scope of Practice Model 2019: Including Change Notices 1.0 and 2.0 (DOT HS 813 151, 2021-08-01)",
+      "checkedAt": "2026-11-17",
+      "url": "https://rosap.ntl.bts.gov/view/dot/56917",
+      "note": "Read 2026-11-17: the record page (title, report number, date; the change notices add intramuscular injection, vaccination in a public health emergency and nasal swab collection at EMT and above) and the PDF's skill tables through a summarizing fetch whose table columns were partly unclear, so placement was checked against the course's own reading (backend/supabase/seed/labs/ems-sources.ts, 2026-11-09) and REQ-241's reading (2026-11-11). EMR: oxygen, BVM, naloxone (intranasal or auto-injector), unit-dose hazmat antidote auto-injectors, tourniquet, wound packing, emergency moves, manual stabilization; no pulse oximetry, glucose monitoring or transport. EMT adds pulse oximetry, glucose monitoring, oral glucose, aspirin, the patient's own nitroglycerin, an inhaled bronchodilator, CPAP, the epinephrine auto-injector. AEMT adds IV and IO access, non-medicated IV fluids, supraglottic airways, waveform capnography, sublingual nitroglycerin and a limited list of IV and IM drugs (dextrose, naloxone). Paramedic adds 12-lead interpretation, manual defibrillation, synchronized cardioversion, transcutaneous pacing, needle chest decompression, intubation and medicated infusions. No newer model was found on 2026-11-17."
+    },
+    {
+      "cite": "Ascendra NREMT Paramedic course catalog (backend/supabase/seed/tracks/ems.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Ascendra teaching model (REQ-338, authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Her mean arterial pressure (60 at first) rising about 3 mmHg per 500 mL bolus, and the rule that more than 1,500 mL given without a lung check, or more than 2,000 mL in all, brings pulmonary edema in this 60 kg woman, are authored FLAG figures; NASEMSO gives up to 30 mL/kg in boluses toward a MAP of 65, stopping for pulmonary edema. Simplified teaching model written for exam practice; not a validated physiological model."
+    }
+  ],
+  "brief": {
+    "situation": "03:20. You are a paramedic with an EMT partner, called to an assisted living home: Edith, 82, about 60 kg, has been 'off' since yesterday and is now confused and hot. Staff say she has had a cough.",
+    "handover": [
+      "You carry a monitor with capnography, IV supplies and normal saline, oxygen and a glucometer.",
+      "The emergency department is 15 minutes away."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated seconds per real second. Pause any time.",
+      "Every assessment and treatment takes the time it would on a real call. Scene time and the drive run on the clock.",
+      "Partway through you are asked to explain your decisions in writing. The case ends when care is handed over, then a debrief scores what you did."
+    ]
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice; follow your local protocols and medical direction.",
+  "clock": {
+    "start": "03:20",
+    "tick": "1s",
+    "maxDuration": "50min",
+    "calendar": "clock"
+  },
+  "params": {
+    "bolusRise": {
+      "value": 3,
+      "unit": "mmHg per 500 mL",
+      "source": {
+        "cite": "Ascendra teaching model (REQ-338, authored)",
+        "checkedAt": "2026-11-17",
+        "note": "FLAG: stands in for a number no guideline gives. MAP rise per 500 mL. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "drift": {
+      "value": 0.15,
+      "unit": "mmHg/min",
+      "source": {
+        "cite": "Ascendra teaching model (REQ-338, authored)",
+        "checkedAt": "2026-11-17",
+        "note": "FLAG: stands in for a number no guideline gives. MAP drifting down untreated. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "ivTime": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Two IVs: about 2 minutes. Authored for the case; real times vary."
+      }
+    },
+    "bolusTime": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A 500 mL bolus under pressure: about 5 minutes. Authored for the case; real times vary."
+      }
+    },
+    "lungTime": {
+      "value": 30,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Listen to the lungs: 30 seconds. Authored for the case; real times vary."
+      }
+    },
+    "vitalsTime": {
+      "value": 45,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Blood pressure: about 45 seconds. Authored for the case; real times vary."
+      }
+    },
+    "loadTime": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Load: about 5 minutes. Authored for the case; real times vary."
+      }
+    },
+    "driveTime": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "15 minutes to the ED. Authored for the case; real times vary."
+      }
+    },
+    "notifyGoal": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (REQ-338, authored)",
+        "checkedAt": "2026-11-17",
+        "note": "FLAG: stands in for a number no guideline gives. A sepsis alert within 15 minutes of reaching her; NASEMSO asks for advance notice without a number. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    }
+  },
+  "state": {
+    "mapv": {
+      "type": "number",
+      "init": 60,
+      "min": 30,
+      "max": 110,
+      "unit": "mmHg"
+    },
+    "fluid": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4000,
+      "unit": "mL"
+    },
+    "sinceCheck": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4000,
+      "unit": "mL"
+    },
+    "monOn": {
+      "type": "bool",
+      "init": false
+    },
+    "vPending": {
+      "type": "bool",
+      "init": false
+    },
+    "ivPending": {
+      "type": "bool",
+      "init": false
+    },
+    "bolusing": {
+      "type": "bool",
+      "init": false
+    },
+    "crackles": {
+      "type": "bool",
+      "init": false
+    },
+    "lPending": {
+      "type": "bool",
+      "init": false
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "tempAt": {
+      "type": "time",
+      "init": null
+    },
+    "gluAt": {
+      "type": "time",
+      "init": null
+    },
+    "o2At": {
+      "type": "time",
+      "init": null
+    },
+    "ivAt": {
+      "type": "time",
+      "init": null
+    },
+    "bolus1At": {
+      "type": "time",
+      "init": null
+    },
+    "lungAt": {
+      "type": "time",
+      "init": null
+    },
+    "edemaAt": {
+      "type": "time",
+      "init": null
+    },
+    "departAt": {
+      "type": "time",
+      "init": null
+    },
+    "arrivedAt": {
+      "type": "time",
+      "init": null
+    },
+    "alertAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstVAt": {
+      "type": "time",
+      "init": null
+    },
+    "capAt": {
+      "type": "time",
+      "init": null
+    },
+    "vAt": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000,
+      "unit": "s"
+    },
+    "vSbp": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 250,
+      "unit": "mmHg"
+    },
+    "vDbp": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 200,
+      "unit": "mmHg"
+    },
+    "vMap": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 200,
+      "unit": "mmHg"
+    },
+    "lungChecks": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(clamp(118 - (mapv - 60) * 1.2, 80, 140))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(clamp((isNull(o2At) ? 90 : 95) - (crackles ? 8 : 0), 70, 100))",
+      "unit": "%",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "crackles ? 34 : 26",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(mapv * 1.4)",
+      "unit": "mmHg",
+      "precision": 0
+    }
+  },
+  "processes": [
+    {
+      "id": "drift",
+      "when": "isNull(arrivedAt) and fluid == 0",
+      "update": {
+        "mapv": "clamp(mapv - drift * dt / 60, 30, 110)"
+      }
+    }
+  ],
+  "phases": {
+    "call": {
+      "label": "On the call",
+      "clock": "running",
+      "actions": [
+        "look",
+        "monitor",
+        "vitals",
+        "temp",
+        "glucose",
+        "capno",
+        "o2",
+        "iv",
+        "bolus",
+        "lungs",
+        "transport",
+        "alert"
+      ]
+    }
+  },
+  "initialPhase": "call",
+  "actions": {
+    "look": {
+      "label": "Primary assessment and a look for a source",
+      "group": "Assess",
+      "available": "isNull(lookAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Hot, flushed, mottled knees; confused; breathing fast; productive cough; crackles you can hear at the right base without a stethoscope.",
+          "kind": "find"
+        }
+      ]
+    },
+    "monitor": {
+      "label": "Monitor and pulse oximetry",
+      "group": "Assess",
+      "available": "not monOn",
+      "why": "On.",
+      "effects": [
+        {
+          "set": "monOn",
+          "to": "true"
+        },
+        {
+          "log": "Sinus tachycardia."
+        }
+      ]
+    },
+    "vitals": {
+      "label": "Blood pressure",
+      "group": "Assess",
+      "available": "not vPending",
+      "why": "Measuring.",
+      "effects": [
+        {
+          "set": "vPending",
+          "to": "true"
+        },
+        {
+          "schedule": "vitalsT",
+          "after": "vitalsTime"
+        },
+        {
+          "log": "Cuff cycling."
+        }
+      ]
+    },
+    "temp": {
+      "label": "Temperature",
+      "group": "Assess",
+      "available": "isNull(tempAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(tempAt)",
+          "then": [
+            {
+              "set": "tempAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "39.2 C.",
+          "kind": "find"
+        }
+      ]
+    },
+    "glucose": {
+      "label": "Glucose",
+      "group": "Assess",
+      "available": "isNull(gluAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(gluAt)",
+          "then": [
+            {
+              "set": "gluAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Glucose 142 mg/dL: not the cause of her confusion.",
+          "kind": "find"
+        }
+      ]
+    },
+    "capno": {
+      "label": "Capnography by nasal cannula",
+      "group": "Assess",
+      "available": "isNull(capAt)",
+      "why": "On.",
+      "effects": [
+        {
+          "if": "isNull(capAt)",
+          "then": [
+            {
+              "set": "capAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "EtCO2 24 mmHg with a fast rate: low, as with poor perfusion or acidosis.",
+          "kind": "find"
+        }
+      ]
+    },
+    "o2": {
+      "label": "Oxygen titrated to SpO2 94-98%",
+      "group": "Treat",
+      "available": "isNull(o2At)",
+      "why": "On.",
+      "effects": [
+        {
+          "if": "isNull(o2At)",
+          "then": [
+            {
+              "set": "o2At",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Nasal cannula, titrated."
+        }
+      ]
+    },
+    "iv": {
+      "label": "Two IVs with normal saline",
+      "group": "Treat",
+      "available": "isNull(ivAt) and not ivPending",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "ivPending",
+          "to": "true"
+        },
+        {
+          "schedule": "ivT",
+          "after": "ivTime"
+        },
+        {
+          "log": "Two IVs."
+        }
+      ]
+    },
+    "bolus": {
+      "label": "Normal saline 500 mL bolus",
+      "group": "Treat",
+      "available": "not isNull(ivAt) and not bolusing and fluid < 3000",
+      "why": "Needs an IV; one bolus at a time.",
+      "effects": [
+        {
+          "set": "bolusing",
+          "to": "true"
+        },
+        {
+          "if": "isNull(bolus1At)",
+          "then": [
+            {
+              "set": "bolus1At",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "schedule": "bolusT",
+          "after": "bolusTime"
+        },
+        {
+          "log": "500 mL running in."
+        }
+      ]
+    },
+    "lungs": {
+      "label": "Listen to her lungs and recheck work of breathing",
+      "group": "Assess",
+      "available": "not lPending",
+      "why": "Listening.",
+      "effects": [
+        {
+          "set": "lPending",
+          "to": "true"
+        },
+        {
+          "schedule": "lungT",
+          "after": "lungTime"
+        },
+        {
+          "log": "Listening."
+        }
+      ]
+    },
+    "transport": {
+      "label": "Load and go",
+      "group": "Transport",
+      "available": "isNull(departAt)",
+      "why": "Moving.",
+      "effects": [
+        {
+          "if": "isNull(departAt)",
+          "then": [
+            {
+              "set": "departAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "schedule": "arriveT",
+          "after": "loadTime + driveTime"
+        },
+        {
+          "log": "Loading; fluids continue en route."
+        }
+      ]
+    },
+    "alert": {
+      "label": "Sepsis alert to the ED: suspected septic shock from pneumonia, MAP, fluids given, ETA",
+      "group": "Transport",
+      "available": "isNull(alertAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(alertAt)",
+          "then": [
+            {
+              "set": "alertAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "ED: sepsis alert received.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "vitalsT": {
+      "label": "BP",
+      "wait": {
+        "skipLabel": "the blood pressure"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 45 seconds. Authored for the case; real times vary."
+      },
+      "effects": [
+        {
+          "set": "vPending",
+          "to": "false"
+        },
+        {
+          "set": "vAt",
+          "to": "t"
+        },
+        {
+          "if": "isNull(firstVAt)",
+          "then": [
+            {
+              "set": "firstVAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "vSbp",
+          "to": "sbp"
+        },
+        {
+          "set": "vDbp",
+          "to": "round((3 * mapv - sbp) / 2)"
+        },
+        {
+          "set": "vMap",
+          "to": "round(mapv)"
+        },
+        {
+          "log": "BP {sbp}/{round((3 * mapv - sbp) / 2)}, MAP {round(mapv)}.",
+          "kind": "find"
+        }
+      ]
+    },
+    "ivT": {
+      "label": "IVs",
+      "wait": {
+        "skipLabel": "the IVs (about 2 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 2 minutes. Authored for the case; real times vary."
+      },
+      "effects": [
+        {
+          "set": "ivPending",
+          "to": "false"
+        },
+        {
+          "if": "isNull(ivAt)",
+          "then": [
+            {
+              "set": "ivAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Two lines in."
+        }
+      ]
+    },
+    "bolusT": {
+      "label": "bolus",
+      "wait": {
+        "skipLabel": "the bolus (about 5 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 5 minutes. Authored for the case; real times vary."
+      },
+      "effects": [
+        {
+          "set": "bolusing",
+          "to": "false"
+        },
+        {
+          "add": "fluid",
+          "by": "500"
+        },
+        {
+          "add": "sinceCheck",
+          "by": "500"
+        },
+        {
+          "set": "mapv",
+          "to": "min(80, mapv + bolusRise)"
+        },
+        {
+          "if": "(sinceCheck > 1500 or fluid > 2000) and not crackles",
+          "then": [
+            {
+              "set": "crackles",
+              "to": "true"
+            },
+            {
+              "if": "isNull(edemaAt)",
+              "then": [
+                {
+                  "set": "edemaAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "log": "Bolus in: {fluid} mL so far."
+        }
+      ]
+    },
+    "lungT": {
+      "label": "lungs",
+      "wait": {
+        "skipLabel": "the lung check"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "30 seconds. Authored for the case; real times vary."
+      },
+      "effects": [
+        {
+          "set": "lPending",
+          "to": "false"
+        },
+        {
+          "if": "isNull(lungAt)",
+          "then": [
+            {
+              "set": "lungAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "sinceCheck",
+          "to": "0"
+        },
+        {
+          "add": "lungChecks",
+          "by": "1"
+        },
+        {
+          "log": "{crackles ? \"New crackles at both bases and more work of breathing: stop fluids.\" : \"Crackles only at the right base, as before; breathing no harder.\"}",
+          "kind": "find"
+        }
+      ]
+    },
+    "arriveT": {
+      "label": "arrival",
+      "wait": {
+        "skipLabel": "arrival"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Load and drive. Authored for the case; real times vary."
+      },
+      "effects": [
+        {
+          "if": "isNull(arrivedAt)",
+          "then": [
+            {
+              "set": "arrivedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "At the ED.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "not isNull(bolus1At) and t >= timeAt(bolus1At) + 120",
+      "question": "Why sepsis, why fluids, and what would make you stop?",
+      "parts": [
+        {
+          "label": "Hypotheses",
+          "criteria": "Fever, confusion, a fast breathing rate, low pressure (MAP about 60) and a likely source (pneumonia): septic shock; glucose excludes hypoglycemia; consider other causes of confusion.",
+          "modelAnswer": "Fever 39.2, new confusion, breathing 26, MAP 60 and a productive cough with right-base crackles: septic shock from pneumonia. Glucose 142 rules out a low."
+        },
+        {
+          "label": "Fluids and limits",
+          "criteria": "Early boluses (500 mL here) toward a MAP of 65, up to 30 mL/kg (about 1.8 L for 60 kg), reassessing lungs and work of breathing between boluses; stop for new crackles or pulmonary edema; sepsis alert.",
+          "modelAnswer": "500 mL boluses toward a MAP of 65, about 30 mL/kg at most, checking her lungs between each; new crackles mean stop. Sepsis alert so the team is ready."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "not isNull(arrivedAt) and mapv < 62",
+      "class": "recovered",
+      "rationale": "She arrived still below the MAP goal; fluids came late or too little.",
+      "source": {
+        "cite": "NASEMSO. National Model EMS Clinical Guidelines, Version 3.0 (March 2022): Shock",
+        "checkedAt": "2026-11-17",
+        "url": "https://nasemso.org/?p=223",
+        "note": "Read 2026-11-17 in the full text Iowa HHS hosts (https://hhs.iowa.gov/media/198/download) through summarizing fetches with quotes; NASEMSO's own page, read the same day, still presents Version 3 (2022) as current and names no later version. Septic shock: early IV fluid in rapid predetermined boluses up to 30 mL/kg, stopping at the MAP goal (65 mmHg) or if pulmonary edema develops; withhold further fluid if the patient worsens or rales develop; vasopressors only when shock does not respond to fluid; advance notice to the hospital."
+      }
+    }
+  },
+  "endings": {
+    "edema": {
+      "label": "Fluid overload",
+      "class": "harm",
+      "terminal": true,
+      "when": "not isNull(arrivedAt) and crackles",
+      "narrative": "{timeAt(arrivedAt)|clock}: she arrives in pulmonary edema on top of septic shock, SpO2 {spo2}%."
+    },
+    "dry": {
+      "label": "Shock untreated",
+      "class": "harm",
+      "terminal": true,
+      "when": "not isNull(arrivedAt) and fluid == 0",
+      "narrative": "{timeAt(arrivedAt)|clock}: she arrives with a MAP of {round(mapv)} and no fluid given."
+    },
+    "resus": {
+      "label": "Fluids to goal, lungs watched",
+      "class": "target",
+      "terminal": true,
+      "when": "not isNull(arrivedAt) and mapv >= 65 and fluid >= 1000 and lungChecks >= 2 and not isNull(alertAt) and timeAt(alertAt) <= notifyGoal and not isNull(gluAt) and not isNull(o2At) and not isNull(tempAt)",
+      "narrative": "{timeAt(arrivedAt)|clock}: Edith arrives with a MAP of {round(mapv)}, clear of new crackles, and the sepsis team waiting."
+    },
+    "arrived": {
+      "label": "Arrived, by a harder route",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not isNull(arrivedAt)",
+      "narrative": "{timeAt(arrivedAt)|clock}: she arrives, but {mapv < 65 ? \"still below the MAP goal\" : lungChecks < 2 ? \"her lungs were not checked between boluses\" : \"the alert or the workup came late\"}."
+    },
+    "time_up": {
+      "label": "50 minutes",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "Fifty minutes."
+    }
+  },
+  "endingOrder": [
+    "edema",
+    "dry",
+    "resus",
+    "arrived"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "fluid",
+        "label": "Boluses started within 10 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(bolus1At) and timeAt(bolus1At) <= 600",
+            "score": "met",
+            "why": "At {timeAt(bolus1At)|clock}."
+          },
+          {
+            "when": "not isNull(bolus1At)",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No fluid."
+          }
+        ]
+      },
+      {
+        "id": "lungs",
+        "label": "Lungs reassessed between boluses; no overload",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "crackles",
+            "score": "missed",
+            "why": "Pulmonary edema."
+          },
+          {
+            "when": "lungChecks >= 2",
+            "score": "met",
+            "why": "Checked between boluses."
+          },
+          {
+            "when": "lungChecks >= 1",
+            "score": "partial",
+            "why": "Checked once."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "goal",
+        "label": "MAP 65 or more on arrival",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "mapv >= 65",
+            "score": "met",
+            "why": "MAP {round(mapv)}."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "MAP {round(mapv)}."
+          }
+        ]
+      },
+      {
+        "id": "alert",
+        "label": "Sepsis alert within 15 minutes",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(alertAt) and timeAt(alertAt) <= notifyGoal",
+            "score": "met",
+            "why": "Sent early."
+          },
+          {
+            "when": "not isNull(alertAt)",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "None."
+          }
+        ]
+      },
+      {
+        "id": "workup",
+        "label": "Temperature, glucose and oxygen",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(tempAt) and not isNull(gluAt) and not isNull(o2At)",
+            "score": "met",
+            "why": "All three."
+          },
+          {
+            "when": "not isNull(tempAt) or not isNull(gluAt)",
+            "score": "partial",
+            "why": "Part."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "None."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: sepsis, fluids and limits",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "fluidKpi",
+        "label": "Fluid given (mL)",
+        "value": "fluid",
+        "format": "number",
+        "expert": "1,000-1,800 with lung checks"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "03:20",
+        "text": "Hot, confused, fast breathing, cough: monitor, BP (MAP 60), temperature, glucose, capnography, oxygen."
+      },
+      {
+        "at": "03:23",
+        "text": "Two IVs; 500 mL bolus; sepsis alert; load."
+      },
+      {
+        "at": "En route",
+        "text": "Lungs after each bolus; repeat to MAP 65, about 30 mL/kg at most; stop for new crackles."
+      }
+    ],
+    "debrief": {
+      "resus": {
+        "headline": "Early fluids with a stop rule",
+        "body": "Septic shock from pneumonia: boluses toward a MAP of 65, lungs checked between each, and a sepsis alert."
+      },
+      "arrived": {
+        "headline": "Arrived, by a harder route",
+        "body": "Check the MAP at arrival, the lung checks and the alert."
+      },
+      "edema": {
+        "headline": "Fluids need a stop rule",
+        "body": "Litres without listening gave her pulmonary edema. Reassess between boluses."
+      },
+      "dry": {
+        "headline": "Septic shock needs fluid",
+        "body": "Age is not a reason to withhold early fluids; it is a reason to reassess often."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Fifty minutes."
+      }
+    },
+    "modelReasoning": "Fever, new confusion, a fast breathing rate, MAP 60 and a productive cough: septic shock from pneumonia; glucose rules out hypoglycemia. Oxygen titrated, two IVs, early isotonic boluses (500 mL) toward a MAP of 65, up to about 30 mL/kg, with the lungs and work of breathing checked between boluses and fluids stopped for new crackles (NASEMSO). Sepsis alert to the ED; vasopressors are for shock that does not respond to fluid."
+  },
+  "chapters": [
+    {
+      "id": "fluids",
+      "label": "Fluids started",
+      "when": "not isNull(bolus1At)"
+    }
+  ],
+  "teaching": {
+    "max": {
+      "during": "bolusT",
+      "ask": "While the bolus runs: about how much fluid is NASEMSO's ceiling for Edith (60 kg) before you rethink?",
+      "choices": [
+        {
+          "id": "thirty",
+          "label": "About 1.8 L (30 mL/kg), stopping sooner for crackles or a MAP of 65"
+        },
+        {
+          "id": "four",
+          "label": "4 L"
+        },
+        {
+          "id": "half",
+          "label": "250 mL at most at her age"
+        }
+      ],
+      "expect": "thirty",
+      "explain": "NASEMSO: up to 30 mL/kg of isotonic fluid in rapid boluses for septic shock, stopping at the MAP goal (65) or if pulmonary edema develops.",
+      "source": {
+        "cite": "NASEMSO. National Model EMS Clinical Guidelines, Version 3.0 (March 2022): Shock",
+        "checkedAt": "2026-11-17",
+        "url": "https://nasemso.org/?p=223",
+        "note": "Read 2026-11-17 in the full text Iowa HHS hosts (https://hhs.iowa.gov/media/198/download) through summarizing fetches with quotes; NASEMSO's own page, read the same day, still presents Version 3 (2022) as current and names no later version. Septic shock: early IV fluid in rapid predetermined boluses up to 30 mL/kg, stopping at the MAP goal (65 mmHg) or if pulmonary edema develops; withhold further fluid if the patient worsens or rales develop; vasopressors only when shock does not respond to fluid; advance notice to the hospital."
+      }
+    }
+  }
+}
