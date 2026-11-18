@@ -658,7 +658,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NCLEXRN", "voices-say-he-should-die"),
   // ---- end REQ-329 ----
   // ---- REQ-337 (docs/sims.md 22.41): mental health depth, depth-mh. Session
-  // screen, clinical-session profile; MH_DEPTH_SLUGS below lists them. ----
+  // screen, clinical-session profile; lib/sim/mh-depth.test.ts lists them. ----
   entry("WAPSYCHJP", "wajp-client-hired-by-your-practice"),
   band("EPPP", "eppp-client-hired-by-your-practice"),
   entry("WAPSYCHJP", "wajp-adult-disclosure-children-at-risk"),
@@ -673,6 +673,14 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NCE", "nce-eight-weeks-flat-scores"),
   entry("NCMHCE", "ncmhce-panic-cbt-session-five"),
   band("NCMHCE", "ncmhce-stress-and-insomnia-after-the-shop-closed"),
+  entry("ASWBCLINICAL", "aswbc-walk-in-after-the-fire"),
+  band("ASWBMASTERS", "aswbm-walk-in-after-the-fire"),
+  entry("ASWBCLINICAL", "aswbc-refusing-admission-for-his-dog"),
+  band("ASWBMASTERS", "aswbm-refusing-admission-for-his-dog"),
+  entry("ASWBMASTERS", "aswbm-fifteen-asks-without-her-parents"),
+  band("ASWBCLINICAL", "aswbc-fifteen-asks-without-her-parents"),
+  entry("ASWBCLINICAL", "aswbc-subpoena-in-a-custody-fight"),
+  band("ASWBMASTERS", "aswbm-subpoena-in-a-custody-fight"),
   // ---- end REQ-337 ----
 ];
 
