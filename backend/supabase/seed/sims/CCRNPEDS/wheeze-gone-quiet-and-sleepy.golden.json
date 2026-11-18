@@ -1,0 +1,454 @@
+{
+  "slug": "wheeze-gone-quiet-and-sleepy",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: quiet chest, drowsy, upright on the nebulizer, gas, calls, airway cart, pulsus, tells his mother",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "listen",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "quietQ",
+          "choice": "obstr",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "alert",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "up",
+          "seq": 6,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "gas",
+          "seq": 7,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "fail"
+          },
+          "seq": 8,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "call"
+          },
+          "seq": 9,
+          "tick": 37
+        },
+        {
+          "type": "teach",
+          "prompt": "co2Q",
+          "choice": "co2",
+          "seq": 10,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "airway",
+          "seq": 11,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "pulsus",
+          "seq": 12,
+          "tick": 37
+        },
+        {
+          "type": "chapter",
+          "chapter": "escalated",
+          "choice": "continue",
+          "seq": 13,
+          "tick": 49
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 14,
+          "tick": 49
+        }
+      ],
+      "expect": {
+        "ending": "safe",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "reportC": "met",
+          "gasC": "met",
+          "noSedC": "met",
+          "prepC": "met",
+          "lookC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 120,
+          "toKey": 125
+        },
+        "stateHash": "e2f8f2d2adc9f7fa"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Recognizes it and prepares, but calls 7 minutes after the quiet chest",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "listen",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "quietQ",
+          "choice": "obstr",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "up",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "airway",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "alert",
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "gas",
+          "seq": 7,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "pulsus",
+          "seq": 8,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "fail"
+          },
+          "seq": 9,
+          "tick": 100
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "call"
+          },
+          "seq": 10,
+          "tick": 100
+        },
+        {
+          "type": "teach",
+          "prompt": "co2Q",
+          "choice": "co2",
+          "seq": 11,
+          "tick": 100
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 100
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 88,
+        "criteria": {
+          "reportC": "partial",
+          "gasC": "met",
+          "noSedC": "met",
+          "prepC": "met",
+          "lookC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 440,
+          "toKey": 60
+        },
+        "stateHash": "917dbbc07bd30da1"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "sedated",
+      "title": "Calls promptly but gives the sedative and skips the gas",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "listen",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "quietQ",
+          "choice": "obstr",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "sedate",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "fail"
+          },
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "call"
+          },
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "co2Q",
+          "choice": "co2",
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 8,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 44,
+        "criteria": {
+          "reportC": "met",
+          "gasC": "missed",
+          "noSedC": "missed",
+          "prepC": "missed",
+          "lookC": "missed",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": -1
+        },
+        "stateHash": "2b123341785b3fc7"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "better",
+      "title": "Failure: reads the quiet chest as improvement, stops the nebulizer and lets him sleep",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "listen",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "quietQ",
+          "choice": "obstr",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "better"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "neboff",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "morning"
+          },
+          "seq": 6,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "arrest",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "reportC": "missed",
+          "gasC": "missed",
+          "noSedC": "missed",
+          "prepC": "missed",
+          "lookC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": -1
+        },
+        "stateHash": "74a96aa89d4adf1b"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "anxious",
+      "title": "Failure: thinks he has calmed down and sedates him",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "anxious"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "sedate",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "arrest",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "reportC": "missed",
+          "gasC": "missed",
+          "noSedC": "missed",
+          "prepC": "missed",
+          "lookC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": -1,
+          "toKey": -1
+        },
+        "stateHash": "3a410b14085744b5"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}
