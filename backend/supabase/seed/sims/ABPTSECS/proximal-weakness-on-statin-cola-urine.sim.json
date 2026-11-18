@@ -1,0 +1,1016 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "proximal-weakness-on-statin-cola-urine",
+  "title": "Weak thighs and cola-colored urine",
+  "objective": "Recognize myopathic needle EMG: early (rapid) recruitment and polyphasic units, with spontaneous fibrillations, positive sharp waves, complex repetitive discharges or 'dive bomber' myotonic discharges in some disorders",
+  "secondaryObjectives": [
+    "Explain what each nerve conduction measure reflects: SNAP amplitude tracks the number of sensory axons, while CMAP amplitude reflects motor axons, muscle and the neuromuscular junction together"
+  ],
+  "sources": [
+    {
+      "cite": "Specialist certification examination outline: clinical electrophysiology (the certifying board's published outline page)",
+      "checkedAt": "2026-11-08",
+      "url": "https://specialization.apta.org/become-a-specialist/clinical-electrophysiology/specialist-certification-examination-outline-clinical-electrophysiology",
+      "note": "Relayed from the clinical electrophysiology specialty course seed (backend/supabase/seed/tracks/pt-abpts.ts, outline pages read 2026-10-08 and 2026-11-04, OUTLINE_CHECKED_AT 2026-11-08), not re-read: Evaluation: normal and abnormal electrophysiologic characteristics (25%) is a tested area. Scope only; no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra clinical electrophysiology specialty course catalog (backend/supabase/seed/tracks/pt-abpts.ts, track ABPTSECS)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Shanina E, et al.. Electrodiagnostic Evaluation of Myopathy. StatPearls (updated 2026-09-14), StatPearls Publishing",
+      "checkedAt": "2026-11-04",
+      "note": "Relayed from the course seed (tag SP-EDX-MYO; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: myopathic needle EMG shows early (rapid) recruitment and short, polyphasic units, with fibrillations, positive sharp waves, complex repetitive discharges or myotonic discharges in some disorders (the course objective's wording)."
+    },
+    {
+      "cite": "MedlinePlus Medical Encyclopedia: Rhabdomyolysis (reviewed 2025-09-02)",
+      "checkedAt": "2026-11-17",
+      "url": "https://medlineplus.gov/ency/article/000473.htm",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: symptoms 'Dark, red, or cola-colored urine', 'Decreased urine output', 'General weakness', 'Muscle stiffness or aching', 'Muscle tenderness'; causes include 'statins' and 'Severe exertion'; myoglobin 'often cause[s] kidney damage'; treatment includes IV fluids and some people need dialysis."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "14:00 in an electrodiagnostic laboratory. You are the physical therapist doing the referred study for Mr. Brandt, 61, who has proximal weakness. His primary care provider wrote '? neuropathy, then start strengthening'.",
+    "handover": [
+      "He mentions his urine has been 'dark like cola' for two days and his thighs ache.",
+      "Laboratory policy: findings that need same-day medical care are phoned to the referring provider before the patient leaves."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "14:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.015,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Muscle breakdown continues and threatens his kidneys. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.002,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It is being treated once he is in medical care. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of rhabdomyolysis with kidney injury. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The referring provider called within 5 minutes of the history (laboratory policy: before he leaves)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min to finish and arrange transport."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "hxAt": {
+      "type": "time",
+      "init": null
+    },
+    "ncsAt": {
+      "type": "time",
+      "init": null
+    },
+    "emgAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "hx",
+        "ncs",
+        "emg"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "md",
+        "report"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "myo",
+        "neuro",
+        "decond"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "exAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(88 + 20 * max(0, prog - 0.6))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "pain": {
+      "expr": "round(clamp(4 + 6 * max(0, prog - 0.5), 0, 10))",
+      "unit": "/10",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (route == \"md\" ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Mr. Brandt, 61, referred for EMG for 'weakness, ? neuropathy'",
+        "presentation": "Trouble rising from chairs and lifting his arms for 3 weeks; started a high-intensity statin 6 weeks ago."
+      },
+      "vitals": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "colour": "ecg",
+          "alarm": {
+            "high": 110
+          },
+          "announce": {
+            "bands": [
+              95,
+              110
+            ]
+          }
+        },
+        {
+          "id": "pain",
+          "label": "Pain",
+          "spokenLabel": "Pain, out of 10",
+          "value": "pain",
+          "unit": "/10",
+          "colour": "neutral",
+          "alarm": {
+            "high": 8
+          },
+          "announce": {
+            "bands": [
+              6,
+              8
+            ]
+          }
+        }
+      ],
+      "activity": "{not inClinic ? \"Gone to the emergency department.\" : (not isNull(exAt) ? \"Doing squats in the gym.\" : \"On the exam table.\")}",
+      "measures": [
+        {
+          "id": "hxResult",
+          "label": "History",
+          "result": "Proximal weakness 3 weeks; aching thighs; cola-colored urine 2 days; high-intensity statin started 6 weeks ago.",
+          "when": "not isNull(hxAt)",
+          "flag": "true"
+        },
+        {
+          "id": "ncsResult",
+          "label": "Nerve conduction",
+          "result": "Normal sensory (SNAP) amplitudes; low-normal motor (CMAP) amplitudes proximally; normal velocities.",
+          "when": "not isNull(ncsAt)"
+        },
+        {
+          "id": "emgResult",
+          "label": "Needle EMG",
+          "result": "Early recruitment of short, small, polyphasic units; fibrillations and positive sharp waves.",
+          "when": "not isNull(emgAt)"
+        }
+      ],
+      "dosage": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "No exercise program until labs",
+            "when": "isNull(exAt)"
+          },
+          {
+            "label": "Physician called",
+            "when": "route == \"md\""
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleUrine",
+          "label": "Dark urine with muscle weakness",
+          "text": "Possible rhabdomyolysis: same-day medical care.",
+          "met": "not isNull(hxAt) and isNull(callAt)"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "hx": {
+      "label": "History: weakness pattern, pain, urine color, new medicines, exertion",
+      "group": "Examine",
+      "available": "not testPending and isNull(hxAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"hx\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "ncs": {
+      "label": "Nerve conduction studies",
+      "group": "Examine",
+      "available": "not testPending and isNull(ncsAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"ncs\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "emg": {
+      "label": "Needle EMG of the deltoid, iliopsoas and vastus lateralis",
+      "group": "Examine",
+      "available": "not testPending and isNull(emgAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"emg\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "ex": {
+      "label": "Start the referred strengthening program today with squats and step-ups",
+      "group": "Treat",
+      "available": "isNull(exAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "exAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.4, 2)"
+        },
+        {
+          "log": "He does three sets of squats and step-ups; his thighs ache badly afterward.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "What do the study and history show?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "myo",
+              "label": "A myopathy (early recruitment of short polyphasic units, with fibrillations), not a neuropathy; with cola urine on a new statin, possible rhabdomyolysis needing same-day care"
+            },
+            {
+              "value": "neuro",
+              "label": "A peripheral neuropathy"
+            },
+            {
+              "value": "decond",
+              "label": "Deconditioning; strengthen him"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"myo\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"myo\""
+                },
+                {
+                  "log": "Irritable myopathy; possible rhabdomyolysis.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"neuro\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"neuro\""
+                },
+                {
+                  "log": "Read as neuropathy.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"decond\""
+                },
+                {
+                  "log": "Read as deconditioning.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Report",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "md",
+              "label": "Call his provider now: myopathic EMG with fibrillations, proximal weakness, cola urine 2 days, high-intensity statin; needs same-day CK, kidney function and review"
+            },
+            {
+              "value": "report",
+              "label": "Send the written report in the usual 3 days"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"md\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"md\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "His provider sends him to the emergency department for CK and kidney tests and holds the statin.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"report\""
+                },
+                {
+                  "log": "Report queued.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Write the report: myopathic pattern, findings and the call",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Report written with the call documented.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "EMG laboratory",
+      "clock": "running",
+      "actions": [
+        "hx",
+        "ncs",
+        "emg",
+        "ex",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the test",
+      "wait": {
+        "skipLabel": "the test result"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each test or question takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"hx\"",
+              "then": [
+                {
+                  "set": "hxAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Proximal weakness for 3 weeks, aching and tender thighs, cola-colored urine for 2 days, a high-intensity statin started 6 weeks ago.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"ncs\"",
+              "then": [
+                {
+                  "set": "ncsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Normal sensory amplitudes and velocities; motor amplitudes low-normal in proximal muscles: no neuropathy.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "emgAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Early, rapid recruitment of short, small, polyphasic units with fibrillations and positive sharp waves: an irritable myopathy.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the emergency department",
+      "wait": {
+        "skipLabel": "the emergency department"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min to finish and arrange transport."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "He leaves for the emergency department.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What does the study show, and what do you do?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "Normal sensory (SNAP) amplitudes argue against a neuropathy; early recruitment of short, polyphasic units with fibrillations and positive sharp waves is an irritable myopathy; cola urine on a high-intensity statin suggests rhabdomyolysis.",
+          "modelAnswer": "The sensory amplitudes are normal, so it's not a neuropathy. The units are small, short and recruit early, with fibs and sharps: an irritable myopathy. With cola urine on a new statin, it could be rhabdo."
+        },
+        {
+          "label": "What I do",
+          "criteria": "No strengthening; call the provider for same-day CK and kidney function and statin review; report the myopathic pattern.",
+          "modelAnswer": "No exercise. Call his provider for same-day CK and kidney labs and to look at the statin, and report the myopathy."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "spo2Floor": {
+        "value": 88,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "escalateWindow": {
+        "value": 300,
+        "source": {
+          "cite": "Unit practice (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "The referring provider called within 5 minutes of the history (laboratory policy: before he leaves)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Possible rhabdomyolysis unreported an hour on is harm here.",
+      "source": {
+        "cite": "MedlinePlus Medical Encyclopedia: Rhabdomyolysis (reviewed 2025-09-02)",
+        "checkedAt": "2026-11-17",
+        "url": "https://medlineplus.gov/ency/article/000473.htm",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: symptoms 'Dark, red, or cola-colored urine', 'Decreased urine output', 'General weakness', 'Muscle stiffness or aching', 'Muscle tenderness'; causes include 'statins' and 'Severe exertion'; myoglobin 'often cause[s] kidney damage'; treatment includes IV fluids and some people need dialysis."
+      }
+    }
+  },
+  "endings": {
+    "aki": {
+      "label": "Rhabdomyolysis with kidney injury",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "Two days later he is admitted with a very high CK and acute kidney injury."
+    },
+    "safe": {
+      "label": "Myopathy read, rhabdomyolysis caught",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"md\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and (not isNull(hxAt)) and isNull(exAt)",
+      "narrative": "{timeAt(leftAt)|clock}: he is in the emergency department with his statin held."
+    },
+    "safeGaps": {
+      "label": "Sent, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: he gets care, but late or after exercise."
+    },
+    "time_up": {
+      "label": "Undecided at 15:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "15:00 and no call."
+    }
+  },
+  "endingOrder": [
+    "aki",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "The referring provider called within 5 minutes of the history",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"md\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"md\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "hxC",
+        "label": "Asked about urine color and the statin",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(hxAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not asked."
+          }
+        ]
+      },
+      {
+        "id": "noExC",
+        "label": "No strengthening until medical review",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(exAt)",
+            "score": "missed",
+            "why": "Exercised."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "No exercise."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Completed the conductions and needle study",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(ncsAt) and not isNull(emgAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(ncsAt) or not isNull(emgAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Read a myopathic pattern with possible rhabdomyolysis",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"myo\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"neuro\"",
+            "score": "missed",
+            "why": "Sensory amplitudes are normal and the units are myopathic."
+          },
+          {
+            "when": "dxEnum == \"decond\"",
+            "score": "missed",
+            "why": "Myopathic EMG and dark urine are not deconditioning."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Reported",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: myopathic pattern; normal SNAPs argue against neuropathy; dark urine on a statin needs same-day care",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "History to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "14:00 to the history",
+        "value": "isNull(hxAt) ? -1 : timeAt(hxAt)",
+        "format": "duration",
+        "expert": "under 4 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "14:00",
+        "text": "History: cola urine, new statin."
+      },
+      {
+        "at": "~14:03",
+        "text": "Call his provider for same-day care."
+      },
+      {
+        "at": "~14:05",
+        "text": "Conductions: normal SNAPs."
+      },
+      {
+        "at": "~14:10",
+        "text": "Needle: myopathic with fibrillations; report."
+      }
+    ],
+    "debrief": {
+      "aki": {
+        "headline": "Rhabdomyolysis with kidney injury",
+        "body": "Early recruitment of short polyphasic units with fibrillations is an irritable myopathy. With cola-colored urine on a statin, call for same-day care; no strengthening."
+      },
+      "safe": {
+        "headline": "Myopathy read, rhabdomyolysis caught",
+        "body": "You asked about urine and medicines, read the myopathic pattern, held exercise and called within minutes. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Sent, with gaps",
+        "body": "Check how soon you called and whether he exercised."
+      },
+      "time_up": {
+        "headline": "Undecided at 15:00",
+        "body": "Same-day care for possible rhabdomyolysis."
+      }
+    },
+    "modelReasoning": "SNAP amplitude reflects sensory axons, while CMAP amplitude reflects motor axons, muscle and the neuromuscular junction together; normal SNAPs argue against a neuropathy. Early recruitment of short, small, polyphasic units with fibrillations and positive sharp waves is a myopathic, irritable pattern. Weakness with cola-colored urine on a statin suggests rhabdomyolysis, which can injure the kidneys: no strengthening, and same-day medical care."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "myoQ": {
+      "during": "testT",
+      "ask": "While you test: what does a myopathic needle EMG look like?",
+      "choices": [
+        {
+          "id": "myo",
+          "label": "Early recruitment of short, small, polyphasic units"
+        },
+        {
+          "id": "neuro",
+          "label": "Reduced recruitment of large, long units"
+        },
+        {
+          "id": "normal",
+          "label": "Normal units"
+        }
+      ],
+      "expect": "myo",
+      "explain": "Myopathic EMG: early (rapid) recruitment and polyphasic units, with fibrillations and positive sharp waves in some disorders.",
+      "source": {
+        "cite": "Shanina E, et al.. Electrodiagnostic Evaluation of Myopathy. StatPearls (updated 2026-09-14), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-EDX-MYO; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: myopathic needle EMG shows early (rapid) recruitment and short, polyphasic units, with fibrillations, positive sharp waves, complex repetitive discharges or myotonic discharges in some disorders (the course objective's wording)."
+      }
+    },
+    "rhabQ": {
+      "during": "leaveT",
+      "ask": "While he goes: which symptoms suggest rhabdomyolysis?",
+      "choices": [
+        {
+          "id": "r",
+          "label": "Dark or cola-colored urine, weakness, muscle aching"
+        },
+        {
+          "id": "rash",
+          "label": "A rash"
+        },
+        {
+          "id": "cough",
+          "label": "A cough"
+        }
+      ],
+      "expect": "r",
+      "explain": "Dark, red or cola-colored urine, decreased urine output, weakness and muscle aching; statins are a cause.",
+      "source": {
+        "cite": "MedlinePlus Medical Encyclopedia: Rhabdomyolysis (reviewed 2025-09-02)",
+        "checkedAt": "2026-11-17",
+        "url": "https://medlineplus.gov/ency/article/000473.htm",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: symptoms 'Dark, red, or cola-colored urine', 'Decreased urine output', 'General weakness', 'Muscle stiffness or aching', 'Muscle tenderness'; causes include 'statins' and 'Severe exertion'; myoglobin 'often cause[s] kidney damage'; treatment includes IV fluids and some people need dialysis."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}
