@@ -688,6 +688,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("CCRNPEDS", "toddler-woke-after-naloxone-now-sleepy"),
   entry("ADNRN", "two-weeks-thirsty-glucose-890"),
   entry("ADNRN", "pain-better-then-belly-rigid"),
+  entry("LPNVN", "iv-arm-cool-and-swollen"),
   // ---- end REQ-334 ----
 ];
 

@@ -1,0 +1,1142 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "iv-arm-cool-and-swollen",
+  "title": "Cool and swollen above the IV",
+  "objective": "Intravenous site monitoring and maintenance within scope",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "NCSBN. 2026 NCLEX-PN Test Plan (effective April 2026)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.ncsbn.org/public-files/2026_PN_Test%20Plan-F.pdf",
+      "note": "Relayed from the LPN/VN course's earlier cases (read 2026-11-11, primary PDF), not re-read: the practical nursing course is built toward this test plan; the PN collects data, reports changes and works under RN or provider direction. Scope only."
+    },
+    {
+      "cite": "Ascendra LPN/VN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Frank E, Olinde A, et al. Intravenous (IV) Therapy for Practical Nurses, Chapter 7: Complications of Intravenous Therapy (LOUIS Pressbooks, CC BY)",
+      "checkedAt": "2026-11-17",
+      "url": "https://louis.pressbooks.pub/intravenoustherapy/chapter/complications",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: infiltration: 'IV fluid or medication leaks into the surrounding tissue instead of the vein'; 'Intravenous infiltration causes swelling around the site'; 'the healthcare professional should stop the IV and remove it immediately and replace it at a different site'; 'Notify the healthcare provider'; 'Remove the IV, elevate the affected limb, and apply cold or warm compresses'. Removal and restart follow the facility's policy and the state's LPN IV scope."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "10:00 in a subacute rehabilitation unit. You are the LPN caring for Mrs. Grant, 86, on day 2 of IV antibiotics and maintenance fluid for pneumonia through a peripheral catheter in her left forearm. She has mild dementia and does not always report discomfort.",
+    "handover": [
+      "The pump alarmed 'occlusion' twice overnight and was restarted each time.",
+      "Her 10:00 antibiotic dose is due through the same line.",
+      "Facility policy and your state's LPN IV scope here: the LPN monitors peripheral IV sites, stops an infusion and removes a peripheral catheter for infiltration, elevates the limb and reports to the RN, who assesses and arranges a new site; the LPN does not restart a line or give an IV antibiotic without the RN."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "10:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.02,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Fluid keeps leaking into her forearm while the infusion runs. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.004,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It slows once the infusion is off, the catheter out and the RN is managing it. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of severe infiltration injury. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The RN told within 5 minutes of finding the site (facility policy: report at once)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 1200,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 20 min for the RN to assess, place a new line and give the antibiotic."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "siteAt": {
+      "type": "time",
+      "init": null
+    },
+    "flowAt": {
+      "type": "time",
+      "init": null
+    },
+    "pulseAt": {
+      "type": "time",
+      "init": null
+    },
+    "painAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "site",
+        "flow",
+        "pulse",
+        "pain"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "rn",
+        "later"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "infil",
+        "occl",
+        "phleb"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "stopAt": {
+      "type": "time",
+      "init": null
+    },
+    "removeAt": {
+      "type": "time",
+      "init": null
+    },
+    "elevateAt": {
+      "type": "time",
+      "init": null
+    },
+    "flushAt": {
+      "type": "time",
+      "init": null
+    },
+    "restartAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(84 + 10 * max(0, prog - 0.7) + sin(t / 11) * 3)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "128",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "74",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "20",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "94",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (not isNull(stopAt) and route == \"rn\" ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "Pulse",
+          "spokenLabel": "Pulse",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              100,
+              120
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "high": 24
+          },
+          "announce": {
+            "bands": [
+              20,
+              24
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              92
+            ]
+          },
+          "colour": "spo2"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Maintenance fluid: {isNull(stopAt) ? \"running\" : \"stopped\"}. Catheter: {isNull(removeAt) ? \"in\" : \"removed\"}. Arm elevated: {not isNull(elevateAt)|yesno}.",
+      "banner": [
+        {
+          "when": "route == \"rn\" and inClinic",
+          "text": "The RN is coming to assess her arm."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "site": {
+      "label": "Inspect and feel the site and the arm above it, compared with the other arm",
+      "group": "Assess",
+      "available": "not testPending and isNull(siteAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"site\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "flow": {
+      "label": "Check the pump and the line: rate, alarms, kinks, the dressing",
+      "group": "Assess",
+      "available": "not testPending and isNull(flowAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"flow\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "pulse": {
+      "label": "Check pulse, color, warmth and movement of the hand",
+      "group": "Assess",
+      "available": "not testPending and isNull(pulseAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"pulse\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "pain": {
+      "label": "Ask about pain in words she understands and watch her face",
+      "group": "Assess",
+      "available": "not testPending and isNull(painAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"pain\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "stop": {
+      "label": "Stop the infusion and clamp the line",
+      "group": "Treat",
+      "available": "isNull(stopAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "stopAt",
+          "to": "t"
+        },
+        {
+          "log": "Infusion stopped and clamped.",
+          "kind": "act"
+        }
+      ]
+    },
+    "remove": {
+      "label": "Remove the catheter per facility policy and check it is intact",
+      "group": "Treat",
+      "available": "isNull(removeAt) and inClinic and not isNull(stopAt)",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "removeAt",
+          "to": "t"
+        },
+        {
+          "log": "Catheter removed intact; pressure held; dry dressing on.",
+          "kind": "act"
+        }
+      ]
+    },
+    "elevate": {
+      "label": "Elevate her arm on a pillow",
+      "group": "Treat",
+      "available": "isNull(elevateAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "elevateAt",
+          "to": "t"
+        },
+        {
+          "log": "Arm elevated on a pillow.",
+          "kind": "act"
+        }
+      ]
+    },
+    "flush": {
+      "label": "Flush the line hard to clear the occlusion and give the 10:00 antibiotic",
+      "group": "Treat",
+      "available": "isNull(flushAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "flushAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.3, 2)"
+        },
+        {
+          "log": "The line is flushed with force; the swelling spreads.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "restart": {
+      "label": "Restart the pump and recheck in an hour",
+      "group": "Treat",
+      "available": "isNull(restartAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "restartAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.15, 2)"
+        },
+        {
+          "log": "Pump restarted.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "What is happening at the site?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "infil",
+              "label": "Infiltration: fluid in the tissue around the vein (swollen, taut, cool, pale, painful)"
+            },
+            {
+              "value": "occl",
+              "label": "A blocked catheter that needs flushing"
+            },
+            {
+              "value": "phleb",
+              "label": "Phlebitis"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"infil\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"infil\""
+                },
+                {
+                  "log": "Infiltration.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"occl\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"occl\""
+                },
+                {
+                  "log": "Read as occlusion.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"phleb\""
+                },
+                {
+                  "log": "Read as phlebitis.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Report",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "rn",
+              "label": "Report to the RN now with SBAR: infiltration of the left forearm IV, swelling 6 cm, cool, pale, taut; infusion stopped, catheter out, arm elevated; 10:00 antibiotic due"
+            },
+            {
+              "value": "later",
+              "label": "Mention it at the 14:00 report"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"rn\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"rn\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "The RN assesses the arm, places a new IV in the other arm, gives the antibiotic, notifies the provider and starts infiltration monitoring.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"later\""
+                },
+                {
+                  "log": "Left for the afternoon report.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document the site, size, actions and report; mark the edge of the swelling",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "The site, swelling size, skin findings, actions and report are documented; the edge of the swelling is marked.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Rehab unit, room 18",
+      "clock": "running",
+      "actions": [
+        "site",
+        "flow",
+        "pulse",
+        "pain",
+        "stop",
+        "remove",
+        "elevate",
+        "flush",
+        "restart",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"site\"",
+              "then": [
+                {
+                  "set": "siteAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Forearm swollen from the site to 6 cm above it, skin taut, pale and cool to touch; she winces when you press it. The other arm is normal.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"flow\"",
+              "then": [
+                {
+                  "set": "flowAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Pump running at the ordered rate; no kink; the dressing is dry; the occlusion history is in the log.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"pulse\"",
+              "then": [
+                {
+                  "set": "pulseAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Radial pulse present; fingers pink and warm; she moves them.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "painAt",
+                  "to": "t"
+                },
+                {
+                  "log": "She says it is 'tight' and grimaces when the arm is moved.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the RN's new line",
+      "wait": {
+        "skipLabel": "the RN's new line"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 20 min for the RN to assess, place a new line and give the antibiotic."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "The RN has a new line in and the antibiotic running.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What is happening at Mrs. Grant's IV site, and what do you do within your role?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "Infiltration: IV fluid leaking into the tissue around the vein, shown by swelling, taut, cool and pale skin and pain above the site; the occlusion alarms were a clue.",
+          "modelAnswer": "The IV has infiltrated: the fluid is going into her forearm instead of the vein. That's why it's swollen, tight, cool and pale and hurts, and why the pump kept alarming."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Stops the infusion, removes the catheter per policy, elevates the arm, checks circulation, reports to the RN for a new site and the antibiotic, documents and marks the swelling; does not flush or restart.",
+          "modelAnswer": "Stop it, take the catheter out per policy, raise her arm, check her hand, and tell the RN so she can start a new line for the antibiotic. Document it and mark the edge. No flushing and no restarting."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "An infiltrating IV left running and unreported an hour on is harm here.",
+      "source": {
+        "cite": "Frank E, Olinde A, et al. Intravenous (IV) Therapy for Practical Nurses, Chapter 7: Complications of Intravenous Therapy (LOUIS Pressbooks, CC BY)",
+        "checkedAt": "2026-11-17",
+        "url": "https://louis.pressbooks.pub/intravenoustherapy/chapter/complications",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: infiltration: 'IV fluid or medication leaks into the surrounding tissue instead of the vein'; 'Intravenous infiltration causes swelling around the site'; 'the healthcare professional should stop the IV and remove it immediately and replace it at a different site'; 'Notify the healthcare provider'; 'Remove the IV, elevate the affected limb, and apply cold or warm compresses'. Removal and restart follow the facility's policy and the state's LPN IV scope."
+      }
+    }
+  },
+  "endings": {
+    "compart": {
+      "label": "Severe infiltration injury",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "Her forearm becomes tense and blistered, her fingers turn dusky and numb, and the surgeon is called for a compartment pressure check."
+    },
+    "safe": {
+      "label": "Infiltration managed",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"rn\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and (not isNull(stopAt) and not isNull(removeAt)) and isNull(flushAt) and isNull(restartAt)",
+      "narrative": "{timeAt(leftAt)|clock}: the infusion is off, the catheter out, her arm elevated and the RN has a new line running."
+    },
+    "safeGaps": {
+      "label": "Managed, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: the RN has a new line in, but the report was slow, the line was flushed or restarted, or the catheter stayed in."
+    },
+    "time_up": {
+      "label": "Unreported at 11:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "11:00 and the RN does not know."
+    }
+  },
+  "endingOrder": [
+    "compart",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "The RN told within 5 minutes of finding the site",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"rn\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"rn\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "stopC",
+        "label": "Stopped the infusion and removed the catheter",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(stopAt) and not isNull(removeAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not both."
+          }
+        ]
+      },
+      {
+        "id": "noFlushC",
+        "label": "Did not flush, restart or give the antibiotic through the site",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(flushAt) or not isNull(restartAt)",
+            "score": "missed",
+            "why": "Flushed or restarted."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Avoided."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Elevated the arm and checked circulation and pain",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(elevateAt) and not isNull(pulseAt) and not isNull(painAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(elevateAt) or not isNull(pulseAt) or not isNull(painAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Recognized infiltration",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"infil\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"occl\"",
+            "score": "missed",
+            "why": "Swollen, cool, pale tissue is infiltration."
+          },
+          {
+            "when": "dxEnum == \"phleb\"",
+            "score": "missed",
+            "why": "Phlebitis is red and warm, not cool and pale."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented and marked the swelling",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: infiltration; stop, remove, elevate, report; never flush or restart",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Site found to the report",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "10:00 to the infusion stopped",
+        "value": "isNull(stopAt) ? -1 : timeAt(stopAt)",
+        "format": "duration",
+        "expert": "under 2 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "10:00",
+        "text": "Swollen, taut, cool, pale forearm."
+      },
+      {
+        "at": "~10:01",
+        "text": "Stop the infusion; remove the catheter; elevate."
+      },
+      {
+        "at": "~10:02",
+        "text": "Report to the RN."
+      },
+      {
+        "at": "~10:04",
+        "text": "Circulation and pain; document and mark the swelling."
+      }
+    ],
+    "debrief": {
+      "compart": {
+        "headline": "Severe infiltration injury",
+        "body": "Swollen, taut, cool, pale skin above an IV is infiltration. Stop the infusion, remove the catheter, elevate and report; never flush through it or restart the pump."
+      },
+      "safe": {
+        "headline": "Infiltration managed",
+        "body": "You recognized infiltration, stopped and removed it, elevated the arm, checked circulation and reported to the RN within minutes. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Managed, with gaps",
+        "body": "Check how soon you reported, whether you flushed or restarted, and whether the infusion was stopped and the catheter removed."
+      },
+      "time_up": {
+        "headline": "Unreported at 11:00",
+        "body": "An infiltrated site is stopped and reported at once."
+      }
+    },
+    "modelReasoning": "Infiltration is IV fluid or medication leaking into the tissue around the vein; the site swells, the skin turns taut, cool and pale, and it hurts. Stop the infusion, remove the catheter and place a new one at a different site, elevate the limb, notify, and use compresses as directed. Within this LPN's scope: stop, remove per policy, elevate, check circulation, report to the RN, who restarts the line and gives the antibiotic, and document. Never flush through an infiltrated site or restart the pump."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "actQ": {
+      "during": "leaveT",
+      "ask": "While the RN places a new line: what is the immediate response to infiltration?",
+      "choices": [
+        {
+          "id": "stop",
+          "label": "Stop the infusion, remove the catheter, elevate, notify"
+        },
+        {
+          "id": "flush",
+          "label": "Flush to clear it"
+        },
+        {
+          "id": "rate",
+          "label": "Slow the rate and keep going"
+        }
+      ],
+      "expect": "stop",
+      "explain": "Stop the IV and remove it, replace it at a different site, elevate the limb and notify the provider.",
+      "source": {
+        "cite": "Frank E, Olinde A, et al. Intravenous (IV) Therapy for Practical Nurses, Chapter 7: Complications of Intravenous Therapy (LOUIS Pressbooks, CC BY)",
+        "checkedAt": "2026-11-17",
+        "url": "https://louis.pressbooks.pub/intravenoustherapy/chapter/complications",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: infiltration: 'IV fluid or medication leaks into the surrounding tissue instead of the vein'; 'Intravenous infiltration causes swelling around the site'; 'the healthcare professional should stop the IV and remove it immediately and replace it at a different site'; 'Notify the healthcare provider'; 'Remove the IV, elevate the affected limb, and apply cold or warm compresses'. Removal and restart follow the facility's policy and the state's LPN IV scope."
+      }
+    },
+    "infQ": {
+      "during": "testT",
+      "ask": "While you check: which signs mean infiltration?",
+      "choices": [
+        {
+          "id": "inf",
+          "label": "Swelling with taut, cool, pale skin around the site"
+        },
+        {
+          "id": "phleb",
+          "label": "A red, warm streak along the vein"
+        },
+        {
+          "id": "none",
+          "label": "A dry dressing"
+        }
+      ],
+      "expect": "inf",
+      "explain": "Infiltration is IV fluid leaking into the surrounding tissue instead of the vein; it causes swelling around the site.",
+      "source": {
+        "cite": "Frank E, Olinde A, et al. Intravenous (IV) Therapy for Practical Nurses, Chapter 7: Complications of Intravenous Therapy (LOUIS Pressbooks, CC BY)",
+        "checkedAt": "2026-11-17",
+        "url": "https://louis.pressbooks.pub/intravenoustherapy/chapter/complications",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: infiltration: 'IV fluid or medication leaks into the surrounding tissue instead of the vein'; 'Intravenous infiltration causes swelling around the site'; 'the healthcare professional should stop the IV and remove it immediately and replace it at a different site'; 'Notify the healthcare provider'; 'Remove the IV, elevate the affected limb, and apply cold or warm compresses'. Removal and restart follow the facility's policy and the state's LPN IV scope."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}
