@@ -1,0 +1,1012 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cilium-default-deny-breaks-dns",
+  "title": "A first Cilium policy that cut the payments namespace off from DNS: default deny, identities and FQDN egress",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "net@ledgerwise:~$",
+      "lines": [
+        {
+          "id": "firstLine",
+          "text": "payments-api: dial tcp: lookup api.cardproc.example: i/o timeout",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "lineDns",
+          "text": "{dns == \"dnsRule\" ? \"DNS allowed through the DNS proxy\" : dns == \"dnsNoL7\" ? \"Port 53 open, no DNS visibility\" : dns == \"never\" ? \"Enforcement off cluster-wide\" : \"\"}",
+          "when": "dns != \"none\"",
+          "at": "timeAt(dnsAt)",
+          "error": "dns == \"never\""
+        },
+        {
+          "id": "lineFqdn",
+          "text": "{fqdn == \"toFqdn\" ? \"Allowed by name (toFQDNs) on 443\" : fqdn == \"toCidr\" ? \"Today's addresses allowed (toCIDR)\" : fqdn == \"world\" ? \"Egress to the world on all ports\" : \"\"}",
+          "when": "fqdn != \"none\"",
+          "at": "timeAt(fqdnAt)",
+          "error": "fqdn == \"world\""
+        },
+        {
+          "id": "lineIdent",
+          "text": "{ident == \"labels\" ? \"Selected by identity (labels)\" : ident == \"both\" ? \"Labels plus a stale-prone CIDR\" : ident == \"ipOnly\" ? \"Database allowed by today's IP\" : \"\"}",
+          "when": "ident != \"none\"",
+          "at": "timeAt(identAt)",
+          "error": "ident == \"ipOnly\""
+        }
+      ],
+      "nodes": [
+        {
+          "id": "nDns",
+          "label": "payments-api egress to CoreDNS",
+          "spokenLabel": "payments-api egress to CoreDNS",
+          "kind": "egress rule",
+          "status": "{dns == \"dnsRule\" ? \"DNS allowed through the DNS proxy\" : dns == \"dnsNoL7\" ? \"Port 53 open, no DNS visibility\" : dns == \"never\" ? \"Enforcement off cluster-wide\" : \"Waiting\"}",
+          "tone": "dns == \"dnsRule\" ? \"up\" : dns == \"dnsNoL7\" ? \"degraded\" : dns == \"never\" ? \"down\" : p >= 1 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nFqdn",
+          "label": "payments-api egress to the card processor",
+          "spokenLabel": "payments-api egress to the card processor",
+          "kind": "egress rule",
+          "status": "{fqdn == \"toFqdn\" ? \"Allowed by name (toFQDNs) on 443\" : fqdn == \"toCidr\" ? \"Today's addresses allowed (toCIDR)\" : fqdn == \"world\" ? \"Egress to the world on all ports\" : \"Waiting\"}",
+          "tone": "fqdn == \"toFqdn\" ? \"up\" : fqdn == \"toCidr\" ? \"degraded\" : fqdn == \"world\" ? \"down\" : p >= 2 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nIdent",
+          "label": "payments-api to payments-db",
+          "spokenLabel": "payments-api to payments-db",
+          "kind": "identity",
+          "status": "{ident == \"labels\" ? \"Selected by identity (labels)\" : ident == \"both\" ? \"Labels plus a stale-prone CIDR\" : ident == \"ipOnly\" ? \"Database allowed by today's IP\" : \"Waiting\"}",
+          "tone": "ident == \"labels\" ? \"up\" : ident == \"both\" ? \"degraded\" : ident == \"ipOnly\" ? \"down\" : p >= 3 ? \"degraded\" : \"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "link0",
+          "from": "nDns",
+          "to": "nFqdn",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        },
+        {
+          "id": "link1",
+          "from": "nFqdn",
+          "to": "nIdent",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Check-in",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Interpret Cilium network policies and their intent: endpointSelector, ingress and egress rules, and what a policy allows at L3, L4 and L7",
+  "secondaryObjectives": [
+    "Policy enforcement modes: default, always and never, and what each means for endpoints with no policy",
+    "Write policy rules using the policy rule structure: CiliumNetworkPolicy and CiliumClusterwideNetworkPolicy, toEndpoints, toFQDNs, toEntities, toCIDR, toPorts with L7 rules",
+    "Understand Cilium's identity-based network security model: security identities derived from labels, how they replace IP-based rules, and how identities are shared across nodes"
+  ],
+  "sources": [
+    {
+      "cite": "Isovalent, Cilium Certified Associate (CCA) exam page: Architecture 20%, Network Policy 18%, Service Mesh 16%, Network Observability 10%, Installation and Configuration 10%, Cluster Mesh 10%, eBPF 10%, BGP and External Networking 6%",
+      "checkedAt": "2026-11-17",
+      "url": "https://isovalent.com/blog/post/cilium-certified-associate-cca",
+      "note": "Read through a summarizing fetch on 2026-11-17 (a third-party page from the project's main contributor, not the CNCF curriculum; to verify against cncf/curriculum). The objective wording is the course seed's. Reused for REQ-336 from this course's cluster-pool-exhausted-new-nodes (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Cilium documentation, Policy Enforcement Modes (stable)",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.cilium.io/en/stable/security/policy/intro/",
+      "note": "Read 2026-11-17 through a summarizing fetch of the page found by search. default enforces policy only on endpoints a rule selects (unselected endpoints are unrestricted); always enforces on all endpoints; never disables enforcement. A rule selecting an endpoint with an ingress or egress section makes that direction default-deny."
+    },
+    {
+      "cite": "GrokDevOps wiki, Cilium footguns",
+      "checkedAt": "2026-11-17",
+      "url": "https://grokdatum.github.io/grokdevops-wiki/library/topics/cilium/footguns",
+      "note": "Found by search 2026-11-17 and read only through the search listing (title and address); to verify against the page. Used for: common Cilium policy mistakes, including a toFQDNs rule without a DNS rule that lets the DNS proxy see lookups."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The company, the clusters, the services and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the network engineer at Ledgerwise, a fictional fintech. An auditor asked that the payments namespace only talk to the card processor's API and its own database. A colleague applied a first CiliumNetworkPolicy ten minutes ago; since then every payment fails.",
+    "handover": [
+      "The policy selects app=payments-api with one egress rule: toEndpoints app=payments-db on port 5432.",
+      "The card processor is reached as api.cardproc.example on port 443; its IP addresses change."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the map shows each component and its status in words.",
+      "Move on a check-in at a time. A decision comes to you at each check-in; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-02-16T14:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "dns": {
+      "type": "enum",
+      "values": [
+        "none",
+        "dnsRule",
+        "dnsNoL7",
+        "never"
+      ],
+      "init": "none"
+    },
+    "dnsAt": {
+      "type": "time",
+      "init": null
+    },
+    "fqdn": {
+      "type": "enum",
+      "values": [
+        "none",
+        "toFqdn",
+        "toCidr",
+        "world"
+      ],
+      "init": "none"
+    },
+    "fqdnAt": {
+      "type": "time",
+      "init": null
+    },
+    "ident": {
+      "type": "enum",
+      "values": [
+        "none",
+        "labels",
+        "both",
+        "ipOnly"
+      ],
+      "init": "none"
+    },
+    "identAt": {
+      "type": "time",
+      "init": null
+    },
+    "hubbleAt": {
+      "type": "time",
+      "init": null
+    },
+    "policyAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((dns == \"never\") ? 1 : 0) + ((fqdn == \"world\") ? 1 : 0) + ((ident == \"ipOnly\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(dns == \"none\" or (dns == \"never\") ? 1 : 0) + (fqdn == \"none\" or (fqdn == \"world\") ? 1 : 0) + (ident == \"none\" or (ident == \"ipOnly\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The policy change",
+      "clock": "turns",
+      "actions": [
+        "hubble",
+        "policy"
+      ]
+    },
+    "close": {
+      "label": "Change record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "hubble": {
+      "label": "hubble observe -n payments --verdict DROPPED",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(hubbleAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "hubbleAt",
+          "to": "t"
+        },
+        {
+          "output": "payments-api -> kube-system/coredns:53 UDP  DROPPED (Policy denied)\npayments-api -> 203.0.113.40:443 TCP  DROPPED (Policy denied)"
+        },
+        {
+          "log": "You watch the dropped flows.",
+          "kind": "act"
+        },
+        {
+          "finding": "The policy made payments-api's egress default-deny: DNS to CoreDNS and the processor's address are both dropped. Only the database rule is allowed."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "policy": {
+      "label": "kubectl get cnp payments-egress -o yaml",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(policyAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "policyAt",
+          "to": "t"
+        },
+        {
+          "output": "endpointSelector: matchLabels app=payments-api\negress:\n- toEndpoints: matchLabels app=payments-db\n  toPorts: port 5432/TCP"
+        },
+        {
+          "log": "You read the policy.",
+          "kind": "act"
+        },
+        {
+          "finding": "In the default enforcement mode, selecting payments-api with an egress section makes its egress default-deny; there is no rule for DNS and none for the processor."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the change record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Why egress became default-deny, DNS allowed with a DNS rule, the processor allowed by FQDN, and the database kept on identity"
+                },
+                {
+                  "value": "summary",
+                  "label": "Policy fixed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next check-in",
+      "wait": {
+        "skipLabel": "Go to the next check-in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "dns == \"never\"",
+              "then": [
+                {
+                  "log": "Check-in 2: with enforcement off, the internal admin namespace is reachable from the public web tier; the security team opens an incident.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "fqdn == \"world\"",
+              "then": [
+                {
+                  "log": "Check-in 3: the auditor's scan shows payments-api can reach any internet address on any port; the control fails the audit.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "ident == \"ipOnly\"",
+              "then": [
+                {
+                  "log": "Check-in 4: the database Pod is rescheduled during a node update; its IP changes and payments cannot reach it.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "10min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The change window closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "10min"
+        }
+      ]
+    },
+    {
+      "id": "t_dns",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 1: payments are failing.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "dnsPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_fqdn",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 2: lookups work; calls to the processor are still dropped.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "fqdnPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_ident",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 3: a teammate wants to switch the database rule to the database's Pod IP.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "identPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "dnsPrompt": {
+      "title": "Egress is default-deny now",
+      "context": "Every lookup from payments-api is dropped.",
+      "choices": [
+        {
+          "id": "dnsRule",
+          "label": "Add an egress rule to kube-dns on port 53 with an L7 DNS rule (matchPattern '*'), keeping the policy's default deny",
+          "effects": [
+            {
+              "set": "dns",
+              "to": "\"dnsRule\""
+            },
+            {
+              "set": "dnsAt",
+              "to": "t"
+            },
+            {
+              "log": "DNS is allowed through Cilium's DNS proxy.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Selecting an endpoint makes its egress default-deny; DNS has to be allowed, and an L7 DNS rule lets later FQDN rules work."
+        },
+        {
+          "id": "dnsNoL7",
+          "label": "Allow UDP 53 to kube-dns without a DNS rule",
+          "effects": [
+            {
+              "set": "dns",
+              "to": "\"dnsNoL7\""
+            },
+            {
+              "set": "dnsAt",
+              "to": "t"
+            },
+            {
+              "log": "Port 53 is open to kube-dns.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Lookups work, but without the L7 DNS rule Cilium cannot learn names, so a toFQDNs rule will not work."
+        },
+        {
+          "id": "never",
+          "label": "Set the policy enforcement mode to never cluster-wide until the policy is fixed",
+          "effects": [
+            {
+              "set": "dns",
+              "to": "\"never\""
+            },
+            {
+              "set": "dnsAt",
+              "to": "t"
+            },
+            {
+              "log": "Enforcement is off for the whole cluster.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "never disables enforcement everywhere: every other namespace's policies stop protecting it too."
+        }
+      ]
+    },
+    "fqdnPrompt": {
+      "title": "The processor's addresses change",
+      "context": "api.cardproc.example resolves to addresses that change several times a day.",
+      "choices": [
+        {
+          "id": "toFqdn",
+          "label": "Add a toFQDNs rule for api.cardproc.example on port 443",
+          "effects": [
+            {
+              "set": "fqdn",
+              "to": "\"toFqdn\""
+            },
+            {
+              "set": "fqdnAt",
+              "to": "t"
+            },
+            {
+              "log": "Egress is allowed to whatever the name resolves to.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "toFQDNs follows the name through the DNS proxy, so address changes need no policy change."
+        },
+        {
+          "id": "toCidr",
+          "label": "Add a toCIDR rule for the three addresses the name resolves to now",
+          "effects": [
+            {
+              "set": "fqdn",
+              "to": "\"toCidr\""
+            },
+            {
+              "set": "fqdnAt",
+              "to": "t"
+            },
+            {
+              "log": "Today's three addresses are allowed.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "It works until the processor's addresses change, then payments fail again."
+        },
+        {
+          "id": "world",
+          "label": "Add toEntities: world on all ports",
+          "effects": [
+            {
+              "set": "fqdn",
+              "to": "\"world\""
+            },
+            {
+              "set": "fqdnAt",
+              "to": "t"
+            },
+            {
+              "log": "payments-api may now reach anything outside the cluster.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "This undoes what the auditor asked for: payments can now reach any address on any port."
+        }
+      ]
+    },
+    "identPrompt": {
+      "title": "Labels or addresses for the database?",
+      "context": "A teammate says the database rule 'feels fragile' and wants toCIDR on the database Pod's current IP.",
+      "choices": [
+        {
+          "id": "labels",
+          "label": "Keep toEndpoints on the database's labels: Cilium derives an identity from them and every node enforces it, whatever the Pod's IP",
+          "effects": [
+            {
+              "set": "ident",
+              "to": "\"labels\""
+            },
+            {
+              "set": "identAt",
+              "to": "t"
+            },
+            {
+              "log": "The rule stays on labels.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Identities come from labels and are shared across nodes, so a rescheduled database keeps working."
+        },
+        {
+          "id": "both",
+          "label": "Add the Pod IP as a toCIDR rule alongside the label rule, just in case",
+          "effects": [
+            {
+              "set": "ident",
+              "to": "\"both\""
+            },
+            {
+              "set": "identAt",
+              "to": "t"
+            },
+            {
+              "log": "A redundant CIDR rule is added.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Harmless today, but the CIDR rule will allow whatever Pod gets that IP next."
+        },
+        {
+          "id": "ipOnly",
+          "label": "Replace the label rule with toCIDR on the database Pod's current IP",
+          "effects": [
+            {
+              "set": "ident",
+              "to": "\"ipOnly\""
+            },
+            {
+              "set": "identAt",
+              "to": "t"
+            },
+            {
+              "log": "The label rule is replaced by today's IP.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Pod IPs change on reschedule: the database moves and payments lose it."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the change record: what the first policy did, and what the fixed policy allows at L3, L4 and L7.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "What happened",
+          "criteria": "Selecting payments-api with an egress section made egress default-deny in default mode; DNS and the processor were dropped.",
+          "modelAnswer": "In default mode a policy that selects payments-api with an egress section makes its egress default-deny; Hubble showed DNS and the processor dropped."
+        },
+        {
+          "label": "What it allows now",
+          "criteria": "DNS through an L7 DNS rule, the processor by FQDN on 443, the database by identity on 5432.",
+          "modelAnswer": "kube-dns on 53 with a DNS rule, api.cardproc.example by toFQDNs on 443, and payments-db by labels on 5432; nothing else."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Service restored and the work closed within 60 minutes of the first report."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No fault introduced by the response itself."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (dns == \"dnsNoL7\") and (fqdn == \"toCidr\") and (ident == \"both\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "Isovalent, Cilium Certified Associate (CCA) exam page: Architecture 20%, Network Policy 18%, Service Mesh 16%, Network Observability 10%, Installation and Configuration 10%, Cluster Mesh 10%, eBPF 10%, BGP and External Networking 6%",
+        "checkedAt": "2026-11-17",
+        "url": "https://isovalent.com/blog/post/cilium-certified-associate-cca",
+        "note": "Read through a summarizing fetch on 2026-11-17 (a third-party page from the project's main contributor, not the CNCF curriculum; to verify against cncf/curriculum). The objective wording is the course seed's. Reused for REQ-336 from this course's cluster-pool-exhausted-new-nodes (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "dnsHarm": {
+      "label": "Enforcement turned off everywhere",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and dns == \"never\"",
+      "narrative": "Setting the mode to never removed every namespace's protection; the admin namespace was reachable from the web tier."
+    },
+    "fqdnHarm": {
+      "label": "Egress opened to everything",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and fqdn == \"world\"",
+      "narrative": "toEntities world on all ports let payments reach any address; the control failed the audit."
+    },
+    "identHarm": {
+      "label": "Lost the database on reschedule",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and ident == \"ipOnly\"",
+      "narrative": "The IP-based rule broke when the database Pod was rescheduled; payments failed until it was fixed."
+    },
+    "target": {
+      "label": "Least-privilege egress that works",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (dns == \"dnsRule\") and (fqdn == \"toFqdn\") and (ident == \"labels\") and record == \"honest\" and missCount <= newFaults and timeAt(doneAt) <= restoreWindow",
+      "narrative": "Payments reach DNS, the processor and their database, and nothing else, as the auditor asked."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "dnsHarm",
+    "fqdnHarm",
+    "identHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "dnsCrit",
+        "label": "Allowed DNS explicitly, with a DNS rule the proxy can see",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "dns == \"dnsRule\"",
+            "score": "met",
+            "why": "DNS allowed explicitly."
+          },
+          {
+            "when": "dns == \"dnsNoL7\"",
+            "score": "partial",
+            "why": "DNS works, FQDN rules will not."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Turned enforcement off for everyone."
+          }
+        ]
+      },
+      {
+        "id": "fqdnCrit",
+        "label": "Allowed the processor by name, not by today's address",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fqdn == \"toFqdn\"",
+            "score": "met",
+            "why": "Allowed by name."
+          },
+          {
+            "when": "fqdn == \"toCidr\"",
+            "score": "partial",
+            "why": "Works until the addresses change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Opened egress to everything."
+          }
+        ]
+      },
+      {
+        "id": "identCrit",
+        "label": "Kept identity-based selection for in-cluster peers",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "ident == \"labels\"",
+            "score": "met",
+            "why": "Kept identity selection."
+          },
+          {
+            "when": "ident == \"both\"",
+            "score": "partial",
+            "why": "A redundant, risky extra rule."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Tied the rule to an address."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(hubbleAt) and not isNull(policyAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(hubbleAt) or not isNull(policyAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Watch the dropped flows in Hubble and read the policy before changing it."
+      },
+      {
+        "at": "Check-in 1",
+        "text": "Allow DNS to kube-dns with an L7 DNS rule, keeping default deny."
+      },
+      {
+        "at": "Check-in 2",
+        "text": "Allow the processor with toFQDNs on 443."
+      },
+      {
+        "at": "Check-in 3",
+        "text": "Keep the database rule on labels: identities follow the Pod."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "dnsHarm": {
+        "headline": "Fix the policy, not the mode",
+        "body": "Default mode enforces only on selected endpoints; add the missing allow rules instead of disabling enforcement."
+      },
+      "fqdnHarm": {
+        "headline": "Allow the name you need",
+        "body": "toFQDNs with the port allows exactly the processor, whatever its addresses."
+      },
+      "identHarm": {
+        "headline": "Select peers by identity",
+        "body": "Cilium's identities come from labels; in-cluster peers are selected by labels, not addresses."
+      },
+      "target": {
+        "headline": "Good: least-privilege egress that works",
+        "body": "Default deny kept, DNS and the processor allowed by name, the database by identity."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "In Cilium's default enforcement mode an endpoint is unrestricted until a policy selects it; once a rule with an egress section selects it, egress is default-deny. So DNS must be allowed explicitly, and an L7 DNS rule lets the DNS proxy learn names for toFQDNs. External services with changing addresses are allowed by name on their port, not by today's CIDR and never by 'world'. In-cluster peers are selected by labels: Cilium turns labels into identities that every node enforces, whatever the Pod's IP."
+  }
+}
