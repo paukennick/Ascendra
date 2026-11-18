@@ -570,6 +570,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("DP300", "app-pinned-to-old-primary-after-geo-failover"),
   entry("DP300", "log-backup-job-failing-expired-sas"),
   entry("DP300", "lrs-cutover-tail-backup-not-restored"),
+  band("AZ140", "stale-udr-to-retired-nva-az140"),
   // ---- end REQ-335 ----
   // ---- REQ-323 (docs/sims.md 22.32): health breadth and nursing depth of the
   // 2026-11-17 round. Bands first, then new cases. Keep these together. ----
