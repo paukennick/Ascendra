@@ -47,4 +47,10 @@ export const DEPTH_ISP: readonly DepthIspEntry[] = [
   { course: "CEH", slug: "pentest-scope-boundary-ceh", screen: "security-console", profile: "security", kind: "band", steps: "isp-ceh-pentest-scope-boundary-ceh", base: "PENTESTPLUS/pentest-scope-boundary" },
   { course: "CEH", slug: "cloud-iam-backdoor-ceh", screen: "security-console", profile: "security", kind: "band", steps: "isp-ceh-cloud-iam-backdoor-ceh", base: "SECPLUS/cloud-iam-backdoor" },
   { course: "SECURITYX", slug: "risk-appetite-exception-securityx", screen: "governance-board", profile: "governance", kind: "band", steps: "isp-securityx-risk-appetite-exception-securityx", base: "CISM/cism-risk-appetite-exception" },
+  { course: "APLUS_CORE1", slug: "office-server-raid-psu-printer", screen: "service-desk", profile: "service", kind: "scenario", steps: "isp-aplus1-hardware" },
+  { course: "APLUS_CORE1", slug: "soho-router-forwarding-guest-wifi", screen: "service-desk", profile: "service", kind: "scenario", steps: "isp-aplus1-network" },
+  { course: "APLUS_CORE1", slug: "developer-vm-resources-host-starved", screen: "service-desk", profile: "service", kind: "scenario", steps: "isp-aplus1-vm" },
+  { course: "APLUS_CORE2", slug: "windows-update-failure-restore-backup", screen: "service-desk", profile: "service", kind: "scenario", steps: "isp-aplus2-os" },
+  { course: "APLUS_CORE2", slug: "laptop-bitlocker-uac-firewall", screen: "service-desk", profile: "service", kind: "scenario", steps: "isp-aplus2-security" },
+  { course: "TECHPLUS", slug: "browser-passwords-ai-assistant-help", screen: "service-desk", profile: "service", kind: "scenario", steps: "isp-techplus-apps" },
 ];

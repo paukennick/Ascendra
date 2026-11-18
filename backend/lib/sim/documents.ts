@@ -700,6 +700,12 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   band("CEH", "pentest-scope-boundary-ceh"),
   band("CEH", "cloud-iam-backdoor-ceh"),
   band("SECURITYX", "risk-appetite-exception-securityx"),
+  entry("APLUS_CORE1", "office-server-raid-psu-printer"),
+  entry("APLUS_CORE1", "soho-router-forwarding-guest-wifi"),
+  entry("APLUS_CORE1", "developer-vm-resources-host-starved"),
+  entry("APLUS_CORE2", "windows-update-failure-restore-backup"),
+  entry("APLUS_CORE2", "laptop-bitlocker-uac-firewall"),
+  entry("TECHPLUS", "browser-passwords-ai-assistant-help"),
   // ---- end REQ-336 ----
 ];
 
