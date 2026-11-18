@@ -670,6 +670,18 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("CGOA", "gitops-claim-review-push-pipeline"),
   entry("CGOA", "gitops-store-fleet-patterns"),
   band("CGOA", "argocd-prune-moved-database-cgoa"),
+  entry("CKS", "restricted-profile-payments-rollout"),
+  entry("CKS", "image-admission-unsigned-critical-cve"),
+  band("CKS", "cilium-default-deny-breaks-dns-cks"),
+  entry("ICA", "istio-strict-mtls-allow-policy-lockout"),
+  entry("ICA", "istio-503s-stale-proxies-missing-subset"),
+  entry("ICA", "istio-canary-revision-upgrade"),
+  entry("KCA", "kyverno-webhook-timeouts-node-drain"),
+  entry("KCA", "kyverno-match-exclude-blocks-deletes"),
+  entry("KCA", "kyverno-hostpath-exception-scope"),
+  entry("OTCA", "otel-collector-oom-fanout-pii"),
+  entry("OTCA", "otel-instrumentation-plan-checkout"),
+  entry("OTCA", "otel-missing-traces-pipeline-debug"),
   // ---- end REQ-336 ----
 ];
 

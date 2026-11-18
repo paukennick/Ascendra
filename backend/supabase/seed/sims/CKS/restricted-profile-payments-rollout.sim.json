@@ -1,0 +1,1011 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "restricted-profile-payments-rollout",
+  "title": "Hardening the payments namespace: a restricted profile rolled out safely, a hardened securityContext and Secrets out of environment variables",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "sec@cobaltline:~$",
+      "lines": [
+        {
+          "id": "firstLine",
+          "text": "pentest: payments-api runs as uid 0 with allowPrivilegeEscalation true",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "linePsa",
+          "text": "{psa == \"warnFirst\" ? \"warn and audit on; enforce after the fixes\" : psa == \"baseline\" ? \"baseline enforced; restricted deferred\" : psa == \"enforceNow\" ? \"restricted enforced on failing workloads\" : \"\"}",
+          "when": "psa != \"none\"",
+          "at": "timeAt(psaAt)",
+          "error": "psa == \"enforceNow\""
+        },
+        {
+          "id": "lineCtx",
+          "text": "{ctx == \"hardened\" ? \"Hardened: non-root, read-only, no escalation, no capabilities, RuntimeDefault\" : ctx == \"nonRootOnly\" ? \"Non-root only\" : ctx == \"privileged\" ? \"Privileged and exempted\" : \"\"}",
+          "when": "ctx != \"none\"",
+          "at": "timeAt(ctxAt)",
+          "error": "ctx == \"privileged\""
+        },
+        {
+          "id": "lineSec",
+          "text": "{sec == \"mount\" ? \"Mounted file; RBAC narrowed; encrypted at rest\" : sec == \"mountOnly\" ? \"Mounted file only\" : sec == \"configMap\" ? \"Password in a ConfigMap\" : \"\"}",
+          "when": "sec != \"none\"",
+          "at": "timeAt(secAt)",
+          "error": "sec == \"configMap\""
+        }
+      ],
+      "nodes": [
+        {
+          "id": "nPsa",
+          "label": "namespace payments (Pod Security Admission)",
+          "spokenLabel": "namespace payments (Pod Security Admission)",
+          "kind": "namespace",
+          "status": "{psa == \"warnFirst\" ? \"warn and audit on; enforce after the fixes\" : psa == \"baseline\" ? \"baseline enforced; restricted deferred\" : psa == \"enforceNow\" ? \"restricted enforced on failing workloads\" : \"Waiting\"}",
+          "tone": "psa == \"warnFirst\" ? \"up\" : psa == \"baseline\" ? \"degraded\" : psa == \"enforceNow\" ? \"down\" : p >= 1 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nCtx",
+          "label": "payments-api container",
+          "spokenLabel": "payments-api container",
+          "kind": "container",
+          "status": "{ctx == \"hardened\" ? \"Hardened: non-root, read-only, no escalation, no capabilities, RuntimeDefault\" : ctx == \"nonRootOnly\" ? \"Non-root only\" : ctx == \"privileged\" ? \"Privileged and exempted\" : \"Waiting\"}",
+          "tone": "ctx == \"hardened\" ? \"up\" : ctx == \"nonRootOnly\" ? \"degraded\" : ctx == \"privileged\" ? \"down\" : p >= 2 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nSec",
+          "label": "Secret payments-db",
+          "spokenLabel": "Secret payments-db",
+          "kind": "Secret",
+          "status": "{sec == \"mount\" ? \"Mounted file; RBAC narrowed; encrypted at rest\" : sec == \"mountOnly\" ? \"Mounted file only\" : sec == \"configMap\" ? \"Password in a ConfigMap\" : \"Waiting\"}",
+          "tone": "sec == \"mount\" ? \"up\" : sec == \"mountOnly\" ? \"degraded\" : sec == \"configMap\" ? \"down\" : p >= 3 ? \"degraded\" : \"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "link0",
+          "from": "nPsa",
+          "to": "nCtx",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        },
+        {
+          "id": "link1",
+          "from": "nCtx",
+          "to": "nSec",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Check-in",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Write a hardened container securityContext: runAsNonRoot, readOnlyRootFilesystem, allowPrivilegeEscalation false, dropped capabilities, no privileged or host namespaces",
+  "secondaryObjectives": [
+    "Use appropriate Pod Security Standards: apply the privileged, baseline and restricted profiles through Pod Security Admission namespace labels and fix workloads that fail them",
+    "Manage Kubernetes Secrets securely: encryption at rest with an EncryptionConfiguration, RBAC on secrets, mounting over environment variables, and external secret stores"
+  ],
+  "sources": [
+    {
+      "cite": "CNCF CKS Curriculum v1.37 (cncf/curriculum, pinned commit 0a8cc08a): Cluster Setup 15%, Cluster Hardening 15%, System Hardening 10%, Minimize Microservice Vulnerabilities 20%, Supply Chain Security 20%, Monitoring, Logging and Runtime Security 20%",
+      "checkedAt": "2026-11-17",
+      "url": "https://github.com/cncf/curriculum/tree/0a8cc08a502710a894e5724c2bec7b88404e5a6b",
+      "note": "The curriculum was read in primary text on 2026-11-07 by the course builder (backend/supabase/seed/tracks/kubernetes.ts). On 2026-11-17 a third-party summary (slauger.github.io/kubestronaut/cks/monitoring-logging-runtime) confirmed the 20% domain; the PDF itself was not re-read. The objective wording is the course seed's. Reused for REQ-336 from this course's falco-shell-in-catalog-pod (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Kubernetes KEP-2579, PSP Replacement Policy (Pod Security Admission)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.k8s.dev/resources/keps/2579/",
+      "note": "Found by search 2026-11-17 and read only through the search listing (title and address); to verify against the page. Used for: Pod Security Admission's enforce, audit and warn modes set by namespace labels; enforce rejects new Pods that violate the profile, and existing Pods are not evicted."
+    },
+    {
+      "cite": "OneUptime blog, 'How to implement Pod Security Admission warnings and audit mode' (2026-02-09)",
+      "checkedAt": "2026-11-17",
+      "url": "https://oneuptime.com/blog/post/2026-02-09-psa-warnings-audit-mode/view",
+      "note": "Found by search 2026-11-17 and read only through the search listing (title and address); to verify against the page. Used for: rolling a stricter profile out with warn and audit labels first, then enforce."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The company, the clusters, the workloads and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the Kubernetes security engineer at Cobaltline Payments, a fictional card processor. A penetration test found the payments-api container running as root with privilege escalation allowed and its database password in an environment variable. The audit wants the namespace on the restricted Pod Security Standard by Friday.",
+    "handover": [
+      "The payments namespace has no Pod Security Admission labels.",
+      "payments-api: runs as root, writable root filesystem, all default capabilities, DB_PASSWORD in env from a Secret."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the map shows each component and its status in words.",
+      "Move on a check-in at a time. A decision comes to you at each check-in; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-04-05T13:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "psa": {
+      "type": "enum",
+      "values": [
+        "none",
+        "warnFirst",
+        "baseline",
+        "enforceNow"
+      ],
+      "init": "none"
+    },
+    "psaAt": {
+      "type": "time",
+      "init": null
+    },
+    "ctx": {
+      "type": "enum",
+      "values": [
+        "none",
+        "hardened",
+        "nonRootOnly",
+        "privileged"
+      ],
+      "init": "none"
+    },
+    "ctxAt": {
+      "type": "time",
+      "init": null
+    },
+    "sec": {
+      "type": "enum",
+      "values": [
+        "none",
+        "mount",
+        "mountOnly",
+        "configMap"
+      ],
+      "init": "none"
+    },
+    "secAt": {
+      "type": "time",
+      "init": null
+    },
+    "dryAt": {
+      "type": "time",
+      "init": null
+    },
+    "specAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((psa == \"enforceNow\") ? 1 : 0) + ((ctx == \"privileged\") ? 1 : 0) + ((sec == \"configMap\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(psa == \"none\" or (psa == \"enforceNow\") ? 1 : 0) + (ctx == \"none\" or (ctx == \"privileged\") ? 1 : 0) + (sec == \"none\" or (sec == \"configMap\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The hardening",
+      "clock": "turns",
+      "actions": [
+        "dry",
+        "spec"
+      ]
+    },
+    "close": {
+      "label": "Change record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "dry": {
+      "label": "kubectl label --dry-run=server ns payments pod-security.kubernetes.io/enforce=restricted",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(dryAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "dryAt",
+          "to": "t"
+        },
+        {
+          "output": "Warning: existing pods in namespace \"payments\" violate the new PodSecurity enforce level \"restricted:latest\"\nWarning: payments-api-7d9: allowPrivilegeEscalation != false, unrestricted capabilities, runAsNonRoot != true, seccompProfile\nWarning: ledger-worker-5c2: runAsNonRoot != true"
+        },
+        {
+          "log": "You dry-run the restricted label.",
+          "kind": "act"
+        },
+        {
+          "finding": "Two workloads would fail the restricted profile: payments-api (privilege escalation, capabilities, root, no seccomp) and ledger-worker (root). Enforcing now would reject their next Pods."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "spec": {
+      "label": "kubectl get deploy payments-api -o yaml | grep -A12 securityContext",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(specAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "specAt",
+          "to": "t"
+        },
+        {
+          "output": "securityContext: (none)\nenv:\n- name: DB_PASSWORD\n  valueFrom: secretKeyRef payments-db/password"
+        },
+        {
+          "log": "You read the container spec.",
+          "kind": "act"
+        },
+        {
+          "finding": "No securityContext at all; the app writes only to /tmp; the password is exposed as an environment variable, visible to anything that can read the process environment or a crash dump."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the change record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Restricted rolled out with warn and audit first, payments-api's hardened securityContext, and the Secret mounted, narrowed and encrypted at rest"
+                },
+                {
+                  "value": "summary",
+                  "label": "Namespace hardened"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next check-in",
+      "wait": {
+        "skipLabel": "Go to the next check-in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "psa == \"enforceNow\"",
+              "then": [
+                {
+                  "log": "Check-in 2: a node is drained early for the upgrade; payments-api's replacement Pods are rejected by admission and card payments fail.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "ctx == \"privileged\"",
+              "then": [
+                {
+                  "log": "Check-in 3: the pentesters return through the same bug; from the privileged container they mount the node's filesystem and read every Pod's secrets on it.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "sec == \"configMap\"",
+              "then": [
+                {
+                  "log": "Check-in 4: a read-only monitoring role, which can read ConfigMaps, exposes the database password in its dashboard.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "10min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The hardening window closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "10min"
+        }
+      ]
+    },
+    {
+      "id": "t_psa",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 1: the audit wants enforcement.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "psaPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_ctx",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 2: the payments team asks what the container needs.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "ctxPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_sec",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 3: the database password.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "secPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "psaPrompt": {
+      "title": "Turn on the restricted profile",
+      "context": "Two workloads would fail restricted today. A node pool upgrade tonight will reschedule every Pod.",
+      "choices": [
+        {
+          "id": "warnFirst",
+          "label": "Label the namespace warn=restricted and audit=restricted now, fix the two workloads, then add enforce=restricted once the dry run is clean",
+          "effects": [
+            {
+              "set": "psa",
+              "to": "\"warnFirst\""
+            },
+            {
+              "set": "psaAt",
+              "to": "t"
+            },
+            {
+              "log": "warn and audit are on; enforce waits for clean workloads.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "warn and audit show violations without rejecting Pods; enforce comes once the workloads pass."
+        },
+        {
+          "id": "baseline",
+          "label": "Enforce baseline now and leave restricted for next quarter",
+          "effects": [
+            {
+              "set": "psa",
+              "to": "\"baseline\""
+            },
+            {
+              "set": "psaAt",
+              "to": "t"
+            },
+            {
+              "log": "baseline is enforced.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "baseline blocks the worst (privileged, host namespaces) but allows root and privilege escalation, which is what the pentest found."
+        },
+        {
+          "id": "enforceNow",
+          "label": "Label enforce=restricted right away to meet the audit",
+          "effects": [
+            {
+              "set": "psa",
+              "to": "\"enforceNow\""
+            },
+            {
+              "set": "psaAt",
+              "to": "t"
+            },
+            {
+              "log": "restricted is enforced now.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Running Pods stay, but every new Pod of the two workloads is rejected: tonight's node upgrade will leave them with none."
+        }
+      ]
+    },
+    "ctxPrompt": {
+      "title": "Harden payments-api",
+      "context": "The app needs no capabilities, writes only /tmp and listens on 8080.",
+      "choices": [
+        {
+          "id": "hardened",
+          "label": "runAsNonRoot true with a non-zero runAsUser, readOnlyRootFilesystem true with an emptyDir at /tmp, allowPrivilegeEscalation false, capabilities drop ALL, seccompProfile RuntimeDefault",
+          "effects": [
+            {
+              "set": "ctx",
+              "to": "\"hardened\""
+            },
+            {
+              "set": "ctxAt",
+              "to": "t"
+            },
+            {
+              "log": "The container runs hardened and passes restricted.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Each setting removes something an attacker inside the container could use, and together they meet restricted."
+        },
+        {
+          "id": "nonRootOnly",
+          "label": "Set runAsNonRoot only",
+          "effects": [
+            {
+              "set": "ctx",
+              "to": "\"nonRootOnly\""
+            },
+            {
+              "set": "ctxAt",
+              "to": "t"
+            },
+            {
+              "log": "The container runs as non-root.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "A good start, but privilege escalation, capabilities and seccomp still fail restricted."
+        },
+        {
+          "id": "privileged",
+          "label": "Set privileged: true so the debugging sidecar keeps working, and exempt the namespace",
+          "effects": [
+            {
+              "set": "ctx",
+              "to": "\"privileged\""
+            },
+            {
+              "set": "ctxAt",
+              "to": "t"
+            },
+            {
+              "log": "The container is privileged and the namespace exempted.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "A privileged container is the host: an attacker in it can escape to the node."
+        }
+      ]
+    },
+    "secPrompt": {
+      "title": "The password in an environment variable",
+      "context": "The password is injected as DB_PASSWORD. Three service accounts can list Secrets in the namespace. etcd encryption at rest is not configured.",
+      "choices": [
+        {
+          "id": "mount",
+          "label": "Mount the Secret as a read-only file, remove get and list on Secrets from the three service accounts, and enable an EncryptionConfiguration for Secrets at rest",
+          "effects": [
+            {
+              "set": "sec",
+              "to": "\"mount\""
+            },
+            {
+              "set": "secAt",
+              "to": "t"
+            },
+            {
+              "log": "The password is a mounted file; RBAC is narrowed; Secrets are encrypted at rest.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A mounted file is not in the process environment, fewer identities can read it, and etcd no longer holds it in plain text."
+        },
+        {
+          "id": "mountOnly",
+          "label": "Mount the Secret as a file and leave RBAC and etcd for later",
+          "effects": [
+            {
+              "set": "sec",
+              "to": "\"mountOnly\""
+            },
+            {
+              "set": "secAt",
+              "to": "t"
+            },
+            {
+              "log": "The password is a mounted file.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Better, but three service accounts can still read it and etcd stores it in plain text."
+        },
+        {
+          "id": "configMap",
+          "label": "Move the password into a ConfigMap so it is not 'a Secret' any more",
+          "effects": [
+            {
+              "set": "sec",
+              "to": "\"configMap\""
+            },
+            {
+              "set": "secAt",
+              "to": "t"
+            },
+            {
+              "log": "The password moves into a ConfigMap.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "ConfigMaps are readable far more widely than Secrets and are never encrypted at rest."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the change record for the audit: how the restricted profile was rolled out, what the hardened container sets, and how the password is protected.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Profile and container",
+          "criteria": "warn and audit first, then enforce; the full hardened securityContext with an emptyDir for /tmp.",
+          "modelAnswer": "We labelled warn and audit restricted, fixed both workloads, then enforced. payments-api runs as non-root with a read-only root, no escalation, all capabilities dropped and RuntimeDefault seccomp."
+        },
+        {
+          "label": "The Secret",
+          "criteria": "Mounted as a file, RBAC narrowed, EncryptionConfiguration for Secrets.",
+          "modelAnswer": "The password is a mounted file, only payments-api's account can read it, and Secrets are encrypted at rest."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Service restored and the work closed within 60 minutes of the first report."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No fault introduced by the response itself."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (psa == \"baseline\") and (ctx == \"nonRootOnly\") and (sec == \"mountOnly\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CNCF CKS Curriculum v1.37 (cncf/curriculum, pinned commit 0a8cc08a): Cluster Setup 15%, Cluster Hardening 15%, System Hardening 10%, Minimize Microservice Vulnerabilities 20%, Supply Chain Security 20%, Monitoring, Logging and Runtime Security 20%",
+        "checkedAt": "2026-11-17",
+        "url": "https://github.com/cncf/curriculum/tree/0a8cc08a502710a894e5724c2bec7b88404e5a6b",
+        "note": "The curriculum was read in primary text on 2026-11-07 by the course builder (backend/supabase/seed/tracks/kubernetes.ts). On 2026-11-17 a third-party summary (slauger.github.io/kubestronaut/cks/monitoring-logging-runtime) confirmed the 20% domain; the PDF itself was not re-read. The objective wording is the course seed's. Reused for REQ-336 from this course's falco-shell-in-catalog-pod (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "psaHarm": {
+      "label": "Payments' Pods rejected",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and psa == \"enforceNow\"",
+      "narrative": "Enforcing restricted before fixing the workloads rejected payments-api's replacement Pods; card payments failed."
+    },
+    "ctxHarm": {
+      "label": "A container escape",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and ctx == \"privileged\"",
+      "narrative": "The privileged payments-api let the pentesters escape to the node and read every Pod's secrets on it."
+    },
+    "secHarm": {
+      "label": "The password exposed",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and sec == \"configMap\"",
+      "narrative": "The password, moved into a ConfigMap, was shown by a read-only monitoring role's dashboard."
+    },
+    "target": {
+      "label": "Restricted, hardened and enforced safely",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (psa == \"warnFirst\") and (ctx == \"hardened\") and (sec == \"mount\") and record == \"honest\" and missCount <= newFaults and timeAt(doneAt) <= restoreWindow",
+      "narrative": "The payments namespace enforces restricted, payments-api runs hardened, and its password is protected end to end."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "psaHarm",
+    "ctxHarm",
+    "secHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "psaCrit",
+        "label": "Rolled the restricted profile out with warn and audit before enforce",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "psa == \"warnFirst\"",
+            "score": "met",
+            "why": "Rolled out safely."
+          },
+          {
+            "when": "psa == \"baseline\"",
+            "score": "partial",
+            "why": "A weaker profile."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Enforced before fixing."
+          }
+        ]
+      },
+      {
+        "id": "ctxCrit",
+        "label": "Wrote a hardened securityContext that passes restricted",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "ctx == \"hardened\"",
+            "score": "met",
+            "why": "Fully hardened."
+          },
+          {
+            "when": "ctx == \"nonRootOnly\"",
+            "score": "partial",
+            "why": "Partly hardened."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Made it privileged."
+          }
+        ]
+      },
+      {
+        "id": "secCrit",
+        "label": "Mounted the Secret as a file, narrowed RBAC and encrypted Secrets at rest",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sec == \"mount\"",
+            "score": "met",
+            "why": "All three fixed."
+          },
+          {
+            "when": "sec == \"mountOnly\"",
+            "score": "partial",
+            "why": "One of three."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Made the password less protected."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(dryAt) and not isNull(specAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(dryAt) or not isNull(specAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Dry-run the restricted label and read the workloads' specs before enforcing."
+      },
+      {
+        "at": "Check-in 1",
+        "text": "Turn on warn and audit, fix the workloads, then enforce restricted."
+      },
+      {
+        "at": "Check-in 2",
+        "text": "Apply the full hardened securityContext with an emptyDir for /tmp."
+      },
+      {
+        "at": "Check-in 3",
+        "text": "Mount the Secret as a file, narrow Secret RBAC, encrypt Secrets at rest."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "psaHarm": {
+        "headline": "Warn and audit, then enforce",
+        "body": "Pod Security Admission enforce rejects new Pods that fail; roll a stricter profile out with warn and audit first."
+      },
+      "ctxHarm": {
+        "headline": "Never privileged in production",
+        "body": "Run as non-root, read-only, without escalation or capabilities, with RuntimeDefault seccomp."
+      },
+      "secHarm": {
+        "headline": "Secrets belong in Secrets",
+        "body": "Mount Secrets as files, restrict who can read them, and encrypt them at rest."
+      },
+      "target": {
+        "headline": "Good: restricted, hardened and enforced safely",
+        "body": "warn and audit before enforce, a full hardened securityContext, and Secrets mounted, restricted and encrypted."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Pod Security Admission applies the Pod Security Standards per namespace by label: enforce rejects new Pods that fail, while warn and audit only report, so roll a stricter profile out with warn and audit, fix the workloads, then enforce. The restricted profile needs non-root, no privilege escalation, all capabilities dropped and a seccomp profile; a read-only root filesystem with an emptyDir for scratch space removes write access an attacker would use. Secrets are safer mounted as files, readable by as few identities as possible and encrypted at rest with an EncryptionConfiguration."
+  }
+}
