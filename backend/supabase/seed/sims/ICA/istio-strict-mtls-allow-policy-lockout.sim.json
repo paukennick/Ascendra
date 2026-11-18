@@ -1,0 +1,1011 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "istio-strict-mtls-allow-policy-lockout",
+  "title": "Zero trust in the mesh: moving to STRICT mTLS and writing an AuthorizationPolicy that does not lock everyone out",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "mesh@harrowgate:~$",
+      "lines": [
+        {
+          "id": "firstLine",
+          "text": "security: claims-api accepts plaintext calls inside the cluster",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "lineMtls",
+          "text": "{mtls == \"injectFirst\" ? \"STRICT after the batch job joined the mesh\" : mtls == \"portException\" ? \"STRICT with a PERMISSIVE port\" : mtls == \"strictNow\" ? \"STRICT mesh-wide; plaintext callers rejected\" : \"\"}",
+          "when": "mtls != \"none\"",
+          "at": "timeAt(mtlsAt)",
+          "error": "mtls == \"strictNow\""
+        },
+        {
+          "id": "lineAuthz",
+          "text": "{authz == \"allow\" ? \"ALLOW: claims-web writes, batch exports, health checks\" : authz == \"denyOnly\" ? \"DENY other writers; everything else open\" : authz == \"writeOnly\" ? \"ALLOW for claims-web writes only\" : \"\"}",
+          "when": "authz != \"none\"",
+          "at": "timeAt(authzAt)",
+          "error": "authz == \"writeOnly\""
+        },
+        {
+          "id": "lineIdn",
+          "text": "{idn == \"both\" ? \"Old and new principals during the move\" : idn == \"namespaceWide\" ? \"Namespace-wide allow\" : idn == \"ignore\" ? \"Policy names the old identity\" : \"\"}",
+          "when": "idn != \"none\"",
+          "at": "timeAt(idnAt)",
+          "error": "idn == \"ignore\""
+        }
+      ],
+      "nodes": [
+        {
+          "id": "nMtls",
+          "label": "claims namespace PeerAuthentication",
+          "spokenLabel": "claims namespace PeerAuthentication",
+          "kind": "PeerAuthentication",
+          "status": "{mtls == \"injectFirst\" ? \"STRICT after the batch job joined the mesh\" : mtls == \"portException\" ? \"STRICT with a PERMISSIVE port\" : mtls == \"strictNow\" ? \"STRICT mesh-wide; plaintext callers rejected\" : \"Waiting\"}",
+          "tone": "mtls == \"injectFirst\" ? \"up\" : mtls == \"portException\" ? \"degraded\" : mtls == \"strictNow\" ? \"down\" : p >= 1 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nAuthz",
+          "label": "claims-api AuthorizationPolicy",
+          "spokenLabel": "claims-api AuthorizationPolicy",
+          "kind": "AuthorizationPolicy",
+          "status": "{authz == \"allow\" ? \"ALLOW: claims-web writes, batch exports, health checks\" : authz == \"denyOnly\" ? \"DENY other writers; everything else open\" : authz == \"writeOnly\" ? \"ALLOW for claims-web writes only\" : \"Waiting\"}",
+          "tone": "authz == \"allow\" ? \"up\" : authz == \"denyOnly\" ? \"degraded\" : authz == \"writeOnly\" ? \"down\" : p >= 2 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nIdn",
+          "label": "claims-web ServiceAccount",
+          "spokenLabel": "claims-web ServiceAccount",
+          "kind": "identity",
+          "status": "{idn == \"both\" ? \"Old and new principals during the move\" : idn == \"namespaceWide\" ? \"Namespace-wide allow\" : idn == \"ignore\" ? \"Policy names the old identity\" : \"Waiting\"}",
+          "tone": "idn == \"both\" ? \"up\" : idn == \"namespaceWide\" ? \"degraded\" : idn == \"ignore\" ? \"down\" : p >= 3 ? \"degraded\" : \"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "link0",
+          "from": "nMtls",
+          "to": "nAuthz",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        },
+        {
+          "id": "link1",
+          "from": "nAuthz",
+          "to": "nIdn",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Check-in",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Configure authorization with AuthorizationPolicy: ALLOW, DENY and CUSTOM actions, sources, operations and conditions, and policy evaluation order",
+  "secondaryObjectives": [
+    "Configure authentication with PeerAuthentication (mTLS modes STRICT, PERMISSIVE, DISABLE at mesh, namespace and workload scope) and RequestAuthentication (JWT issuers and JWKS)",
+    "Understand Istio identity: SPIFFE identities from ServiceAccounts, certificate issuance by istiod, and how identity feeds authorization"
+  ],
+  "sources": [
+    {
+      "cite": "CNCF Istio Certified Associate (ICA) curriculum: Installation, Upgrades, and Configuration 20%, Traffic Management 35%, Securing Workloads 25%, Troubleshooting 20%",
+      "checkedAt": "2026-11-17",
+      "url": "https://github.com/cncf/curriculum/tree/0a8cc08a502710a894e5724c2bec7b88404e5a6b",
+      "note": "The weights and objective wording are the course seed's (backend/supabase/seed/tracks/cncf-ecosystem.ts, read from the official curriculum by the course builder); on 2026-11-17 only the cncf/curriculum README was fetched, which names ICA but gives no file or version. Not re-read; to verify. Reused for REQ-336 from this course's retry-storm-one-bad-ratings-pod (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Istio documentation, Security Problems (common problems)",
+      "checkedAt": "2026-11-17",
+      "url": "https://istio.io/docs/ops/common-problems/security-issues/",
+      "note": "Found by search 2026-11-17 and read only through the search listing (title and address); to verify against the page. Used for: authorization denials ('RBAC: access denied'), mTLS mode conflicts and how to debug them."
+    },
+    {
+      "cite": "OneUptime blog, 'How to Handle Authorization Policy Ordering and Precedence' (2026-02-24)",
+      "checkedAt": "2026-11-17",
+      "url": "https://oneuptime.com/blog/post/2026-02-24-how-to-handle-authorization-policy-ordering-and-precedence/view",
+      "note": "Found by search 2026-11-17 and read only through the search listing (title and address); to verify against the page. Used for: CUSTOM, then DENY, then ALLOW evaluation, and a workload with any ALLOW policy denying requests that match none."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The company, the mesh, the services and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the mesh engineer at Harrowgate Insurance, a fictional insurer. The security team wants the claims namespace on STRICT mTLS and only the claims-web frontend allowed to call claims-api's write endpoints. A batch job outside the mesh still calls claims-api nightly.",
+    "handover": [
+      "Mesh-wide PeerAuthentication: PERMISSIVE. claims-web and claims-api have sidecars; the nightly batch job in the reports namespace does not.",
+      "Each workload runs under its own ServiceAccount, so its SPIFFE identity is cluster.local/ns/NAMESPACE/sa/ACCOUNT."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the map shows each component and its status in words.",
+      "Move on a check-in at a time. A decision comes to you at each check-in; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-02-22T10:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "mtls": {
+      "type": "enum",
+      "values": [
+        "none",
+        "injectFirst",
+        "portException",
+        "strictNow"
+      ],
+      "init": "none"
+    },
+    "mtlsAt": {
+      "type": "time",
+      "init": null
+    },
+    "authz": {
+      "type": "enum",
+      "values": [
+        "none",
+        "allow",
+        "denyOnly",
+        "writeOnly"
+      ],
+      "init": "none"
+    },
+    "authzAt": {
+      "type": "time",
+      "init": null
+    },
+    "idn": {
+      "type": "enum",
+      "values": [
+        "none",
+        "both",
+        "namespaceWide",
+        "ignore"
+      ],
+      "init": "none"
+    },
+    "idnAt": {
+      "type": "time",
+      "init": null
+    },
+    "connAt": {
+      "type": "time",
+      "init": null
+    },
+    "polsAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((mtls == \"strictNow\") ? 1 : 0) + ((authz == \"writeOnly\") ? 1 : 0) + ((idn == \"ignore\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(mtls == \"none\" or (mtls == \"strictNow\") ? 1 : 0) + (authz == \"none\" or (authz == \"writeOnly\") ? 1 : 0) + (idn == \"none\" or (idn == \"ignore\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The security change",
+      "clock": "turns",
+      "actions": [
+        "conn",
+        "pols"
+      ]
+    },
+    "close": {
+      "label": "Change record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "conn": {
+      "label": "istioctl x describe pod claims-api-6f8 (and the access log's connection security)",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(connAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "connAt",
+          "to": "t"
+        },
+        {
+          "output": "PeerAuthentication: PERMISSIVE\nCallers last 24h: claims-web (mTLS), reports/nightly-batch (plaintext, no sidecar)"
+        },
+        {
+          "log": "You check who calls claims-api and how.",
+          "kind": "act"
+        },
+        {
+          "finding": "Only the nightly batch job calls in plain text; it has no sidecar. Moving to STRICT now would break it tonight."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "pols": {
+      "label": "kubectl get authorizationpolicy,peerauthentication -n claims",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(polsAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "polsAt",
+          "to": "t"
+        },
+        {
+          "output": "No resources found in claims namespace."
+        },
+        {
+          "log": "You list the claims namespace's policies.",
+          "kind": "act"
+        },
+        {
+          "finding": "No AuthorizationPolicy yet: every authenticated or plaintext caller can reach every path on claims-api."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the change record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Plaintext callers moved into the mesh before STRICT, ALLOW rules for every legitimate identity and path, and principals updated for the ServiceAccount move"
+                },
+                {
+                  "value": "summary",
+                  "label": "mTLS and authorization configured"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next check-in",
+      "wait": {
+        "skipLabel": "Go to the next check-in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "mtls == \"strictNow\"",
+              "then": [
+                {
+                  "log": "Check-in 2: plaintext callers across the mesh start failing, including the claims batch and two monitoring probes; tonight's claims batch will fail too.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "authz == \"writeOnly\"",
+              "then": [
+                {
+                  "log": "Check-in 3: health checks get 'RBAC: access denied'; Kubernetes marks claims-api unready and the claims portal goes down.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "idn == \"ignore\"",
+              "then": [
+                {
+                  "log": "Check-in 4: claims-web moves to the new ServiceAccount; every claim submission gets 403 until the policy is fixed.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "10min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The change window closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "10min"
+        }
+      ]
+    },
+    {
+      "id": "t_mtls",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 1: the security team wants STRICT today.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "mtlsPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_authz",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 2: write access next.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "authzPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_idn",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 3: the web team is moving claims-web to a new ServiceAccount.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "idnPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "mtlsPrompt": {
+      "title": "STRICT with a plaintext caller",
+      "context": "The nightly batch job has no sidecar and calls claims-api in plain text at 01:00.",
+      "choices": [
+        {
+          "id": "injectFirst",
+          "label": "Inject a sidecar into the batch job, confirm its calls use mTLS, then apply a namespace PeerAuthentication with mode STRICT",
+          "effects": [
+            {
+              "set": "mtls",
+              "to": "\"injectFirst\""
+            },
+            {
+              "set": "mtlsAt",
+              "to": "t"
+            },
+            {
+              "log": "The batch job joins the mesh; claims goes STRICT.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Move clients to mTLS first (PERMISSIVE accepts both), then switch to STRICT so nothing breaks."
+        },
+        {
+          "id": "portException",
+          "label": "Set STRICT but leave claims-api's port PERMISSIVE for now with a port-level setting",
+          "effects": [
+            {
+              "set": "mtls",
+              "to": "\"portException\""
+            },
+            {
+              "set": "mtlsAt",
+              "to": "t"
+            },
+            {
+              "log": "STRICT with a PERMISSIVE port exception.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The batch job works, but the main port still accepts plaintext from anyone."
+        },
+        {
+          "id": "strictNow",
+          "label": "Apply STRICT mesh-wide right away",
+          "effects": [
+            {
+              "set": "mtls",
+              "to": "\"strictNow\""
+            },
+            {
+              "set": "mtlsAt",
+              "to": "t"
+            },
+            {
+              "log": "The whole mesh is STRICT.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Every workload without a sidecar, across the mesh, is cut off at once."
+        }
+      ]
+    },
+    "authzPrompt": {
+      "title": "Only claims-web may write",
+      "context": "claims-web must POST and PUT to /claims; the batch job only GETs /claims/export; health checks hit /healthz.",
+      "choices": [
+        {
+          "id": "allow",
+          "label": "An ALLOW policy on claims-api: principal claims-web's ServiceAccount may POST and PUT /claims*, the batch job's principal may GET /claims/export, and /healthz is allowed; test with both identities",
+          "effects": [
+            {
+              "set": "authz",
+              "to": "\"allow\""
+            },
+            {
+              "set": "authzAt",
+              "to": "t"
+            },
+            {
+              "log": "Exact rules for each identity and path are in place and tested.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Once any ALLOW policy applies, requests matching none are denied, so list every legitimate caller and path."
+        },
+        {
+          "id": "denyOnly",
+          "label": "A DENY policy for writes from anyone but claims-web, leaving everything else open",
+          "effects": [
+            {
+              "set": "authz",
+              "to": "\"denyOnly\""
+            },
+            {
+              "set": "authzAt",
+              "to": "t"
+            },
+            {
+              "log": "A DENY policy blocks other writers.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Writes are protected, but any caller can still read every claim."
+        },
+        {
+          "id": "writeOnly",
+          "label": "An ALLOW policy for claims-web's writes only",
+          "effects": [
+            {
+              "set": "authz",
+              "to": "\"writeOnly\""
+            },
+            {
+              "set": "authzAt",
+              "to": "t"
+            },
+            {
+              "log": "One ALLOW rule for claims-web's writes.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "With an ALLOW policy present, everything it does not list is denied: health checks and the batch export now get 403."
+        }
+      ]
+    },
+    "idnPrompt": {
+      "title": "A ServiceAccount change",
+      "context": "Tomorrow claims-web moves to the ServiceAccount claims-frontend.",
+      "choices": [
+        {
+          "id": "both",
+          "label": "Add the new principal (ns/claims/sa/claims-frontend) to the ALLOW rule before the move, and remove the old one after",
+          "effects": [
+            {
+              "set": "idn",
+              "to": "\"both\""
+            },
+            {
+              "set": "idnAt",
+              "to": "t"
+            },
+            {
+              "log": "Both principals are allowed during the move.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Identity comes from the ServiceAccount; the policy names identities, so it changes with them."
+        },
+        {
+          "id": "namespaceWide",
+          "label": "Allow the whole claims namespace instead of named principals",
+          "effects": [
+            {
+              "set": "idn",
+              "to": "\"namespaceWide\""
+            },
+            {
+              "set": "idnAt",
+              "to": "t"
+            },
+            {
+              "log": "Any workload in claims may write.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The move works, but any workload in the namespace can now write claims."
+        },
+        {
+          "id": "ignore",
+          "label": "Leave the policy; the pods keep the same labels",
+          "effects": [
+            {
+              "set": "idn",
+              "to": "\"ignore\""
+            },
+            {
+              "set": "idnAt",
+              "to": "t"
+            },
+            {
+              "log": "The policy is unchanged.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Authorization uses the SPIFFE identity from the ServiceAccount, not labels; after the move claims-web is denied."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the change record: how claims moved to STRICT mTLS, what the AuthorizationPolicy allows, and how identity changes are handled.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Authentication",
+          "criteria": "Clients moved to mTLS under PERMISSIVE, then STRICT on the namespace.",
+          "modelAnswer": "The batch job got a sidecar and its calls moved to mTLS under PERMISSIVE; then the namespace went STRICT."
+        },
+        {
+          "label": "Authorization",
+          "criteria": "ALLOW rules for each identity and path, including health checks, knowing unmatched requests are denied; principals follow ServiceAccounts.",
+          "modelAnswer": "claims-web may POST and PUT /claims, the batch job may GET /claims/export, and /healthz is open; anything else is denied. The new ServiceAccount was added before the move."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Service restored and the work closed within 60 minutes of the first report."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No fault introduced by the response itself."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (mtls == \"portException\") and (authz == \"denyOnly\") and (idn == \"namespaceWide\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CNCF Istio Certified Associate (ICA) curriculum: Installation, Upgrades, and Configuration 20%, Traffic Management 35%, Securing Workloads 25%, Troubleshooting 20%",
+        "checkedAt": "2026-11-17",
+        "url": "https://github.com/cncf/curriculum/tree/0a8cc08a502710a894e5724c2bec7b88404e5a6b",
+        "note": "The weights and objective wording are the course seed's (backend/supabase/seed/tracks/cncf-ecosystem.ts, read from the official curriculum by the course builder); on 2026-11-17 only the cncf/curriculum README was fetched, which names ICA but gives no file or version. Not re-read; to verify. Reused for REQ-336 from this course's retry-storm-one-bad-ratings-pod (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "mtlsHarm": {
+      "label": "Callers cut off",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and mtls == \"strictNow\"",
+      "narrative": "STRICT mesh-wide rejected every caller without a sidecar; the nightly claims batch and the monitoring probes failed."
+    },
+    "authzHarm": {
+      "label": "Locked out by an ALLOW policy",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and authz == \"writeOnly\"",
+      "narrative": "The single ALLOW rule denied health checks and the export; claims-api went unready and the portal went down."
+    },
+    "idnHarm": {
+      "label": "Submissions denied after the move",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and idn == \"ignore\"",
+      "narrative": "After the ServiceAccount change, claims-web's new identity matched no rule; every submission was denied."
+    },
+    "target": {
+      "label": "STRICT and least-privilege, with nothing broken",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (mtls == \"injectFirst\") and (authz == \"allow\") and (idn == \"both\") and record == \"honest\" and missCount <= newFaults and timeAt(doneAt) <= restoreWindow",
+      "narrative": "claims runs STRICT mTLS and only the right identities reach the right paths; nothing legitimate was cut off."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "mtlsHarm",
+    "authzHarm",
+    "idnHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "mtlsCrit",
+        "label": "Moved to STRICT only after every caller could do mTLS",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "mtls == \"injectFirst\"",
+            "score": "met",
+            "why": "Clients first, then STRICT."
+          },
+          {
+            "when": "mtls == \"portException\"",
+            "score": "partial",
+            "why": "STRICT in name only."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Broke plaintext callers mesh-wide."
+          }
+        ]
+      },
+      {
+        "id": "authzCrit",
+        "label": "Allowed exactly the needed identities and operations, knowing that any ALLOW policy denies the rest",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "authz == \"allow\"",
+            "score": "met",
+            "why": "Exact allow rules, tested."
+          },
+          {
+            "when": "authz == \"denyOnly\"",
+            "score": "partial",
+            "why": "Protects writes only."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Locked out the other callers."
+          }
+        ]
+      },
+      {
+        "id": "idnCrit",
+        "label": "Kept the policy's principals in step with the workload identities",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "idn == \"both\"",
+            "score": "met",
+            "why": "Policy follows the identity."
+          },
+          {
+            "when": "idn == \"namespaceWide\"",
+            "score": "partial",
+            "why": "Broader than needed."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Policy no longer matches."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(connAt) and not isNull(polsAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(connAt) or not isNull(polsAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Find which callers still use plaintext and read the current policies first."
+      },
+      {
+        "at": "Check-in 1",
+        "text": "Bring the batch job into the mesh, confirm mTLS, then set STRICT on the namespace."
+      },
+      {
+        "at": "Check-in 2",
+        "text": "Write ALLOW rules for each identity and operation, including health checks, and test them."
+      },
+      {
+        "at": "Check-in 3",
+        "text": "Add the new SPIFFE principal before the move and remove the old one after."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "mtlsHarm": {
+        "headline": "Clients first, then STRICT",
+        "body": "PERMISSIVE accepts both; move every caller to mTLS, then switch to STRICT, namespace by namespace."
+      },
+      "authzHarm": {
+        "headline": "ALLOW means 'only these'",
+        "body": "When any ALLOW policy applies to a workload, requests matching none of its rules are denied; list every legitimate caller."
+      },
+      "idnHarm": {
+        "headline": "Policies name identities",
+        "body": "Istio identity comes from the ServiceAccount; update principals when the account changes."
+      },
+      "target": {
+        "headline": "Good: sTRICT and least-privilege, with nothing broken",
+        "body": "Clients moved before STRICT, exact ALLOW rules, and principals that follow identity changes."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "PeerAuthentication PERMISSIVE accepts mTLS and plaintext; move every client into the mesh first, then switch the namespace to STRICT. AuthorizationPolicy is evaluated CUSTOM, then DENY, then ALLOW, and once any ALLOW policy applies to a workload, a request matching none of its rules is denied, so the ALLOW rules must list every legitimate caller and path, health checks included. Principals are SPIFFE identities derived from ServiceAccounts, so a ServiceAccount change needs a policy change."
+  }
+}
