@@ -693,6 +693,20 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("GCPGAIL", "claims-assistant-pilot-on-an-api-key"),
   entry("GCPMLE", "bqml-churn-predictions-without-training-transforms"),
   entry("GCPMLE", "partner-dataset-shares-raw-emails"),
+  entry("AZ700", "appgw-502-after-login-on-root"),
+  entry("AZ400", "release-gate-unlinked-prs-new-repo"),
+  entry("AZ400", "debug-logging-hits-daily-cap-blind"),
+  entry("AZ400", "prod-stage-skips-environment-approval"),
+  entry("SC500", "arc-servers-missing-from-security-dcr"),
+  entry("AWSANS", "new-vpc-attachment-not-propagated"),
+  entry("AWSANS", "egress-allowlist-blocks-new-payment-api"),
+  entry("AWSMLA", "vpc-endpoint-cannot-load-model-from-s3"),
+  entry("AWSMLA", "tuning-job-early-stopping-never-fires"),
+  entry("AWSMLA", "long-term-bedrock-key-in-app-logs"),
+  entry("GCPSEC", "eu-patient-data-created-in-us"),
+  entry("GCPDEV", "integration-tests-share-staging-firestore"),
+  entry("GCPDEV", "eventarc-trigger-wrong-region-for-bucket"),
+  entry("AWSANS", "failover-record-without-health-check"),
   // ---- end REQ-335 ----
   // ---- REQ-323 (docs/sims.md 22.32): health breadth and nursing depth of the
   // 2026-11-17 round. Bands first, then new cases. Keep these together. ----
