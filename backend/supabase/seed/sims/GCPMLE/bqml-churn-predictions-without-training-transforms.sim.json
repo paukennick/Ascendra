@@ -1,0 +1,931 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "bqml-churn-predictions-without-training-transforms",
+  "title": "Retention campaign: every customer scores as likely to churn",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "Churn model in BigQuery ML, Pellow Mobile (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Retention marketing lead, Sam Okoro",
+          "text": "Your churn scores say 94% of customers will leave next month. Last quarter it was 6%. The retention offer list goes to the mailer at 12:00.",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "seen",
+          "label": "Pattern",
+          "text": "Predictions are fed columns in a different form from training.",
+          "when": "not isNull(lookAt) and not fixed",
+          "severity": "warning"
+        },
+        {
+          "id": "lock",
+          "label": "Mailer",
+          "text": "12:00: the offer list went to the mailer as it was.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [],
+      "code": [
+        {
+          "id": "code",
+          "label": "churn model: training and scoring SQL",
+          "language": "BigQuery SQL",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "CREATE MODEL churn OPTIONS(model_type='logistic_reg') AS SELECT * FROM prepared_training_view",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c1",
+              "text": "SELECT * FROM ML.PREDICT(MODEL churn, TABLE customers)",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c2",
+              "text": "CREATE MODEL churn TRANSFORM(ML.STANDARD_SCALER(tenure_months) OVER () AS tenure,",
+              "when": "fix == \"transform\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c3",
+              "text": "    ML.ONE_HOT_ENCODER(plan) OVER () AS plan, churned) OPTIONS(...) AS SELECT * FROM raw_training",
+              "when": "fix == \"transform\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c4",
+              "text": "SELECT * FROM ML.PREDICT(MODEL churn, TABLE customers)",
+              "when": "fix == \"transform\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c5",
+              "text": "SELECT * FROM ML.PREDICT(MODEL churn, (SELECT ... copied scaling from the training view, with this month's mean ...))",
+              "when": "fix == \"copy\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c6",
+              "text": "SELECT * FROM ML.PREDICT(MODEL churn, TABLE customers) WHERE predicted_churn_probs > 0.99",
+              "when": "fix == \"threshold\"",
+              "mark": "\"warning\""
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Mailer",
+          "value": "12:00"
+        }
+      ]
+    }
+  },
+  "objective": "Generating predictions using BigQuery ML",
+  "secondaryObjectives": [
+    "Performing feature engineering and selection using BigQuery ML"
+  ],
+  "sources": [
+    {
+      "cite": "Google Cloud, Professional Machine Learning Engineer certification exam guide (as of June 1, 2026): low-code AI ~13%, collaborating on data and models ~16%, scaling prototypes into ML models ~21%, serving and scaling ~20%, automating pipelines ~18%, monitoring ~13%",
+      "checkedAt": "2026-11-17",
+      "url": "https://services.google.com/fh/files/misc/professional_machine_learning_engineer_exam_guide_english_new.pdf",
+      "note": "Read through a summarizing fetch on 2026-11-17. Bullets quoted there under section 3: 'Troubleshooting ML model training failures', 'Evaluation of compute and accelerator options (e.g., CPU, GPU, and TPU)'. The guide names 'Agent Platform' (Gemini Enterprise Agent Platform), not Vertex AI; the gcloud ai commands in the scenario are from memory of the CLI (to verify). (read for this round by an earlier pass on 2026-11-17) (read for this round by an earlier pass on 2026-11-17) (read for this round by an earlier pass on 2026-11-17) (read for this round by an earlier pass on 2026-11-17) (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "Google Cloud documentation (BigQuery ML), Perform feature engineering with the TRANSFORM clause",
+      "checkedAt": "2026-11-18",
+      "url": "https://docs.cloud.google.com/bigquery/docs/bigqueryml-transform",
+      "note": "Read through a summarizing fetch on 2026-11-18. 'The preprocessing that you apply to the model is automatically applied when you use the model with the' ML.EVALUATE and ML.PREDICT functions; 'The function automatically retrieves them from the model.' That preprocessing done by hand before training must be repeated identically before prediction is the reason TRANSFORM exists, stated as the author's."
+    },
+    {
+      "cite": "Author's scenario (REQ-335)",
+      "checkedAt": "2026-11-18",
+      "note": "Every organization, person, count and deadline is invented teaching data; tool output is an authored rendering in the tool style."
+    }
+  ],
+  "brief": {
+    "situation": "You own the churn model at Pellow Mobile (fictional). It was trained in BigQuery ML on a prepared view where tenure was scaled and plan type one-hot encoded by hand in SQL. This month's scoring job calls ML.PREDICT on the raw customers table. It says 94% of customers will churn. The offer list goes to the mailer at 12:00. It is 11:05.",
+    "handover": [
+      "The training view did the scaling and encoding in SQL; nobody copied it into the scoring job.",
+      "The mailer can send at most 40,000 offers."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: look, change, check or ship. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "11:05",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-335)",
+        "checkedAt": "2026-11-18",
+        "note": "The deadline is an invented teaching value."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "transform",
+        "copy",
+        "threshold"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "c0",
+        "c1",
+        "c2"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "k0",
+        "k1",
+        "k2"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "(fix == \"transform\")"
+    },
+    "correct": {
+      "expr": "(fix == \"transform\" or fix == \"copy\")"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "look",
+        "change",
+        "check",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "look": {
+      "label": "Compare the feature values the model was trained on with the values ML.PREDICT receives",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "output": "Training and scoring both pass through the model's TRANSFORM\nPredicted churn: 6.3%"
+            }
+          ],
+          "else": [
+            {
+              "output": "Training: tenure mean 0.0, sd 1.0 (scaled); plan as 5 indicator columns\nScoring: tenure_months mean 31.4 (raw months); plan as text\nPredicted churn: 94%"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "finding": "The preprocessing lives in the model and runs the same way at prediction."
+            }
+          ],
+          "else": [
+            {
+              "finding": "The model learned scaled tenure and encoded plans; at prediction it gets raw months and text, so its inputs mean something else."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Change how features reach the model",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "transform",
+              "label": "Retrain with a TRANSFORM clause that scales tenure and encodes plan, then predict on the raw table"
+            },
+            {
+              "value": "copy",
+              "label": "Copy the training view's scaling into the scoring query"
+            },
+            {
+              "value": "threshold",
+              "label": "Keep scoring raw columns and only send customers above 0.99"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: {f}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "check": {
+      "label": "Evaluate on the holdout and compare this month's predicted churn with last quarter's",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"transform\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "Holdout AUC 0.81 (last quarter 0.80)\nPredicted churn: 6.3% (last quarter 6.0%)\nTop 40,000 list ready"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"copy\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "Predicted churn: 7.9% (scaler uses this month's mean, not training's)\nHoldout AUC 0.78"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"threshold\"",
+              "then": [
+                {
+                  "output": "Customers above 0.99: 212,400 (mailer limit 40,000)\nHoldout AUC 0.52"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "Holdout AUC 0.51\nPredicted churn: 94%"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Send the top 40,000 to the mailer",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "if": "correct",
+          "then": [
+            {
+              "output": "Sent: the 40,000 customers most likely to churn."
+            }
+          ],
+          "else": [
+            {
+              "output": "Sent an offer list built from wrong scores."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why every customer looked likely to churn",
+              "options": [
+                {
+                  "value": "c0",
+                  "label": "Scoring passed raw columns to a model trained on scaled and encoded features"
+                },
+                {
+                  "value": "c1",
+                  "label": "Customers really were leaving"
+                },
+                {
+                  "value": "c2",
+                  "label": "BigQuery ML had an outage"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know it is right",
+              "options": [
+                {
+                  "value": "k0",
+                  "label": "Holdout AUC and the churn rate match last quarter"
+                },
+                {
+                  "value": "k1",
+                  "label": "The list is shorter"
+                },
+                {
+                  "value": "k2",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-335)",
+        "checkedAt": "2026-11-18",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "12:00: the offer list went to the mailer as it was.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the retention lead: why scores were wrong, what you changed, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "The model was trained on tenure scaled and plan one-hot encoded in a SQL view; scoring passed raw months and text, so inputs no longer meant what the model learned.",
+          "modelAnswer": "Raw versus prepared features."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "Retrained with a TRANSFORM clause so BigQuery ML applies the same preprocessing during ML.PREDICT; copying the SQL drifts; a higher threshold keeps meaningless scores.",
+          "modelAnswer": "TRANSFORM with scaler and one-hot encoder."
+        },
+        {
+          "label": "How you know",
+          "criteria": "Holdout AUC and the predicted churn rate match last quarter.",
+          "modelAnswer": "AUC 0.81; 6.3%."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-335)",
+          "checkedAt": "2026-11-18",
+          "note": "The case's deadline; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Shipping nothing ships nothing wrong, but the deadline passes without the fix.",
+      "source": {
+        "cite": "Author's scenario (REQ-335)",
+        "checkedAt": "2026-11-18",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "wrongSent": {
+      "label": "Offers sent to the wrong customers",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "The retention budget goes to customers picked by meaningless scores."
+    },
+    "notSent": {
+      "label": "Nothing shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "No wrong list went out, but the mailer slot passed."
+    },
+    "right": {
+      "label": "Right, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and fixed and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "Offers go to the customers most likely to leave."
+    },
+    "gaps": {
+      "label": "Right, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The result is right, but it went late, unchecked, before you looked, or with a weaker fix."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Compared training features with prediction inputs before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked before acting."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Moved preprocessing into a TRANSFORM clause",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed",
+            "score": "met",
+            "why": "Preprocessing in the model's TRANSFORM clause."
+          },
+          {
+            "when": "fix == \"copy\"",
+            "score": "partial",
+            "why": "Works this month, but the copied mean drifts from training and the two queries will diverge."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{fix == \"threshold\" ? \"The scores are still computed from mis-shaped inputs; a higher cut-off picks an arbitrary list.\" : \"The model still gets raw columns it was not trained on.\"}"
+          }
+        ]
+      },
+      {
+        "id": "shipped",
+        "label": "Shipped nothing wrong",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sentAs != \"wrong\"",
+            "score": "met",
+            "why": "Nothing wrong shipped."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Shipped a wrong result."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Holdout and churn rate checked after the last change, before sending",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "Checked after the last change, before shipping."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Checked, but it failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"c0\" and checkDoc == \"k0\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"c0\" or checkDoc == \"k0\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rightK",
+        "label": "Right result shipped",
+        "value": "sentAs == \"right\" ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "altered",
+        "label": "Rows changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until shipped",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 14"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "Training saw scaled, encoded features; scoring sends raw."
+      },
+      {
+        "at": "4-9 min",
+        "text": "Retrain with TRANSFORM."
+      },
+      {
+        "at": "9-12 min",
+        "text": "AUC 0.81; churn 6.3%."
+      },
+      {
+        "at": "12-14 min",
+        "text": "Send the top 40,000."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: preprocessing travels with the model",
+        "body": "With TRANSFORM, BigQuery ML applies the training-time preprocessing at prediction automatically."
+      },
+      "gaps": {
+        "headline": "Right, with gaps",
+        "body": "The result is right; it went late, unchecked, before you looked, or with a weaker fix than the cause called for."
+      },
+      "wrongSent": {
+        "headline": "Wrong list",
+        "body": "A stricter threshold over wrong scores is still a wrong list."
+      },
+      "notSent": {
+        "headline": "Nothing shipped",
+        "body": "Safe, but the deadline passed without the fix."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "A churn rate of 94% against 6% last quarter points at inputs, not customers. The model was trained on scaled tenure and one-hot encoded plans from a view, but scoring passes raw columns. Retrain with a TRANSFORM clause so the same preprocessing is stored in the model and applied by ML.PREDICT, then check the holdout and the churn rate. Copying the SQL into scoring drifts; a higher cut-off over wrong scores picks an arbitrary list."
+  }
+}
