@@ -107,16 +107,28 @@
       "note": "The curriculum was read in primary text on 2026-11-07 by the course builder (backend/supabase/seed/tracks/kubernetes.ts). On 2026-11-17 a third-party summary (slauger.github.io/kubestronaut/cks/monitoring-logging-runtime) confirmed the 20% domain; the PDF itself was not re-read. The objective wording is the course seed's. Reused for REQ-336 from this course's falco-shell-in-catalog-pod (the same reading and date); the objective wording is the course seed's."
     },
     {
-      "cite": "Kubernetes KEP-2579, PSP Replacement Policy (Pod Security Admission)",
+      "cite": "Kubernetes documentation, Pod Security Admission (v1.33)",
       "checkedAt": "2026-11-17",
-      "url": "https://www.k8s.dev/resources/keps/2579/",
-      "note": "Found by search 2026-11-17 and read only through the search listing (title and address); to verify against the page. Used for: Pod Security Admission's enforce, audit and warn modes set by namespace labels; enforce rejects new Pods that violate the profile, and existing Pods are not evicted."
+      "url": "https://v1-33.docs.kubernetes.io/docs/concepts/security/pod-security-admission/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: enforce rejects Pods that violate the level; audit adds an audit annotation; warn returns a user-facing warning; restrictions apply when Pods are created; audit and warn also check workload resources, enforce only the resulting Pods."
     },
     {
-      "cite": "OneUptime blog, 'How to implement Pod Security Admission warnings and audit mode' (2026-02-09)",
+      "cite": "Kubernetes documentation, Enforce Pod Security Standards with Namespace Labels",
       "checkedAt": "2026-11-17",
-      "url": "https://oneuptime.com/blog/post/2026-02-09-psa-warnings-audit-mode/view",
-      "note": "Found by search 2026-11-17 and read only through the search listing (title and address); to verify against the page. Used for: rolling a stricter profile out with warn and audit labels first, then enforce."
+      "url": "https://www.kubernetes.io/docs/tasks/configure-pod-container/enforce-standards-namespace-labels/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: namespaces are labeled pod-security.kubernetes.io/<mode>=<level>; kubectl label --dry-run=server shows how a new level would treat existing Pods without changing the policy."
+    },
+    {
+      "cite": "Kubernetes documentation, Pod Security Standards (v1.33)",
+      "checkedAt": "2026-11-17",
+      "url": "https://v1-33.docs.kubernetes.io/docs/concepts/security/pod-security-standards/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: the Restricted profile requires allowPrivilegeEscalation false, runAsNonRoot true, runAsUser not 0, a seccomp profile of RuntimeDefault or Localhost, and dropping ALL capabilities (only NET_BIND_SERVICE may be added); readOnlyRootFilesystem is not part of the profile (the case adds it as further hardening)."
+    },
+    {
+      "cite": "Kubernetes documentation, Good practices for Kubernetes Secrets (v1.34)",
+      "checkedAt": "2026-11-17",
+      "url": "https://v1-34.docs.kubernetes.io/docs/concepts/security/secrets-good-practices",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: Secrets are stored unencrypted in etcd by default and encryption at rest should be configured; get, watch and list on Secrets should be restricted, and list access implicitly reveals Secret contents."
     },
     {
       "cite": "Author's scenario figures (REQ-336)",

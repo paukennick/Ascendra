@@ -101,22 +101,22 @@
   ],
   "sources": [
     {
-      "cite": "Isovalent, Cilium Certified Associate (CCA) exam page: Architecture 20%, Network Policy 18%, Service Mesh 16%, Network Observability 10%, Installation and Configuration 10%, Cluster Mesh 10%, eBPF 10%, BGP and External Networking 6%",
+      "cite": "Isovalent, 'The New CNCF Cilium Certified Associate (CCA) Certification!'",
       "checkedAt": "2026-11-17",
       "url": "https://isovalent.com/blog/post/cilium-certified-associate-cca",
-      "note": "Read through a summarizing fetch on 2026-11-17 (a third-party page from the project's main contributor, not the CNCF curriculum; to verify against cncf/curriculum). The objective wording is the course seed's. Reused for REQ-336 from this course's cluster-pool-exhausted-new-nodes (the same reading and date); the objective wording is the course seed's."
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the certification body's page, found by WebSearch. Confirms the exam domains and weights: Architecture 20%, Network Policy 18%, Service Mesh 16%, Network Observability 10%, Installation and Configuration 10%, Cluster Mesh 10%, eBPF 10%, BGP and External Networking 6%. The objective wording is the course seed's."
     },
     {
-      "cite": "Cilium documentation, Policy Enforcement Modes (stable)",
+      "cite": "Cilium documentation, WireGuard Transparent Encryption (stable, 1.20)",
       "checkedAt": "2026-11-17",
-      "url": "https://docs.cilium.io/en/stable/security/policy/intro/",
-      "note": "Read 2026-11-17 through a summarizing fetch of the page found by search. default enforces policy only on endpoints a rule selects (unselected endpoints are unrestricted); always enforces on all endpoints; never disables enforcement. A rule selecting an endpoint with an ingress or egress section makes that direction default-deny."
+      "url": "https://docs.cilium.io/en/stable/security/network/encryption-wireguard/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: Helm values encryption.enabled=true and encryption.type=wireguard; cilium-dbg status shows Encryption: Wireguard with a peer count equal to the number of nodes minus one; tcpdump on cilium_wg0 shows traffic sent through the WireGuard tunnel; a known issue drops packets while the WireGuard device is configured."
     },
     {
-      "cite": "GrokDevOps wiki, Cilium footguns",
+      "cite": "Cilium documentation, Gateway API Support (stable, 1.20)",
       "checkedAt": "2026-11-17",
-      "url": "https://grokdatum.github.io/grokdevops-wiki/library/topics/cilium/footguns",
-      "note": "Found by search 2026-11-17 and read only through the search listing (title and address); to verify against the page. Used for: common Cilium policy mistakes, including a toFQDNs rule without a DNS rule that lets the DNS proxy see lookups."
+      "url": "https://docs.cilium.io/en/stable/network/servicemesh/gateway-api/gateway-api/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: the Gateway API controller is enabled with the Helm value gatewayAPI.enabled=true; Cilium programs only Gateways of class cilium; GatewayClass, Gateway and HTTPRoute are supported, with HTTPS and header-modifier examples; Gateway API is role-oriented."
     },
     {
       "cite": "Author's scenario figures (REQ-336)",
@@ -252,7 +252,7 @@
   "initialPhase": "run",
   "actions": {
     "status": {
-      "label": "cilium status | grep -i encryption",
+      "label": "kubectl -n kube-system exec ds/cilium -- cilium-dbg status | grep Encryption",
       "group": "Inspect",
       "available": "not busy and phase == \"run\" and isNull(statusAt)",
       "why": "Done, or finish what you are doing first.",
@@ -547,7 +547,7 @@
       "choices": [
         {
           "id": "wireguard",
-          "label": "Enable WireGuard transparent encryption through the Helm values in a rolling update, and confirm with cilium status and a capture between nodes",
+          "label": "Enable WireGuard transparent encryption through the Helm values in a rolling update, and confirm with each agent's cilium-dbg status and a capture on the cilium_wg0 device",
           "effects": [
             {
               "set": "wg",
@@ -673,7 +673,7 @@
       "choices": [
         {
           "id": "evidence",
-          "label": "Give cilium encrypt status from every node, the WireGuard peer list, and a packet capture between two nodes showing only WireGuard traffic",
+          "label": "Give each node's cilium-dbg status line (Encryption: Wireguard, with peers equal to the node count minus one) and a tcpdump on cilium_wg0 showing Pod traffic in the tunnel",
           "effects": [
             {
               "set": "verify",
@@ -774,10 +774,10 @@
       "class": "recovered",
       "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
       "source": {
-        "cite": "Isovalent, Cilium Certified Associate (CCA) exam page: Architecture 20%, Network Policy 18%, Service Mesh 16%, Network Observability 10%, Installation and Configuration 10%, Cluster Mesh 10%, eBPF 10%, BGP and External Networking 6%",
+        "cite": "Isovalent, 'The New CNCF Cilium Certified Associate (CCA) Certification!'",
         "checkedAt": "2026-11-17",
         "url": "https://isovalent.com/blog/post/cilium-certified-associate-cca",
-        "note": "Read through a summarizing fetch on 2026-11-17 (a third-party page from the project's main contributor, not the CNCF curriculum; to verify against cncf/curriculum). The objective wording is the course seed's. Reused for REQ-336 from this course's cluster-pool-exhausted-new-nodes (the same reading and date); the objective wording is the course seed's."
+        "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the certification body's page, found by WebSearch. Confirms the exam domains and weights: Architecture 20%, Network Policy 18%, Service Mesh 16%, Network Observability 10%, Installation and Configuration 10%, Cluster Mesh 10%, eBPF 10%, BGP and External Networking 6%. The objective wording is the course seed's."
       }
     }
   },

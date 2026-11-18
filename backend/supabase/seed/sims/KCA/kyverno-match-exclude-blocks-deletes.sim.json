@@ -100,16 +100,16 @@
   ],
   "sources": [
     {
-      "cite": "CNCF, Kyverno Certified Associate (KCA) certification page: Fundamentals of Kyverno 18%, Installation, Configuration, and Upgrades 18%, Kyverno CLI 12%, Applying Policies 10%, Writing Policies 32%, Policy Management 10%",
+      "cite": "CNCF, Kyverno Certified Associate (KCA) certification page",
       "checkedAt": "2026-11-17",
       "url": "https://www.cncf.io/training/certification/kca/",
-      "note": "Read through a summarizing fetch on 2026-11-17 (domain weights only). The objective wording is the course seed's; the cncf/curriculum PDF was not re-read (to verify). Reused for REQ-336 from this course's policy-enforced-without-reading-reports (the same reading and date); the objective wording is the course seed's."
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the certification body's page, found by WebSearch. Confirms the exam domains and weights: Fundamentals of Kyverno 18%, Installation, Configuration, and Upgrades 18%, Kyverno CLI 12%, Applying Policies 10%, Writing Policies 32%, Policy Management 10%. The objective wording is the course seed's."
     },
     {
-      "cite": "Kyverno documentation, Troubleshooting (release 1.15)",
+      "cite": "Kyverno documentation, Selecting Resources",
       "checkedAt": "2026-11-17",
-      "url": "https://release-1-15-0.kyverno.io/docs/troubleshooting/",
-      "note": "Found by search 2026-11-17 and read only through the search listing (title and address); to verify against the page. Used for: webhook timeouts, a Kyverno outage blocking API requests under failurePolicy Fail, and resource filters in the kyverno ConfigMap."
+      "url": "https://kyverno.io/docs/writing-policies/match-exclude",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: any is a logical OR and all a logical AND across resource filters; without an operations list a rule matches CREATE and UPDATE; namespaceSelector selects by namespace labels; conditions in clusterRoles, roles and subjects are ORed."
     },
     {
       "cite": "Author's scenario figures (REQ-336)",
@@ -120,7 +120,7 @@
   "brief": {
     "situation": "You own the cluster policies at Ashgrove Media, a fictional streaming company. A new ClusterPolicy requires a cost-center label on every Pod in production namespaces. Since it went to Enforce this morning, three teams have filed tickets.",
     "handover": [
-      "The policy matches Pods in namespaces named prod-* for all operations, and excludes requests where the namespace is kube-system and the subject is the platform deployer (in one all block).",
+      "The policy matches Pods in namespaces named prod-* for CREATE, UPDATE and DELETE, and excludes requests where the namespace is kube-system and the subject is the platform deployer (in one all block).",
       "Production namespaces carry the label env=prod; the new payments namespace has the label but not the prod- prefix."
     ],
     "howItWorks": [
@@ -255,14 +255,14 @@
           "to": "t"
         },
         {
-          "output": "match: any: resources kinds Pod, namespaces prod-*, operations (all)\nexclude: all: namespaces kube-system AND subjects platform-deployer"
+          "output": "match: any: resources kinds Pod, namespaces prod-*, operations [CREATE, UPDATE, DELETE]\nexclude: all: namespaces kube-system AND subjects platform-deployer"
         },
         {
           "log": "You read the policy's match and exclude blocks.",
           "kind": "act"
         },
         {
-          "finding": "match has no operations list, so DELETE is checked too; selection is by name prefix, not the env label; exclude uses all, so it only skips requests that are both in kube-system and by the deployer."
+          "finding": "match lists DELETE among its operations (without an operations list a rule matches only CREATE and UPDATE), so deletes are checked too; selection is by name prefix, not the env label; exclude uses all, so it only skips requests that are both in kube-system and by the deployer."
         },
         {
           "set": "busy",
@@ -540,7 +540,7 @@
       "choices": [
         {
           "id": "createUpdate",
-          "label": "Add operations CREATE and UPDATE to the match, so deletes are never evaluated",
+          "label": "Remove DELETE from the match's operations, leaving CREATE and UPDATE, so deletes are never evaluated",
           "effects": [
             {
               "set": "ops",
@@ -731,8 +731,8 @@
       "parts": [
         {
           "label": "Match",
-          "criteria": "No operations list meant deletes were checked; a name prefix missed payments; now CREATE and UPDATE with a namespaceSelector on env=prod.",
-          "modelAnswer": "Without operations the rule checked deletes; it matched names, so payments was missed. It now checks CREATE and UPDATE on namespaces labeled env=prod."
+          "criteria": "DELETE in the operations list meant deletes were checked; a name prefix missed payments; now CREATE and UPDATE with a namespaceSelector on env=prod.",
+          "modelAnswer": "With DELETE in its operations the rule checked deletes; it matched names, so payments was missed. It now checks CREATE and UPDATE on namespaces labeled env=prod."
         },
         {
           "label": "Exclude",
@@ -767,10 +767,10 @@
       "class": "recovered",
       "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
       "source": {
-        "cite": "CNCF, Kyverno Certified Associate (KCA) certification page: Fundamentals of Kyverno 18%, Installation, Configuration, and Upgrades 18%, Kyverno CLI 12%, Applying Policies 10%, Writing Policies 32%, Policy Management 10%",
+        "cite": "CNCF, Kyverno Certified Associate (KCA) certification page",
         "checkedAt": "2026-11-17",
         "url": "https://www.cncf.io/training/certification/kca/",
-        "note": "Read through a summarizing fetch on 2026-11-17 (domain weights only). The objective wording is the course seed's; the cncf/curriculum PDF was not re-read (to verify). Reused for REQ-336 from this course's policy-enforced-without-reading-reports (the same reading and date); the objective wording is the course seed's."
+        "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the certification body's page, found by WebSearch. Confirms the exam domains and weights: Fundamentals of Kyverno 18%, Installation, Configuration, and Upgrades 18%, Kyverno CLI 12%, Applying Policies 10%, Writing Policies 32%, Policy Management 10%. The objective wording is the course seed's."
       }
     }
   },
@@ -999,6 +999,6 @@
         "body": "The record was not written before the run's hard limit."
       }
     },
-    "modelReasoning": "A rule's match and exclude blocks decide what it sees. Without an operations list it evaluates deletes too, trapping old resources. Select by the labels the organization uses (a namespaceSelector on env=prod) rather than name patterns. In match and exclude, any is satisfied by one entry and all needs every entry at once, so separate exclusions go in an any block, and excluding a broad role exempts everyone who has it."
+    "modelReasoning": "A rule's match and exclude blocks decide what it sees. Listing DELETE in its operations makes it evaluate deletes too, trapping old resources; without an operations list a rule matches CREATE and UPDATE only. Select by the labels the organization uses (a namespaceSelector on env=prod) rather than name patterns. In match and exclude, any is satisfied by one entry and all needs every entry at once, so separate exclusions go in an any block, and excluding a broad role exempts everyone who has it."
   }
 }

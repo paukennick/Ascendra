@@ -101,22 +101,22 @@
   ],
   "sources": [
     {
-      "cite": "CNCF, Certified Backstage Associate (CBA) certification page: Customizing Backstage 32%, Backstage Development Workflow 24%, Backstage Infrastructure 22%, Backstage Catalog 22%",
+      "cite": "CNCF, Certified Backstage Associate (CBA) certification page",
       "checkedAt": "2026-11-17",
       "url": "https://cncf.io/training/certification/cba",
-      "note": "Read through a summarizing fetch on 2026-11-17 (domain weights only). The objective wording is the course seed's; the cncf/curriculum PDF was not re-read (to verify). Reused for REQ-336 from this course's plugin-token-marked-frontend (the same reading and date); the objective wording is the course seed's."
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the certification body's page, found by WebSearch. Confirms the exam domains and weights: Backstage Development Workflow 24%, Backstage Infrastructure 22%, Backstage Catalog 22%, Customizing Backstage 32%. The objective wording is the course seed's."
     },
     {
-      "cite": "GrokDevOps wiki, Backstage street ops",
+      "cite": "Backstage documentation, The Life of an Entity",
       "checkedAt": "2026-11-17",
-      "url": "https://grokdatum.github.io/grokdevops-wiki/library/topics/backstage/street_ops",
-      "note": "Found by search 2026-11-17 and read only through the search listing (title and address); to verify against the page. Used for: day-two operation of the catalog: ingestion, refresh and troubleshooting."
+      "url": "https://backstage.io/docs/features/software-catalog/life-of-an-entity",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: an entity whose processing emits errors does not replace its last error-free version and carries the problem in its status; an entity becomes orphaned when its parent no longer emits it; the catalog removes orphans automatically by default, and orphanStrategy: keep turns that off, after which orphans are deleted through the API or the entity page."
     },
     {
-      "cite": "GrokDevOps wiki, Backstage footguns",
+      "cite": "Backstage documentation, GitHub Discovery",
       "checkedAt": "2026-11-17",
-      "url": "https://grokdatum.github.io/grokdevops-wiki/library/topics/backstage/footguns",
-      "note": "Read 2026-11-17 through a summarizing fetch of the page found by search. The default scaffold uses an in-memory SQLite database, so catalog data is lost on restart (use database.client pg outside development); unpinned plugins break after a core upgrade (check versions, upgrade on a cadence); secrets belong in environment variable substitution from Kubernetes Secrets or a secrets manager, never committed in app-config."
+      "url": "https://backstage.io/docs/integrations/github/discovery",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: the GitHub entity provider's organization and schedule (frequency, timeout); GitHub's limit of 5,000 API requests an hour, which frequent refreshes exhaust; events support refreshing entities from push and repository webhooks through the events backend module for GitHub."
     },
     {
       "cite": "Author's scenario figures (REQ-336)",
@@ -292,14 +292,14 @@
           "to": "t"
         },
         {
-          "output": "catalog:\n  providers:\n    github:\n      corvant:\n        organization: corvant\n        schedule: frequency 30 minutes, timeout 3 minutes"
+          "output": "catalog:\n  providers:\n    github:\n      corvant:\n        organization: corvant\n        schedule: frequency 30 minutes, timeout 3 minutes\n  orphanStrategy: keep"
         },
         {
           "log": "You read the provider configuration.",
           "kind": "act"
         },
         {
-          "finding": "Discovery scans only the old organization, so the 35 moved repositories' new locations are never read; their old entities are now orphaned."
+          "finding": "Discovery scans only the old organization, so the 35 moved repositories' new locations are never read; their old entities are now orphaned, and orphanStrategy: keep stops the catalog removing orphans on its own."
         },
         {
           "set": "busy",
@@ -774,10 +774,10 @@
       "class": "recovered",
       "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
       "source": {
-        "cite": "CNCF, Certified Backstage Associate (CBA) certification page: Customizing Backstage 32%, Backstage Development Workflow 24%, Backstage Infrastructure 22%, Backstage Catalog 22%",
+        "cite": "CNCF, Certified Backstage Associate (CBA) certification page",
         "checkedAt": "2026-11-17",
         "url": "https://cncf.io/training/certification/cba",
-        "note": "Read through a summarizing fetch on 2026-11-17 (domain weights only). The objective wording is the course seed's; the cncf/curriculum PDF was not re-read (to verify). Reused for REQ-336 from this course's plugin-token-marked-frontend (the same reading and date); the objective wording is the course seed's."
+        "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the certification body's page, found by WebSearch. Confirms the exam domains and weights: Backstage Development Workflow 24%, Backstage Infrastructure 22%, Backstage Catalog 22%, Customizing Backstage 32%. The objective wording is the course seed's."
       }
     }
   },

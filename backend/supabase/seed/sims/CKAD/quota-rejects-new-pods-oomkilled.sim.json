@@ -106,16 +106,22 @@
       "note": "The curriculum was read in primary text on 2026-11-07 by the course builder (backend/supabase/seed/tracks/kubernetes.ts). On 2026-11-17 a third-party summary (slauger.github.io/kubestronaut/ckad/application-environment) confirmed the 25% domain and ConfigMaps and Secrets in it; the PDF itself was not re-read. The objective wording is the course seed's. Reused for REQ-336 from this course's crashloop-bad-configmap-ckad (the same reading and date); the objective wording is the course seed's."
     },
     {
-      "cite": "Kubernetes documentation, Pod Quality of Service Classes (kubernetes.io)",
+      "cite": "Kubernetes documentation, Resource Quotas (v1.33)",
       "checkedAt": "2026-11-17",
-      "url": "https://www.kubernetes.io/docs/concepts/workloads/pods/pod-qos/",
-      "note": "Found by search 2026-11-17 and read only through the search listing (title and address); to verify against the page. Used for: the Guaranteed, Burstable and BestEffort classes and which Pods the kubelet evicts first under node pressure."
+      "url": "https://v1-33.docs.kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: with a quota on cpu or memory, Pods must specify requests or limits for them or creation may be refused; a LimitRange can force defaults on Pods that state none."
     },
     {
-      "cite": "CNCF blog, 'Kubernetes resources management: QoS, quota and LimitRange' (2020-06-10)",
+      "cite": "Kubernetes documentation, Pod Quality of Service Classes",
       "checkedAt": "2026-11-17",
-      "url": "https://www.cncf.io/blog/2020/06/10/kubernetes-resources-management-qos-quota-and-limitrangeb/",
-      "note": "Found by search 2026-11-17 and read only through the search listing (title and address); to verify against the page. Used for: a ResourceQuota on requests rejecting Pods that set none unless a LimitRange defaults them, and OOMKilled containers over their memory limit."
+      "url": "https://www.kubernetes.io/docs/concepts/workloads/pods/pod-qos/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: Guaranteed needs a memory and CPU request and limit on every container with limit equal to request; BestEffort has none; under node pressure BestEffort Pods are evicted first, then Burstable, then Guaranteed."
+    },
+    {
+      "cite": "Kubernetes documentation, Assign Memory Resources to Containers and Pods (v1.33)",
+      "checkedAt": "2026-11-17",
+      "url": "https://v1-33.docs.kubernetes.io/docs/tasks/configure-pod-container/assign-memory-resource/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: a container that keeps allocating past its memory limit is terminated (OOMKilled) and restarted by the kubelet; a container with no memory limit can use all the node's memory."
     },
     {
       "cite": "Author's scenario figures (REQ-336)",

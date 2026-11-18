@@ -107,22 +107,22 @@
       "note": "On 2026-11-17 the weights were confirmed through a third-party study page (kube-dojo.github.io/k8s/pca, summarizing fetch), which cites no curriculum version; the official curriculum (cncf/curriculum, read by the course builder for backend/supabase/seed/tracks/cncf-ecosystem.ts) was not re-read. The objective wording is the course seed's. Reused for REQ-336 from this course's canary-gate-wrong-p99-query (the same reading and date); the objective wording is the course seed's."
     },
     {
-      "cite": "GrokDevOps wiki, 'Prometheus and the art of not alerting'",
+      "cite": "Prometheus documentation, Histograms and summaries",
       "checkedAt": "2026-11-17",
-      "url": "https://grokdatum.github.io/grokdevops-wiki/library/lessons/prometheus-and-the-art-of-not-alerting",
-      "note": "Found by search 2026-11-17 and read only through the search listing (title and address); to verify against the page. Used for: alerting on symptoms and SLO burn rate rather than causes such as CPU."
+      "url": "https://prometheus.io/docs/practices/histograms/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: summary quantiles cannot be aggregated and averaging quantiles is statistically nonsensical; histograms aggregate with histogram_quantile(0.95, sum by (le) (rate(..._bucket[5m]))); for a 300 ms objective use buckets around 300 ms; the share of requests within 300 ms comes from the le=0.3 bucket over the count."
     },
     {
-      "cite": "youngju.dev, 'Observability: Prometheus, PromQL, recording rules and SLOs' (2026-03-07)",
+      "cite": "Grafana documentation, Prometheus template variables (v12.4)",
       "checkedAt": "2026-11-17",
-      "url": "https://www.youngju.dev/blog/observability/2026-03-07-observability-prometheus-promql-recording-rules-slo.en",
-      "note": "Found by search 2026-11-17 and read only through the search listing (title and address); to verify against the page. Used for: recording rules, histogram_quantile over summed bucket rates by le, and multiwindow burn-rate alerts."
+      "url": "https://grafana.com/docs/grafana/v12.4/datasources/prometheus/template-variables/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: $__rate_interval is max($__interval + scrape interval, 4 x scrape interval) and is recommended for rate and increase, so the window is always at least four times the scrape interval."
     },
     {
-      "cite": "GrokDevOps wiki, Prometheus deep dive: footguns",
+      "cite": "Google SRE Workbook, chapter 5: Alerting on SLOs",
       "checkedAt": "2026-11-17",
-      "url": "https://grokdatum.github.io/grokdevops-wiki/library/topics/prometheus-deep-dive/footguns",
-      "note": "Found by search 2026-11-17 and read only through the search listing (title and address); to verify against the page. Used for: relabeling that drops every target, high-cardinality labels and averaging quantiles."
+      "url": "https://sre.google/workbook/alerting-on-slos/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: multiwindow, multi-burn-rate alerts: page on 2% of the budget in 1 hour (5-minute short window, burn rate 14.4) and 5% in 6 hours (30-minute short window), ticket on slower burns; the short window, 1/12 of the long one, lets the alert reset soon after errors stop."
     },
     {
       "cite": "Author's scenario figures (REQ-336)",

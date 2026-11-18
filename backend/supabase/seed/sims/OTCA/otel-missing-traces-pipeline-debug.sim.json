@@ -106,22 +106,28 @@
       "note": "Read through a summarizing fetch on 2026-11-17: the four domains and weights above, with context propagation named under the API and SDK domain and under maintaining and debugging pipelines. The objective wording is the course seed's. Reused for REQ-336 from this course's split-traces-b3-propagator (the same reading and date); the objective wording is the course seed's."
     },
     {
-      "cite": "OneUptime blog, 'How to Configure Backpressure-Aware Pipelines with Sending Queues, Retry Logic, ...' (2026-02-06)",
+      "cite": "OpenTelemetry documentation, Collector Internal telemetry",
       "checkedAt": "2026-11-17",
-      "url": "https://oneuptime.com/blog/post/2026-02-06-otel-backpressure-queues-retry-memory-limiter/view",
-      "note": "Found by search 2026-11-17 and read only through the search listing (title and address); to verify against the page. Used for: per-exporter sending queues, retry on failure, persistent queues and what is dropped when a queue fills."
+      "url": "https://opentelemetry.io/docs/collector/internal-telemetry/index.md",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: internal metrics on port 8888 (/metrics), including otelcol_receiver_accepted_spans, otelcol_processor_incoming_items and outgoing_items, otelcol_exporter_sent_spans, otelcol_exporter_send_failed_spans, otelcol_exporter_queue_size and queue_capacity; sustained send failures mean the Collector is not exporting as expected."
     },
     {
-      "cite": "OneUptime blog, 'How to Fix Collector OOM Killed Errors' (2026-01-24)",
+      "cite": "OpenTelemetry documentation, Collector Troubleshooting",
       "checkedAt": "2026-11-17",
-      "url": "https://oneuptime.com/blog/post/2026-01-24-collector-oom-killed/view",
-      "note": "Found by search 2026-11-17 and read only through the search listing (title and address); to verify against the page. Used for: Collector memory exhaustion under load and the memory_limiter's refusal of data that lets clients retry."
+      "url": "https://opentelemetry.io/docs/collector/troubleshooting",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: the debug exporter with verbosity: detailed prints the entire payload a pipeline passes on."
     },
     {
-      "cite": "KodeKloud OTCA prep notes, Collector core components: service and pipelines",
+      "cite": "OpenTelemetry Collector, exporterhelper README (v0.98.0, GitHub)",
       "checkedAt": "2026-11-17",
-      "url": "https://notes.kodekloud.com/docs/Prep-Course-OpenTelemetry-Certified-Associate-OTCA-Certification/OTel-Collector-Core-Components/Service-and-Pipelines-Explained/page",
-      "note": "Found by search 2026-11-17 and read only through the search listing (title and address); to verify against the page. Used for: receivers, processors and exporters wired into per-signal pipelines, fan-out to several exporters, and internal telemetry."
+      "url": "https://github.com/open-telemetry/opentelemetry-collector/blob/v0.98.0/exporter/exporterhelper/README.md",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: retry_on_failure (initial_interval 5s, max_interval 30s, max_elapsed_time 300s) and sending_queue (num_consumers 10, queue_size 1000 batches, storage for a persistent queue) are set per exporter; permanent failures are dropped, temporary ones retried."
+    },
+    {
+      "cite": "OpenTelemetry documentation, Collector Resiliency",
+      "checkedAt": "2026-11-17",
+      "url": "https://opentelemetry.io/es/docs/collector/resiliency/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: an in-memory sending queue drops new data when full and loses its contents on a crash; retries back off for up to 5 minutes by default; a file_storage extension referenced from sending_queue makes the queue persistent across restarts. (English page on the Spanish-language site; not yet translated.)"
     },
     {
       "cite": "Author's scenario figures (REQ-336)",
@@ -267,7 +273,7 @@
           "to": "t"
         },
         {
-          "output": "otelcol_receiver_accepted_spans 2.3M\notelcol_processor_filter_spans_filtered 2.29M\notelcol_exporter_sent_spans 9k\notelcol_exporter_send_failed_spans 9k"
+          "output": "otelcol_receiver_accepted_spans 2.3M\notelcol_processor_incoming_items (filter) 2.3M\notelcol_processor_outgoing_items (filter) 9k\notelcol_exporter_sent_spans 9k\notelcol_exporter_send_failed_spans 9k"
         },
         {
           "log": "You read the gateway's internal metrics.",
@@ -678,7 +684,7 @@
       "choices": [
         {
           "id": "honest",
-          "label": "Report the gap from the metrics: spans filtered or permanently rejected are gone; add an alert on send_failed_spans and on filtered/accepted ratio, and a persistent queue for transient failures",
+          "label": "Report the gap from the metrics: spans filtered or permanently rejected are gone; add an alert on send_failed_spans and on the filter processor's outgoing/incoming ratio, and a persistent queue for transient failures",
           "effects": [
             {
               "set": "loss",

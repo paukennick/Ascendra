@@ -28,7 +28,7 @@
         },
         {
           "id": "lineTimeout",
-          "text": "{timeout == \"perPolicy\" ? \"15 s for verifyImages only, with caching\" : timeout == \"global30\" ? \"30 s global timeout\" : timeout == \"dropVerify\" ? \"verifyImages deleted\" : \"\"}",
+          "text": "{timeout == \"perPolicy\" ? \"15 s for verifyImages only\" : timeout == \"global30\" ? \"30 s global timeout\" : timeout == \"dropVerify\" ? \"verifyImages deleted\" : \"\"}",
           "when": "timeout != \"none\"",
           "at": "timeAt(timeoutAt)",
           "error": "timeout == \"dropVerify\""
@@ -55,7 +55,7 @@
           "label": "verifyImages webhook timeout",
           "spokenLabel": "verifyImages webhook timeout",
           "kind": "webhook",
-          "status": "{timeout == \"perPolicy\" ? \"15 s for verifyImages only, with caching\" : timeout == \"global30\" ? \"30 s global timeout\" : timeout == \"dropVerify\" ? \"verifyImages deleted\" : \"Waiting\"}",
+          "status": "{timeout == \"perPolicy\" ? \"15 s for verifyImages only\" : timeout == \"global30\" ? \"30 s global timeout\" : timeout == \"dropVerify\" ? \"verifyImages deleted\" : \"Waiting\"}",
           "tone": "timeout == \"perPolicy\" ? \"up\" : timeout == \"global30\" ? \"degraded\" : timeout == \"dropVerify\" ? \"down\" : p >= 2 ? \"degraded\" : \"up\""
         },
         {
@@ -101,28 +101,34 @@
   ],
   "sources": [
     {
-      "cite": "CNCF, Kyverno Certified Associate (KCA) certification page: Fundamentals of Kyverno 18%, Installation, Configuration, and Upgrades 18%, Kyverno CLI 12%, Applying Policies 10%, Writing Policies 32%, Policy Management 10%",
+      "cite": "CNCF, Kyverno Certified Associate (KCA) certification page",
       "checkedAt": "2026-11-17",
       "url": "https://www.cncf.io/training/certification/kca/",
-      "note": "Read through a summarizing fetch on 2026-11-17 (domain weights only). The objective wording is the course seed's; the cncf/curriculum PDF was not re-read (to verify). Reused for REQ-336 from this course's policy-enforced-without-reading-reports (the same reading and date); the objective wording is the course seed's."
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the certification body's page, found by WebSearch. Confirms the exam domains and weights: Fundamentals of Kyverno 18%, Installation, Configuration, and Upgrades 18%, Kyverno CLI 12%, Applying Policies 10%, Writing Policies 32%, Policy Management 10%. The objective wording is the course seed's."
     },
     {
-      "cite": "Kyverno documentation, Installation (kyverno.io)",
+      "cite": "Kyverno documentation, High Availability",
+      "checkedAt": "2026-11-17",
+      "url": "https://kyverno.io/docs/high-availability",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: the minimum supported replica count for a highly available admission controller is three."
+    },
+    {
+      "cite": "Kyverno documentation, Installation",
       "checkedAt": "2026-11-17",
       "url": "https://kyverno.io/docs/installation/",
-      "note": "Found by search 2026-11-17 and read only through the search listing (title and address); to verify against the page. Used for: Helm installation, controller replica counts for high availability, and webhook failurePolicy."
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: Kyverno's resource webhooks fail closed by default, so a full Kyverno outage can make the cluster inoperable unless the Kyverno namespace is excluded; HA needs two or more replicas, three in the admission controller example; the kyverno ConfigMap's resourceFilters entry."
+    },
+    {
+      "cite": "Kyverno documentation, Policy Settings (release 1.12)",
+      "checkedAt": "2026-11-17",
+      "url": "https://release-1-12-0.kyverno.io/docs/writing-policies/policy-settings/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: webhookTimeoutSeconds is set per policy, defaults to 10 seconds and must be 1 to 30; failurePolicy is Fail or Ignore and defaults to Fail."
     },
     {
       "cite": "Kyverno documentation, Troubleshooting (release 1.15)",
       "checkedAt": "2026-11-17",
       "url": "https://release-1-15-0.kyverno.io/docs/troubleshooting/",
-      "note": "Found by search 2026-11-17 and read only through the search listing (title and address); to verify against the page. Used for: webhook timeouts, a Kyverno outage blocking API requests under failurePolicy Fail, and resource filters in the kyverno ConfigMap."
-    },
-    {
-      "cite": "Kyverno end-user threat model and hardening guide (kyverno.io blog asset)",
-      "checkedAt": "2026-11-17",
-      "url": "https://kyverno.io/blog/controlplane-threat-model/assets/kyverno-end-user-threat-model-and-hardening-guide.pdf",
-      "note": "Found by search 2026-11-17 and read only through the search listing (title and address); to verify against the page. Used for: why failurePolicy Ignore opens a bypass when Kyverno is unavailable, and limiting who can create policy exceptions."
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: the kyverno ConfigMap filters out high-volume requests; wildcard policies cause heavy load; fail-closed policies on Pods time out the API server when Kyverno is down; run three admission replicas and exclude system namespaces."
     },
     {
       "cite": "Author's scenario figures (REQ-336)",
@@ -334,7 +340,7 @@
               "options": [
                 {
                   "value": "honest",
-                  "label": "Three admission replicas with a PDB and Fail kept, a per-policy timeout with caching, and the default resource filters restored"
+                  "label": "Three admission replicas with a PDB and Fail kept, a per-policy timeout, and the default resource filters restored"
                 },
                 {
                   "value": "summary",
@@ -616,7 +622,7 @@
       "choices": [
         {
           "id": "perPolicy",
-          "label": "Set webhookTimeoutSeconds 15 on the verifyImages policy only and enable image verification caching",
+          "label": "Set webhookTimeoutSeconds 15 on the verifyImages policy only, leaving other policies at the 10-second default",
           "effects": [
             {
               "set": "timeout",
@@ -627,11 +633,11 @@
               "to": "t"
             },
             {
-              "log": "The slow policy gets 15 seconds and a cache.",
+              "log": "The slow policy gets 15 seconds.",
               "kind": "good"
             }
           ],
-          "feedback": "A per-policy timeout fits the slow call; caching makes repeat verifications fast."
+          "feedback": "A per-policy timeout fits the one slow registry call without slowing every other policy's failure."
         },
         {
           "id": "global30",
@@ -749,8 +755,8 @@
         },
         {
           "label": "Timeouts and filters",
-          "criteria": "A 15-second timeout on the verifyImages policy with caching; default resourceFilters restored.",
-          "modelAnswer": "Only verifyImages needed more time, so its policy has 15 seconds and a cache; the default filters keep Events and Leases away."
+          "criteria": "A 15-second timeout on the verifyImages policy; default resourceFilters restored.",
+          "modelAnswer": "Only verifyImages needed more time, so its policy has 15 seconds; the default filters keep Events and Leases away."
         }
       ]
     }
@@ -780,10 +786,10 @@
       "class": "recovered",
       "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
       "source": {
-        "cite": "CNCF, Kyverno Certified Associate (KCA) certification page: Fundamentals of Kyverno 18%, Installation, Configuration, and Upgrades 18%, Kyverno CLI 12%, Applying Policies 10%, Writing Policies 32%, Policy Management 10%",
+        "cite": "CNCF, Kyverno Certified Associate (KCA) certification page",
         "checkedAt": "2026-11-17",
         "url": "https://www.cncf.io/training/certification/kca/",
-        "note": "Read through a summarizing fetch on 2026-11-17 (domain weights only). The objective wording is the course seed's; the cncf/curriculum PDF was not re-read (to verify). Reused for REQ-336 from this course's policy-enforced-without-reading-reports (the same reading and date); the objective wording is the course seed's."
+        "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the certification body's page, found by WebSearch. Confirms the exam domains and weights: Fundamentals of Kyverno 18%, Installation, Configuration, and Upgrades 18%, Kyverno CLI 12%, Applying Policies 10%, Writing Policies 32%, Policy Management 10%. The objective wording is the course seed's."
       }
     }
   },
@@ -975,7 +981,7 @@
       },
       {
         "at": "Check-in 2",
-        "text": "Raise the timeout only on the verifyImages policy and cache verifications."
+        "text": "Raise the timeout only on the verifyImages policy."
       },
       {
         "at": "Check-in 3",
@@ -993,7 +999,7 @@
       },
       "timeoutHarm": {
         "headline": "Tune the timeout, keep the control",
-        "body": "Set webhookTimeoutSeconds on the slow policy and cache verification."
+        "body": "Set webhookTimeoutSeconds on the slow policy and keep it."
       },
       "filtersHarm": {
         "headline": "Filter kinds, not your workloads",
