@@ -666,6 +666,11 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("WAPSYCHJP", "wajp-former-psychologist-misconduct"),
   entry("EPPP", "eppp-video-session-client-out-of-state"),
   entry("EPPP", "eppp-driving-fear-came-back"),
+  entry("EPPP", "eppp-memory-worries-after-his-wife-died"),
+  entry("EPPP", "eppp-herbal-booster-on-sertraline"),
+  entry("NCE", "nce-stress-and-insomnia-after-the-shop-closed"),
+  entry("NCE", "nce-text-in-session-brother-killed"),
+  entry("NCE", "nce-eight-weeks-flat-scores"),
   // ---- end REQ-337 ----
 ];
 
