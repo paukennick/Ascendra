@@ -254,4 +254,38 @@ describe("what each new depth cloud case teaches (REQ-335)", () => {
     assert.equal(ok.value("missAt"), null);
     assert.equal(ok.value("okAt") !== null, true);
   });
+  test("AWSSAP sqs-visibility-shorter-than-work: purging loses orders; long polling changes nothing; a longer visibility timeout and an idempotency key hold the renewals", () => {
+    const d = docOf("sqs-visibility-shorter-than-work");
+    const h = driver(d);
+    h.act("purge");
+    assert.equal(h.value("harmed"), true, "purge causes harm");
+    until(h, 51);
+    assert.notEqual(h.value("missAt"), null);
+    const n = driver(d);
+    n.act("longpoll");
+    until(n, 51);
+    assert.notEqual(n.value("missAt"), null, "longpoll changes nothing");
+    const ok = driver(d);
+    ok.act("vis");
+    until(ok, 51);
+    assert.equal(ok.value("missAt"), null);
+    assert.equal(ok.value("okAt") !== null, true);
+  });
+  test("AWSSAP onprem-cannot-resolve-private-zone: a public record exposes the database; another VPC association changes nothing; an inbound endpoint and forwarder make the cutover", () => {
+    const d = docOf("onprem-cannot-resolve-private-zone");
+    const h = driver(d);
+    h.act("public");
+    assert.equal(h.value("harmed"), true, "public causes harm");
+    until(h, 51);
+    assert.notEqual(h.value("missAt"), null);
+    const n = driver(d);
+    n.act("assoc");
+    until(n, 51);
+    assert.notEqual(n.value("missAt"), null, "assoc changes nothing");
+    const ok = driver(d);
+    ok.act("inbound");
+    until(ok, 51);
+    assert.equal(ok.value("missAt"), null);
+    assert.equal(ok.value("okAt") !== null, true);
+  });
 });

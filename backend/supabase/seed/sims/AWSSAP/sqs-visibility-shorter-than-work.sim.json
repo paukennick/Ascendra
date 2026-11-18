@@ -1,0 +1,883 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "sqs-visibility-shorter-than-work",
+  "title": "Incident: customers charged twice after the invoice PDF change",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "arch@cloudshell:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "13:10 support: 212 customers report duplicate charges since 09:40; renewals at 14:00",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "14:00: renewals, duplicate charges spreading",
+          "when": "not isNull(missAt)",
+          "at": "timeAt(missAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "14:00: renewals, no duplicate charges",
+          "when": "not isNull(okAt)",
+          "at": "timeAt(okAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "q",
+          "label": "SQS order-events (standard)",
+          "spokenLabel": "the order queue",
+          "kind": "VisibilityTimeout 30 s",
+          "status": "{harmed ? \"purged\" : fixed ? \"VisibilityTimeout 300 s\" : \"messages reappearing mid-work\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "w",
+          "label": "ECS order-worker (12 tasks)",
+          "spokenLabel": "the workers",
+          "kind": "charge, write, PDF, delete",
+          "status": "{fixed and not harmed ? \"work 45-80 s, inside the timeout\" : \"work takes 45-80 s\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "pay",
+          "label": "Payment provider",
+          "spokenLabel": "the payment provider",
+          "kind": "charges",
+          "status": "{fixed and not harmed ? \"one charge per order\" : \"duplicate charges\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "q",
+          "to": "w",
+          "label": "receive",
+          "status": "{fixed and not harmed ? \"one worker per message\" : \"same message to 2-3 workers\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "l2",
+          "from": "w",
+          "to": "pay",
+          "label": "charge",
+          "status": "{fixed and not harmed ? \"single\" : \"duplicates\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Event-driven architectures and their messaging guarantees: idempotency, ordering, and delivery with EventBridge, SQS FIFO and standard queues, SNS, and Kinesis partition keys",
+  "secondaryObjectives": [
+    "Controlled remediation with safety limits: circuit breakers, rate limits, bulkheads, retries with exponential backoff"
+  ],
+  "sources": [
+    {
+      "cite": "AWS Certification, AWS Certified Solutions Architect - Professional certification page (current exam SAP-C03), and Tutorials Dojo, 'What's new with the AWS Certified Solutions Architect Professional SAP-C03'",
+      "checkedAt": "2026-11-17",
+      "url": "https://aws.amazon.com/certification/certified-solutions-architect-professional",
+      "note": "Both read through summarizing fetches on 2026-11-17. The AWS page links the SAP-C03 exam guide and prep plan but shows no domains. The Tutorials Dojo page lists the five SAP-C03 domains (cloud-native architecture design and implementation; security, compliance, and governance; cost-optimized architecture design; resilience, migration, and business continuity; operational excellence and automation) and says SAP-C03 became generally available on November 17, 2026. The weights (25/25/15/15/20) and the objective wording are the course seed's; the official SAP-C03 guide was not read (to verify)."
+    },
+    {
+      "cite": "AWS Lambda Developer Guide, Creating and configuring an Amazon SQS event source mapping",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.aws.amazon.com/lambda/latest/dg/services-sqs-configure.html",
+      "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: by default, after an error 'all messages in that batch return to the queue. After the visibility timeout, the messages become visible to Lambda again'; set the visibility timeout to at least six times the function timeout; Lambda refuses a function timeout longer than the queue's visibility timeout. The case's consumer is a container worker, not Lambda, so this check does not protect it. That a standard queue delivers at least once (so consumers must be idempotent), the 30-second default visibility timeout and ChangeMessageVisibility are from memory of the SQS developer guide (to verify)."
+    }
+  ],
+  "brief": {
+    "situation": "You are the solutions architect on call at Cobalt Lane, a fictional subscription box company. Orders go to the SQS standard queue order-events; ECS workers take each message, charge the card through the payment provider, write the order and delete the message. This morning's release added an invoice PDF to that work. Since then, support reports customers charged two or three times. The 14:00 subscription renewals put 40,000 messages on the queue.",
+    "handover": [
+      "The workers call ReceiveMessage, do the work and then DeleteMessage; they do not extend visibility.",
+      "The payment provider accepts an idempotency key on each charge; the code does not send one today."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the queue, its visibility timeout and the workers that charge cards.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "13:10",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineAt": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "Subscription renewals put 40,000 messages on the queue at 14:00, 50 minutes after the page."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "harmed": {
+      "type": "bool",
+      "init": false
+    },
+    "tried": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "attrsAt": {
+      "type": "time",
+      "init": null
+    },
+    "durAt": {
+      "type": "time",
+      "init": null
+    },
+    "recvAt": {
+      "type": "time",
+      "init": null
+    },
+    "codeAt": {
+      "type": "time",
+      "init": null
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "missAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "visibility",
+        "provider",
+        "workers"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "attrs",
+        "dur",
+        "recv",
+        "code",
+        "vis",
+        "refund",
+        "purge",
+        "longpoll",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "attrs": {
+      "label": "aws sqs get-queue-attributes --attribute-names VisibilityTimeout ApproximateNumberOfMessagesNotVisible",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(attrsAt)",
+          "then": [
+            {
+              "set": "attrsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "arch@cloudshell:~$ aws sqs get-queue-attributes --queue-url .../order-events --attribute-names VisibilityTimeout ApproximateNumberOfMessagesNotVisible\n{harmed ? \"VisibilityTimeout: 30\nApproximateNumberOfMessagesNotVisible: 0\" : fixed ? \"VisibilityTimeout: 300\nApproximateNumberOfMessagesNotVisible: 41\" : \"VisibilityTimeout: 30\nApproximateNumberOfMessagesNotVisible: 118\"}"
+        },
+        {
+          "finding": "A message is hidden for only 30 seconds after a worker receives it."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "dur": {
+      "label": "CloudWatch Logs Insights: order-worker processing time since the release",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(durAt)",
+          "then": [
+            {
+              "set": "durAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "arch@cloudshell:~$ aws logs start-query --log-group-name /ecs/order-worker --query-string 'stats pct(duration_s,50), pct(duration_s,99) by bin(1h)'\n before 09:40  p50 6 s   p99 14 s\n after 09:40   p50 47 s  p99 80 s  (invoice PDF)"
+        },
+        {
+          "finding": "Since the PDF change a message takes 45 to 80 seconds of work: longer than the 30-second visibility timeout, so it reappears and a second worker takes it."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "recv": {
+      "label": "Logs: receive count for one duplicated order",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(recvAt)",
+          "then": [
+            {
+              "set": "recvAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "arch@cloudshell:~$ aws logs filter-log-events --log-group-name /ecs/order-worker --filter-pattern '\"ord-88412\"'\n09:52:03 task-3 received ord-88412 (ApproximateReceiveCount=1)\n09:52:33 task-9 received ord-88412 (ApproximateReceiveCount=2)\n09:52:58 task-3 charged ord-88412; deleted\n09:53:21 task-9 charged ord-88412; DeleteMessage: receipt handle expired"
+        },
+        {
+          "finding": "The same order was received twice, 30 seconds apart, and charged by both workers."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "code": {
+      "label": "Read the worker's charge call",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(codeAt)",
+          "then": [
+            {
+              "set": "codeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "arch@cloudshell:~$ grep -n 'charges.create' -A3 src/worker/charge.ts\n41:  const charge = await pay.charges.create({{ amount, currency, customer }});"
+        },
+        {
+          "finding": "The charge carries no idempotency key, so the provider treats each call as new."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "vis": {
+      "label": "Set order-events' VisibilityTimeout to 300 s and ship the idempotency key (order ID) on every charge",
+      "group": "Fix",
+      "available": "not busy and (not fixed and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "fixed",
+          "to": "true"
+        },
+        {
+          "output": "arch@cloudshell:~$ aws sqs set-queue-attributes --queue-url .../order-events --attributes VisibilityTimeout=300\narch@cloudshell:~$ git diff src/worker/charge.ts\n-  pay.charges.create({{ amount, currency, customer }})\n+  pay.charges.create({{ amount, currency, customer }}, {{ idempotencyKey: order.id }})\narch@cloudshell:~$ ./deploy order-worker  # rolling, 4 min"
+        },
+        {
+          "log": "A message now stays hidden longer than the slowest work, and even a redelivery (a standard queue can still deliver twice) charges once, because the provider sees the same key.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "refund": {
+      "label": "Refund the duplicates from the provider's report and add an alarm on ApproximateReceiveCount above 1",
+      "group": "Fix",
+      "available": "not busy and (not planned and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "arch@cloudshell:~$ ./refund-duplicates --since 2026-11-17T09:40 --dry-run | tail -2\n212 customers, 247 duplicate charges, total 9,813.40 USD\narch@cloudshell:~$ ./refund-duplicates --since 2026-11-17T09:40 --execute\n247 refunds issued\narch@cloudshell:~$ aws cloudwatch put-metric-alarm --alarm-name order-redeliveries ... receive_count_gt_1 > 20 per 5 min"
+        },
+        {
+          "log": "Customers are made whole, and an alarm notices when messages start coming back again.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "purge": {
+      "label": "aws sqs purge-queue order-events, to stop the duplicates",
+      "group": "Fix",
+      "available": "not busy and (not harmed)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "harmed",
+          "to": "true"
+        },
+        {
+          "output": "arch@cloudshell:~$ aws sqs purge-queue --queue-url .../order-events\n(no output)"
+        },
+        {
+          "log": "Purging deletes every waiting order, including ones never charged at all: real orders are lost.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "longpoll": {
+      "label": "Turn on long polling (ReceiveMessageWaitTimeSeconds 20)",
+      "group": "Fix",
+      "available": "not busy and (not harmed and not tried)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tried",
+          "to": "true"
+        },
+        {
+          "output": "arch@cloudshell:~$ aws sqs set-queue-attributes --queue-url .../order-events --attributes ReceiveMessageWaitTimeSeconds=20\n(no output)"
+        },
+        {
+          "log": "Long polling changes how empty receives wait; a message still reappears 30 seconds after it was received.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Check redeliveries and duplicate charges after the change",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "arch@cloudshell:~$ Logs Insights: ApproximateReceiveCount > 1 (last 10 min); provider: duplicate charges (last 10 min)\n{harmed ? \"queue empty; 1,284 orders missing from the order table\" : fixed ? \"redeliveries: 0\nduplicate charges: 0\" : \"redeliveries: 96\nduplicate charges: 31\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "visibility",
+                  "label": "Work grew past the 30-second visibility timeout, so messages reappeared; charges were not idempotent"
+                },
+                {
+                  "value": "provider",
+                  "label": "The payment provider retried charges"
+                },
+                {
+                  "value": "workers",
+                  "label": "Too many worker tasks"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-335)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "14:00: renewals run with one charge per order.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "missAt",
+              "to": "t"
+            },
+            {
+              "log": "14:00: renewals run and thousands are charged more than once.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why customers were charged twice, what you changed, and why both changes are needed.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Connects the release to redelivery.",
+          "modelAnswer": "The PDF change made each message take 45-80 seconds, but order-events hides a received message for only 30. It reappeared and another worker charged it again; the charge carried no idempotency key."
+        },
+        {
+          "label": "What",
+          "criteria": "Fixes the timeout and the consumer, without losing orders.",
+          "modelAnswer": "VisibilityTimeout 300 seconds, above the slowest work, and the order ID as the provider's idempotency key. Purging would have deleted orders never charged."
+        },
+        {
+          "label": "Both",
+          "criteria": "Knows a standard queue delivers at least once.",
+          "modelAnswer": "A standard queue can deliver a message twice even with a good timeout, so the consumer must be idempotent; the timeout stops the routine redelivery, the key makes any that remain harmless. Duplicates were refunded and an alarm watches redeliveries."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "Subscription renewals put 40,000 messages on the queue at 14:00, 50 minutes after the page."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: Purging the queue deleted orders that had not been charged."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed and not harmed",
+      "class": "harm",
+      "rationale": "Closing with the timeout and the charge unchanged lets the renewals charge customers again.",
+      "source": {
+        "cite": "AWS Lambda Developer Guide, Creating and configuring an Amazon SQS event source mapping",
+        "checkedAt": "2026-11-17",
+        "url": "https://docs.aws.amazon.com/lambda/latest/dg/services-sqs-configure.html",
+        "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: by default, after an error 'all messages in that batch return to the queue. After the visibility timeout, the messages become visible to Lambda again'; set the visibility timeout to at least six times the function timeout; Lambda refuses a function timeout longer than the queue's visibility timeout. The case's consumer is a container worker, not Lambda, so this check does not protect it. That a standard queue delivers at least once (so consumers must be idempotent), the 30-second default visibility timeout and ChangeMessageVisibility are from memory of the SQS developer guide (to verify)."
+      }
+    }
+  },
+  "endings": {
+    "ordersLost": {
+      "label": "Orders deleted with the purge",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and harmed",
+      "narrative": "Purging the queue removed every waiting order; those customers' orders never existed."
+    },
+    "renewalsDoubled": {
+      "label": "Renewals charged more than once",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(missAt)",
+      "narrative": "At 14:00 renewals hit a queue that still hid messages for only 30 seconds."
+    },
+    "idempotent": {
+      "label": "Timeout above the work, charges idempotent, refunds issued",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(attrsAt) and not isNull(durAt) and not isNull(verifiedAt) and causeDoc == \"visibility\"",
+      "narrative": "Messages stay hidden through the work, each charge carries the order ID, and the duplicates were refunded."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Duplicates stopped, but the refunds, the alarm, the check or the record was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "ordersLost",
+    "renewalsDoubled",
+    "idempotent",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Compared processing time with the visibility timeout",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(attrsAt) and not isNull(durAt)",
+            "score": "met",
+            "why": "The key evidence, read before changing anything."
+          },
+          {
+            "when": "not isNull(attrsAt) or not isNull(durAt) or not isNull(recvAt) or not isNull(codeAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "No duplicate charges at 14:00, no orders lost",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and not harmed and isNull(missAt)",
+            "score": "met",
+            "why": "The right change, in time, without harm."
+          },
+          {
+            "when": "fixed or harmed",
+            "score": "partial",
+            "why": "{harmed ? \"Purging the queue deleted orders that had not been charged.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never removed."
+          }
+        ]
+      },
+      {
+        "id": "lasting",
+        "label": "Customers refunded, alarm set, result checked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The lasting step taken and the result checked."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"visibility\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record names the wrong cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes that caused harm",
+        "value": "harmed ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "13:10-13:14",
+        "text": "Visibility 30 s; work p99 80 s since the release; ord-88412 received twice; no idempotency key."
+      },
+      {
+        "at": "13:14-13:20",
+        "text": "Visibility 300 s; idempotency key deployed; refunds and a redelivery alarm."
+      },
+      {
+        "at": "13:20-13:22",
+        "text": "No redeliveries, no duplicates."
+      }
+    ],
+    "debrief": {
+      "ordersLost": {
+        "headline": "Stopping duplicates by losing originals",
+        "body": "The duplicates came from messages reappearing during work. Purging deletes the work itself. Lengthen the visibility timeout and make the charge idempotent."
+      },
+      "renewalsDoubled": {
+        "headline": "At-least-once needs two defenses",
+        "body": "A visibility timeout shorter than the work causes redelivery; a charge without an idempotency key turns redelivery into a second charge. Fix both before load arrives."
+      },
+      "idempotent": {
+        "headline": "Good: delivery and idempotency",
+        "body": "You measured the work against the visibility timeout, fixed the timeout and made the consumer idempotent (a standard queue can always deliver twice), checked it, and refunded the customers."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the evidence before the change, the lasting step, the check, or the cause in the record."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The release made each message take longer than the queue's 30-second visibility timeout, so messages reappeared during work and a second worker charged them again, with no idempotency key to stop it. Raise the visibility timeout above the slowest work and send the order ID as the charge's idempotency key, because a standard queue can deliver twice anyway. Purging loses real orders and long polling changes nothing. Then refund the duplicates and alarm on redeliveries."
+  }
+}

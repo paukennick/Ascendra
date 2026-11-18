@@ -1,0 +1,891 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "onprem-cannot-resolve-private-zone",
+  "title": "Cutover: the data center cannot resolve the new database's private name",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "arch@cloudshell:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "17:10 cutover check: 'nslookup erp-db.corp.internal' from ERP-APP-01 returns NXDOMAIN; cutover at 18:00",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "18:00: cutover failed, name not found",
+          "when": "not isNull(missAt)",
+          "at": "timeAt(missAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "18:00: cutover, ERP connected",
+          "when": "not isNull(okAt)",
+          "at": "timeAt(okAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "dc",
+          "label": "Data center DNS (dc-dns-01/02)",
+          "spokenLabel": "the data center's DNS servers",
+          "kind": "Windows DNS",
+          "status": "{harmed ? \"answers from public DNS\" : fixed ? \"forwards corp.internal to the inbound endpoint\" : \"no forwarder for corp.internal\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "in",
+          "label": "Resolver inbound endpoint",
+          "spokenLabel": "the inbound endpoint",
+          "kind": "hub VPC",
+          "status": "{fixed and not harmed ? \"10.40.8.10, 10.40.9.10\" : \"none\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "out",
+          "label": "Resolver outbound endpoint",
+          "spokenLabel": "the outbound endpoint",
+          "kind": "hub VPC",
+          "status": "{fixed and not harmed ? \"AWS to data center only\" : \"AWS to data center only\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "phz",
+          "label": "Private hosted zone corp.internal",
+          "spokenLabel": "the private zone",
+          "kind": "associated with the hub VPC",
+          "status": "{fixed and not harmed ? \"answers via the inbound endpoint\" : \"answers only inside the VPC\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "dc",
+          "to": "in",
+          "label": "DNS over Direct Connect",
+          "status": "{fixed and not harmed ? \"forwarding\" : \"no path\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "l2",
+          "from": "in",
+          "to": "phz",
+          "label": "VPC Resolver",
+          "status": "{fixed and not harmed ? \"resolving\" : \"unused\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Hybrid DNS: Route 53 Resolver endpoints, private hosted zones, split-horizon DNS, conditional forwarding",
+  "secondaryObjectives": [
+    "Redundant hybrid connectivity with failover: AWS Direct Connect, AWS VPN, AWS Transit Gateway"
+  ],
+  "sources": [
+    {
+      "cite": "AWS Certification, AWS Certified Solutions Architect - Professional certification page (current exam SAP-C03), and Tutorials Dojo, 'What's new with the AWS Certified Solutions Architect Professional SAP-C03'",
+      "checkedAt": "2026-11-17",
+      "url": "https://aws.amazon.com/certification/certified-solutions-architect-professional",
+      "note": "Both read through summarizing fetches on 2026-11-17. The AWS page links the SAP-C03 exam guide and prep plan but shows no domains. The Tutorials Dojo page lists the five SAP-C03 domains (cloud-native architecture design and implementation; security, compliance, and governance; cost-optimized architecture design; resilience, migration, and business continuity; operational excellence and automation) and says SAP-C03 became generally available on November 17, 2026. The weights (25/25/15/15/20) and the objective wording are the course seed's; the official SAP-C03 guide was not read (to verify)."
+    },
+    {
+      "cite": "Amazon Route 53 Developer Guide, What is Amazon Route 53 Resolver?",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.aws.amazon.com/en_en/Route53/latest/DeveloperGuide/resolver.html",
+      "note": "Read through a summarizing fetch on 2026-11-17. Quoted: 'Inbound Resolver endpoints allow DNS queries to your VPC from your on-premises network or another VPC'; 'Outbound Resolver endpoints allow DNS queries from your VPC to your on-premises network'; 'The on-premises DNS resolver has a forwarding rule that points queries to dev.example.com to an inbound endpoint'; VPC Resolver answers records in private hosted zones. That a private hosted zone answers only VPCs associated with it, and the endpoint's two-IP-addresses-in-two-Availability-Zones setup, are from memory of the Route 53 guide (to verify)."
+    }
+  ],
+  "brief": {
+    "situation": "You are the solutions architect for Hollis Mills, a fictional manufacturer. The ERP database moved to Amazon RDS in the hub VPC; its name erp-db.corp.internal is a record in the private hosted zone corp.internal. At 18:00 the ERP application servers, still in the data center, switch their connection string to that name. A test from the data center just failed: the name does not resolve.",
+    "handover": [
+      "The data center reaches the hub VPC over Direct Connect with a VPN backup; routing works (ping to the database's IP succeeds).",
+      "The hub VPC has an outbound Resolver endpoint, built last year so AWS workloads can resolve on-premises names."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the data center's DNS servers, the Resolver endpoints in the hub VPC and the private hosted zone.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "17:10",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineAt": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "The ERP servers switch to the new name at 18:00, 50 minutes after the page."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "harmed": {
+      "type": "bool",
+      "init": false
+    },
+    "tried": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "digdcAt": {
+      "type": "time",
+      "init": null
+    },
+    "epsAt": {
+      "type": "time",
+      "init": null
+    },
+    "fwdAt": {
+      "type": "time",
+      "init": null
+    },
+    "phzassocAt": {
+      "type": "time",
+      "init": null
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "missAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "noinbound",
+        "record",
+        "routing"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "digdc",
+        "eps",
+        "fwd",
+        "phzassoc",
+        "inbound",
+        "code",
+        "public",
+        "assoc",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "digdc": {
+      "label": "From ERP-APP-01: nslookup erp-db.corp.internal (and against the VPC)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(digdcAt)",
+          "then": [
+            {
+              "set": "digdcAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "arch@cloudshell:~$ ssh erp-app-01 'nslookup erp-db.corp.internal'\n{harmed ? \"Server: dc-dns-01\nNon-authoritative answer:\nName: erp-db.hollismills.com\nAddress: 10.40.2.15\" : fixed ? \"Server: dc-dns-01\nName: erp-db.corp.internal\nAddress: 10.40.2.15\" : \"Server: dc-dns-01\n*** dc-dns-01 can't find erp-db.corp.internal: Non-existent domain\"}\narch@cloudshell:~$ ssh bastion-hub 'dig +short erp-db.corp.internal'\n10.40.2.15"
+        },
+        {
+          "finding": "Inside the hub VPC the name resolves; from the data center it does not. The record is right; the data center's DNS has no way to ask the private zone."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "eps": {
+      "label": "aws route53resolver list-resolver-endpoints",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(epsAt)",
+          "then": [
+            {
+              "set": "epsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "arch@cloudshell:~$ aws route53resolver list-resolver-endpoints --query 'ResolverEndpoints[].[Name,Direction,IpAddressCount]'\n{fixed and not harmed ? \"hub-outbound  OUTBOUND  2\nhub-inbound   INBOUND   2\" : \"hub-outbound  OUTBOUND  2\"}"
+        },
+        {
+          "finding": "There is only an outbound endpoint: it sends queries from AWS to the data center, never the other way."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "fwd": {
+      "label": "On dc-dns-01: Get-DnsServerZone (conditional forwarders)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(fwdAt)",
+          "then": [
+            {
+              "set": "fwdAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "arch@cloudshell:~$ ssh dc-dns-01 'Get-DnsServerZone | where ZoneType -eq Forwarder'\n{fixed and not harmed ? \"ZoneName          MasterServers\naws.hollis.local  10.40.8.10 10.40.9.10\ncorp.internal     10.40.8.10 10.40.9.10\" : \"ZoneName          MasterServers\naws.hollis.local  (none, stale)\"}"
+        },
+        {
+          "finding": "The data center's DNS has no conditional forwarder for corp.internal, so it asks the internet and gets NXDOMAIN."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "phzassoc": {
+      "label": "aws route53 get-hosted-zone (corp.internal) VPC associations",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(phzassocAt)",
+          "then": [
+            {
+              "set": "phzassocAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "arch@cloudshell:~$ aws route53 get-hosted-zone --id Z0CORPINT --query 'VPCs'\nhub-vpc (us-east-1)"
+        },
+        {
+          "finding": "The private zone answers only for VPCs associated with it; the data center is not a VPC."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "inbound": {
+      "label": "Create an inbound Resolver endpoint (two subnets, SG allowing DNS from 10.0.0.0/12), then a corp.internal conditional forwarder on both DC DNS servers",
+      "group": "Fix",
+      "available": "not busy and (not fixed and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "fixed",
+          "to": "true"
+        },
+        {
+          "output": "arch@cloudshell:~$ aws route53resolver create-resolver-endpoint --name hub-inbound --direction INBOUND --security-group-ids sg-dns-from-dc --ip-addresses SubnetId=subnet-hub-a,Ip=10.40.8.10 SubnetId=subnet-hub-b,Ip=10.40.9.10 ...\nStatus: CREATING -> OPERATIONAL\narch@cloudshell:~$ ssh dc-dns-01 'Add-DnsServerConditionalForwarderZone -Name corp.internal -MasterServers 10.40.8.10,10.40.9.10 -ReplicationScope Forest'"
+        },
+        {
+          "log": "The data center's DNS now forwards corp.internal to two endpoint addresses in two Availability Zones, and the endpoint asks VPC Resolver, which answers from the private zone.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "code": {
+      "label": "Put the inbound endpoint in the network stack, test from both data center sites and over the VPN path",
+      "group": "Fix",
+      "available": "not busy and (not planned and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "arch@cloudshell:~$ git commit -am 'hub: inbound Resolver endpoint for on-premises lookups of corp.internal'\narch@cloudshell:~$ ./dns-probe --from dc-east,dc-west --via dx,vpn erp-db.corp.internal\ndc-east dx OK  dc-east vpn OK  dc-west dx OK  dc-west vpn OK"
+        },
+        {
+          "log": "The endpoint is in code with the rest of the hub, and resolution works from both sites over both the Direct Connect and the VPN paths.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "public": {
+      "label": "Publish erp-db as a record in the public zone hollismills.com, pointing at 10.40.2.15",
+      "group": "Fix",
+      "available": "not busy and (not harmed)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "harmed",
+          "to": "true"
+        },
+        {
+          "output": "arch@cloudshell:~$ aws route53 change-resource-record-sets --hosted-zone-id Z0PUBLIC --change-batch file://erp-db-public.json\nStatus: PENDING -> INSYNC"
+        },
+        {
+          "log": "The database's private address and name are now in public DNS for anyone to read, and the ERP's configured name still does not resolve.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "assoc": {
+      "label": "Associate corp.internal with the VPN's transit VPC as well",
+      "group": "Fix",
+      "available": "not busy and (not harmed and not tried)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tried",
+          "to": "true"
+        },
+        {
+          "output": "arch@cloudshell:~$ aws route53 associate-vpc-with-hosted-zone --hosted-zone-id Z0CORPINT --vpc VPCRegion=us-east-1,VPCId=vpc-transit\nStatus: INSYNC"
+        },
+        {
+          "log": "Another VPC can now resolve the zone; the data center's DNS servers still cannot ask it.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "From ERP-APP-01 and ERP-APP-02: resolve and connect to erp-db.corp.internal:5432",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "arch@cloudshell:~$ ssh erp-app-01 'nslookup erp-db.corp.internal; Test-NetConnection erp-db.corp.internal -Port 5432'\n{harmed ? \"Non-existent domain (erp-db.corp.internal)\nTcpTestSucceeded: False\" : fixed ? \"Address: 10.40.2.15\nTcpTestSucceeded: True\" : \"Non-existent domain\nTcpTestSucceeded: False (name not resolved)\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "noinbound",
+                  "label": "No inbound Resolver endpoint or forwarder: the data center could not query the private zone"
+                },
+                {
+                  "value": "record",
+                  "label": "The database record was missing from the zone"
+                },
+                {
+                  "value": "routing",
+                  "label": "Direct Connect routing to the hub VPC was broken"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-335)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "18:00: the ERP servers connect to erp-db.corp.internal.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "missAt",
+              "to": "t"
+            },
+            {
+              "log": "18:00: the ERP servers cannot find the database; the cutover is rolled back.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why the data center could not resolve the name, what you built, and why not a public record.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Distinguishes the record from the path to it.",
+          "modelAnswer": "The record exists and resolves inside the hub VPC. A private hosted zone answers only associated VPCs; the hub had only an outbound endpoint (AWS to data center) and the data center's DNS had no forwarder for corp.internal."
+        },
+        {
+          "label": "What",
+          "criteria": "Builds the inbound direction.",
+          "modelAnswer": "An inbound Resolver endpoint with addresses in two Availability Zones and a security group allowing DNS from the data center, and a conditional forwarder for corp.internal on both DNS servers pointing at it."
+        },
+        {
+          "label": "Not public",
+          "criteria": "Keeps internal names private.",
+          "modelAnswer": "Publishing the record in the public zone would expose the database's name and address, and still not answer the configured name. Split-horizon keeps internal names in the private zone."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The ERP servers switch to the new name at 18:00, 50 minutes after the page."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: Internal names and addresses were published to public DNS."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed and not harmed",
+      "class": "harm",
+      "rationale": "Closing without a path from the data center to the private zone fails the 18:00 cutover.",
+      "source": {
+        "cite": "Amazon Route 53 Developer Guide, What is Amazon Route 53 Resolver?",
+        "checkedAt": "2026-11-17",
+        "url": "https://docs.aws.amazon.com/en_en/Route53/latest/DeveloperGuide/resolver.html",
+        "note": "Read through a summarizing fetch on 2026-11-17. Quoted: 'Inbound Resolver endpoints allow DNS queries to your VPC from your on-premises network or another VPC'; 'Outbound Resolver endpoints allow DNS queries from your VPC to your on-premises network'; 'The on-premises DNS resolver has a forwarding rule that points queries to dev.example.com to an inbound endpoint'; VPC Resolver answers records in private hosted zones. That a private hosted zone answers only VPCs associated with it, and the endpoint's two-IP-addresses-in-two-Availability-Zones setup, are from memory of the Route 53 guide (to verify)."
+      }
+    }
+  },
+  "endings": {
+    "exposed": {
+      "label": "Private address published in public DNS",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and harmed",
+      "narrative": "The database's name and private address went into the public zone, and the cutover name still did not resolve."
+    },
+    "cutoverRolledBack": {
+      "label": "Cutover rolled back",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(missAt)",
+      "narrative": "At 18:00 the data center still could not resolve the private name."
+    },
+    "resolving": {
+      "label": "Inbound endpoint and forwarders, tested on both paths",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(digdcAt) and not isNull(epsAt) and not isNull(verifiedAt) and causeDoc == \"noinbound\"",
+      "narrative": "The data center resolves the private name through an inbound endpoint; the cutover ran at 18:00."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The cutover worked, but the code, the path tests, the check or the record was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "exposed",
+    "cutoverRolledBack",
+    "resolving",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Compared resolution inside and outside the VPC and the endpoint directions",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(digdcAt) and not isNull(epsAt)",
+            "score": "met",
+            "why": "The key evidence, read before changing anything."
+          },
+          {
+            "when": "not isNull(digdcAt) or not isNull(epsAt) or not isNull(fwdAt) or not isNull(phzassocAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Data center resolves the private name by 18:00, nothing published",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and not harmed and isNull(missAt)",
+            "score": "met",
+            "why": "The right change, in time, without harm."
+          },
+          {
+            "when": "fixed or harmed",
+            "score": "partial",
+            "why": "{harmed ? \"Internal names and addresses were published to public DNS.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never removed."
+          }
+        ]
+      },
+      {
+        "id": "lasting",
+        "label": "Endpoint in code, both sites and paths tested",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The lasting step taken and the result checked."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"noinbound\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record names the wrong cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes that caused harm",
+        "value": "harmed ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "17:10-17:14",
+        "text": "Resolves in the VPC, NXDOMAIN from the data center; only an outbound endpoint; no corp.internal forwarder."
+      },
+      {
+        "at": "17:14-17:24",
+        "text": "Inbound endpoint in two AZs; forwarders on both DNS servers; endpoint in code; probes from both sites and paths."
+      },
+      {
+        "at": "17:24-17:26",
+        "text": "ERP servers resolve and connect."
+      }
+    ],
+    "debrief": {
+      "exposed": {
+        "headline": "Split-horizon, not one horizon",
+        "body": "Private names belong in a private zone that only your networks can query. Give the data center a path to ask it (an inbound endpoint and a forwarder) instead of publishing internal records."
+      },
+      "cutoverRolledBack": {
+        "headline": "The query had no way in",
+        "body": "An outbound endpoint carries queries from AWS to the data center. For the data center to resolve a private hosted zone it needs an inbound endpoint and a conditional forwarder pointing at it."
+      },
+      "resolving": {
+        "headline": "Good: the right direction",
+        "body": "You saw the name worked inside the VPC and not outside, found only an outbound endpoint, added the inbound one with forwarders on both DNS servers, and tested both sites over both paths."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the evidence before the change, the lasting step, the check, or the cause in the record."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The name resolves inside the hub VPC and not from the data center, so the record is fine and the path is missing: a private hosted zone answers only associated VPCs, and the only Resolver endpoint is outbound. Create an inbound endpoint in two Availability Zones and conditional forwarders for corp.internal on the data center's DNS servers. Publishing the record publicly exposes it and does not fix the configured name; associating another VPC does not help the data center."
+  }
+}
