@@ -1,0 +1,1093 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pgmp-ports-business-case-alignment",
+  "title": "A port authority's automation program: alignment with the strategy, a business case with real benefits, and a charter",
+  "screen": {
+    "type": "governance-board",
+    "level": 1,
+    "governance": {
+      "risks": [
+        {
+          "id": "rAlign",
+          "label": "Objectives against the strategy",
+          "spokenLabel": "Objectives against the strategy",
+          "owner": "\"Program manager\"",
+          "rating": "align == \"reframe\" ? \"low\" : align == \"both\" ? \"medium\" : align == \"vendorCase\" ? \"critical\" : p >= 1 ? \"high\" : \"medium\"",
+          "appetite": "align == \"reframe\" ? \"within\" : align == \"both\" ? \"within\" : align == \"vendorCase\" ? \"above\" : p >= 1 ? \"above\" : \"within\"",
+          "status": "{align == \"reframe\" ? \"Objectives reframed to the strategy\" : align == \"both\" ? \"Mixed objectives\" : align == \"vendorCase\" ? \"Labor-cut objective\" : \"Open\"}"
+        },
+        {
+          "id": "rCase",
+          "label": "Unquantified benefits",
+          "spokenLabel": "Unquantified benefits",
+          "owner": "\"Program manager\"",
+          "rating": "case == \"quantify\" ? \"low\" : case == \"vendorNumbers\" ? \"medium\" : case == \"noCase\" ? \"critical\" : p >= 2 ? \"high\" : \"medium\"",
+          "appetite": "case == \"quantify\" ? \"within\" : case == \"vendorNumbers\" ? \"within\" : case == \"noCase\" ? \"above\" : p >= 2 ? \"above\" : \"within\"",
+          "status": "{case == \"quantify\" ? \"Quantified business case\" : case == \"vendorNumbers\" ? \"Vendor's figures\" : case == \"noCase\" ? \"No business case\" : \"Open\"}"
+        },
+        {
+          "id": "rCharter",
+          "label": "Commitments before authorization",
+          "spokenLabel": "Commitments before authorization",
+          "owner": "\"Program board\"",
+          "rating": "charter == \"charter\" ? \"low\" : charter == \"letter\" ? \"medium\" : charter == \"buy\" ? \"critical\" : p >= 3 ? \"high\" : \"medium\"",
+          "appetite": "charter == \"charter\" ? \"within\" : charter == \"letter\" ? \"within\" : charter == \"buy\" ? \"above\" : p >= 3 ? \"above\" : \"within\"",
+          "status": "{charter == \"charter\" ? \"Charter approved\" : charter == \"letter\" ? \"Sponsor email approval\" : charter == \"buy\" ? \"Order signed before authorization\" : \"Open\"}"
+        }
+      ],
+      "stakeholders": [
+        {
+          "id": "sSpon",
+          "label": "Program sponsor",
+          "spokenLabel": "the sponsor's support",
+          "value": "spon",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sOps",
+          "label": "Operations director",
+          "spokenLabel": "the operations director's support",
+          "value": "ops",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sPms",
+          "label": "Project managers",
+          "spokenLabel": "the project managers' support",
+          "value": "pms",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "docket": [
+        {
+          "id": "dAlign",
+          "kind": "Strategic alignment",
+          "label": "Meeting 1: objectives",
+          "status": "{align == \"reframe\" ? \"Objectives reframed to the strategy\" : align == \"both\" ? \"Mixed objectives\" : align == \"vendorCase\" ? \"Labor-cut objective\" : \"Due\"}",
+          "when": "p >= 1",
+          "flag": "p >= 1 and align == \"none\""
+        },
+        {
+          "id": "dCase",
+          "kind": "Business case",
+          "label": "Meeting 2: business case",
+          "status": "{case == \"quantify\" ? \"Quantified business case\" : case == \"vendorNumbers\" ? \"Vendor's figures\" : case == \"noCase\" ? \"No business case\" : \"Due\"}",
+          "when": "p >= 2",
+          "flag": "p >= 2 and case == \"none\""
+        },
+        {
+          "id": "dCharter",
+          "kind": "Program charter",
+          "label": "Meeting 3: charter",
+          "status": "{charter == \"charter\" ? \"Charter approved\" : charter == \"letter\" ? \"Sponsor email approval\" : charter == \"buy\" ? \"Order signed before authorization\" : \"Due\"}",
+          "when": "p >= 3",
+          "flag": "p >= 3 and charter == \"none\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Meeting",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Assessing initial program objectives, requirements, and risks against the organization's strategic plan, vision, and mission",
+  "secondaryObjectives": [
+    "Developing and evaluating the program's business case: feasibility, readiness, and strategic alignment",
+    "Obtaining organizational leadership approval via a program charter (high-level costs, milestones, benefits)"
+  ],
+  "sources": [
+    {
+      "cite": "PMI, Program Management Professional (PgMP) Examination Content Outline: Strategic Program Alignment 15%, Program Life Cycle Management 44%, Benefits Management 11%, Stakeholder Engagement 16%, Governance 14%",
+      "checkedAt": "2026-11-17",
+      "url": "https://eartech.pmtraining.com/about/how-to-prepare-for-the-pgmp-certification-exam",
+      "note": "Read 2026-11-17. The domain weights were confirmed through a summarizing fetch of a training provider's article (eartech.pmtraining.com, 'How to Prepare for the PgMP Certification Exam'), which describes Program Life Cycle Management as 'initiating, planning, executing, controlling, and closing the program across its phases' and Governance as 'the boards, gates, and decision rights that let leadership steer and, when needed, stop a program'. PMI's own outline PDF did not come up in search and PMI's PgMP pages read today do not list the domains; the task wording is the course seed's, to verify against PMI's PDF. Reused for REQ-336 from this course's pgmp-transit-program-steering-review (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the portfolio or program, the figures and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are asked to shape a crane automation program for Saltwick Port Authority, a fictional port. The board's strategy: grow container throughput 30% by 2032 while cutting emissions and keeping local employment.",
+    "handover": [
+      "The equipment vendor's proposal promises 50% labor savings.",
+      "The union has a no-redundancy agreement until 2030."
+    ],
+    "howItWorks": [
+      "The board shows the risk register against the appetite, each stakeholder's support in words and the docket.",
+      "Move on a fortnight at a time. A decision comes to you at each board meeting; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-04-05T09:00",
+    "tick": "1d",
+    "maxDuration": "168d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "spon": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "ops": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "pms": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "align": {
+      "type": "enum",
+      "values": [
+        "none",
+        "reframe",
+        "both",
+        "vendorCase"
+      ],
+      "init": "none"
+    },
+    "alignAt": {
+      "type": "time",
+      "init": null
+    },
+    "case": {
+      "type": "enum",
+      "values": [
+        "none",
+        "quantify",
+        "vendorNumbers",
+        "noCase"
+      ],
+      "init": "none"
+    },
+    "caseAt": {
+      "type": "time",
+      "init": null
+    },
+    "charter": {
+      "type": "enum",
+      "values": [
+        "none",
+        "charter",
+        "letter",
+        "buy"
+      ],
+      "init": "none"
+    },
+    "charterAt": {
+      "type": "time",
+      "init": null
+    },
+    "strategyAt": {
+      "type": "time",
+      "init": null
+    },
+    "vendorAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(spon, ops), pms)"
+    },
+    "missCount": {
+      "expr": "((align == \"vendorCase\") ? 1 : 0) + ((case == \"noCase\") ? 1 : 0) + ((charter == \"buy\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(align == \"none\" or (align == \"vendorCase\") ? 1 : 0) + (case == \"none\" or (case == \"noCase\") ? 1 : 0) + (charter == \"none\" or (charter == \"buy\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Program shaping",
+      "clock": "turns",
+      "actions": [
+        "strategy",
+        "vendor"
+      ]
+    },
+    "close": {
+      "label": "Board record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "strategy": {
+      "label": "Read the strategic plan and the union agreement",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(strategyAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "strategyAt",
+          "to": "t"
+        },
+        {
+          "log": "Read the strategic plan and the union agreement.",
+          "kind": "act"
+        },
+        {
+          "finding": "Strategy: throughput, emissions, local jobs. The agreement forbids redundancies until 2030."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2d"
+        }
+      ]
+    },
+    "vendor": {
+      "label": "Read the vendor's proposal",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(vendorAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "vendorAt",
+          "to": "t"
+        },
+        {
+          "log": "Read the vendor's proposal.",
+          "kind": "act"
+        },
+        {
+          "finding": "The proposal's benefits are labor savings only; throughput and emissions aren't quantified."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2d"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Record the board decisions",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Objectives reframed to the strategy and agreement, a quantified business case, and the charter approved before commitment"
+                },
+                {
+                  "value": "summary",
+                  "label": "Program approved"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next board meeting",
+      "wait": {
+        "skipLabel": "Go to the next board meeting"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "align == \"vendorCase\"",
+              "then": [
+                {
+                  "log": "Meeting 2: the union learns of the labor-cut objective and threatens action; the board pauses the program.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "case == \"noCase\"",
+              "then": [
+                {
+                  "log": "Meeting 3: the CFO asks for the case; without it, the board refuses the charter for another quarter.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "charter == \"buy\"",
+              "then": [
+                {
+                  "log": "Meeting 4: the board refuses to ratify the order; cancelling it costs a 9 million dollar penalty.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "14d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The charter decision is due.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "14d"
+        }
+      ]
+    },
+    {
+      "id": "t_align",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Meeting 1: objectives.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "alignPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_case",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Meeting 2: the business case.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "casePrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_charter",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Meeting 3: authorization.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "charterPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "alignPrompt": {
+      "title": "Do the objectives fit the strategy?",
+      "context": "The vendor frames the program as labor cuts.",
+      "choices": [
+        {
+          "id": "reframe",
+          "label": "Reframe objectives around throughput and emissions, with workforce redeployment and training, and flag labor cuts as conflicting with the agreement and the strategy",
+          "effects": [
+            {
+              "set": "align",
+              "to": "\"reframe\""
+            },
+            {
+              "set": "alignAt",
+              "to": "t"
+            },
+            {
+              "add": "ops",
+              "by": "1"
+            },
+            {
+              "log": "Objectives align with the strategy.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Program objectives are checked against strategy, mission and constraints before anything else."
+        },
+        {
+          "id": "both",
+          "label": "Keep labor savings and add throughput",
+          "effects": [
+            {
+              "set": "align",
+              "to": "\"both\""
+            },
+            {
+              "set": "alignAt",
+              "to": "t"
+            },
+            {
+              "add": "ops",
+              "by": "-1"
+            },
+            {
+              "log": "Both kept.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Labor savings still conflict with the agreement."
+        },
+        {
+          "id": "vendorCase",
+          "label": "Adopt the vendor's labor-savings objective",
+          "effects": [
+            {
+              "set": "align",
+              "to": "\"vendorCase\""
+            },
+            {
+              "set": "alignAt",
+              "to": "t"
+            },
+            {
+              "add": "ops",
+              "by": "-2"
+            },
+            {
+              "log": "Labor savings adopted.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "It breaches the union agreement and the local-jobs goal."
+        }
+      ]
+    },
+    "casePrompt": {
+      "title": "Quantifying the benefits",
+      "context": "Throughput and emissions benefits aren't quantified.",
+      "choices": [
+        {
+          "id": "quantify",
+          "label": "A business case quantifying throughput (+22%), emissions (-15%), costs, feasibility and readiness (skills, power supply), with a high-level cost-benefit analysis",
+          "effects": [
+            {
+              "set": "case",
+              "to": "\"quantify\""
+            },
+            {
+              "set": "caseAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "1"
+            },
+            {
+              "log": "The case quantifies benefits and readiness.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "The business case tests feasibility and readiness and quantifies the benefits that serve the strategy."
+        },
+        {
+          "id": "vendorNumbers",
+          "label": "Use the vendor's figures",
+          "effects": [
+            {
+              "set": "case",
+              "to": "\"vendorNumbers\""
+            },
+            {
+              "set": "caseAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-1"
+            },
+            {
+              "log": "Vendor figures used.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Unchallenged figures for the wrong benefit."
+        },
+        {
+          "id": "noCase",
+          "label": "Skip the case: the board likes automation",
+          "effects": [
+            {
+              "set": "case",
+              "to": "\"noCase\""
+            },
+            {
+              "set": "caseAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-2"
+            },
+            {
+              "log": "No business case.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Nothing to approve or measure against."
+        }
+      ]
+    },
+    "charterPrompt": {
+      "title": "Getting authorized",
+      "context": "The sponsor wants to start buying cranes now.",
+      "choices": [
+        {
+          "id": "charter",
+          "label": "Present a charter with high-level costs, milestones, benefits and governance to the board for approval before any commitment",
+          "effects": [
+            {
+              "set": "charter",
+              "to": "\"charter\""
+            },
+            {
+              "set": "charterAt",
+              "to": "t"
+            },
+            {
+              "add": "pms",
+              "by": "1"
+            },
+            {
+              "log": "The board approves the charter.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A program is authorized by leadership through its charter before committing funds."
+        },
+        {
+          "id": "letter",
+          "label": "Get the sponsor's approval by email",
+          "effects": [
+            {
+              "set": "charter",
+              "to": "\"letter\""
+            },
+            {
+              "set": "charterAt",
+              "to": "t"
+            },
+            {
+              "add": "pms",
+              "by": "-1"
+            },
+            {
+              "log": "The sponsor emails approval.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The board, which owns the strategy, hasn't authorized it."
+        },
+        {
+          "id": "buy",
+          "label": "Sign the crane order now to lock the price",
+          "effects": [
+            {
+              "set": "charter",
+              "to": "\"buy\""
+            },
+            {
+              "set": "charterAt",
+              "to": "t"
+            },
+            {
+              "add": "pms",
+              "by": "-2"
+            },
+            {
+              "log": "The order is signed.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Committing 90 million dollars before the program is authorized is outside your authority."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the program charter's cover note for the board.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Alignment and case",
+          "criteria": "Throughput and emissions objectives; labor cuts excluded; quantified benefits and readiness.",
+          "modelAnswer": "The program grows throughput 22% and cuts emissions 15%, redeploying staff in line with the agreement; the case covers costs, feasibility and readiness."
+        },
+        {
+          "label": "Authorization",
+          "criteria": "The charter approved before any order.",
+          "modelAnswer": "We ask you to approve the charter; no order is placed before it."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "governance",
+    "thresholds": {
+      "aboveAppetite": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No risk above appetite at the close without a treatment."
+        }
+      },
+      "supportTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Each key stakeholder at 6 of 10 or more at the close."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (align == \"both\") and (case == \"vendorNumbers\") and (charter == \"letter\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "PMI, Program Management Professional (PgMP) Examination Content Outline: Strategic Program Alignment 15%, Program Life Cycle Management 44%, Benefits Management 11%, Stakeholder Engagement 16%, Governance 14%",
+        "checkedAt": "2026-11-17",
+        "url": "https://eartech.pmtraining.com/about/how-to-prepare-for-the-pgmp-certification-exam",
+        "note": "Read 2026-11-17. The domain weights were confirmed through a summarizing fetch of a training provider's article (eartech.pmtraining.com, 'How to Prepare for the PgMP Certification Exam'), which describes Program Life Cycle Management as 'initiating, planning, executing, controlling, and closing the program across its phases' and Governance as 'the boards, gates, and decision rights that let leadership steer and, when needed, stop a program'. PMI's own outline PDF did not come up in search and PMI's PgMP pages read today do not list the domains; the task wording is the course seed's, to verify against PMI's PDF. Reused for REQ-336 from this course's pgmp-transit-program-steering-review (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "alignHarm": {
+      "label": "A program paused",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and align == \"vendorCase\"",
+      "narrative": "A labor-cut objective against the agreement led the board to pause the program."
+    },
+    "caseHarm": {
+      "label": "No basis to decide",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and case == \"noCase\"",
+      "narrative": "Without a business case, the board refused the charter."
+    },
+    "charterHarm": {
+      "label": "A penalty for an unauthorized order",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and charter == \"buy\"",
+      "narrative": "The board refused to ratify the order; cancelling it cost 9 million dollars."
+    },
+    "target": {
+      "label": "A program aligned and authorized",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (align == \"reframe\") and (case == \"quantify\") and (charter == \"charter\") and record == \"honest\" and openCount <= aboveAppetite and minSupport >= supportTarget",
+      "narrative": "The program serves the strategy, is justified by its case, and starts with the board's authority."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "alignHarm",
+    "caseHarm",
+    "charterHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "alignCrit",
+        "label": "Assessed the objectives against the strategy and constraints",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "align == \"reframe\"",
+            "score": "met",
+            "why": "Aligned."
+          },
+          {
+            "when": "align == \"both\"",
+            "score": "partial",
+            "why": "Conflict left in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Misaligned."
+          }
+        ]
+      },
+      {
+        "id": "caseCrit",
+        "label": "Built a business case with quantified benefits, feasibility and readiness",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "case == \"quantify\"",
+            "score": "met",
+            "why": "Evidence-based."
+          },
+          {
+            "when": "case == \"vendorNumbers\"",
+            "score": "partial",
+            "why": "Unverified."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Unjustified."
+          }
+        ]
+      },
+      {
+        "id": "charterCrit",
+        "label": "Obtained approval through a program charter",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "charter == \"charter\"",
+            "score": "met",
+            "why": "Authorized."
+          },
+          {
+            "when": "charter == \"letter\"",
+            "score": "partial",
+            "why": "Partial authority."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Unauthorized commitment."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(strategyAt) and not isNull(vendorAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(strategyAt) or not isNull(vendorAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 10)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the strategy and the agreements before the business case."
+      },
+      {
+        "at": "Meeting 1",
+        "text": "Reframe objectives to the strategy and the agreement."
+      },
+      {
+        "at": "Meeting 2",
+        "text": "Quantify benefits, costs, feasibility and readiness."
+      },
+      {
+        "at": "Meeting 3",
+        "text": "Get the charter approved before committing."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "alignHarm": {
+        "headline": "Align to strategy",
+        "body": "Check objectives against strategy, mission and constraints."
+      },
+      "caseHarm": {
+        "headline": "Make the case",
+        "body": "Quantified benefits, feasibility and readiness justify a program."
+      },
+      "charterHarm": {
+        "headline": "Authorize first",
+        "body": "The charter authorizes the program before commitments."
+      },
+      "target": {
+        "headline": "Good: a program aligned and authorized",
+        "body": "Objectives aligned, benefits quantified, charter approved."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Program definition starts by assessing objectives against the strategy, mission and constraints. The business case quantifies the benefits that serve the strategy and tests feasibility and readiness. Leadership authorizes the program through a charter (costs, milestones, benefits) before commitments are made."
+  }
+}
