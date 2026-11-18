@@ -176,7 +176,7 @@ describe("what each new depth cloud case teaches (REQ-335)", () => {
   const until = (r: ReturnType<typeof driver>, m: number) => {
     while (r.minutes() < m && !r.run.state.ended && r.run.state.phase === "incident") r.act("watch");
   };
-  test("the list is not empty", () => assert.ok(until && CLOUD.length > 0));
+  test("the list is not empty", () => assert.ok(typeof until === "function" && CLOUD.length > 0));
   test("AWSDEA s3-eventbridge-rule-never-fires: a single-element put deletes the orders trigger; widening the rule changes nothing; a merged put makes the close load", () => {
     const d = docOf("s3-eventbridge-rule-never-fires");
     const h = driver(d);
