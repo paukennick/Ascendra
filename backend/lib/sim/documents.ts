@@ -657,6 +657,16 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NCLEXPN", "clinic-eviction-no-way-out"),
   entry("NCLEXRN", "voices-say-he-should-die"),
   // ---- end REQ-329 ----
+  // ---- REQ-338 (docs/sims.md 22.42): EMS and fitness depth, round of
+  // 2026-11-17 (depth-ems-fitness). Bedside cases within each NREMT level's
+  // scope of practice; trainer cases for the personal trainer, nutrition coach
+  // and strength and conditioning courses; bands where the scope matches.
+  // Keep these entries together. ----
+  entry("NASMCPT", "cpt-low-glucose-mid-intervals"),
+  entry("NASMCPT", "cpt-six-weeks-off-make-it-up"),
+  entry("NASMCPT", "cpt-watch-zone-on-a-beta-blocker"),
+  entry("NASMCNC", "cnc-losing-too-fast-and-thirsty"),
+  // ---- end REQ-338 ----
 ];
 
 // REQ-312: the data and code console documents (docs/sims.md 22.25), by

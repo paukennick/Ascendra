@@ -1,0 +1,1592 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cpt-low-glucose-mid-intervals",
+  "title": "Shaky hands in the third interval",
+  "screen": {
+    "type": "trainer",
+    "level": 1,
+    "trainer": {
+      "client": {
+        "name": "Theo Marsh, 29",
+        "presentation": "{not isNull(emsAt) ? \"Paramedics are with him.\" : glu < 40 ? \"Slumped forward, eyes half closed.\" : glu < 54 and not isNull(signAt) ? \"Staring, words slurred.\" : glu < 70 and not isNull(signAt) ? \"Pale and sweaty, hands trembling.\" : \"Keen; he wants to beat last week's interval numbers.\"}"
+      },
+      "gauges": [
+        {
+          "id": "gTrust",
+          "label": "Trust",
+          "spokenLabel": "His trust in the trainer",
+          "value": "trust",
+          "max": 10,
+          "bands": [
+            3,
+            6
+          ],
+          "words": [
+            "guarded",
+            "warming",
+            "trusting"
+          ]
+        }
+      ],
+      "readings": [
+        {
+          "id": "cgm",
+          "label": "His glucose",
+          "spokenLabel": "His glucose on his sensor",
+          "value": "{glu|0dp} mg/dL",
+          "when": "not isNull(checkAt) or not isNull(preAt)",
+          "flag": "glu < 70"
+        },
+        {
+          "id": "how",
+          "label": "How he is",
+          "spokenLabel": "How he is",
+          "value": "{not isNull(emsAt) ? \"with paramedics\" : glu < 40 ? \"slumped, cannot swallow safely\" : glu < 54 ? \"confused, slurring\" : glu < 70 and not isNull(signAt) ? \"shaky, sweating\" : \"fine\"}",
+          "flag": "glu < 70 and not isNull(signAt) and isNull(emsAt)"
+        },
+        {
+          "id": "act",
+          "label": "Doing",
+          "spokenLabel": "What he is doing",
+          "value": "{exercising ? \"intervals on the bike\" : \"seated\"}"
+        }
+      ],
+      "intake": {
+        "label": "His diabetes plan card (from his diabetes care team)",
+        "items": [
+          {
+            "id": "p1",
+            "question": "Condition",
+            "answer": "Type 1 diabetes; insulin pump; continuous glucose sensor read on his phone.",
+            "when": "true"
+          },
+          {
+            "id": "p2",
+            "question": "Before exercise",
+            "answer": "Check glucose. Below 90 mg/dL: eat 15 g of carbohydrate first and wait.",
+            "when": "not isNull(planAt)"
+          },
+          {
+            "id": "p3",
+            "question": "Low glucose (below 70, or shaky, sweaty, confused)",
+            "answer": "Stop. 15 g fast sugar (4 glucose tablets or half a cup of juice). Recheck in 15 minutes; repeat if still below 70. Then a snack.",
+            "when": "not isNull(planAt)",
+            "flag": "true"
+          },
+          {
+            "id": "p4",
+            "question": "Cannot swallow, or unresponsive",
+            "answer": "Nothing by mouth. Ready-to-use nasal glucagon (in his bag). Call 911. On his side.",
+            "when": "not isNull(planAt)",
+            "flag": "true"
+          },
+          {
+            "id": "p5",
+            "question": "Insulin changes",
+            "answer": "Only with his diabetes care team.",
+            "when": "not isNull(planAt)"
+          }
+        ]
+      },
+      "findings": [
+        {
+          "id": "pre",
+          "label": "Before the intervals",
+          "result": "118 mg/dL with a downward arrow; he ate lunch at noon.",
+          "when": "not isNull(preAt)"
+        },
+        {
+          "id": "sign",
+          "label": "During the intervals",
+          "result": "{not isNull(severeAt) ? \"Slumped over the bars; mumbling, cannot hold a cup.\" : not isNull(confusedAt) ? \"Confused and slurring after the first signs.\" : \"Misses the cadence, sweating, says his hands are shaking.\"}",
+          "when": "not isNull(signAt)",
+          "flag": "true"
+        },
+        {
+          "id": "recheck",
+          "label": "Recheck at 15 minutes",
+          "result": "{round(recheckGlu)} mg/dL{recheckGlu < 70 ? \": still low\" : \"\"}.",
+          "when": "not isNull(recheckAt)",
+          "flag": "recheckGlu < 70"
+        }
+      ],
+      "program": {
+        "label": "Today",
+        "items": [
+          {
+            "label": "Bike intervals: 6 x 2 minutes hard, 2 minutes easy",
+            "when": "isNull(signAt)"
+          },
+          {
+            "label": "Intervals stopped; recovery and rechecks",
+            "when": "not isNull(stoppedAt) and isNull(resumedAt)"
+          },
+          {
+            "label": "Session finished after the low",
+            "when": "not isNull(resumedAt)"
+          },
+          {
+            "label": "Review today's low with his diabetes care team before the next session",
+            "when": "not isNull(teamAt)"
+          }
+        ]
+      },
+      "journal": [
+        {
+          "id": "jSign",
+          "text": "Shaky and sweating during intervals.",
+          "when": "not isNull(signAt)",
+          "at": "timeAt(signAt)"
+        },
+        {
+          "id": "jFast",
+          "text": "15 g fast carbohydrate.",
+          "when": "not isNull(fastAt)",
+          "at": "timeAt(fastAt)"
+        },
+        {
+          "id": "jCall",
+          "text": "911 called under the emergency action plan.",
+          "when": "not isNull(calledAt)",
+          "at": "timeAt(calledAt)"
+        },
+        {
+          "id": "jEms",
+          "text": "Paramedics took over his care.",
+          "when": "not isNull(emsAt)",
+          "at": "timeAt(emsAt)"
+        }
+      ],
+      "rules": [
+        {
+          "id": "rStop",
+          "label": "Warning sign during exercise",
+          "text": "Stop the exercise and sit him down.",
+          "met": "exercising and not isNull(signAt)"
+        },
+        {
+          "id": "rLow",
+          "label": "Low glucose, can swallow",
+          "text": "15 g of fast carbohydrate, recheck in 15 minutes, repeat if still below 70; then a snack. No more intervals today.",
+          "met": "not isNull(signAt) and glu < 70 and isNull(severeAt)"
+        },
+        {
+          "id": "rSevere",
+          "label": "Cannot swallow",
+          "text": "Nothing by mouth. Call 911, his glucagon per his plan card, on his side.",
+          "met": "not isNull(severeAt) and isNull(emsAt)"
+        },
+        {
+          "id": "rScope",
+          "label": "Scope of practice",
+          "text": "Follow his written plan; insulin and pump settings are for his diabetes care team.",
+          "met": "insulinAdvice"
+        }
+      ]
+    }
+  },
+  "objective": "Legal and risk-management basics: liability, documentation, emergency response",
+  "secondaryObjectives": [
+    "Scope of practice and when to refer to other health professionals",
+    "Program design considerations for special populations: youth, older adults, prenatal, clinical and obese clients"
+  ],
+  "sources": [
+    {
+      "cite": "NASM Candidate Handbook (updated 9/2025), Appendix A, CPT 7 exam blueprint: Basic and Applied Sciences 15%, Client Relations and Behavioral Coaching 15%, Assessment 16%, Program Design 20%, Exercise Technique and Training Instruction 24%, Professional Development and Responsibility 10%",
+      "checkedAt": "2026-10-08",
+      "url": "https://www.nasm.org/certified-personal-trainer/exam-information",
+      "note": "Relayed from the course seed (backend/supabase/seed/tracks/fitness.ts, read 2026-10-08), not re-read for this case. The objective titles are the course's own words."
+    },
+    {
+      "cite": "American Diabetes Association. Hypoglycemia Guidelines: your visual guide to the guidelines (infographic based on the Standards of Care in Diabetes, 2025)",
+      "checkedAt": "2026-11-17",
+      "url": "https://professional.diabetes.org/sites/dpro/files/2025-05/hypoglycemia-hcp-5-27-25.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: level 1 below 70 mg/dL, level 2 below 54 mg/dL, level 3 'Altered mental and/or physical status requiring assistance, irrespective of glucose level'; 'In most conscious individuals, have 15 grams of fast-acting carbohydrates, and recheck glucose in 15 minutes', repeated until it resolves; 'Glucagon is indicated for hypoglycemia treatment when people are unable or unwilling to consume carbohydrates by mouth'; ready-to-use glucagon can be given by people who are not health care professionals. The page says nothing about exercise."
+    },
+    {
+      "cite": "Ascendra teaching model (REQ-338, authored)",
+      "checkedAt": "2026-11-17",
+      "note": "How fast his glucose falls on the bike and at rest, how much 15 g of fast carbohydrate raises it and how quickly, and the levels at which he becomes confused and cannot swallow are authored. The levels follow the ADA's level 1 (below 70 mg/dL) and level 2 (below 54 mg/dL); the rates are FLAG figures. Simplified teaching model written for exam practice; not a validated physiological model."
+    },
+    {
+      "cite": "Ascendra NASM-CPT course catalog (backend/supabase/seed/tracks/fitness.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    }
+  ],
+  "brief": {
+    "situation": "You are a personal trainer at a commercial gym. Theo Marsh, 29 (a fictional client), has type 1 diabetes with an insulin pump and a glucose sensor; his diabetes team has cleared him to train and given him a written plan card. Tonight is bike intervals.",
+    "handover": [
+      "The gym's emergency action plan: call 911, send the front desk to meet the crew, bring the first aid kit and the AED.",
+      "Trainers follow a client's written plan in an emergency; insulin and pump settings are for his diabetes care team.",
+      "His glucose tablets, a protein bar and his nasal glucagon are in his gym bag."
+    ],
+    "howItWorks": [
+      "Each task takes time: choose it, then let it finish, which moves the clock by the minutes it takes.",
+      "The screen shows the client, your read-outs and findings, the plan and the rules that apply now.",
+      "When you end the session you write the record and explain your reasoning."
+    ]
+  },
+  "safetyNote": "Teaching case for exam practice; fictional client. Not medical advice.",
+  "clock": {
+    "start": "18:30",
+    "tick": "1min",
+    "maxDuration": "100min",
+    "calendar": "clock"
+  },
+  "params": {
+    "exFall": {
+      "value": 2.5,
+      "unit": "mg/dL/min",
+      "source": {
+        "cite": "Ascendra teaching model (REQ-338, authored)",
+        "checkedAt": "2026-11-17",
+        "note": "FLAG: stands in for a number no guideline gives. Glucose falls about 2.5 mg/dL a minute during the intervals with his pump insulin on board. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "restFall": {
+      "value": 1.5,
+      "unit": "mg/dL/min",
+      "source": {
+        "cite": "Ascendra teaching model (REQ-338, authored)",
+        "checkedAt": "2026-11-17",
+        "note": "FLAG: stands in for a number no guideline gives. At rest it keeps falling about 1.5 mg/dL a minute for the rest of the hour (insulin still acting). Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "fastTau": {
+      "value": 6,
+      "unit": "min",
+      "source": {
+        "cite": "Ascendra teaching model (REQ-338, authored)",
+        "checkedAt": "2026-11-17",
+        "note": "FLAG: stands in for a number no guideline gives. Glucose tablets or juice are absorbed with a 6-minute time constant, so most of a dose acts within 15 minutes. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowTau": {
+      "value": 40,
+      "unit": "min",
+      "source": {
+        "cite": "Ascendra teaching model (REQ-338, authored)",
+        "checkedAt": "2026-11-17",
+        "note": "FLAG: stands in for a number no guideline gives. A protein bar's carbohydrate is absorbed with a 40-minute time constant. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "gPerG": {
+      "value": 3,
+      "unit": "mg/dL per g",
+      "source": {
+        "cite": "Ascendra teaching model (REQ-338, authored)",
+        "checkedAt": "2026-11-17",
+        "note": "FLAG: stands in for a number no guideline gives. Each gram of carbohydrate raises his glucose about 3 mg/dL. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "emsDelay": {
+      "value": 480,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-338)",
+        "checkedAt": "2026-11-17",
+        "note": "Eight minutes for the ambulance is the author's figure; response times vary."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "exercising": {
+      "type": "bool",
+      "init": false
+    },
+    "glu": {
+      "type": "number",
+      "init": 118,
+      "min": 20,
+      "max": 300,
+      "unit": "mg/dL"
+    },
+    "fast": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 60,
+      "unit": "g"
+    },
+    "slow": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 60,
+      "unit": "g"
+    },
+    "planAt": {
+      "type": "time",
+      "init": null
+    },
+    "preAt": {
+      "type": "time",
+      "init": null
+    },
+    "intAt": {
+      "type": "time",
+      "init": null
+    },
+    "signAt": {
+      "type": "time",
+      "init": null
+    },
+    "confusedAt": {
+      "type": "time",
+      "init": null
+    },
+    "severeAt": {
+      "type": "time",
+      "init": null
+    },
+    "stoppedAt": {
+      "type": "time",
+      "init": null
+    },
+    "checkAt": {
+      "type": "time",
+      "init": null
+    },
+    "fastAt": {
+      "type": "time",
+      "init": null
+    },
+    "fastN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 5
+    },
+    "slowAt": {
+      "type": "time",
+      "init": null
+    },
+    "recheckAt": {
+      "type": "time",
+      "init": null
+    },
+    "recheckGlu": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 300,
+      "unit": "mg/dL"
+    },
+    "resumedAt": {
+      "type": "time",
+      "init": null
+    },
+    "pushedAt": {
+      "type": "time",
+      "init": null
+    },
+    "calledAt": {
+      "type": "time",
+      "init": null
+    },
+    "emsAt": {
+      "type": "time",
+      "init": null
+    },
+    "glucagonAt": {
+      "type": "time",
+      "init": null
+    },
+    "sideAt": {
+      "type": "time",
+      "init": null
+    },
+    "mouthFed": {
+      "type": "bool",
+      "init": false
+    },
+    "insulinAdvice": {
+      "type": "bool",
+      "init": false
+    },
+    "teamAt": {
+      "type": "time",
+      "init": null
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "enum",
+      "values": [
+        "none",
+        "nothing",
+        "brief",
+        "full"
+      ],
+      "init": "none"
+    },
+    "trust": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    }
+  },
+  "derived": {},
+  "processes": [
+    {
+      "id": "metab",
+      "when": "isNull(emsAt)",
+      "update": {
+        "glu": "clamp(glu + ((fast / fastTau + slow / slowTau) * gPerG - (exercising ? exFall : restFall)) * dt / 60, 20, 300)",
+        "fast": "max(0, fast - fast / fastTau * dt / 60)",
+        "slow": "max(0, slow - slow / slowTau * dt / 60)"
+      }
+    }
+  ],
+  "phases": {
+    "session": {
+      "label": "Session",
+      "clock": "turns",
+      "actions": [
+        "readPlan",
+        "preCheck",
+        "intervals",
+        "stopEx",
+        "pushOn",
+        "check",
+        "fastCarbs",
+        "proteinBar",
+        "recheck",
+        "secondDose",
+        "snack",
+        "resume",
+        "call911",
+        "glucagon",
+        "side",
+        "insulin",
+        "team",
+        "closeSession"
+      ]
+    },
+    "close": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "session",
+  "actions": {
+    "readPlan": {
+      "label": "Read his diabetes plan card with him",
+      "group": "Screen",
+      "available": "not busy and (isNull(planAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(planAt)",
+          "then": [
+            {
+              "set": "planAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "trust",
+          "by": "1"
+        },
+        {
+          "log": "You read his diabetes plan card together.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "preCheck": {
+      "label": "Ask him to check his glucose and its trend before the intervals",
+      "group": "Screen",
+      "available": "not busy and (isNull(preAt) and isNull(intAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(preAt)",
+          "then": [
+            {
+              "set": "preAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "He checks his sensor: 118 mg/dL, arrow pointing down.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "intervals": {
+      "label": "Start the interval block on the bike",
+      "group": "Train",
+      "available": "not busy and (isNull(intAt) and not exercising)",
+      "why": "Already started.",
+      "effects": [
+        {
+          "if": "isNull(intAt)",
+          "then": [
+            {
+              "set": "intAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "exercising",
+          "to": "true"
+        },
+        {
+          "log": "He starts the intervals.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "30min"
+        }
+      ]
+    },
+    "stopEx": {
+      "label": "Stop the intervals and sit him down",
+      "group": "Respond",
+      "available": "exercising",
+      "why": "He is not exercising.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "exercising",
+          "to": "false"
+        },
+        {
+          "if": "isNull(stoppedAt)",
+          "then": [
+            {
+              "set": "stoppedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You stop the bike and sit him on the bench.",
+          "kind": "act"
+        }
+      ]
+    },
+    "pushOn": {
+      "label": "Encourage him to finish the interval: 'two more minutes, you've got this'",
+      "group": "Respond",
+      "available": "exercising and not isNull(signAt)",
+      "why": "Only while he is exercising with a warning sign.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "if": "isNull(pushedAt)",
+          "then": [
+            {
+              "set": "pushedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You tell him to push through.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "check": {
+      "label": "Ask him to check his glucose now",
+      "group": "Assess",
+      "available": "not busy and (not exercising and isNull(severeAt))",
+      "why": "Stop the exercise first; he cannot check it now.",
+      "effects": [
+        {
+          "if": "isNull(checkAt)",
+          "then": [
+            {
+              "set": "checkAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "He checks: {round(glu)} mg/dL.",
+          "kind": "find"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "fastCarbs": {
+      "label": "Give 15 g of fast carbohydrate: four of his glucose tablets",
+      "group": "Treat",
+      "available": "not busy and (not exercising)",
+      "why": "Stop the exercise first.",
+      "effects": [
+        {
+          "if": "isNull(fastAt)",
+          "then": [
+            {
+              "set": "fastAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "fastN",
+          "by": "1"
+        },
+        {
+          "if": "isNull(severeAt) or not isNull(glucagonAt) and glu >= 54",
+          "then": [
+            {
+              "add": "fast",
+              "by": "15"
+            },
+            {
+              "log": "He chews four glucose tablets.",
+              "kind": "act"
+            }
+          ],
+          "else": [
+            {
+              "set": "mouthFed",
+              "to": "true"
+            },
+            {
+              "log": "He cannot swallow; the tablets sit in his mouth and he coughs and splutters.",
+              "kind": "bad"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "proteinBar": {
+      "label": "Give him a protein bar from his bag",
+      "group": "Treat",
+      "available": "not busy and (not exercising)",
+      "why": "Stop the exercise first.",
+      "effects": [
+        {
+          "if": "isNull(slowAt)",
+          "then": [
+            {
+              "set": "slowAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(severeAt) or not isNull(glucagonAt) and glu >= 54",
+          "then": [
+            {
+              "add": "slow",
+              "by": "15"
+            },
+            {
+              "log": "He eats the protein bar slowly.",
+              "kind": "act"
+            }
+          ],
+          "else": [
+            {
+              "set": "mouthFed",
+              "to": "true"
+            },
+            {
+              "log": "He cannot chew or swallow it safely; he chokes on a bite.",
+              "kind": "bad"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "recheck": {
+      "label": "Sit with him for 15 minutes, then ask him to recheck",
+      "group": "Assess",
+      "available": "not busy and (not exercising and isNull(severeAt) and isNull(recheckAt) and (not isNull(fastAt) or not isNull(slowAt)))",
+      "why": "Treat the low first.",
+      "effects": [
+        {
+          "if": "isNull(recheckAt)",
+          "then": [
+            {
+              "set": "recheckAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You stay with him and talk him through the wait.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "15min"
+        }
+      ]
+    },
+    "secondDose": {
+      "label": "Still below 70: give another 15 g of fast carbohydrate",
+      "group": "Treat",
+      "available": "not busy and (not exercising and not isNull(recheckAt) and recheckGlu < 70 and isNull(severeAt))",
+      "why": "Only after a recheck that is still low.",
+      "effects": [
+        {
+          "if": "isNull(fastAt)",
+          "then": [
+            {
+              "set": "fastAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "fast",
+          "by": "15"
+        },
+        {
+          "add": "fastN",
+          "by": "1"
+        },
+        {
+          "log": "Another four glucose tablets.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "snack": {
+      "label": "Above 70 now: a snack with carbohydrate and protein before he leaves",
+      "group": "Treat",
+      "available": "not busy and (not exercising and not isNull(recheckAt) and glu >= 70 and isNull(severeAt))",
+      "why": "After a recheck at or above 70.",
+      "effects": [
+        {
+          "add": "slow",
+          "by": "15"
+        },
+        {
+          "log": "He eats a sandwich from the cafe.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "resume": {
+      "label": "He feels better: finish the last intervals",
+      "group": "Train",
+      "available": "not busy and (not exercising and not isNull(stoppedAt) and isNull(severeAt) and isNull(emsAt))",
+      "why": "Not now.",
+      "effects": [
+        {
+          "if": "isNull(resumedAt)",
+          "then": [
+            {
+              "set": "resumedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "exercising",
+          "to": "true"
+        },
+        {
+          "log": "He climbs back on the bike.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "8min"
+        }
+      ]
+    },
+    "call911": {
+      "label": "Call 911 under the emergency action plan",
+      "group": "Respond",
+      "available": "isNull(calledAt) and not isNull(signAt)",
+      "why": "Already called.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "exercising",
+          "to": "false"
+        },
+        {
+          "if": "isNull(calledAt)",
+          "then": [
+            {
+              "set": "calledAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You call 911 and send the front desk to meet the crew.",
+          "kind": "good"
+        },
+        {
+          "schedule": "ems",
+          "after": "emsDelay"
+        }
+      ]
+    },
+    "glucagon": {
+      "label": "Give his ready-to-use nasal glucagon, as his plan card says",
+      "group": "Respond",
+      "available": "not isNull(severeAt) and isNull(glucagonAt)",
+      "why": "Only if he cannot swallow.",
+      "effects": [
+        {
+          "if": "isNull(glucagonAt)",
+          "then": [
+            {
+              "set": "glucagonAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "fast",
+          "by": "25"
+        },
+        {
+          "log": "You give the nasal glucagon from his bag, as the card shows.",
+          "kind": "good"
+        }
+      ]
+    },
+    "side": {
+      "label": "Roll him onto his side on the mat and keep his airway clear",
+      "group": "Respond",
+      "available": "not isNull(severeAt) and isNull(sideAt)",
+      "why": "Only if he cannot swallow.",
+      "effects": [
+        {
+          "if": "isNull(sideAt)",
+          "then": [
+            {
+              "set": "sideAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "exercising",
+          "to": "false"
+        },
+        {
+          "log": "On his side on the mat; you watch his breathing.",
+          "kind": "act"
+        }
+      ]
+    },
+    "insulin": {
+      "label": "Tell him to halve his pump's basal rate before your next session",
+      "group": "Talk",
+      "available": "not busy and (not insulinAdvice)",
+      "why": "Already said.",
+      "effects": [
+        {
+          "set": "insulinAdvice",
+          "to": "true"
+        },
+        {
+          "log": "You tell him how to change his pump setting.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "team": {
+      "label": "Ask him to review today's low with his diabetes care team before the next session, and offer your session notes",
+      "group": "Talk",
+      "available": "not busy and (isNull(teamAt) and not exercising)",
+      "why": "Not now.",
+      "effects": [
+        {
+          "if": "isNull(teamAt)",
+          "then": [
+            {
+              "set": "teamAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "trust",
+          "by": "1"
+        },
+        {
+          "log": "You suggest he takes today's low to his diabetes team.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "closeSession": {
+      "label": "End the session and write it up",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Finish what you are doing first.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "if": "isNull(closedAt)",
+          "then": [
+            {
+              "set": "closedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You end the session.",
+          "kind": "act"
+        },
+        {
+          "phase": "close"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the record",
+      "group": "Record",
+      "available": "documented == \"none\"",
+      "why": "Written.",
+      "params": [
+        {
+          "id": "what",
+          "kind": "choice",
+          "label": "Record",
+          "options": [
+            {
+              "value": "full",
+              "label": "Incident report: the time of the first signs, his readings, what was given and when, the rechecks, who was called and the advice to see his care team"
+            },
+            {
+              "value": "brief",
+              "label": "One line: 'Client felt unwell; recovered'"
+            },
+            {
+              "value": "nothing",
+              "label": "Nothing written"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "documented",
+          "to": "what"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Work in progress",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-338)",
+        "checkedAt": "2026-11-17",
+        "note": "How many sim minutes each task takes and when the fictional events happen are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "ems": {
+      "label": "Ambulance on the way",
+      "wait": {
+        "skipLabel": "Wait for the crew"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Author's scenario timing (REQ-338)",
+        "checkedAt": "2026-11-17",
+        "note": "Eight minutes for the ambulance is the author's figure; response times vary."
+      },
+      "effects": [
+        {
+          "if": "isNull(emsAt)",
+          "then": [
+            {
+              "set": "emsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "exercising",
+          "to": "false"
+        },
+        {
+          "log": "Paramedics arrive and take over.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "sign",
+      "when": "exercising and glu < 70 and isNull(signAt)",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "isNull(signAt)",
+          "then": [
+            {
+              "set": "signAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "He misses the cadence, sweating: 'My hands are shaking.'",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "confused",
+      "when": "glu < 54 and not isNull(signAt) and isNull(confusedAt)",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "isNull(confusedAt)",
+          "then": [
+            {
+              "set": "confusedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "He stares at you and slurs his words.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "severe",
+      "when": "glu < 40 and isNull(severeAt)",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "isNull(severeAt)",
+          "then": [
+            {
+              "set": "severeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "exercising",
+          "to": "false"
+        },
+        {
+          "log": "He slumps over the handlebars and cannot hold the cup you offer.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "recheckRead",
+      "when": "not isNull(recheckAt) and not busy and recheckGlu == 0",
+      "mode": "once",
+      "effects": [
+        {
+          "set": "recheckGlu",
+          "to": "round(glu)"
+        },
+        {
+          "log": "Recheck: {round(glu)} mg/dL.",
+          "kind": "find"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "not isNull(closedAt)",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the incident report: what you saw and what it meant, what you did and on what basis, and what happens before his next session.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "What you saw",
+          "criteria": "Shaking and sweating during intervals in a client with type 1 diabetes, a falling sensor reading: low glucose; confusion or not being able to swallow means it is severe.",
+          "modelAnswer": "Shaky and sweating in the third interval; his sensor read below 70 with a falling arrow. That is low glucose, and it was still mild because he could talk and swallow."
+        },
+        {
+          "label": "What you did and why",
+          "criteria": "Stopped at once; 15 g of fast carbohydrate (not a slow snack first); rechecked at 15 minutes and repeated if still below 70; no more intervals; if he cannot swallow: nothing by mouth, his glucagon, 911, on his side.",
+          "modelAnswer": "Stopped, sat him down, four glucose tablets, rechecked after 15 minutes (above 70), then a snack; no more intervals today. If he had stopped being able to swallow I would have called 911 and used his glucagon, never food in his mouth."
+        },
+        {
+          "label": "Before the next session",
+          "criteria": "The record and an incident report; insulin and pump changes are for his diabetes care team, not the trainer; offer the session notes.",
+          "modelAnswer": "A full incident report; I asked him to review the low with his diabetes team before we train again, and offered my notes. Changing his insulin is not my call."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "fitness",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Fitness outcome profile (docs/sims.md 9.2, 22.27)",
+          "checkedAt": "2026-11-16",
+          "note": "Exercise stopped within 2 minutes of a warning sign; a teaching figure, as for the physical therapy profile."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "not isNull(closedAt) and not isNull(signAt) and isNull(fastAt) and isNull(glucagonAt)",
+      "class": "harm",
+      "rationale": "Sending a client with low glucose away untreated is never a safe outcome.",
+      "source": {
+        "cite": "American Diabetes Association. Hypoglycemia Guidelines: your visual guide to the guidelines (infographic based on the Standards of Care in Diabetes, 2025)",
+        "checkedAt": "2026-11-17",
+        "url": "https://professional.diabetes.org/sites/dpro/files/2025-05/hypoglycemia-hcp-5-27-25.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: level 1 below 70 mg/dL, level 2 below 54 mg/dL, level 3 'Altered mental and/or physical status requiring assistance, irrespective of glucose level'; 'In most conscious individuals, have 15 grams of fast-acting carbohydrates, and recheck glucose in 15 minutes', repeated until it resolves; 'Glucagon is indicated for hypoglycemia treatment when people are unable or unwilling to consume carbohydrates by mouth'; ready-to-use glucagon can be given by people who are not health care professionals. The page says nothing about exercise."
+      }
+    }
+  },
+  "endings": {
+    "aspirated": {
+      "label": "Food in the mouth of a man who could not swallow",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented != \"none\" and mouthFed",
+      "narrative": "He choked on what you put in his mouth while he could not swallow. {isNull(calledAt) ? \"No one called 911.\" : \"The paramedics cleared his airway and took him to hospital.\"}"
+    },
+    "noCall": {
+      "label": "Severe low without a 911 call",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented != \"none\" and not isNull(severeAt) and isNull(calledAt)",
+      "narrative": "He became unable to swallow and no one called 911."
+    },
+    "severe": {
+      "label": "Severe low, handled",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented != \"none\" and not isNull(severeAt)",
+      "narrative": "His low became severe before it was treated. 911, his glucagon and the recovery position got him to the paramedics, but it should have been caught at the first shaking."
+    },
+    "treated": {
+      "label": "Caught early, treated by the plan",
+      "class": "target",
+      "terminal": true,
+      "when": "documented == \"full\" and not isNull(stoppedAt) and timeAt(stoppedAt) - timeAt(signAt) <= 120 and not isNull(fastAt) and timeAt(fastAt) <= timeAt(signAt) + 300 and not isNull(recheckAt) and glu >= 70 and isNull(resumedAt) and isNull(pushedAt) and not insulinAdvice and not isNull(teamAt)",
+      "narrative": "You stopped him at the first shaking, gave fast sugar, rechecked at 15 minutes and ended the hard work for the day. He leaves at {round(glu)} mg/dL with a snack inside him and a plan to see his diabetes team."
+    },
+    "gaps": {
+      "label": "Recovered, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented != \"none\"",
+      "narrative": "He is all right, but {not isNull(pushedAt) ? \"you pushed him through a warning sign\" : isNull(fastAt) ? \"he never got fast sugar\" : isNull(recheckAt) ? \"nobody rechecked his glucose\" : not isNull(resumedAt) ? \"he went back to the intervals\" : insulinAdvice ? \"you told him how to change his insulin\" : glu < 70 ? \"he left still below 70\" : \"the plan or the record has gaps\"}."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The session ran out with no record."
+    }
+  },
+  "endingOrder": [
+    "aspirated",
+    "noCall",
+    "severe",
+    "treated",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "stop",
+        "label": "Stopped the exercise at the first warning sign",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(signAt)",
+            "score": "na",
+            "why": "No warning sign appeared."
+          },
+          {
+            "when": "not isNull(stoppedAt) and timeAt(stoppedAt) - timeAt(signAt) <= 120 and isNull(pushedAt)",
+            "score": "met",
+            "why": "Stopped within 2 minutes."
+          },
+          {
+            "when": "not isNull(stoppedAt) or not isNull(severeAt) and not isNull(calledAt)",
+            "score": "partial",
+            "why": "Stopped late or after pushing on."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never stopped."
+          }
+        ]
+      },
+      {
+        "id": "fast",
+        "label": "15 g of fast carbohydrate within 5 minutes, while he could swallow",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "mouthFed",
+            "score": "missed",
+            "why": "Food by mouth when he could not swallow."
+          },
+          {
+            "when": "not isNull(fastAt) and timeAt(fastAt) <= timeAt(signAt) + 300",
+            "score": "met",
+            "why": "Fast sugar at {timeAt(fastAt)|clock}."
+          },
+          {
+            "when": "not isNull(fastAt) or not isNull(glucagonAt)",
+            "score": "partial",
+            "why": "Treated late, or a slow snack first."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No fast sugar."
+          }
+        ]
+      },
+      {
+        "id": "recheck",
+        "label": "Rechecked at 15 minutes and acted on the number",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(severeAt)",
+            "score": "na",
+            "why": "The low became severe; the paramedics took over."
+          },
+          {
+            "when": "not isNull(recheckAt) and (recheckGlu >= 70 or fastN >= 2) and glu >= 70",
+            "score": "met",
+            "why": "Rechecked and above 70 before he left."
+          },
+          {
+            "when": "not isNull(recheckAt)",
+            "score": "partial",
+            "why": "Rechecked, but he left still below 70."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No recheck."
+          }
+        ]
+      },
+      {
+        "id": "severe",
+        "label": "If he could not swallow: nothing by mouth, 911, his glucagon, on his side",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(severeAt)",
+            "score": "na",
+            "why": "He never lost the ability to swallow."
+          },
+          {
+            "when": "not mouthFed and not isNull(calledAt) and not isNull(glucagonAt) and not isNull(sideAt)",
+            "score": "met",
+            "why": "All four."
+          },
+          {
+            "when": "not mouthFed and not isNull(calledAt)",
+            "score": "partial",
+            "why": "911 called, the rest incomplete."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Food by mouth, or no 911."
+          }
+        ]
+      },
+      {
+        "id": "scope",
+        "label": "Stayed in scope: no insulin advice; his care team for changes",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not insulinAdvice and not isNull(teamAt)",
+            "score": "met",
+            "why": "Referred to his diabetes team."
+          },
+          {
+            "when": "not insulinAdvice",
+            "score": "partial",
+            "why": "No insulin advice, but no referral to his team."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Told him how to change his insulin."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Incident report written",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "documented == \"full\"",
+            "score": "met",
+            "why": "A full incident report."
+          },
+          {
+            "when": "documented == \"brief\"",
+            "score": "partial",
+            "why": "One line."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nothing written."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written incident account and plan",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toStop",
+        "label": "Minutes from the first sign to stopping",
+        "value": "isNull(signAt) or isNull(stoppedAt) ? -1 : (timeAt(stoppedAt) - timeAt(signAt)) / 60",
+        "format": "number",
+        "expert": "0-1"
+      },
+      {
+        "id": "toSugar",
+        "label": "Minutes from the first sign to fast sugar",
+        "value": "isNull(signAt) or isNull(fastAt) ? -1 : (timeAt(fastAt) - timeAt(signAt)) / 60",
+        "format": "number",
+        "expert": "under 3"
+      },
+      {
+        "id": "gluEnd",
+        "label": "His glucose when he left (mg/dL)",
+        "value": "round(glu)",
+        "format": "number",
+        "expert": "70 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before",
+        "text": "Read his plan card; ask him to check his sensor (118, falling arrow), then start the intervals."
+      },
+      {
+        "at": "First sign",
+        "text": "Shaky and sweating: stop at once, sit him down, check (below 70), four glucose tablets."
+      },
+      {
+        "at": "+15 min",
+        "text": "Recheck: above 70, so a snack; repeat the tablets if it had still been below 70. No more intervals today."
+      },
+      {
+        "at": "Close",
+        "text": "Suggest he reviews the low with his diabetes team before the next session; a full incident report."
+      }
+    ],
+    "debrief": {
+      "treated": {
+        "headline": "Caught early, treated by the plan",
+        "body": "Stop, 15 g of fast sugar, recheck at 15 minutes, a snack once above 70, and no more hard work today. His insulin is his team's business; the report and the referral are yours."
+      },
+      "gaps": {
+        "headline": "He recovered, with gaps",
+        "body": "Look at the order: stop first, fast sugar (not a protein bar), recheck at 15 minutes, act on the number, no return to the intervals, and stay out of insulin dosing."
+      },
+      "severe": {
+        "headline": "It got as far as severe",
+        "body": "Pushing on or a slow snack let his glucose keep falling until he could not swallow. Glucagon, 911 and the recovery position were right, but the first shaking was the time to act."
+      },
+      "noCall": {
+        "headline": "Can't swallow: call 911",
+        "body": "A client who cannot swallow has a severe low. Nothing by mouth, his glucagon as his plan says, on his side, and 911 at once."
+      },
+      "aspirated": {
+        "headline": "Nothing by mouth if he can't swallow",
+        "body": "Food or tablets in the mouth of someone who cannot swallow can be inhaled. That is what the glucagon in his bag is for, with a 911 call."
+      },
+      "time_up": {
+        "headline": "No record",
+        "body": "The session ended without a record."
+      }
+    },
+    "modelReasoning": "Shaking and sweating during intervals in a client on insulin, with a falling sensor reading, is low glucose. Stop at once and sit him down; while he can swallow give 15 g of fast carbohydrate and recheck in 15 minutes, repeating if still below 70 (ADA 15-15 rule), then a snack; no more intervals. If he cannot swallow: nothing by mouth, his ready-to-use glucagon as his plan card says, 911 and the recovery position. Write an incident report; insulin changes belong to his diabetes care team, so refer rather than advise."
+  }
+}
