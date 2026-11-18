@@ -1,0 +1,875 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "scaling-plan-utc-forces-logoff-midshift",
+  "title": "Mid-morning: a new scaling plan is about to sign out the whole claims floor",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "vdiadmin@cloudshell:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "08:30 agent report: 'You will be signed out in 30 minutes' on claims hosts; 210 active sessions",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "09:00: agents forcibly signed out",
+          "when": "not isNull(missAt)",
+          "at": "timeAt(missAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "09:00: peak phase continues",
+          "when": "not isNull(okAt)",
+          "at": "timeAt(okAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "plan",
+          "label": "Scaling plan sp-claims",
+          "spokenLabel": "the scaling plan",
+          "kind": "force logoff on ramp-down",
+          "status": "{harmed ? \"deleted\" : fixed ? \"time zone Pacific: ramp-down at 17:00\" : \"time zone UTC: ramp-down at 09:00 Pacific\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "hp",
+          "label": "Host pool hp-claims (pooled, 40 hosts)",
+          "spokenLabel": "the host pool",
+          "kind": "210 sessions on 14 hosts",
+          "status": "{fixed and not harmed ? \"peak phase\" : \"about to be consolidated\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "users",
+          "label": "Claims agents",
+          "spokenLabel": "the agents",
+          "kind": "unsaved claims open",
+          "status": "{fixed and not harmed ? \"working\" : \"warned of sign-out at 09:00\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "plan",
+          "to": "hp",
+          "label": "schedule",
+          "status": "{fixed and not harmed ? \"peak until 17:00 local\" : \"ramp-down at 09:00 local\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Implementing autoscaling in host pools",
+  "secondaryObjectives": [
+    "Monitoring and managing active sessions and application groups"
+  ],
+  "sources": [
+    {
+      "cite": "Microsoft Learn, Study guide for Exam AZ-140: Configuring and Operating Microsoft Azure Virtual Desktop (page last updated 2026-06-19; skills as of July 20, 2026): plan and implement an Azure Virtual Desktop infrastructure 40-45%, identity and security 15-20%, user environments and apps 20-25%, monitor and maintain 10-15%",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/credentials/certifications/resources/study-guides/az-140",
+      "note": "Read through a summarizing fetch on 2026-11-17. Bullets quoted there under 'Plan and implement storage for Azure Virtual Desktop user data': 'Implement storage for FSLogix components', 'Implement storage accounts for Azure Virtual Desktop', 'Implement file shares for Azure Virtual Desktop'. The az storage account update --default-share-permission flag is from memory of the CLI reference (to verify). (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "Microsoft Learn, 'Autoscale scaling plans and example scenarios in Azure Virtual Desktop'",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/en-au/azure/virtual-desktop/autoscale-scenarios",
+      "note": "Read through a summarizing fetch on 2026-11-17. Quoted: 'A scaling plan can only operate in its configured time zone'; 'Autoscale only forces users to sign out if you've enabled the force logoff setting during the ramp-down phase'; with force logoff it picks the hosts with the fewest sessions, puts them in drain mode, notifies users, and after a set time 'forcibly signs out any remaining users and turns it off'; 'For pooled host pools, autoscale overwrites drain mode'; a 10% minimum percentage of hosts keeps at least one host available. The CLI property names (timeZone, rampDownForceLogoffUsers) are from memory of the scaling plan template reference (to verify)."
+    }
+  ],
+  "brief": {
+    "situation": "You are the AVD administrator at Merrow Insurance (Pacific time). Yesterday a colleague assigned a new scaling plan, sp-claims, to the pooled host pool hp-claims: ramp-up 07:00, peak 08:00-17:00, ramp-down 17:00 with force logoff after a 10-minute warning. At 08:30 an agent forwards a pop-up: 'You will be signed out in 30 minutes.' 210 agents are mid-claim.",
+    "handover": [
+      "The colleague created the plan from a template; nobody reviewed it.",
+      "A second shift of 90 agents signs in at 10:00 and needs the plan's ramp-up to start more hosts."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the scaling plan's schedule, its time zone and the host pool it controls.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "08:30",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineAt": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "The forced sign-out starts at 09:00 Pacific (17:00 UTC), 30 minutes after the report."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "harmed": {
+      "type": "bool",
+      "init": false
+    },
+    "tried": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "planAt": {
+      "type": "time",
+      "init": null
+    },
+    "diagAt": {
+      "type": "time",
+      "init": null
+    },
+    "sessionsAt": {
+      "type": "time",
+      "init": null
+    },
+    "tmplAt": {
+      "type": "time",
+      "init": null
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "missAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "tz",
+        "capacity",
+        "drain"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "plan",
+        "diag",
+        "sessions",
+        "tmpl",
+        "tz",
+        "review",
+        "delete",
+        "drain",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "plan": {
+      "label": "az desktopvirtualization scalingplan show sp-claims (time zone, schedule)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(planAt)",
+          "then": [
+            {
+              "set": "planAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ az desktopvirtualization scalingplan show -g rg-avd -n sp-claims --query \"[timeZone, schedules[0].rampDownStartTime, schedules[0].rampDownForceLogoffUsers, schedules[0].rampDownWaitTimeMinutes]\" -o tsv\n{fixed and not harmed ? \"Pacific Standard Time  17:00  True  10\" : \"UTC  17:00  True  10\"}"
+        },
+        {
+          "finding": "The plan runs on UTC: its 17:00 ramp-down is 09:00 in Pacific time, today."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "diag": {
+      "label": "AVD autoscale diagnostics (last 30 min)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(diagAt)",
+          "then": [
+            {
+              "set": "diagAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ az monitor log-analytics query -w law-avd --analytics-query \"WVDAutoscaleEvaluationPooled | where TimeGenerated > ago(30m) | project TimeGenerated, ScalingPlanName, ScheduleName, Phase\" | tail -2\n{fixed and not harmed ? \"08:5x sp-claims weekdays Peak\" : \"08:25 sp-claims weekdays RampDown (pre-notification)\n08:30 sp-claims weekdays RampDown (users notified)\"}"
+        },
+        {
+          "finding": "Autoscale has already entered ramp-down and notified users."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "sessions": {
+      "label": "Active sessions per host",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(sessionsAt)",
+          "then": [
+            {
+              "set": "sessionsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ az desktopvirtualization usersession list -g rg-avd --host-pool-name hp-claims --query \"length(@)\"; hosts running\n{fixed and not harmed ? \"210 sessions; 14 hosts running\" : \"210 sessions; 14 hosts running (3 in drain mode by autoscale)\"}"
+        },
+        {
+          "finding": "Two hundred and ten people are working; autoscale has started draining the hosts with the fewest sessions."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "tmpl": {
+      "label": "Read the template the plan was made from",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(tmplAt)",
+          "then": [
+            {
+              "set": "tmplAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ grep -n timeZone templates/sp-standard.json\n12:    \"timeZone\": \"UTC\","
+        },
+        {
+          "finding": "The template's default time zone was never changed for this site."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "tz": {
+      "label": "Set sp-claims' time zone to Pacific Standard Time (keep the schedule times)",
+      "group": "Fix",
+      "available": "not busy and (not fixed and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "fixed",
+          "to": "true"
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ az desktopvirtualization scalingplan update -g rg-avd -n sp-claims --time-zone 'Pacific Standard Time'\ntimeZone: Pacific Standard Time\n(autoscale's next evaluation: weekdays Peak)"
+        },
+        {
+          "log": "The plan's times now mean Pacific time: peak runs until 17:00 local, the ramp-down notifications stop, and the 10:00 ramp-up for the second shift still works.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "review": {
+      "label": "Change ramp-down to wait for sign-out (no force logoff) until the floor agrees a policy, and fix the template",
+      "group": "Fix",
+      "available": "not busy and (not planned and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ az desktopvirtualization scalingplan update ... rampDownForceLogoffUsers=false (Stop VMs when no active sessions)\nvdiadmin@cloudshell:~$ git commit -am 'sp-standard template: no default time zone; force logoff off by default'"
+        },
+        {
+          "log": "Even with the right clock, forcing agents out of open claims needs the business's agreement; the template now makes whoever uses it choose the time zone.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "delete": {
+      "label": "Delete the scaling plan",
+      "group": "Fix",
+      "available": "not busy and (not harmed)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "harmed",
+          "to": "true"
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ az desktopvirtualization scalingplan delete -g rg-avd -n sp-claims --yes\n(no output)"
+        },
+        {
+          "log": "The sign-out stops, and so does ramp-up: the 26 deallocated hosts stay off, and the 90 agents arriving at 10:00 find no capacity.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "drain": {
+      "label": "Take the three drained hosts out of drain mode",
+      "group": "Fix",
+      "available": "not busy and (not harmed and not tried)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tried",
+          "to": "true"
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ az desktopvirtualization sessionhost update ... --allow-new-session true (3 hosts)\nallowNewSession: true"
+        },
+        {
+          "log": "Autoscale overwrites drain mode on pooled host pools: it puts them back at its next evaluation and the sign-out goes ahead.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Check autoscale's phase and the session count after the next evaluation",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "vdiadmin@cloudshell:~$ WVDAutoscaleEvaluationPooled (last 10 min); usersession count\n{harmed ? \"no scaling plan; 14 hosts running, 26 deallocated; 10:00 ramp-up: none\" : fixed ? \"Phase: Peak; 210 sessions; no notifications pending\" : \"Phase: RampDown; force sign-out at 09:00; 210 sessions\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "tz",
+                  "label": "The scaling plan used UTC, so its 17:00 ramp-down with force logoff fell at 09:00 Pacific"
+                },
+                {
+                  "value": "capacity",
+                  "label": "Too few hosts for the peak"
+                },
+                {
+                  "value": "drain",
+                  "label": "Someone put hosts in drain mode"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-335)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "09:00: nothing happens; agents keep working.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "missAt",
+              "to": "t"
+            },
+            {
+              "log": "09:00: autoscale signs out agents mid-claim and deallocates hosts.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why agents were warned of sign-out at 08:30, what you changed, and what stops a repeat.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Reads the plan's clock.",
+          "modelAnswer": "sp-claims was created from a template with time zone UTC; its 17:00 ramp-down with force logoff is 09:00 in Pacific time, so autoscale entered ramp-down and notified users at 08:30."
+        },
+        {
+          "label": "Change",
+          "criteria": "Fixes the zone, keeps the rest.",
+          "modelAnswer": "Set the plan's time zone to Pacific Standard Time; it went back to Peak. Deleting the plan would also have stopped the 10:00 ramp-up; drain-mode changes are overwritten by autoscale."
+        },
+        {
+          "label": "Repeat",
+          "criteria": "Reviews the risky setting and the source.",
+          "modelAnswer": "Ramp-down now waits for users to sign out until the business agrees otherwise, and the template has no default time zone."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 1800,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The forced sign-out starts at 09:00 Pacific (17:00 UTC), 30 minutes after the report."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: Deleting the plan also removed the ramp-up for the second shift."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed and not harmed",
+      "class": "harm",
+      "rationale": "Closing with the plan still on UTC lets autoscale sign agents out at 09:00.",
+      "source": {
+        "cite": "Microsoft Learn, 'Autoscale scaling plans and example scenarios in Azure Virtual Desktop'",
+        "checkedAt": "2026-11-17",
+        "url": "https://learn.microsoft.com/en-au/azure/virtual-desktop/autoscale-scenarios",
+        "note": "Read through a summarizing fetch on 2026-11-17. Quoted: 'A scaling plan can only operate in its configured time zone'; 'Autoscale only forces users to sign out if you've enabled the force logoff setting during the ramp-down phase'; with force logoff it picks the hosts with the fewest sessions, puts them in drain mode, notifies users, and after a set time 'forcibly signs out any remaining users and turns it off'; 'For pooled host pools, autoscale overwrites drain mode'; a 10% minimum percentage of hosts keeps at least one host available. The CLI property names (timeZone, rampDownForceLogoffUsers) are from memory of the scaling plan template reference (to verify)."
+      }
+    }
+  },
+  "endings": {
+    "noRampUp": {
+      "label": "Second shift without capacity",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and harmed",
+      "narrative": "Deleting the plan stopped the sign-out and the 10:00 ramp-up; 26 hosts stayed off."
+    },
+    "signedOut": {
+      "label": "Agents signed out mid-claim",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(missAt)",
+      "narrative": "At 09:00 autoscale forcibly signed out agents and deallocated hosts."
+    },
+    "rescheduled": {
+      "label": "Time zone fixed, force logoff off, template fixed",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(planAt) and not isNull(diagAt) and not isNull(verifiedAt) and causeDoc == \"tz\"",
+      "narrative": "The plan runs on Pacific time, no one was signed out, and the template no longer defaults to UTC."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Nobody was signed out, but the force-logoff review, the template, the check or the record was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "noRampUp",
+    "signedOut",
+    "rescheduled",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Read the plan's time zone and autoscale's phase",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(planAt) and not isNull(diagAt)",
+            "score": "met",
+            "why": "The key evidence, read before changing anything."
+          },
+          {
+            "when": "not isNull(planAt) or not isNull(diagAt) or not isNull(sessionsAt) or not isNull(tmplAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "No forced sign-out at 09:00, ramp-up kept",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and not harmed and isNull(missAt)",
+            "score": "met",
+            "why": "The right change, in time, without harm."
+          },
+          {
+            "when": "fixed or harmed",
+            "score": "partial",
+            "why": "{harmed ? \"Deleting the plan also removed the ramp-up for the second shift.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never removed."
+          }
+        ]
+      },
+      {
+        "id": "lasting",
+        "label": "Force logoff reviewed and template fixed; phase checked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The lasting step taken and the result checked."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"tz\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record names the wrong cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes that caused harm",
+        "value": "harmed ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "08:30-08:34",
+        "text": "Plan time zone UTC, ramp-down 17:00 with force logoff; autoscale in RampDown; 210 sessions; template default UTC."
+      },
+      {
+        "at": "08:34-08:38",
+        "text": "Time zone Pacific; force logoff off; template fixed."
+      },
+      {
+        "at": "08:38-08:40",
+        "text": "Phase Peak; no notifications."
+      }
+    ],
+    "debrief": {
+      "noRampUp": {
+        "headline": "The schedule was right; its clock was wrong",
+        "body": "A scaling plan works in its configured time zone. Fix the time zone; deleting the plan removes ramp-up as well as ramp-down."
+      },
+      "signedOut": {
+        "headline": "17:00 UTC is 09:00 in Pacific time",
+        "body": "Check a scaling plan's time zone before it runs, and think hard before enabling force logoff."
+      },
+      "rescheduled": {
+        "headline": "Good: fixed the clock before it struck",
+        "body": "You read the plan's time zone and autoscale's phase, fixed the zone without losing ramp-up, checked the next evaluation, and removed both the forced sign-out and the template default."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the evidence before the change, the lasting step, the check, or the cause in the record."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A scaling plan runs in its configured time zone. sp-claims is on UTC, so its 17:00 ramp-down with force logoff starts at 09:00 Pacific, and autoscale has already notified users. Set the time zone to Pacific: peak continues and the 10:00 ramp-up still works. Deleting the plan stops ramp-up too; drain-mode changes are overwritten by autoscale. Then review force logoff with the business and fix the template."
+  }
+}
