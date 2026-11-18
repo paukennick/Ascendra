@@ -1,0 +1,1131 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "opencost-rightsizing-review",
+  "title": "A cluster bill 40% over budget: right-sizing from usage, cost allocation and autoscaling",
+  "screen": {
+    "type": "governance-board",
+    "level": 1,
+    "governance": {
+      "risks": [
+        {
+          "id": "rSize",
+          "label": "Requests far above usage",
+          "spokenLabel": "Requests far above usage",
+          "owner": "\"Platform engineer\"",
+          "rating": "size == \"staged\" ? \"low\" : size == \"nonProdOnly\" ? \"medium\" : size == \"cutAll\" ? \"critical\" : p >= 1 ? \"high\" : \"medium\"",
+          "appetite": "size == \"staged\" ? \"within\" : size == \"nonProdOnly\" ? \"within\" : size == \"cutAll\" ? \"above\" : p >= 1 ? \"above\" : \"within\"",
+          "status": "{size == \"staged\" ? \"Right-sized from p95 usage, staged\" : size == \"nonProdOnly\" ? \"Staging right-sized only\" : size == \"cutAll\" ? \"Every request cut 60%\" : \"Open\"}"
+        },
+        {
+          "id": "rShow",
+          "label": "Teams can't see their costs",
+          "spokenLabel": "Teams can't see their costs",
+          "owner": "\"Finance partner\"",
+          "rating": "show == \"showback\" ? \"low\" : show == \"platformPays\" ? \"medium\" : show == \"evenSplit\" ? \"critical\" : p >= 2 ? \"high\" : \"medium\"",
+          "appetite": "show == \"showback\" ? \"within\" : show == \"platformPays\" ? \"within\" : show == \"evenSplit\" ? \"above\" : p >= 2 ? \"above\" : \"within\"",
+          "status": "{show == \"showback\" ? \"Showback per team, idle included\" : show == \"platformPays\" ? \"Cluster total only\" : show == \"evenSplit\" ? \"Even split across teams\" : \"Open\"}"
+        },
+        {
+          "id": "rScale",
+          "label": "Fixed nodes for a spiky load",
+          "spokenLabel": "Fixed nodes for a spiky load",
+          "owner": "\"SRE lead\"",
+          "rating": "scale == \"autoscale\" ? \"low\" : scale == \"fewerFixed\" ? \"medium\" : scale == \"cap\" ? \"critical\" : p >= 3 ? \"high\" : \"medium\"",
+          "appetite": "scale == \"autoscale\" ? \"within\" : scale == \"fewerFixed\" ? \"within\" : scale == \"cap\" ? \"above\" : p >= 3 ? \"above\" : \"within\"",
+          "status": "{scale == \"autoscale\" ? \"Autoscaling with priorities\" : scale == \"fewerFixed\" ? \"45 fixed nodes\" : scale == \"cap\" ? \"Capped at 30 nodes\" : \"Open\"}"
+        }
+      ],
+      "stakeholders": [
+        {
+          "id": "sFin",
+          "label": "Finance partner",
+          "spokenLabel": "the finance partner's support",
+          "value": "fin",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sTen",
+          "label": "Tenant teams",
+          "spokenLabel": "the tenant teams' support",
+          "value": "ten",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sSre",
+          "label": "SRE lead",
+          "spokenLabel": "the SRE lead's support",
+          "value": "sre",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "docket": [
+        {
+          "id": "dSize",
+          "kind": "Right-sizing",
+          "label": "Week 1: requests versus usage",
+          "status": "{size == \"staged\" ? \"Right-sized from p95 usage, staged\" : size == \"nonProdOnly\" ? \"Staging right-sized only\" : size == \"cutAll\" ? \"Every request cut 60%\" : \"Due\"}",
+          "when": "p >= 1",
+          "flag": "p >= 1 and size == \"none\""
+        },
+        {
+          "id": "dShow",
+          "kind": "Cost allocation",
+          "label": "Week 2: allocation to teams",
+          "status": "{show == \"showback\" ? \"Showback per team, idle included\" : show == \"platformPays\" ? \"Cluster total only\" : show == \"evenSplit\" ? \"Even split across teams\" : \"Due\"}",
+          "when": "p >= 2",
+          "flag": "p >= 2 and show == \"none\""
+        },
+        {
+          "id": "dScale",
+          "kind": "Autoscaling",
+          "label": "Week 3: scaling the cluster",
+          "status": "{scale == \"autoscale\" ? \"Autoscaling with priorities\" : scale == \"fewerFixed\" ? \"45 fixed nodes\" : scale == \"cap\" ? \"Capped at 30 nodes\" : \"Due\"}",
+          "when": "p >= 3",
+          "flag": "p >= 3 and scale == \"none\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Week",
+          "value": "{p} of 4"
+        }
+      ],
+      "budget": {
+        "label": "Cluster spend this quarter",
+        "spent": "spent",
+        "total": "900",
+        "unit": "thousand dollars"
+      }
+    }
+  },
+  "objective": "Use cost management solutions for right-sizing and scaling: OpenCost allocation by namespace and label, requests versus usage, and autoscaling decisions",
+  "secondaryObjectives": [
+    "Optimize multi-tenancy resource usage: namespaces, ResourceQuotas, LimitRanges, priority classes and fair sharing across tenants"
+  ],
+  "sources": [
+    {
+      "cite": "CNCF Certified Cloud Native Platform Engineer (CNPE) curriculum, as the course seed records it: Platform Architecture and Infrastructure 15%, GitOps and Continuous Delivery 25%, Platform APIs and Self-Service Capabilities 25%, Observability and Operations 20%, Security and Policy Enforcement 15%",
+      "checkedAt": "2026-11-17",
+      "url": "https://github.com/cncf/curriculum/tree/0a8cc08a502710a894e5724c2bec7b88404e5a6b",
+      "note": "Weights and objective wording are the course seed's (backend/supabase/seed/tracks/cncf-ecosystem.ts). On 2026-11-17 a third-party page (golden-kubestronaut-learning.readthedocs.io/en/latest/cnpe, summarizing fetch) gave different domains (Platform Design 20%, Platform Implementation 30%, Platform Operations 25%, Security and Governance 15%, Developer Experience 10%) with 'GitOps implementation' under Platform Implementation. Which is current is not settled here: to verify against the official curriculum (finding for the verification pass). Reused for REQ-336 from this course's service-selector-no-endpoints-cnpe (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "KodeKloud CNPE prep notes, Right-sizing 101: requests, limits, QoS and scheduling",
+      "checkedAt": "2026-11-17",
+      "url": "https://notes.kodekloud.com/docs/Prep-Course-Certified-Cloud-Native-Platform-Engineering-CNPE/Platform-Architecture-and-Infrastructure/Right-Sizing-101-Requests-Limits-QoS-and-Scheduling-Part-1/page",
+      "note": "Found by search 2026-11-17 and read only through the search listing (title and address); to verify against the page. Used for: requests versus actual usage, right-sizing from measured usage, and cost allocation by namespace and label (OpenCost)."
+    },
+    {
+      "cite": "CNCF TAG App Delivery, Platform Engineering Maturity Model (tag-app-delivery.cncf.io)",
+      "checkedAt": "2026-11-17",
+      "url": "https://tag-app-delivery.cncf.io/whitepapers/platform-eng-maturity-model/",
+      "note": "Found by search 2026-11-17 and read only through the search listing (title and address); to verify against the page. Used for: platform as a product, measuring adoption, developer satisfaction and efficiency, and platform teams owning their capabilities' reliability."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The company, the platform, the tenant teams and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the platform engineer responsible for cost at Thistledown Media, a fictional publisher. The shared Kubernetes platform's bill is 40% over budget this quarter. Finance wants a plan in three weekly reviews.",
+    "handover": [
+      "OpenCost is installed; nobody reads it. Most Deployments request about three times the CPU and memory they use.",
+      "Node count is fixed at 60 large nodes; there is no cluster autoscaler."
+    ],
+    "howItWorks": [
+      "The board shows the risk register against the appetite, each stakeholder's support in words and the docket.",
+      "Move on a week at a time. A decision comes to you at each cost review; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-04-05T09:00",
+    "tick": "1d",
+    "maxDuration": "84d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "fin": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "ten": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "sre": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "size": {
+      "type": "enum",
+      "values": [
+        "none",
+        "staged",
+        "nonProdOnly",
+        "cutAll"
+      ],
+      "init": "none"
+    },
+    "sizeAt": {
+      "type": "time",
+      "init": null
+    },
+    "show": {
+      "type": "enum",
+      "values": [
+        "none",
+        "showback",
+        "platformPays",
+        "evenSplit"
+      ],
+      "init": "none"
+    },
+    "showAt": {
+      "type": "time",
+      "init": null
+    },
+    "scale": {
+      "type": "enum",
+      "values": [
+        "none",
+        "autoscale",
+        "fewerFixed",
+        "cap"
+      ],
+      "init": "none"
+    },
+    "scaleAt": {
+      "type": "time",
+      "init": null
+    },
+    "allocAt": {
+      "type": "time",
+      "init": null
+    },
+    "usageAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(fin, ten), sre)"
+    },
+    "missCount": {
+      "expr": "((size == \"cutAll\") ? 1 : 0) + ((show == \"evenSplit\") ? 1 : 0) + ((scale == \"cap\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(size == \"none\" or (size == \"cutAll\") ? 1 : 0) + (show == \"none\" or (show == \"evenSplit\") ? 1 : 0) + (scale == \"none\" or (scale == \"cap\") ? 1 : 0)"
+    },
+    "spent": {
+      "expr": "min(p, 3) * 200"
+    },
+    "spendPct": {
+      "expr": "spent / 900 * 100"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The cost reviews",
+      "clock": "turns",
+      "actions": [
+        "alloc",
+        "usage"
+      ]
+    },
+    "close": {
+      "label": "Cost decision",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "alloc": {
+      "label": "Read OpenCost's allocation by namespace and label",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(allocAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "allocAt",
+          "to": "t"
+        },
+        {
+          "log": "You read the allocation.",
+          "kind": "act"
+        },
+        {
+          "finding": "Requests total 3.1 times actual usage across the cluster; four namespaces account for 60% of idle cost. Nothing is allocated back to teams."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "usage": {
+      "label": "Read 30 days of usage percentiles per workload",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(usageAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "usageAt",
+          "to": "t"
+        },
+        {
+          "log": "You read the usage history.",
+          "kind": "act"
+        },
+        {
+          "finding": "The 95th percentile of usage is a better basis for requests than the average; month-end batch jobs triple usage for two days."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Record the cost decision",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the decision says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Requests right-sized from p95 usage in stages, showback by namespace and label, and autoscaling with priority classes, with the projected quarter spend"
+                },
+                {
+                  "value": "summary",
+                  "label": "Costs reduced"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next cost review",
+      "wait": {
+        "skipLabel": "Go to the next cost review"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "size == \"cutAll\"",
+              "then": [
+                {
+                  "log": "Week 2: month-end batch jobs are OOM-killed and throttled; invoices are a day late and the SRE team spends the week firefighting.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "show == \"evenSplit\"",
+              "then": [
+                {
+                  "log": "Week 3: three small teams escalate the charges to the CTO; the platform's credibility drops and right-sizing stalls.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "scale == \"cap\"",
+              "then": [
+                {
+                  "log": "Week 4: at month-end the capped cluster can't schedule the web front end's extra replicas; the site is slow for a day.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "7d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The quarter's cost plan is agreed.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "7d"
+        }
+      ]
+    },
+    {
+      "id": "t_size",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 1: right-sizing.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "sizePrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_show",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 2: allocation.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "showPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_scale",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 3: scaling.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "scalePrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "sizePrompt": {
+      "title": "Requests three times usage",
+      "context": "Cutting requests frees nodes; cutting too far causes throttling and OOM kills.",
+      "choices": [
+        {
+          "id": "staged",
+          "label": "Set requests from each workload's 95th-percentile usage plus headroom, using VPA in recommendation mode, staging first, then production team by team",
+          "effects": [
+            {
+              "set": "size",
+              "to": "\"staged\""
+            },
+            {
+              "set": "sizeAt",
+              "to": "t"
+            },
+            {
+              "add": "sre",
+              "by": "1"
+            },
+            {
+              "log": "Requests are right-sized in stages.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Measured usage with headroom, staged, frees capacity without starving workloads."
+        },
+        {
+          "id": "nonProdOnly",
+          "label": "Right-size staging only this quarter",
+          "effects": [
+            {
+              "set": "size",
+              "to": "\"nonProdOnly\""
+            },
+            {
+              "set": "sizeAt",
+              "to": "t"
+            },
+            {
+              "add": "sre",
+              "by": "-1"
+            },
+            {
+              "log": "Staging is right-sized.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Safe, but production is where most of the idle cost is."
+        },
+        {
+          "id": "cutAll",
+          "label": "Cut every request by 60% across the cluster this week",
+          "effects": [
+            {
+              "set": "size",
+              "to": "\"cutAll\""
+            },
+            {
+              "set": "sizeAt",
+              "to": "t"
+            },
+            {
+              "add": "sre",
+              "by": "-2"
+            },
+            {
+              "log": "Every request drops 60%.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "A flat cut ignores which workloads are tight: the month-end jobs are starved."
+        }
+      ]
+    },
+    "showPrompt": {
+      "title": "Who pays for what?",
+      "context": "OpenCost can allocate by namespace and label; teams never see their costs.",
+      "choices": [
+        {
+          "id": "showback",
+          "label": "Monthly showback per team from OpenCost by namespace and team label, including idle cost of what each team requests",
+          "effects": [
+            {
+              "set": "show",
+              "to": "\"showback\""
+            },
+            {
+              "set": "showAt",
+              "to": "t"
+            },
+            {
+              "add": "ten",
+              "by": "1"
+            },
+            {
+              "log": "Each team gets its costs, idle included.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Allocation by namespace and label shows each team the cost of what it requests, which is what changes behavior."
+        },
+        {
+          "id": "platformPays",
+          "label": "Keep all costs on the platform's budget and publish a cluster total",
+          "effects": [
+            {
+              "set": "show",
+              "to": "\"platformPays\""
+            },
+            {
+              "set": "showAt",
+              "to": "t"
+            },
+            {
+              "add": "ten",
+              "by": "-1"
+            },
+            {
+              "log": "A cluster total is published.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Visible, but no team sees what its own requests cost."
+        },
+        {
+          "id": "evenSplit",
+          "label": "Split the bill evenly across the 20 teams",
+          "effects": [
+            {
+              "set": "show",
+              "to": "\"evenSplit\""
+            },
+            {
+              "set": "showAt",
+              "to": "t"
+            },
+            {
+              "add": "ten",
+              "by": "-2"
+            },
+            {
+              "log": "The bill is split evenly.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The smallest teams pay for the biggest; nobody has a reason to request less."
+        }
+      ]
+    },
+    "scalePrompt": {
+      "title": "60 fixed nodes for a spiky load",
+      "context": "Usage is low most of the month and triples at month-end.",
+      "choices": [
+        {
+          "id": "autoscale",
+          "label": "Add a cluster autoscaler with a 30 to 80 node range, HPAs on the spiky services, and priority classes so customer-facing workloads win over batch",
+          "effects": [
+            {
+              "set": "scale",
+              "to": "\"autoscale\""
+            },
+            {
+              "set": "scaleAt",
+              "to": "t"
+            },
+            {
+              "add": "fin",
+              "by": "1"
+            },
+            {
+              "log": "The cluster scales with demand; priorities protect customer-facing work.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Nodes follow demand; priority classes decide who waits when capacity is short."
+        },
+        {
+          "id": "fewerFixed",
+          "label": "Drop to 45 fixed nodes",
+          "effects": [
+            {
+              "set": "scale",
+              "to": "\"fewerFixed\""
+            },
+            {
+              "set": "scaleAt",
+              "to": "t"
+            },
+            {
+              "add": "fin",
+              "by": "-1"
+            },
+            {
+              "log": "Node count drops to 45.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Cheaper most of the month, tight at month-end."
+        },
+        {
+          "id": "cap",
+          "label": "Cap the cluster at 30 nodes with no autoscaler",
+          "effects": [
+            {
+              "set": "scale",
+              "to": "\"cap\""
+            },
+            {
+              "set": "scaleAt",
+              "to": "t"
+            },
+            {
+              "add": "fin",
+              "by": "-2"
+            },
+            {
+              "log": "The cluster is capped at 30 nodes.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Month-end needs more than 30 nodes; customer-facing Pods sit Pending with the batch jobs."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the cost decision for finance: what was driving the overspend and how right-sizing, allocation and autoscaling address it.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Right-sizing and allocation",
+          "criteria": "Requests at 3.1 times usage; right-sized from p95 with headroom, staged; showback by namespace and label.",
+          "modelAnswer": "Requests were three times usage; we right-size from p95 usage with headroom, staged, and show each team its costs including idle."
+        },
+        {
+          "label": "Scaling",
+          "criteria": "Cluster autoscaler within a range, HPAs, priority classes.",
+          "modelAnswer": "Nodes now scale from 30 to 80 with demand; HPAs scale the spiky services; priority classes protect customer-facing workloads."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "governance",
+    "thresholds": {
+      "aboveAppetite": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No risk above appetite at the close without a treatment."
+        }
+      },
+      "supportTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Each key stakeholder at 6 of 10 or more at the close."
+        }
+      },
+      "budgetCap": {
+        "value": 100,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Spend within the approved budget at the close."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (size == \"nonProdOnly\") and (show == \"platformPays\") and (scale == \"fewerFixed\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CNCF Certified Cloud Native Platform Engineer (CNPE) curriculum, as the course seed records it: Platform Architecture and Infrastructure 15%, GitOps and Continuous Delivery 25%, Platform APIs and Self-Service Capabilities 25%, Observability and Operations 20%, Security and Policy Enforcement 15%",
+        "checkedAt": "2026-11-17",
+        "url": "https://github.com/cncf/curriculum/tree/0a8cc08a502710a894e5724c2bec7b88404e5a6b",
+        "note": "Weights and objective wording are the course seed's (backend/supabase/seed/tracks/cncf-ecosystem.ts). On 2026-11-17 a third-party page (golden-kubestronaut-learning.readthedocs.io/en/latest/cnpe, summarizing fetch) gave different domains (Platform Design 20%, Platform Implementation 30%, Platform Operations 25%, Security and Governance 15%, Developer Experience 10%) with 'GitOps implementation' under Platform Implementation. Which is current is not settled here: to verify against the official curriculum (finding for the verification pass). Reused for REQ-336 from this course's service-selector-no-endpoints-cnpe (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "sizeHarm": {
+      "label": "Workloads starved",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and size == \"cutAll\"",
+      "narrative": "The flat 60% cut starved month-end jobs; invoices were a day late."
+    },
+    "showHarm": {
+      "label": "Charges that broke trust",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and show == \"evenSplit\"",
+      "narrative": "An even split charged small teams for large ones; escalations stalled right-sizing."
+    },
+    "scaleHarm": {
+      "label": "Capacity cut below demand",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and scale == \"cap\"",
+      "narrative": "The 30-node cap left the web front end's replicas Pending at month-end; the site was slow for a day."
+    },
+    "target": {
+      "label": "Back within budget without starving anything",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (size == \"staged\") and (show == \"showback\") and (scale == \"autoscale\") and record == \"honest\" and openCount <= aboveAppetite and minSupport >= supportTarget and spendPct <= budgetCap",
+      "narrative": "The platform's spend falls back within budget and month-end runs cleanly."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "sizeHarm",
+    "showHarm",
+    "scaleHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "sizeCrit",
+        "label": "Right-sized from measured usage, staged and verified",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "size == \"staged\"",
+            "score": "met",
+            "why": "Measured and staged."
+          },
+          {
+            "when": "size == \"nonProdOnly\"",
+            "score": "partial",
+            "why": "Small saving."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A blind cut."
+          }
+        ]
+      },
+      {
+        "id": "showCrit",
+        "label": "Allocated costs to teams by namespace and label as showback",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "show == \"showback\"",
+            "score": "met",
+            "why": "Teams see their costs."
+          },
+          {
+            "when": "show == \"platformPays\"",
+            "score": "partial",
+            "why": "No allocation."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Unfair and ineffective."
+          }
+        ]
+      },
+      {
+        "id": "scaleCrit",
+        "label": "Scaled nodes with demand and protected critical workloads with priority",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "scale == \"autoscale\"",
+            "score": "met",
+            "why": "Scales with demand."
+          },
+          {
+            "when": "scale == \"fewerFixed\"",
+            "score": "partial",
+            "why": "Static, tighter."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Capped below demand."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(allocAt) and not isNull(usageAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(allocAt) or not isNull(usageAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 10)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "6 or more"
+      },
+      {
+        "id": "spentK",
+        "label": "Spend at the close, thousand dollars",
+        "value": "spent",
+        "format": "number",
+        "expert": "600 of 900"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the allocation and the usage history before the first review."
+      },
+      {
+        "at": "Week 1",
+        "text": "Right-size from p95 usage with headroom, staged, using VPA recommendations."
+      },
+      {
+        "at": "Week 2",
+        "text": "Show each team its costs by namespace and label, idle included."
+      },
+      {
+        "at": "Week 3",
+        "text": "Autoscale nodes and services, with priority classes for critical workloads."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "sizeHarm": {
+        "headline": "Right-size from measurement",
+        "body": "Use each workload's usage percentiles with headroom, and stage the change."
+      },
+      "showHarm": {
+        "headline": "Allocate by use",
+        "body": "Show each team its costs by namespace and label."
+      },
+      "scaleHarm": {
+        "headline": "Scale with demand",
+        "body": "Autoscale nodes within a range and use priority classes for critical workloads."
+      },
+      "target": {
+        "headline": "Good: back within budget without starving anything",
+        "body": "Right-sized from measurement, costs shown to teams, and capacity that follows demand."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Kubernetes cost follows requests, not usage: requests three times usage leave nodes idle. Right-size from measured usage percentiles with headroom, staged (VPA recommendations help), rather than flat cuts. OpenCost allocates cost by namespace and label, so showback per team, idle included, makes the cost of requests visible. Scale capacity with demand (cluster autoscaler, HPA), and use priority classes so critical workloads win when capacity is short."
+  }
+}

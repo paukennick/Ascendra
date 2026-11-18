@@ -1,0 +1,860 @@
+{
+  "slug": "opencost-rightsizing-review",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Allocation and usage read; right-sized from p95; showback by team; autoscaling with priorities; an honest decision",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "alloc",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "usage",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 7,
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "choose",
+          "prompt": "sizePrompt",
+          "choice": "staged",
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 14,
+          "seq": 7,
+          "tick": 7
+        },
+        {
+          "type": "choose",
+          "prompt": "showPrompt",
+          "choice": "showback",
+          "seq": 8,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 21,
+          "seq": 9,
+          "tick": 14
+        },
+        {
+          "type": "choose",
+          "prompt": "scalePrompt",
+          "choice": "autoscale",
+          "seq": 10,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 28,
+          "seq": 11,
+          "tick": 21
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 28
+        }
+      ],
+      "expect": {
+        "ending": "target",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "sizeCrit": "met",
+          "showCrit": "met",
+          "scaleCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0,
+          "supK": 7,
+          "spentK": 600
+        },
+        "stateHash": "14952ba1c232b3d4"
+      },
+      "reasoning": {
+        "reflection": "met"
+      }
+    },
+    {
+      "id": "partialSize",
+      "title": "Partly right on right-sizing, the rest on plan",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "alloc",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 7,
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "choose",
+          "prompt": "sizePrompt",
+          "choice": "nonProdOnly",
+          "seq": 4,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 14,
+          "seq": 5,
+          "tick": 7
+        },
+        {
+          "type": "choose",
+          "prompt": "showPrompt",
+          "choice": "showback",
+          "seq": 6,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 21,
+          "seq": 7,
+          "tick": 14
+        },
+        {
+          "type": "choose",
+          "prompt": "scalePrompt",
+          "choice": "autoscale",
+          "seq": 8,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 28,
+          "seq": 9,
+          "tick": 21
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 10,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 11,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 12,
+          "tick": 28
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "sizeCrit": "partial",
+          "showCrit": "met",
+          "scaleCrit": "met",
+          "evidenceCrit": "partial",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0,
+          "supK": 5,
+          "spentK": 600
+        },
+        "stateHash": "afd7aa56df0ab010"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "partialScale",
+      "title": "Partly right on autoscaling, and a one-line record",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 7,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "sizePrompt",
+          "choice": "staged",
+          "seq": 2,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 2,
+          "to": 14,
+          "seq": 3,
+          "tick": 7
+        },
+        {
+          "type": "choose",
+          "prompt": "showPrompt",
+          "choice": "showback",
+          "seq": 4,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 21,
+          "seq": 5,
+          "tick": 14
+        },
+        {
+          "type": "choose",
+          "prompt": "scalePrompt",
+          "choice": "fewerFixed",
+          "seq": 6,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 28,
+          "seq": 7,
+          "tick": 21
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 8,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "summary"
+          },
+          "seq": 9,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 10,
+          "tick": 28
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "sizeCrit": "met",
+          "showCrit": "met",
+          "scaleCrit": "partial",
+          "evidenceCrit": "missed",
+          "recordCrit": "missed"
+        },
+        "kpis": {
+          "missK": 0,
+          "supK": 5,
+          "spentK": 600
+        },
+        "stateHash": "b40d92f7f2de4ce8"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "allPartial",
+      "title": "Every decision only partly right",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 7,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "sizePrompt",
+          "choice": "nonProdOnly",
+          "seq": 2,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 2,
+          "to": 14,
+          "seq": 3,
+          "tick": 7
+        },
+        {
+          "type": "choose",
+          "prompt": "showPrompt",
+          "choice": "platformPays",
+          "seq": 4,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 21,
+          "seq": 5,
+          "tick": 14
+        },
+        {
+          "type": "choose",
+          "prompt": "scalePrompt",
+          "choice": "fewerFixed",
+          "seq": 6,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 28,
+          "seq": 7,
+          "tick": 21
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 8,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 9,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 10,
+          "tick": 28
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "sizeCrit": "partial",
+          "showCrit": "partial",
+          "scaleCrit": "partial",
+          "evidenceCrit": "missed",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0,
+          "supK": 5,
+          "spentK": 600
+        },
+        "stateHash": "68cb69e29059c9db"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "badSize",
+      "title": "Every request cut by 60% at once",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "alloc",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "usage",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 7,
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "choose",
+          "prompt": "sizePrompt",
+          "choice": "cutAll",
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 14,
+          "seq": 7,
+          "tick": 7
+        },
+        {
+          "type": "choose",
+          "prompt": "showPrompt",
+          "choice": "showback",
+          "seq": 8,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 21,
+          "seq": 9,
+          "tick": 14
+        },
+        {
+          "type": "choose",
+          "prompt": "scalePrompt",
+          "choice": "autoscale",
+          "seq": 10,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 28,
+          "seq": 11,
+          "tick": 21
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 28
+        }
+      ],
+      "expect": {
+        "ending": "sizeHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "sizeCrit": "missed",
+          "showCrit": "met",
+          "scaleCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1,
+          "supK": 4,
+          "spentK": 600
+        },
+        "stateHash": "1a48eee5231dfa54"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    },
+    {
+      "id": "badShow",
+      "title": "The bill split evenly across teams",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "alloc",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "usage",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 7,
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "choose",
+          "prompt": "sizePrompt",
+          "choice": "staged",
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 14,
+          "seq": 7,
+          "tick": 7
+        },
+        {
+          "type": "choose",
+          "prompt": "showPrompt",
+          "choice": "evenSplit",
+          "seq": 8,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 21,
+          "seq": 9,
+          "tick": 14
+        },
+        {
+          "type": "choose",
+          "prompt": "scalePrompt",
+          "choice": "autoscale",
+          "seq": 10,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 28,
+          "seq": 11,
+          "tick": 21
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 28
+        }
+      ],
+      "expect": {
+        "ending": "showHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "sizeCrit": "met",
+          "showCrit": "missed",
+          "scaleCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1,
+          "supK": 4,
+          "spentK": 600
+        },
+        "stateHash": "0969e76d9a7dce9e"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    },
+    {
+      "id": "badScale",
+      "title": "The cluster capped at 30 nodes",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "alloc",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "usage",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 7,
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "choose",
+          "prompt": "sizePrompt",
+          "choice": "staged",
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 14,
+          "seq": 7,
+          "tick": 7
+        },
+        {
+          "type": "choose",
+          "prompt": "showPrompt",
+          "choice": "showback",
+          "seq": 8,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 21,
+          "seq": 9,
+          "tick": 14
+        },
+        {
+          "type": "choose",
+          "prompt": "scalePrompt",
+          "choice": "cap",
+          "seq": 10,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 28,
+          "seq": 11,
+          "tick": 21
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 28
+        }
+      ],
+      "expect": {
+        "ending": "scaleHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "sizeCrit": "met",
+          "showCrit": "met",
+          "scaleCrit": "missed",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1,
+          "supK": 4,
+          "spentK": 600
+        },
+        "stateHash": "7bab70430b91f8c0"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    }
+  ]
+}
