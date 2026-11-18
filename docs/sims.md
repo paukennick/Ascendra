@@ -7670,3 +7670,134 @@ SAMHSA SAFE-T (PEP24-01-036, product page only); RCW 71.05.120 (Legislature PDF)
 Med 2012); Abderhalden et al., BMC Psychiatry 2006 (Broset checklist); the Keppra label (revised 8/2023).
 Relayed, not re-read: RCW 70.02.050 and HIPAA FAQ 520 (2026-11-14), 988 (2026-11-10), 42 CFR 482.13(e)
 (2026-11-14), and the exam outlines from the course seeds.
+
+### 22.37 Sim depth for the academic and programming courses (REQ-333)
+
+Nick, 2026-11-17 (19:51 PT): "Courses have no sims still like the MS Health
+Informatics. Some still have 1 or two. Let's build those out more robustly."
+The round's rule: a course under 60 objectives gets at least 4 sims, 60 or
+more at least 8, every unit with an objective that fits the selection rule
+gets one, purpose-written cases preferred for a course's top domains, and a
+unit where nothing fits honestly is recorded as no fit. Existing screens only;
+no engine, schema or migration change. Every document is listed by slug in
+`lib/sim/depth-academic.ts` and checked by `lib/sim/depth-academic.test.ts`
+(FAIL-2002 rule).
+
+**New cases (17)**, each with one three-part written-reasoning moment,
+endings in all three classes with `endingOrder` (harm first), three or four
+critical criteria, three KPIs, an expert path, a debrief per ending and six
+or seven goldens rated Good, Mediocre and Bad with every critical criterion
+met and missed (`npm run sim:golden -- steps <name>`):
+
+| Course / slug | Screen | Objective (abridged) | Core of the case | Steps |
+|---|---|---|---|---|
+| MSHI/mshi-a1c-units-quality-dashboard | data | F4 data quality dimensions | A new lab sends A1c as LOINC 59261-8 in mmol/mol; the measure view reads it as %, so "A1c above 9%" jumps from 17.6% to 41.2%. Plausibility and the OBX-6 unit first; convert in the view with the NGSP equation; never rewrite stored results; never drop the lab (640 patients would look untested) | mshi-a1c |
+| MSHI/mshi-misdirected-email-breach-notice | governance board | F3 HIPAA breach notification | A misdirected spreadsheet (1,240 patients, 910 in-state) and a stolen encrypted laptop: four factors, letters, in-state media and HHS within 60 days; the laptop documented as secured PHI with the device record; the COO's per-state reading of the HHS threshold refuted | mshi-breach |
+| MSHI/mshi-ehr-downtime-tabletop | tabletop | F5 EHR safety: identification, downtime, results loop | Unplanned EHR downtime: call it and page staff (not email), unique downtime record numbers, critical results phoned with read-back, drain queues then reconcile; three plan gaps (forms, stale backup, no named lead) owned | mshi-downtime |
+| MSHI/mshi-ehr-go-live-readiness | governance board | F7 EHR implementation life cycle | Go-live criteria agreed before the go/no-go; a severity-1 prescription defect retested; converted allergies validated by sampling (3% error); training tied to access; command center; go on criteria with a bounded slip; 30-day optimization | mshi-golive |
+| MSHI/mshi-syndromic-feed-ili-drop | data | F1 clinical systems feeding public health | ED syndromic ILI share falls 6.1% to 3.4% the week two hospitals change EHRs: completeness and field checks find a silent feed and blank chief complaints; report the same complete facilities (6.4%, rising); never impute counts | mshi-ili |
+| MSHI/mshi-home-bp-app-vetting | governance board | F6 judging an mHealth app's quality, privacy and safety | A vendor's home BP app for 400 patients: advertising kit and no BAA, an unvalidated cuff, an unwatched alert inbox, no access without a smartphone; launch on conditions | mshi-rpm |
+| MSCS/mscs-transfer-workers-deadlock | terminal | Deadlocks and the four conditions | Opposite-direction transfers lock two accounts in opposite orders; a thread dump shows the cycle; a global lock order removes circular wait; a concurrency test proves it; never purge the queue | mscs-deadlock |
+| MSCS/mscs-freezer-bytes-little-endian | data | Binary and hex representation | New gateway sends int16 two's complement little-endian; the decoder reads big-endian unsigned (C6 F8 as 509.36 °C); '<h' gives -18.50 °C; byte order or sign alone still fail; filtering hides a real excursion | mscs-endian |
+| MSCS/mscs-pipeline-dependency-cycle | data | Cycle detection (topological sorting) | Kahn's planner silently drops three jobs on a cycle; DFS finds the back edge; fix the edges to follow the data and make the planner raise | mscs-cycle |
+| MSCS/mscs-renewed-cert-missing-intermediate | terminal | PKI and chains of trust | After renewal the server sends the leaf alone; browsers cope, the partner's client cannot build the path; serve leaf plus intermediate; never switch verification off | mscs-chain |
+| MSCS/mscs-unstable-sort-stage-order | data | Sort stability | A hand-written quicksort replaced the stable second sort, so names within each honor are scrambled; sorted() again; never rename records to force the order | mscs-stable |
+| PYTHON/py-packing-slips-mutable-default | data | The mutable-default-argument pitfall | extras=[] accumulates across calls in a long-running worker; None plus a new list; copy-on-return and clear() both fail a test | py-default |
+| PCEP/pcep-seat-map-shared-rows | data | The shared-row trap of multiplying a nested list | One booking sells a whole column; a comprehension builds each row; list() and a prebuilt row stay shared; never reset bookings | pcep-rows |
+| PCEP/pcep-lunch-balances-float-cents | data | Literals and inexact decimal floats | 312 lunch accounts frozen by float sums (0.30000000000000004); compare whole cents; never overwrite balances | pcep-cents |
+| PCAP/pcap-ai-helper-invented-function | data | Validate AI-generated code; secrets out of prompts | Generated code calls statistics.weighted_mean, which does not exist; fmean(data, weights) checked on the documentation's 87.6 example; an unknown package is a supply-chain harm; the leaked key rotated | pcap-ai |
+| JAVASCRIPT/js-shift-signup-foreach-async | data | async/await with try/catch | forEach does not await, so "All 12 shifts saved" shows before rejections, which go uncaught; for...of with per-save try/catch | js-foreach |
+| PYDATA/pydata-region-merge-duplicated-store | data | Validate a join with validate and indicator | A duplicate key in a lookup inflates revenue 3.1%; validate="m:1" raises; keep each store's latest row; drop_duplicates removes nothing; never delete orders | pydata-merge |
+
+**Bands (37)** register an existing case on another course's objective
+(4.7; the round's rule: where the same decision is taught). Each keeps its
+base's actions, endings, ending order and golden outcomes, and carries as its
+first source a page read 2026-11-17 on this course's objective (the CAHIIM
+master's curriculum PDF, CS2023, a course syllabus, or the language or
+library documentation), then the base's own sources:
+
+- MSHI: SQL NOT IN (F2 SQL), the clinic-records ethics conversation (F8),
+  PHI in application logs (F4 protecting information in design), the control
+  chart (F7 Lean and Six Sigma), the PfMP rebalance (F10 priorities and decisions).
+- MSCS: list-to-set profiling (data structure costs), flash-sale lost update
+  (isolation levels), sign-in sequential scan (B-tree indexes), report
+  workers at nice 0 (CPU scheduling), deleted-but-open log on a full /var
+  (file systems), blind SQL injection (attack classes), loan-model split
+  (ML concepts).
+- CMPCBS: profiling (hashing), clinic-records ethics (computing ethics),
+  firewall change back-out (security policy), leaver account (protection
+  mechanisms), the CISM business case (choosing technology), the PfMP
+  rebalance (IT strategy alignment), report workers (operating systems).
+- PTPREREQ: treadmill pressure falls with grade (cardiovascular response to
+  exercise), 6-minute walk desaturation (oxygen-hemoglobin curve), the stroke
+  fall-risk visit (stability and base of support), new bladder symptoms with
+  back pain (dermatomes), central dizziness (brain regions for movement),
+  Parkinson orthostatic drop (baroreceptor reflex), ICU first stand with a new
+  rhythm (conduction system and ECG waves). Clinical bands keep their base's
+  clinical sources and clock.
+- PYAUTO: traceback import (which exceptions to catch), Node env-file silent
+  exit (exit codes for a scheduler), timer backup after a reboot (systemd
+  timers). PYDATA: stock-on-hand semi-additive (resample aggregate), amounts
+  with thousands separators (dtypes). PCEP: profiling (set membership). PCAP:
+  mutable default (constructor defaults), shared rows (nested comprehensions).
+  PYTHON: shared rows (nested data structures). JAVASCRIPT: env-file exit
+  (configuration). SQL: sleeping session holding locks (transactions and
+  atomicity). TSNODE: shipping concatenation (types are erased).
+
+#### Per-course table (production counts from round-1117b; base recount matched)
+
+| Course | Objectives | Before | After | Units covered | Remaining |
+|---|---|---|---|---|---|
+| MSHI | 134 | 0 | 11 | F1-F8, F10 | F9: no fit (interprofessional communication and SBAR need a team conversation, not one of the existing screens; the bedside SBAR cases are clinical, not informatics) |
+| MSCS | 113 | 0 | 12 | Core data structures, Sorting, Graph algorithms, Architecture, OS (3), Databases (2), ML, Cyber I, Cyber II | Gap: Complexity (candidate: an accidental O(n^2) on the data console), Graph foundations (BFS shortest hops), HCI (a think-aloud usability result on the data console), Big data (a skewed reducer on the terminal). No fit: Discrete mathematics I (proofs), Final integration (an essay-style synthesis) |
+| CMPCBS | 102 | 1 | 8 | Intro to CS (2), Intro to IS (2), Data Structures and Algorithms, Information Security (3) | Gap: Programming in C++ I and II (candidates: a pointer or recursion defect on the data console), Statistical Analysis and Regression (a misread p-value or regression diagnostic on the data console), Numerical Methods (error analysis). No fit: Calculus I and II, Multivariable Calculus, Differential Equations, Linear Algebra, Abstract Algebra, Probability, Discrete Mathematics, History of Mathematics, Modeling, Capstone (derivation and proof, not time-bound decisions) |
+| PTPREREQ | 95 | 1 | 8 | Biomechanics, Nervous system (2), Cardiovascular (4), Respiratory | Gap: Muscle physiology (fatigue and energy systems in a session), Physics for PT (pressure on skin, a transfer), Chemistry (glucose before exercise could band the PTA case), Psychology, Statistics. No fit: Cells and tissues, Musculoskeletal anatomy (identification knowledge) |
+| PYTHON | 50 | 2 | 4 | Functions, Core data structures, Testing/debugging, Performance | Gap: Syntax, Strings/files, OOP, Modules, Functional patterns |
+| JAVASCRIPT | 45 | 2 | 4 | Syntax, Asynchronous (2), Node.js | Gap: Functions/scope, Objects and copying, DOM and events, ES6+, Prototypes, Testing and tooling |
+| PYAUTO | 52 | 1 | 4 | Error handling (2), Logging, Scheduling | Gap: Files and atomic writes, argparse, Regex, subprocess and shell injection, HTTP APIs, Packaging, pytest |
+| PYDATA | 42 | 1 | 4 | Cleaning, Grouping, Combining, Time series | Gap: Notebooks (hidden state), NumPy, Loading and Copy-on-Write, Plotting, Reproducibility |
+| PCEP | 34 | 1 | 4 | Fundamentals, Data collections (2), Functions and exceptions | Gap: Control flow, File handling |
+| PCAP | 42 | 1 | 4 | OOP, Advanced constructs, Testing/AI (2) | Gap: Modules, Exceptions, Strings |
+| SQL | 44 | 3 | 4 | NULL logic, Indexes and transactions (3) | Gap: Joins (row multiplication could band the PYDATA merge case), Aggregation, Subqueries, Window functions, Schema design |
+| TSNODE | 37 | 3 | 4 | Setup and types, Modules, Runtime, HTTP API | Gap: Unions and narrowing, Generics, Advanced types |
+
+Every course meets the round's count target. The gaps above are units with
+objectives that fit the selection rule and no sim yet; they are the next
+round's list, in that order.
+
+**Sources** (each on its document with `checkedAt` and how it was read; all
+2026-11-17 through summarizing fetches of URLs that appeared in a search
+result or a fetched page): the CAHIIM master's curriculum PDF (AMIA F1-F10);
+HHS OCR's Breach Notification Rule page and "Submitting Notice of a Breach";
+HHS OCR's health app scenarios (2016); the SAFER Guides page and the
+Contingency Planning guide PDF; CMS122v13 on eCQI; NGSP's IFCC equation;
+FindACode listings for LOINC 4548-4 and 59261-8 (third-party); HL7
+V2-to-FHIR's OBX ConceptMap; CDC's NSSP page; Virginia's syndromic
+limitations page; the validated BP device listing FAQ; CS2023 (table of
+contents only); RFC 9846 sections 4.5.1; Python 3.15 struct, statistics and
+tutorial errors pages; the Python 3.12 (Indonesian) and 3.10 (Greek) tutorial
+pages (no current English page appeared in a search); the PCEP-30-03 and
+PCAP-31-04 syllabi; pandas 3.1.1 resample; Practical Data Science
+"Validating a merge"; MDN forEach; TypeScript's handbook; PostgreSQL 18's
+transactions tutorial; Node.js v26.13.1 environment variables; systemd.timer
+(Debian, systemd 241); OpenStax A&P 2e 16.5, 19.2, 19.4, 20.4, Biology 2e
+39.4 and College Physics (AP) 9.3; a Lumen spinal nerves page; Bourgeois,
+Information Systems for Business and Beyond (LibreTexts). Marked "to verify"
+on the documents: Weiskopf and Weng 2013 (the page did not load), the
+Python tutorial's default-argument and sequence-multiplication notes, the
+pandas MergeError name, the Python sorting HOWTO, and a Promise.all detail.
+Every organization, person, count and deadline is invented; no patient
+data appears, and the clinical bands add no drug, dose or new clinical claim.
+
+**Findings** (recorded, not worked around):
+
+1. **A test selected PYAUTO documents by course code (FAIL-2480,
+   recurrence of FAIL-2002).** `lib/sim/linux-depth-terminal.test.ts` took
+   every LFCS, LINUXFUND and PYAUTO document, so this round's PYAUTO bands
+   joined its terminal set. It now selects by course and slug.
+2. **A bare enum value in an effect is a name.** `{"set": "fix", "to":
+   "cache"}` reads `cache` as a state name; it must be `"\"cache\""`. Four
+   drafts had it and the validator caught each before a golden was written.
+3. **Braces in labels.** `.catch(() => {})` in learner text is a template
+   slot; the JavaScript case rewords it ("an empty .catch() handler").
+4. **`time_up`** is reached by no golden path in any case, as elsewhere.

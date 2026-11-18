@@ -12184,6 +12184,47 @@
         "changelog"
       ],
       "risk_notes": []
+    },
+    {
+      "id": "REQ-333",
+      "category": "content",
+      "title": "Sim depth for the academic and programming courses: MSHI and MSCS to 8+, CMPCBS and PTPREREQ to 8, the programming courses to 4",
+      "description": "Nick (2026-11-17, 19:51 PT): courses with no sims, such as MS Health Informatics, and courses with one or two should be built out robustly. Round 1117b rule: under 60 objectives at least 4 sims, 60 or more at least 8, every unit with an objective fitting the selection rule gets one, purpose-written cases for top domains, no fit recorded. Built on existing screens only: 17 new cases (6 MSHI on the data console, governance board and tabletop; 5 MSCS on the terminal and data console; PYTHON, two PCEP, PCAP, JAVASCRIPT, PYDATA on the data console) and 37 bands. Before/after: MSHI 0/11, MSCS 0/12, CMPCBS 1/8, PTPREREQ 1/8, PYTHON 2/4, JAVASCRIPT 2/4, PYAUTO 1/4, PYDATA 1/4, PCEP 1/4, PCAP 1/4, SQL 3/4, TSNODE 3/4.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/",
+        "backend/lib/sim/documents.ts",
+        "backend/lib/sim/depth-academic.ts",
+        "backend/lib/sim/depth-academic.test.ts",
+        "backend/lib/sim/linux-depth-terminal.test.ts",
+        "backend/scripts/sim-golden/",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "each document is on an active objective of its own course with no other sim of that course on it",
+        "every course in scope meets its count target",
+        "new cases have endings in all three classes and goldens rated Good Mediocre and Bad with every critical criterion met and missed",
+        "bands keep their base behavior and golden outcomes and cite a source read 2026-11-17 first",
+        "no claim of endorsement and no certifying-body mark in governance and exercise text",
+        "no patient data; HIPAA cases at policy level",
+        "tests select documents by slug"
+      ],
+      "validation_required": [
+        "lib/sim/depth-academic.test.ts",
+        "lib/sim/documents.test.ts run alone",
+        "lib/sim tests",
+        "sims:lint",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.37",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Units still uncovered are listed in docs/sims.md 22.37 for the next round"
+      ]
     }
   ]
 }
