@@ -722,6 +722,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("ABPTSPWCS", "second-trimester-dizzy-on-her-back"),
   entry("ABPTSWMS", "braden-eleven-purple-heel"),
   entry("ABPTSWMS", "two-wounds-one-dressing-choice"),
+  entry("ABPTSWMS", "walking-program-plantar-ulcer"),
   // ---- end REQ-334 ----
 ];
 
