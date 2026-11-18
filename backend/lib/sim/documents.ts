@@ -562,6 +562,14 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   band("AZ120", "backup-vault-sabotage-az120"),
   entry("AZ140", "tls-inspection-breaks-session-hosts"),
   entry("AZ140", "start-vm-on-connect-after-rg-move"),
+  entry("AZ140", "scaling-plan-utc-forces-logoff-midshift"),
+  entry("AZ140", "one-minute-disconnect-limit-kills-field-sessions"),
+  entry("AZ140", "bad-image-version-spreads-to-new-hosts"),
+  entry("DP300", "public-access-off-reporting-resolves-public-ip"),
+  entry("DP300", "plan-regression-order-search-query-store"),
+  entry("DP300", "app-pinned-to-old-primary-after-geo-failover"),
+  entry("DP300", "log-backup-job-failing-expired-sas"),
+  entry("DP300", "lrs-cutover-tail-backup-not-restored"),
   // ---- end REQ-335 ----
   // ---- REQ-323 (docs/sims.md 22.32): health breadth and nursing depth of the
   // 2026-11-17 round. Bands first, then new cases. Keep these together. ----

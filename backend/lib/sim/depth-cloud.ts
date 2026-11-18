@@ -27,4 +27,12 @@ export const DEPTH_CLOUD: readonly CloudEntry[] = [
   { course: "AZ120", slug: "backup-vault-sabotage-az120", screen: "security-console", profile: "security", kind: "band", steps: "dc-az120-backup-vault-sabotage-az120", base: "SC500/sc500-backup-vault-sabotage" },
   { course: "AZ140", slug: "tls-inspection-breaks-session-hosts", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "az140-tls" },
   { course: "AZ140", slug: "start-vm-on-connect-after-rg-move", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "az140-startvm" },
+  { course: "AZ140", slug: "scaling-plan-utc-forces-logoff-midshift", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "az140-autoscale" },
+  { course: "AZ140", slug: "one-minute-disconnect-limit-kills-field-sessions", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "az140-timeouts" },
+  { course: "AZ140", slug: "bad-image-version-spreads-to-new-hosts", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "az140-image" },
+  { course: "DP300", slug: "public-access-off-reporting-resolves-public-ip", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "dp300-privatelink" },
+  { course: "DP300", slug: "plan-regression-order-search-query-store", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "dp300-querystore" },
+  { course: "DP300", slug: "app-pinned-to-old-primary-after-geo-failover", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "dp300-fog" },
+  { course: "DP300", slug: "log-backup-job-failing-expired-sas", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "dp300-agentjob" },
+  { course: "DP300", slug: "lrs-cutover-tail-backup-not-restored", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "dp300-lrs" },
 ];
