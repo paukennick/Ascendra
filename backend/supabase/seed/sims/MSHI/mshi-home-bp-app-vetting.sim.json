@@ -1,0 +1,1120 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "mshi-home-bp-app-vetting",
+  "title": "A blood pressure app for 400 patients",
+  "screen": {
+    "type": "governance-board",
+    "level": 1,
+    "governance": {
+      "risks": [
+        {
+          "id": "rPriv",
+          "label": "The app's analytics kit sends readings and device IDs to an advertising partner; no business associate agreement offered",
+          "spokenLabel": "App data sharing",
+          "owner": "\"Privacy officer\"",
+          "rating": "privacyFixed ? \"low\" : \"critical\"",
+          "appetite": "privacyFixed ? \"within\" : \"above\"",
+          "status": "{privacyFixed ? \"BAA signed; advertising kit removed from our build\" : isNull(policyAt) ? \"Not reviewed\" : \"Found in the privacy policy and traffic test\"}"
+        },
+        {
+          "id": "rCuff",
+          "label": "The bundled cuff model is not on the validated device listing",
+          "spokenLabel": "Cuff accuracy",
+          "owner": "\"Clinical lead\"",
+          "rating": "cuffFixed ? \"low\" : \"high\"",
+          "appetite": "cuffFixed ? \"within\" : \"above\"",
+          "status": "{cuffFixed ? \"Switched to a listed, validated model\" : isNull(vdlAt) ? \"Not checked\" : \"Not listed; the vendor's other model is\"}"
+        },
+        {
+          "id": "rAlert",
+          "label": "Readings flagged as dangerous go to an inbox nobody watches after hours",
+          "spokenLabel": "Alert routing",
+          "owner": "\"Nursing manager\"",
+          "rating": "alertFixed ? \"low\" : \"high\"",
+          "appetite": "alertFixed ? \"within\" : \"above\"",
+          "status": "{alertFixed ? \"Routed to the nurse line in hours; patients told what to do after hours\" : \"Default vendor inbox\"}"
+        },
+        {
+          "id": "rAccess",
+          "label": "About a third of the patients have no smartphone or find the app hard to use",
+          "spokenLabel": "Access and usability",
+          "owner": "\"Patient experience\"",
+          "rating": "accessFixed ? \"low\" : \"medium\"",
+          "appetite": "accessFixed ? \"within\" : \"above\"",
+          "status": "{accessFixed ? \"Usability-tested; cellular hubs for patients without phones\" : \"Not tested with patients\"}"
+        }
+      ],
+      "stakeholders": [
+        {
+          "id": "sCmo",
+          "label": "Clinical lead",
+          "spokenLabel": "The clinical lead's support",
+          "value": "clin",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sPac",
+          "label": "Patient advisory council",
+          "spokenLabel": "The patient advisory council's support",
+          "value": "pac",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "docket": [
+        {
+          "id": "dLaunch",
+          "kind": "Decision",
+          "label": "Day 30: launch the home blood pressure program",
+          "status": "{call == \"unset\" ? \"Waiting for your recommendation\" : call == \"conditions\" ? \"Launch when the conditions are met\" : call == \"asOffered\" ? \"Launch as the vendor offered it\" : \"Declined\"}",
+          "when": "true",
+          "flag": "call == \"unset\" and t >= launchDay - 5 * 86400"
+        },
+        {
+          "id": "dBaa",
+          "kind": "Contract",
+          "label": "Business associate agreement with the vendor",
+          "status": "Signed",
+          "when": "privacyFixed"
+        },
+        {
+          "id": "dLive",
+          "kind": "Milestone",
+          "label": "Program live",
+          "status": "Live on day {timeAt(liveAt) / 86400|0dp}",
+          "when": "not isNull(liveAt)"
+        }
+      ],
+      "budget": {
+        "label": "Program budget committed",
+        "spent": "spent",
+        "total": "budget",
+        "unit": "thousand dollars"
+      },
+      "meters": [
+        {
+          "id": "mDay",
+          "label": "Day",
+          "value": "{t / 86400|0dp}"
+        },
+        {
+          "id": "mCond",
+          "label": "Conditions met",
+          "value": "{condMet} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Mobile health, wearables and remote patient monitoring for self-management, and how to judge an app's quality, privacy and safety",
+  "secondaryObjectives": [
+    "Patient engagement and patient activation",
+    "Health literacy and informed decision making"
+  ],
+  "sources": [
+    {
+      "cite": "HHS Office for Civil Rights, Health App Use Scenarios and HIPAA (February 2016)",
+      "checkedAt": "2026-11-17",
+      "url": "https://hhs.gov/sites/default/files/ocr-health-app-developer-scenarios-2-2016.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch: a business associate 'creates, receives, maintains or transmits protected health information (PHI) on behalf of a covered entity'; when a provider contracts with a developer for patient management services delivered through an app, the developer is a business associate; when a consumer downloads an app on her own initiative, it is not. The case's clinic contracts the app for its patients, so the vendor needs a business associate agreement."
+    },
+    {
+      "cite": "US Blood Pressure Validated Device Listing (VDL), Frequently Asked Questions",
+      "checkedAt": "2026-11-17",
+      "url": "https://validatebp.org/faq",
+      "note": "Read 2026-11-17 through a summarizing fetch: the VDL lists BP devices 'validated for clinical accuracy', with active FDA clearance, independent testing under an internationally accepted protocol and suitable cuff sizes; sponsored by the AMA and run by NORC with an independent review committee; quotes the 2017 AHA/ACC guideline that 'the BP measurement device used has been validated with an internationally accepted protocol'."
+    },
+    {
+      "cite": "AMIA Accreditation Committee, foundational domains for master's-level health informatics education (CAHIIM HI master's curriculum requirements PDF)",
+      "checkedAt": "2026-11-17",
+      "url": "https://cahiim.org/wp-content/uploads/2024/08/hi-ms-curriculum.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch. F6 (Social and Behavioral Aspects of Health): graduates 'Identify theories or models that explain and modify patient or population behaviors'; the MSHI course places mobile health and remote monitoring for self-management in F6."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Riverbend Family Medicine, the vendor, its app and cuffs, counts, costs and days are invented teaching values. The case names no reading, drug or dose and gives no clinical instruction."
+    }
+  ],
+  "brief": {
+    "situation": "You are the clinical informatics lead at Riverbend Family Medicine (fictional), a group of clinics. Leadership wants home blood pressure monitoring for 400 patients with hypertension, launching on day 30, using a vendor's app and Bluetooth cuffs. Your job is to judge the app's quality, privacy and safety and recommend how to launch.",
+    "handover": [
+      "The clinics are a covered entity; the vendor would run the app for the clinics' patients.",
+      "The program budget is 80 thousand dollars."
+    ],
+    "howItWorks": [
+      "The clock runs in days: each task takes days. Choose it, then let it finish, which moves the calendar on.",
+      "The board shows the program's risks against the appetite, each stakeholder's support in words, the budget committed and the docket.",
+      "When you close the review you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "2027-04-05T09:00",
+    "tick": "1d",
+    "maxDuration": "100d",
+    "calendar": "week"
+  },
+  "params": {
+    "budget": {
+      "value": 80,
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Program budget, thousand dollars; invented."
+      }
+    },
+    "launchDay": {
+      "value": 2592000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Launch planned for day 30."
+      }
+    },
+    "eventDay": {
+      "value": 4320000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Day 50, three weeks after launch."
+      }
+    },
+    "closeDay": {
+      "value": 6048000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "The review closes on day 70."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "policyAt": {
+      "type": "time",
+      "init": null
+    },
+    "vdlAt": {
+      "type": "time",
+      "init": null
+    },
+    "usabilityAt": {
+      "type": "time",
+      "init": null
+    },
+    "privacyFixed": {
+      "type": "bool",
+      "init": false
+    },
+    "cuffFixed": {
+      "type": "bool",
+      "init": false
+    },
+    "alertFixed": {
+      "type": "bool",
+      "init": false
+    },
+    "accessFixed": {
+      "type": "bool",
+      "init": false
+    },
+    "call": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "conditions",
+        "asOffered",
+        "decline"
+      ],
+      "init": "unset"
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "liveAt": {
+      "type": "time",
+      "init": null
+    },
+    "eventAt": {
+      "type": "time",
+      "init": null
+    },
+    "leaked": {
+      "type": "bool",
+      "init": false
+    },
+    "missedAlert": {
+      "type": "bool",
+      "init": false
+    },
+    "clin": {
+      "type": "number",
+      "init": 5,
+      "min": 0,
+      "max": 10
+    },
+    "pac": {
+      "type": "number",
+      "init": 5,
+      "min": 0,
+      "max": 10
+    },
+    "basisDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "judged",
+        "vendor",
+        "popular"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "condMet": {
+      "expr": "(privacyFixed ? 1 : 0) + (cuffFixed ? 1 : 0) + (alertFixed ? 1 : 0) + (accessFixed ? 1 : 0)"
+    },
+    "spent": {
+      "expr": "(cuffFixed ? 12 : 0) + (isNull(usabilityAt) ? 0 : 6) + (accessFixed ? 20 : 0)"
+    },
+    "spendPct": {
+      "expr": "spent / budget * 100"
+    },
+    "aboveCount": {
+      "expr": "call == \"decline\" ? 0 : 4 - condMet"
+    },
+    "judgedFirst": {
+      "expr": "not isNull(policyAt) and not isNull(vdlAt) and not isNull(callAt) and timeAt(policyAt) <= timeAt(callAt) and timeAt(vdlAt) <= timeAt(callAt)"
+    },
+    "minSupport": {
+      "expr": "min(clin, pac)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "review": {
+      "label": "The review",
+      "clock": "turns",
+      "actions": [
+        "policy",
+        "baa",
+        "vdl",
+        "cuffs",
+        "alerts",
+        "usability",
+        "decide",
+        "watch",
+        "closeReview"
+      ]
+    },
+    "report": {
+      "label": "Review record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "review",
+  "actions": {
+    "policy": {
+      "label": "Read the app's privacy policy and run a traffic test on a test phone (3 days)",
+      "group": "Judge",
+      "available": "not busy and isNull(policyAt)",
+      "why": "Done, or finish the task in progress first.",
+      "effects": [
+        {
+          "set": "policyAt",
+          "to": "t"
+        },
+        {
+          "log": "The policy allows sharing 'usage and device data' with marketing partners; the traffic test shows readings and device IDs sent to an advertising analytics kit. The vendor offers no business associate agreement by default.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3d"
+        }
+      ]
+    },
+    "baa": {
+      "label": "Require a business associate agreement and a build without the advertising kit (7 days)",
+      "group": "Protect",
+      "available": "not busy and not privacyFixed",
+      "why": "Done, or finish the task in progress first.",
+      "effects": [
+        {
+          "set": "privacyFixed",
+          "to": "true"
+        },
+        {
+          "add": "pac",
+          "by": "1"
+        },
+        {
+          "log": "The vendor signs a business associate agreement and ships the clinics a build with the advertising kit removed.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "7d"
+        }
+      ]
+    },
+    "vdl": {
+      "label": "Check the bundled cuff against the validated device listing (1 day)",
+      "group": "Judge",
+      "available": "not busy and isNull(vdlAt)",
+      "why": "Done, or finish the task in progress first.",
+      "effects": [
+        {
+          "set": "vdlAt",
+          "to": "t"
+        },
+        {
+          "log": "The bundled cuff is not on the listing; the vendor's upper-arm model with three cuff sizes is.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "cuffs": {
+      "label": "Switch to the listed cuff model with the right cuff sizes (5 days, 12 thousand)",
+      "group": "Protect",
+      "available": "not busy and not cuffFixed",
+      "why": "Done, or finish the task in progress first.",
+      "effects": [
+        {
+          "set": "cuffFixed",
+          "to": "true"
+        },
+        {
+          "add": "clin",
+          "by": "1"
+        },
+        {
+          "log": "Listed, validated cuffs ordered in three sizes.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5d"
+        }
+      ]
+    },
+    "alerts": {
+      "label": "Design the alert workflow with nursing: who sees a flagged reading, when, and what patients do after hours (5 days)",
+      "group": "Protect",
+      "available": "not busy and not alertFixed",
+      "why": "Done, or finish the task in progress first.",
+      "effects": [
+        {
+          "set": "alertFixed",
+          "to": "true"
+        },
+        {
+          "add": "clin",
+          "by": "2"
+        },
+        {
+          "log": "Flagged readings go to the nurse line in clinic hours; patients get written after-hours instructions; the vendor inbox is switched off.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5d"
+        }
+      ]
+    },
+    "usability": {
+      "label": "Usability test with eight patients (think-aloud), then provide cellular hubs for patients without a smartphone (6 days, 6 + 20 thousand)",
+      "group": "People",
+      "available": "not busy and isNull(usabilityAt)",
+      "why": "Done, or finish the task in progress first.",
+      "effects": [
+        {
+          "set": "usabilityAt",
+          "to": "t"
+        },
+        {
+          "set": "accessFixed",
+          "to": "true"
+        },
+        {
+          "add": "pac",
+          "by": "2"
+        },
+        {
+          "log": "Five of eight patients could not pair the cuff unaided; the vendor's cellular hub needs no phone and no pairing. Hubs ordered for patients without smartphones; large-print instructions written.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6d"
+        }
+      ]
+    },
+    "decide": {
+      "label": "Recommend how to launch",
+      "group": "Decide",
+      "available": "not busy and call == \"unset\"",
+      "why": "Decided, or finish the task in progress first.",
+      "params": [
+        {
+          "id": "g",
+          "kind": "choice",
+          "label": "Recommendation",
+          "options": [
+            {
+              "value": "conditions",
+              "label": "Launch on day 30 only with a BAA and no advertising kit, listed cuffs, the alert workflow and access for patients without phones; otherwise when those are in place"
+            },
+            {
+              "value": "asOffered",
+              "label": "Launch on day 30 as the vendor offers it; patients are keen"
+            },
+            {
+              "value": "decline",
+              "label": "Decline home monitoring altogether"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "call",
+          "to": "g"
+        },
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "g == \"asOffered\"",
+              "then": [
+                {
+                  "add": "clin",
+                  "by": "-1"
+                },
+                {
+                  "log": "The program will launch as offered.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "g == \"decline\"",
+              "then": [
+                {
+                  "add": "clin",
+                  "by": "-2"
+                },
+                {
+                  "add": "pac",
+                  "by": "-2"
+                },
+                {
+                  "log": "Home monitoring is declined; patients keep clinic-only readings.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "g == \"conditions\"",
+              "then": [
+                {
+                  "log": "Leadership accepts the conditions.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Let the week pass (7 days)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "log": "A week passes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "7d"
+        }
+      ]
+    },
+    "closeReview": {
+      "label": "Close the review and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the review and write the record.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the review record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "basis",
+              "label": "What the launch decision rested on",
+              "options": [
+                {
+                  "value": "judged",
+                  "label": "The app judged on privacy, device accuracy, alert safety and access, with conditions set before launch"
+                },
+                {
+                  "value": "vendor",
+                  "label": "The vendor's assurances"
+                },
+                {
+                  "value": "popular",
+                  "label": "Patients' enthusiasm"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "basisDoc",
+          "to": "basis"
+        },
+        {
+          "log": "Recorded: {basis}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Work in progress",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "How many days each task takes is an invented teaching value."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "launch",
+      "when": "isNull(liveAt) and phase == \"review\" and ((call == \"asOffered\" and t >= launchDay) or (call == \"conditions\" and t >= launchDay and condMet >= 4))",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "liveAt",
+          "to": "t"
+        },
+        {
+          "log": "The home blood pressure program goes live.",
+          "kind": "act"
+        }
+      ]
+    },
+    {
+      "id": "event",
+      "when": "isNull(eventAt) and not isNull(liveAt) and t >= eventDay and phase == \"review\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "eventAt",
+          "to": "t"
+        },
+        {
+          "if": "not privacyFixed",
+          "then": [
+            {
+              "set": "leaked",
+              "to": "true"
+            },
+            {
+              "add": "pac",
+              "by": "-3"
+            },
+            {
+              "log": "Day 50: a journalist reports that the app shares patients' readings with an advertising partner; the privacy officer opens a breach assessment.",
+              "kind": "alarm"
+            }
+          ]
+        },
+        {
+          "if": "not alertFixed",
+          "then": [
+            {
+              "set": "missedAlert",
+              "to": "true"
+            },
+            {
+              "add": "clin",
+              "by": "-3"
+            },
+            {
+              "log": "Day 50: in the scenario, a reading flagged as dangerous sat in the vendor inbox over a long weekend before anyone saw it.",
+              "kind": "alarm"
+            }
+          ]
+        },
+        {
+          "if": "privacyFixed and alertFixed",
+          "then": [
+            {
+              "log": "Day 50: three weeks in, readings flow to the nurse line and the patient council reports few problems.",
+              "kind": "good"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "reviewEnd",
+      "when": "t >= closeDay and phase == \"review\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "Day 70: the review closes. Write the record.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For leadership: how you judged the app, what had to be true before launch, and why.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Privacy",
+          "criteria": "The clinics contract the app for their patients, so the vendor handles PHI on their behalf and needs a business associate agreement; the advertising kit's sharing is found by reading the policy and testing traffic, and removed.",
+          "modelAnswer": "BAA signed; advertising kit out of the clinics' build."
+        },
+        {
+          "label": "Quality and safety",
+          "criteria": "Readings that drive care need a validated device (the bundled cuff was not listed) and an alert path someone watches, with after-hours instructions.",
+          "modelAnswer": "Listed cuff in three sizes; flagged readings to the nurse line."
+        },
+        {
+          "label": "Self-management and access",
+          "criteria": "Usability tested with real patients (think-aloud) and a route for those without smartphones, so the program reaches the patients it is for; launch on conditions rather than as offered or not at all.",
+          "modelAnswer": "Eight-patient test; cellular hubs; launched on day 30 with all four conditions."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "governance",
+    "thresholds": {
+      "budgetCap": {
+        "value": 100,
+        "source": {
+          "cite": "Governance outcome profile (docs/sims.md 9.2, 22.26)",
+          "checkedAt": "2026-11-17",
+          "note": "Committed spend within the incident response budget."
+        }
+      },
+      "aboveAppetite": {
+        "value": 0,
+        "source": {
+          "cite": "Governance outcome profile (docs/sims.md 9.2, 22.26)",
+          "checkedAt": "2026-11-17",
+          "note": "No program risk above appetite at the close."
+        }
+      },
+      "supportTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Governance outcome profile (docs/sims.md 9.2, 22.26)",
+          "checkedAt": "2026-11-17",
+          "note": "The clinical lead and the patient advisory council at 6 of 10 or more at the close."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and call == \"unset\"",
+      "class": "recovered",
+      "rationale": "No recommendation means no launch: nothing unsafe reached patients, but they gained nothing.",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "leakedEnd": {
+      "label": "Patients' readings shared with advertisers",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and leaked",
+      "narrative": "The clinics' patients' readings went to an advertising partner through an app the clinics chose."
+    },
+    "alertEnd": {
+      "label": "A flagged reading went unseen",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and missedAlert",
+      "narrative": "In the scenario, a dangerous reading waited days in an inbox nobody watched."
+    },
+    "launched": {
+      "label": "Launched on conditions, safe and used",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and judgedFirst and call == \"conditions\" and not isNull(liveAt) and aboveCount <= aboveAppetite and spendPct <= budgetCap and minSupport >= supportTarget",
+      "narrative": "Patients monitor at home on validated cuffs, their data stays under a BAA, and flagged readings reach a nurse."
+    },
+    "costly": {
+      "label": "Safe, at a cost",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "No harm reached patients, but the program did not launch, launched late, or launched without every condition or support."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no review record."
+    }
+  },
+  "endingOrder": [
+    "leakedEnd",
+    "alertEnd",
+    "launched",
+    "costly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "judged",
+        "label": "Read the privacy terms and checked the device before recommending",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "judgedFirst",
+            "score": "met",
+            "why": "Policy, traffic and the device listing first."
+          },
+          {
+            "when": "not isNull(policyAt) or not isNull(vdlAt)",
+            "score": "partial",
+            "why": "Checked one, or only after deciding."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Recommended without judging the app."
+          }
+        ]
+      },
+      {
+        "id": "privacy",
+        "label": "A business associate agreement, and no advertising sharing, before launch",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "privacyFixed",
+            "score": "met",
+            "why": "BAA signed; kit removed."
+          },
+          {
+            "when": "call == \"decline\"",
+            "score": "partial",
+            "why": "No sharing, and no program either."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Patients' data shared under no agreement."
+          }
+        ]
+      },
+      {
+        "id": "safety",
+        "label": "Validated cuffs and a watched alert path",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "cuffFixed and alertFixed",
+            "score": "met",
+            "why": "Listed device; nurse line."
+          },
+          {
+            "when": "cuffFixed or alertFixed",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "access",
+        "label": "Tested with patients and made usable without a smartphone",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "accessFixed",
+            "score": "met",
+            "why": "Think-aloud test; hubs."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A third of the patients left out."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record states the basis",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "basisDoc == \"judged\"",
+            "score": "met",
+            "why": "Judged on evidence."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Rested on assurances or enthusiasm."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "liveK",
+        "label": "Go-live day",
+        "value": "isNull(liveAt) ? 0 : timeAt(liveAt) / 86400",
+        "format": "number",
+        "expert": "30"
+      },
+      {
+        "id": "condK",
+        "label": "Conditions met",
+        "value": "condMet",
+        "format": "number",
+        "expert": "4"
+      },
+      {
+        "id": "spentK",
+        "label": "Spent, thousand dollars",
+        "value": "spent",
+        "format": "number",
+        "expert": "38"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Day 0-4",
+        "text": "Privacy policy and a traffic test: advertising sharing, no BAA. Cuff not on the validated listing."
+      },
+      {
+        "at": "Day 4-11",
+        "text": "Require a BAA and a build without the advertising kit."
+      },
+      {
+        "at": "Day 11-22",
+        "text": "Listed cuffs; alert workflow with nursing."
+      },
+      {
+        "at": "Day 22-29",
+        "text": "Usability test with eight patients; cellular hubs."
+      },
+      {
+        "at": "Day 29-30",
+        "text": "Recommend launch on conditions; live on day 30."
+      }
+    ],
+    "debrief": {
+      "launched": {
+        "headline": "Good: judged, then launched",
+        "body": "The app was judged the way a clinical tool should be: privacy terms read and tested, the device checked against a validated listing, the alert path given an owner, and usability tested with the patients it is for. It launched on time, on conditions."
+      },
+      "costly": {
+        "headline": "Safe, at a cost",
+        "body": "Nothing harmful reached patients, but the program was declined, delayed, or launched without every condition, a key stakeholder, or a way in for patients without smartphones."
+      },
+      "leakedEnd": {
+        "headline": "Data shared with advertisers",
+        "body": "A vendor running an app for a covered entity's patients is a business associate. Read the policy, test the traffic, and get a BAA and a clean build before launch."
+      },
+      "alertEnd": {
+        "headline": "An alert nobody saw",
+        "body": "Monitoring creates a duty to look. Route flagged readings to people who are on duty, and tell patients what to do when no one is."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No review record was written before the case's limit."
+      }
+    },
+    "modelReasoning": "An mHealth app chosen by the clinics for their patients is a clinical tool, judged on privacy, quality, safety and access. Privacy: the vendor would handle PHI on the clinics' behalf, so it needs a business associate agreement, and the advertising kit the policy and traffic test reveal must go. Quality: readings that drive care need a cuff validated for accuracy; the bundled one is not listed. Safety: flagged readings need a watched path and after-hours instructions. Access and self-management: test with real patients and give those without smartphones a way in. Launch on those conditions."
+  }
+}

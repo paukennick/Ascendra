@@ -1,0 +1,1075 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "mscs-pipeline-dependency-cycle",
+  "title": "Nine of twelve jobs ran, and nothing failed",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "jobs.yaml and the nightly run plan, Larkhill Freight analytics (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Head of analytics, Dee Mensah",
+          "text": "The morning reports are missing three tables, but the nightly run says 'success'. The 05:00 rerun window closes at 05:40.",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "short",
+          "label": "Run plan",
+          "text": "Planned 9 jobs; jobs.yaml defines 12.",
+          "when": "not isNull(lookAt) and not fixed",
+          "severity": "warning"
+        },
+        {
+          "id": "cycle",
+          "label": "Cycle",
+          "text": "reports -> finance_close -> reports_cache -> reports",
+          "when": "not isNull(cycleAt) and not fixed",
+          "severity": "error"
+        },
+        {
+          "id": "deleted",
+          "label": "Data",
+          "text": "finance_close's dependencies were all removed; it now runs before the ledger is loaded.",
+          "when": "rowsAlteredOutsideFix > 0",
+          "severity": "error"
+        },
+        {
+          "id": "lock",
+          "label": "Analytics",
+          "text": "05:40: the rerun window closed.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [
+        {
+          "id": "deg",
+          "label": "Jobs left after the planner (in-degree never reached 0)",
+          "spokenLabel": "the unscheduled jobs",
+          "columns": [
+            {
+              "id": "job",
+              "label": "Job"
+            },
+            {
+              "id": "deps",
+              "label": "Depends on"
+            }
+          ],
+          "rows": [
+            {
+              "id": "r",
+              "cells": [
+                "reports",
+                "finance_close, {fix == \"cache\" ? \"(cache edge removed)\" : \"reports_cache\"}"
+              ],
+              "flag": "not fixed"
+            },
+            {
+              "id": "f",
+              "cells": [
+                "finance_close",
+                "ledger_load, reports"
+              ],
+              "flag": "not fixed"
+            },
+            {
+              "id": "c",
+              "cells": [
+                "reports_cache",
+                "finance_close"
+              ],
+              "flag": "not fixed"
+            }
+          ],
+          "when": "not isNull(lookAt) and not fixed",
+          "note": "Added yesterday: reports depends on reports_cache, and finance_close depends on reports."
+        }
+      ],
+      "code": [
+        {
+          "id": "code",
+          "label": "planner.py",
+          "language": "Python",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "ready = deque(j for j in jobs if indeg[j] == 0)"
+            },
+            {
+              "id": "c1",
+              "text": "while ready:"
+            },
+            {
+              "id": "c2",
+              "text": "    j = ready.popleft(); order.append(j)"
+            },
+            {
+              "id": "c3",
+              "text": "    for k in children[j]:"
+            },
+            {
+              "id": "c4",
+              "text": "        indeg[k] -= 1"
+            },
+            {
+              "id": "c5",
+              "text": "        if indeg[k] == 0: ready.append(k)"
+            },
+            {
+              "id": "c6",
+              "text": "return order  # jobs left with indeg > 0 are silently dropped",
+              "when": "not guard",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c7",
+              "text": "if len(order) < len(jobs): raise CycleError(sorted(set(jobs) - set(order)))",
+              "when": "guard",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c8",
+              "text": "return order",
+              "when": "guard"
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Rerun window closes",
+          "value": "05:40"
+        },
+        {
+          "id": "altered",
+          "label": "Dependencies removed outside the fix",
+          "value": "{rowsAlteredOutsideFix}"
+        }
+      ]
+    }
+  },
+  "objective": "Cycle detection",
+  "secondaryObjectives": [
+    "Topological sorting",
+    "DFS",
+    "Directed/undirected, weighted/unweighted graphs"
+  ],
+  "sources": [
+    {
+      "cite": "ACM/IEEE-CS/AAAI, Computer Science Curricula 2023 (CS2023), knowledge areas (AL: Algorithmic Foundations)",
+      "checkedAt": "2026-11-17",
+      "url": "https://csed.acm.org/wp-content/uploads/2025/11/CS2023-Report.htm",
+      "note": "Read 2026-11-17 through a summarizing fetch of the report's first part: AL, Algorithmic Foundations, is one of 17 knowledge areas; the fetch did not reach its topic lists. The MSCS course cites CS2023 and MIT 6.006 for its graph units (dated 2026-11-11, not re-read)."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Larkhill Freight, its jobs and times are invented teaching values. The planner is Kahn's algorithm: repeatedly take a node with in-degree 0; a directed graph has a topological order exactly when this removes every node, so nodes left over lie on or behind a cycle. That is the standard result, stated here as the author's; no page carrying it was opened for this round."
+    }
+  ],
+  "brief": {
+    "situation": "You look after the nightly analytics pipeline at Larkhill Freight (fictional). A planner orders the 12 jobs in jobs.yaml so each runs after the jobs it depends on. Last night's run reported success, but the morning reports are missing three tables. Yesterday two dependencies were added. The rerun window closes at 05:40. It is 04:50.",
+    "handover": [
+      "reports_cache is meant to be built from reports, to speed up the dashboard.",
+      "finance_close needs the ledger load; it should not need reports."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: inspect the plan or the graph, change jobs.yaml or the planner, run a check, or rerun the pipeline. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Rerunning is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "04:50",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "The rerun window closes at 05:40, 50 minutes after the start; invented."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "none",
+        "cache",
+        "append"
+      ],
+      "init": "none"
+    },
+    "guard": {
+      "type": "bool",
+      "init": false
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "cycleAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "cycle",
+        "timeout",
+        "data"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "order",
+        "success",
+        "none"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "fix == \"cache\" and rowsAlteredOutsideFix == 0"
+    },
+    "correct": {
+      "expr": "fixed"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(cycleAt) and (isNull(changedAt) or timeAt(cycleAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "plan",
+        "dfs",
+        "fixEdge",
+        "appendLeft",
+        "stripDeps",
+        "addGuard",
+        "verify",
+        "rerun",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "actions": {
+    "plan": {
+      "label": "Print last night's run plan against jobs.yaml",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "{fixed ? \"planned 12 of 12 jobs\" : \"planned 9 of 12 jobs; not planned: finance_close, reports, reports_cache\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "dfs": {
+      "label": "Search the job graph for a cycle (depth-first, watching for an edge back to a job still on the stack)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(cycleAt)",
+          "then": [
+            {
+              "set": "cycleAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "{fixed ? \"no cycle\" : \"back edge reports_cache -> reports; cycle: reports -> finance_close -> reports_cache -> reports\"}"
+        },
+        {
+          "finding": "{fixed ? \"The graph is acyclic.\" : \"Three jobs wait on each other, so none ever reaches in-degree 0, and the planner drops them without an error.\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "fixEdge": {
+      "label": "Fix jobs.yaml: reports_cache depends on reports (not the reverse), and finance_close no longer depends on reports",
+      "group": "Change the graph",
+      "available": "not busy and fix != \"cache\"",
+      "why": "Already fixed.",
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "\"cache\""
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "The two new edges now point the way the data flows.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "appendLeft": {
+      "label": "Change the planner to append any unplanned jobs at the end, in alphabetical order",
+      "group": "Change the planner",
+      "available": "not busy and fix == \"none\"",
+      "why": "A fix is already in place.",
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "\"append\""
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Unplanned jobs now run last, alphabetically: finance_close, reports, reports_cache.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "stripDeps": {
+      "label": "Remove every dependency of the three stuck jobs so they get planned",
+      "group": "Change the graph",
+      "available": "not busy and rowsAlteredOutsideFix == 0",
+      "why": "Already done.",
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "add": "rowsAlteredOutsideFix",
+          "by": "5"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Five real dependencies are gone, including finance_close on ledger_load.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "addGuard": {
+      "label": "Make the planner raise CycleError, naming the jobs, when it cannot plan them all",
+      "group": "Change the planner",
+      "available": "not busy and not guard",
+      "why": "Already added.",
+      "effects": [
+        {
+          "set": "guard",
+          "to": "true"
+        },
+        {
+          "log": "The planner now fails loudly on a cycle.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Check: plan all 12 and confirm every edge u -> v has u before v",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "set": "testPassed",
+              "to": "true"
+            },
+            {
+              "output": "12 of 12 planned; 17 edges, 0 out of order; ledger_load < finance_close; reports < reports_cache"
+            }
+          ],
+          "else": [
+            {
+              "output": "{rowsAlteredOutsideFix > 0 ? \"12 of 12 planned; 12 edges (5 missing from yesterday's 17); finance_close before ledger_load\" : fix == \"append\" ? \"12 of 12 planned; 3 edges out of order: finance_close before reports, reports before reports_cache, reports_cache before finance_close... one edge of a cycle is always out of order\" : \"9 of 12 planned\"}"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "rerun": {
+      "label": "Rerun the pipeline for the morning reports",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already rerun.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "output": "{correct ? \"rerun: 12 jobs, all tables loaded in dependency order\" : fix == \"append\" ? \"rerun: 12 jobs; reports built from stale finance figures\" : rowsAlteredOutsideFix > 0 ? \"rerun: 12 jobs; finance_close ran before the ledger loaded\" : \"rerun: 9 jobs, the same three missing\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why three jobs never ran",
+              "options": [
+                {
+                  "value": "cycle",
+                  "label": "Yesterday's edges made a cycle, so the topological sort could not place three jobs and the planner dropped them silently"
+                },
+                {
+                  "value": "timeout",
+                  "label": "The jobs timed out"
+                },
+                {
+                  "value": "data",
+                  "label": "Their input data was missing"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know the order is right now",
+              "options": [
+                {
+                  "value": "order",
+                  "label": "All 12 jobs planned, and every dependency runs before the job that needs it"
+                },
+                {
+                  "value": "success",
+                  "label": "The run reports success"
+                },
+                {
+                  "value": "none",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "05:40: the rerun window closed.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the team: why three jobs never ran, what you changed, and how you know the order is right.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Kahn's topological sort only places jobs whose dependencies are all placed; yesterday's edges made a cycle (reports -> finance_close -> reports_cache -> reports), so those three never reached in-degree 0, and the planner returned a partial order without an error.",
+          "modelAnswer": "A cycle: no topological order exists, and the planner hid it."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "Fix the wrong edges so dependencies follow the data (reports before reports_cache; finance_close after ledger_load only), and make the planner raise on a cycle. Appending leftovers runs a cycle in some order that always violates an edge; stripping dependencies runs jobs before their inputs.",
+          "modelAnswer": "Two edges corrected; CycleError added."
+        },
+        {
+          "label": "How you know",
+          "criteria": "All 12 planned and every edge u -> v has u before v, after the last change.",
+          "modelAnswer": "12 of 12, 0 edges out of order."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-333)",
+          "checkedAt": "2026-11-17",
+          "note": "The rerun window, 50 minutes after the start; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Not rerunning changes nothing, but the morning reports stay three tables short.",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "altered": {
+      "label": "Dependencies stripped",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and rowsAlteredOutsideFix > 0",
+      "narrative": "Real dependencies were deleted, so finance_close ran on yesterday's ledger and its figures are wrong."
+    },
+    "wrongSent": {
+      "label": "Wrong reports rebuilt",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "The morning reports were rebuilt out of order or still incomplete."
+    },
+    "notSent": {
+      "label": "Nothing rerun",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "Nothing wrong ran, but the reports stayed incomplete."
+    },
+    "right": {
+      "label": "Cycle removed, order checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and guard and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "All 12 jobs ran in dependency order, and the planner will now refuse a cycle instead of hiding it."
+    },
+    "gaps": {
+      "label": "Fixed, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The reports are right, but the planner still drops a cycle silently, or the rerun went late or unchecked."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "altered",
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Found the cycle before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Back edge found first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Saw the short plan, or found the cycle only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked at the graph."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Corrected the edges so the graph is acyclic and follows the data",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed",
+            "score": "met",
+            "why": "Acyclic, with every real dependency kept."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{fix == \"append\" ? \"A cycle has no valid order; appending picks one that breaks an edge.\" : rowsAlteredOutsideFix > 0 ? \"Removing real dependencies runs jobs before their inputs.\" : \"The cycle is still there.\"}"
+          }
+        ]
+      },
+      {
+        "id": "data",
+        "label": "Kept every real dependency",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "rowsAlteredOutsideFix == 0",
+            "score": "met",
+            "why": "No real dependency removed."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Removed {rowsAlteredOutsideFix} dependencies."
+          }
+        ]
+      },
+      {
+        "id": "guard",
+        "label": "Made the planner fail loudly on a cycle",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "guard",
+            "score": "met",
+            "why": "CycleError names the jobs."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The next cycle will be dropped silently too."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Checked all 12 planned with every edge in order, after the last change",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "12 of 12, 0 out of order."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Checked, but it failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "plannedK",
+        "label": "Jobs planned",
+        "value": "fix == \"none\" ? 9 : 12",
+        "format": "number",
+        "expert": "12"
+      },
+      {
+        "id": "altered",
+        "label": "Dependencies removed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until rerun",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 23"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-2 min",
+        "text": "Run plan: 9 of 12; three jobs missing."
+      },
+      {
+        "at": "2-6 min",
+        "text": "DFS: back edge reports_cache -> reports; the cycle."
+      },
+      {
+        "at": "6-12 min",
+        "text": "Correct the two edges to follow the data."
+      },
+      {
+        "at": "12-16 min",
+        "text": "Planner raises CycleError instead of dropping jobs."
+      },
+      {
+        "at": "16-19 min",
+        "text": "12 of 12; every edge in order."
+      },
+      {
+        "at": "19-23 min",
+        "text": "Rerun."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: no order exists, so fix the graph",
+        "body": "A topological order exists only for an acyclic graph. The cycle the new edges made kept three jobs from ever becoming ready; correcting the edges and making the planner refuse a cycle fixed this run and the next."
+      },
+      "gaps": {
+        "headline": "Fixed, with gaps",
+        "body": "Tonight is right; the planner still hides a cycle, or the rerun went late or unchecked."
+      },
+      "wrongSent": {
+        "headline": "Wrong order shipped",
+        "body": "Any order of a cycle breaks one of its edges. The fix is in the graph, not in where leftovers go."
+      },
+      "altered": {
+        "headline": "Real dependencies deleted",
+        "body": "Stripping dependencies makes a plan, and runs jobs before their inputs. Correct the edges that are wrong; keep the ones that are right."
+      },
+      "notSent": {
+        "headline": "Nothing rerun",
+        "body": "Safe, but the reports stayed short, and the fix was two edges."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "The planner is Kahn's algorithm: it places a job once all its dependencies are placed. If a cycle exists, the jobs on it never reach in-degree 0, so no topological order exists; this planner returned the partial order as success. A depth-first search finds the back edge reports_cache -> reports, closing reports -> finance_close -> reports_cache -> reports. Yesterday's edges were backwards: reports_cache is built from reports, and finance_close needs only the ledger. Correct them, make the planner raise CycleError when jobs are left over, and check that all 12 are planned with every edge in order. Appending leftovers or stripping dependencies runs jobs before their inputs."
+  }
+}

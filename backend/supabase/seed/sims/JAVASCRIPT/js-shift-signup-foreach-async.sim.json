@@ -1,0 +1,983 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "js-shift-signup-foreach-async",
+  "title": "\"All 12 shifts saved.\" Were they?",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "shifts.js on the volunteer sign-up page, Lakeside Pantry (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Volunteer coordinator, Ama Owusu",
+          "text": "Three volunteers say the page told them their shifts were saved, but they are not on the schedule. The weekend schedule goes out at 17:00.",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "unhandled",
+          "label": "Console",
+          "text": "Uncaught (in promise) Error: 409 Conflict: shift already full",
+          "when": "not isNull(lookAt) and fix == \"bug\"",
+          "severity": "error"
+        },
+        {
+          "id": "lock",
+          "label": "Coordinator",
+          "text": "17:00: the schedule went out from the old code.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [
+        {
+          "id": "run",
+          "label": "Save all, with the API mocked to reject shifts 3 and 7",
+          "spokenLabel": "the mocked save run",
+          "columns": [
+            {
+              "id": "what",
+              "label": "What"
+            },
+            {
+              "id": "v",
+              "label": "Result"
+            }
+          ],
+          "rows": [
+            {
+              "id": "toast",
+              "cells": [
+                "Message shown to the volunteer",
+                "{fix == \"forof\" ? \"10 saved; not saved: Sat 09:00, Sun 13:00 (shift full)\" : fix == \"all\" ? \"Some shifts were not saved. Please check your schedule.\" : \"All 12 shifts saved\"}"
+              ],
+              "flag": "fix != \"forof\""
+            },
+            {
+              "id": "when",
+              "cells": [
+                "Message shown",
+                "{fix == \"forof\" or fix == \"all\" ? \"after every save settled\" : \"before any save finished\"}"
+              ],
+              "flag": "fix != \"forof\" and fix != \"all\""
+            },
+            {
+              "id": "errs",
+              "cells": [
+                "Errors in the console",
+                "{fix == \"bug\" or fix == \"trywrap\" ? \"2 uncaught (in promise)\" : \"none\"}"
+              ]
+            }
+          ],
+          "when": "not isNull(lookAt)"
+        }
+      ],
+      "code": [
+        {
+          "id": "code",
+          "label": "shifts.js",
+          "language": "JavaScript",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "async function saveAll(shifts) {"
+            },
+            {
+              "id": "c1",
+              "text": "  shifts.forEach(async (s) => { await api.save(s); });",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c2",
+              "text": "  try { shifts.forEach(async (s) => { await api.save(s); }); } catch (e) { return showError(e); }",
+              "when": "fix == \"trywrap\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c3",
+              "text": "  shifts.forEach((s) => api.save(s).catch(() => {}));",
+              "when": "fix == \"swallow\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c4",
+              "text": "  const failed = [];",
+              "when": "fix == \"forof\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c5",
+              "text": "  for (const s of shifts) {",
+              "when": "fix == \"forof\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c6",
+              "text": "    try { await api.save(s); } catch (e) { failed.push({ s, e }); }",
+              "when": "fix == \"forof\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c7",
+              "text": "  }",
+              "when": "fix == \"forof\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c8",
+              "text": "  if (failed.length) return showFailures(failed);",
+              "when": "fix == \"forof\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c9",
+              "text": "  try { await Promise.all(shifts.map((s) => api.save(s))); } catch (e) { return showError(e); }",
+              "when": "fix == \"all\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c10",
+              "text": "  showToast(`All ${shifts.length} shifts saved`);"
+            },
+            {
+              "id": "c11",
+              "text": "}"
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Schedule goes out",
+          "value": "17:00"
+        }
+      ]
+    }
+  },
+  "objective": "async/await syntax and error handling with try/catch",
+  "secondaryObjectives": [
+    "Promises: states, .then/.catch/.finally, Promise.all",
+    "The event loop, call stack, and task queue (conceptual model)"
+  ],
+  "sources": [
+    {
+      "cite": "MDN Web Docs, Array.prototype.forEach() (last modified 2026-10-26)",
+      "checkedAt": "2026-11-17",
+      "url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array/foreach",
+      "note": "Read 2026-11-17 through a summarizing fetch: 'forEach() expects a synchronous function — it does not wait for promises. Make sure you are aware of the implications while using promises (or async functions) as forEach callbacks', with an example whose naive expected output is 14 and actual output 0. The page points to promise composition for sequential or parallel async work."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Lakeside Pantry, its volunteers, shifts and deadline are invented teaching values; console and test output are authored renderings. That a try/catch around forEach cannot catch a rejection from an async callback, and that an empty .catch() handler discards the error, follow from forEach not awaiting its callbacks (the source above) and from how promise rejection works; Promise.all rejecting with the first rejection is standard behavior, stated here as the author's and not read on a page for this round."
+    }
+  ],
+  "brief": {
+    "situation": "You maintain the volunteer sign-up page at Lakeside Pantry (fictional). Volunteers pick weekend shifts and press Save all. Three volunteers were told 'All 12 shifts saved' yet are missing from the schedule. The coordinator emails the weekend schedule at 17:00. It is 16:05.",
+    "handover": [
+      "api.save() rejects with an error when a shift is already full or the server is busy.",
+      "The test suite can mock api.save to reject chosen shifts."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: reproduce it, change the code, run the tests, or deploy. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Deploying is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "16:05",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3300,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "The schedule goes out at 17:00, 55 minutes after the start; invented."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "forof",
+        "all",
+        "trywrap",
+        "swallow"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "ranAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "forEach",
+        "server",
+        "volunteers"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "mocked",
+        "noErrors",
+        "none"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "fix == \"forof\""
+    },
+    "correct": {
+      "expr": "fix == \"forof\" or fix == \"all\""
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "repro",
+        "change",
+        "test",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "actions": {
+    "repro": {
+      "label": "Reproduce: Save all with the API mocked to reject shifts 3 and 7, console open",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "ranAt",
+          "to": "t"
+        },
+        {
+          "if": "fix == \"forof\"",
+          "then": [
+            {
+              "output": "toast: 10 saved; not saved: Sat 09:00, Sun 13:00 (shift full)\nconsole: (no errors)"
+            }
+          ],
+          "else": [
+            {
+              "if": "fix == \"all\"",
+              "then": [
+                {
+                  "output": "toast: Some shifts were not saved. Please check your schedule.\nconsole: (no errors)"
+                }
+              ],
+              "else": [
+                {
+                  "output": "toast: All 12 shifts saved   (shown at 3 ms)\nconsole: {fix == \"swallow\" ? \"(no errors)\" : \"Uncaught (in promise) Error: 409 Conflict (x2)\"}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "finding": "{fix == \"bug\" ? \"The toast appears before any save finishes, and the two rejections are uncaught: forEach starts the async callbacks and returns without waiting.\" : \"Reproduced on the current code.\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Change saveAll()",
+      "group": "Change the code",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "forof",
+              "label": "for...of with await, try/catch around each save, and report the failures by shift"
+            },
+            {
+              "value": "all",
+              "label": "await Promise.all(...) inside try/catch, and show a general error"
+            },
+            {
+              "value": "trywrap",
+              "label": "Wrap the forEach in try/catch"
+            },
+            {
+              "value": "swallow",
+              "label": "Add an empty .catch() handler to each save so nothing is uncaught"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "saveAll() now uses the {f} version.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "test": {
+      "label": "npm test: shifts.test.js (mocked rejections for shifts 3 and 7; message after all saves settle)",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"forof\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "PASS shifts.test.js\n  reports the 2 rejected shifts by name\n  says nothing is saved before the saves settle\nTests: 2 passed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"all\"",
+              "then": [
+                {
+                  "output": "FAIL shifts.test.js\n  reports the 2 rejected shifts by name  (got: 'Some shifts were not saved')\n  says nothing is saved before the saves settle  PASS\nTests: 1 failed, 1 passed"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "FAIL shifts.test.js\n  reports the 2 rejected shifts by name  (got: 'All 12 shifts saved')\n  says nothing is saved before the saves settle  (toast at 3 ms)\nTests: 2 failed"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Deploy shifts.js before the schedule goes out",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already shipped.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "output": "deployed shifts.js ({fix})"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why volunteers saw 'saved'",
+              "options": [
+                {
+                  "value": "forEach",
+                  "label": "forEach does not await async callbacks, so the toast ran first and the rejections went uncaught"
+                },
+                {
+                  "value": "server",
+                  "label": "The server lost the saves"
+                },
+                {
+                  "value": "volunteers",
+                  "label": "Volunteers misread the page"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know it is fixed",
+              "options": [
+                {
+                  "value": "mocked",
+                  "label": "A test with mocked rejections shows the failed shifts by name, after every save settles"
+                },
+                {
+                  "value": "noErrors",
+                  "label": "The console has no errors"
+                },
+                {
+                  "value": "none",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "17:00: the schedule went out from the old code.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the team: why volunteers were told their shifts were saved, what you changed, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "forEach calls the async callback for each shift and returns at once; it does not wait for the promises, so the toast runs before any save settles, and a rejection inside a callback is uncaught. Not the server.",
+          "modelAnswer": "forEach does not await; the toast lied and the 409s went uncaught."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "Await each save (for...of) or the composed promise, with try/catch, and report what failed. A try/catch around forEach catches nothing from the callbacks; an empty .catch() handler hides the failures; Promise.all reports a failure but not which shifts.",
+          "modelAnswer": "for...of with await and a per-save try/catch; the failures shown by shift."
+        },
+        {
+          "label": "How you know",
+          "criteria": "A test with mocked rejections, after the last change: the failed shifts are named, and no success message appears before the saves settle.",
+          "modelAnswer": "Both tests pass."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3300,
+        "source": {
+          "cite": "Author's scenario (REQ-333)",
+          "checkedAt": "2026-11-17",
+          "note": "Slips print at 14:00; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Deploying nothing changes nothing, but the schedule goes out from the old code.",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "wrongSent": {
+      "label": "Still claiming success",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "Volunteers are still told their shifts are saved when they are not, and the pantry is short on the weekend."
+    },
+    "notSent": {
+      "label": "Nothing deployed",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "No new bug went out, but the page still lies until the next release."
+    },
+    "right": {
+      "label": "Honest saves, tested, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and fixed and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "Volunteers see exactly which shifts did not save, before the schedule goes out."
+    },
+    "gaps": {
+      "label": "Deployed, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Failures now surface, but the message does not say which shifts, or the change went late or untested."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Reproduced it with mocked rejections before changing code",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Saw the early toast and the uncaught rejections first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Reproduced only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never reproduced it."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Awaited each save with try/catch and reported failures by shift",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fix == \"forof\"",
+            "score": "met",
+            "why": "for...of, await, per-save try/catch."
+          },
+          {
+            "when": "fix == \"all\"",
+            "score": "partial",
+            "why": "Awaited and caught, but volunteers cannot tell which shifts failed."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{fix == \"trywrap\" ? \"The try/catch finishes before any callback rejects.\" : fix == \"swallow\" ? \"The failures are silenced, and the toast still says saved.\" : \"forEach still does not wait.\"}"
+          }
+        ]
+      },
+      {
+        "id": "shipped",
+        "label": "Deployed nothing that still claims a false success",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sentAs != \"wrong\"",
+            "score": "met",
+            "why": "No false success shipped."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Shipped code that still says saved."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Tests with mocked rejections passed after the last change, before deploying",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "Both tests pass."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Ran tests, but they failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never ran the tests."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names forEach and the mocked test",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"forEach\" and checkDoc == \"mocked\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"forEach\" or checkDoc == \"mocked\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "namedK",
+        "label": "Failed shifts named to the volunteer",
+        "value": "fix == \"forof\" ? 2 : 0",
+        "format": "number",
+        "expert": "2"
+      },
+      {
+        "id": "uncaughtK",
+        "label": "Uncaught rejections",
+        "value": "fix == \"bug\" or fix == \"trywrap\" ? 2 : 0",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until deployed",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 17"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "Mock rejections for shifts 3 and 7: the toast shows at 3 ms, two uncaught 409s."
+      },
+      {
+        "at": "4-9 min",
+        "text": "for...of with await, per-save try/catch, failures reported by shift."
+      },
+      {
+        "at": "9-12 min",
+        "text": "Tests: failures named, nothing claimed before the saves settle."
+      },
+      {
+        "at": "12-14 min",
+        "text": "Deploy before 17:00."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: await what you start",
+        "body": "forEach starts async callbacks and moves on. Awaiting each save and catching each failure turns a false 'all saved' into a true report, and the mocked test proves it."
+      },
+      "gaps": {
+        "headline": "Deployed, with gaps",
+        "body": "Failures surface now, but a general error leaves volunteers checking all 12 shifts, or the change went late or untested."
+      },
+      "wrongSent": {
+        "headline": "Still claiming success",
+        "body": "A try/catch around forEach returns before any callback rejects, and an empty .catch() handler silences the very failures volunteers need to see."
+      },
+      "notSent": {
+        "headline": "Nothing deployed",
+        "body": "Safe, but volunteers keep being told the wrong thing until the next release."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "forEach expects a synchronous callback and does not wait for promises, so saveAll() shows 'All 12 shifts saved' before any save settles, and a rejection inside a callback is uncaught. A try/catch around the forEach finishes before any callback rejects, and an empty .catch() handler silences the failures. Await each save in a for...of loop with try/catch, collect what failed and show it by shift; Promise.all in try/catch catches the failure but cannot say which shifts. Prove it with a test that mocks rejections for two shifts."
+  }
+}

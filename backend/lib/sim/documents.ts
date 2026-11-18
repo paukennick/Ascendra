@@ -667,6 +667,15 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("MSCS", "mscs-freezer-bytes-little-endian"),
   entry("PYTHON", "py-packing-slips-mutable-default"),
   entry("PCEP", "pcep-seat-map-shared-rows"),
+  entry("PCAP", "pcap-ai-helper-invented-function"),
+  entry("JAVASCRIPT", "js-shift-signup-foreach-async"),
+  entry("PYDATA", "pydata-region-merge-duplicated-store"),
+  entry("PCEP", "pcep-lunch-balances-float-cents"),
+  entry("MSHI", "mshi-syndromic-feed-ili-drop"),
+  entry("MSHI", "mshi-home-bp-app-vetting"),
+  entry("MSCS", "mscs-pipeline-dependency-cycle"),
+  entry("MSCS", "mscs-renewed-cert-missing-intermediate"),
+  entry("MSCS", "mscs-unstable-sort-stage-order"),
   band("MSHI", "sql-not-in-null-empty-list-mshi"),
   band("MSHI", "ethics-shared-credentials-mshi"),
   band("MSHI", "phi-in-application-logs-mshi"),
@@ -704,6 +713,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   band("PCAP", "packing-slips-mutable-default-pcap"),
   band("PYTHON", "seat-map-shared-rows-python"),
   band("PCAP", "seat-map-shared-rows-pcap"),
+  band("MSHI", "water-utility-rebalance-mshi"),
   // ---- end REQ-333 ----
 ];
 

@@ -23,6 +23,15 @@ export const DEPTH_ACADEMIC: readonly DepthAcademicEntry[] = [
   { course: "MSCS", slug: "mscs-freezer-bytes-little-endian", screen: "data", profile: "data", kind: "scenario", steps: "mscs-endian" },
   { course: "PYTHON", slug: "py-packing-slips-mutable-default", screen: "data", profile: "data", kind: "scenario", steps: "py-default" },
   { course: "PCEP", slug: "pcep-seat-map-shared-rows", screen: "data", profile: "data", kind: "scenario", steps: "pcep-rows" },
+  { course: "PCAP", slug: "pcap-ai-helper-invented-function", screen: "data", profile: "data", kind: "scenario", steps: "pcap-ai" },
+  { course: "JAVASCRIPT", slug: "js-shift-signup-foreach-async", screen: "data", profile: "data", kind: "scenario", steps: "js-foreach" },
+  { course: "PYDATA", slug: "pydata-region-merge-duplicated-store", screen: "data", profile: "data", kind: "scenario", steps: "pydata-merge" },
+  { course: "PCEP", slug: "pcep-lunch-balances-float-cents", screen: "data", profile: "data", kind: "scenario", steps: "pcep-cents" },
+  { course: "MSHI", slug: "mshi-syndromic-feed-ili-drop", screen: "data", profile: "data", kind: "scenario", steps: "mshi-ili" },
+  { course: "MSHI", slug: "mshi-home-bp-app-vetting", screen: "governance-board", profile: "governance", kind: "scenario", steps: "mshi-rpm" },
+  { course: "MSCS", slug: "mscs-pipeline-dependency-cycle", screen: "data", profile: "data", kind: "scenario", steps: "mscs-cycle" },
+  { course: "MSCS", slug: "mscs-renewed-cert-missing-intermediate", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "mscs-chain" },
+  { course: "MSCS", slug: "mscs-unstable-sort-stage-order", screen: "data", profile: "data", kind: "scenario", steps: "mscs-stable" },
   { course: "MSHI", slug: "sql-not-in-null-empty-list-mshi", screen: "data", profile: "data", kind: "band", steps: "da-mshi-sql-not-in-null-empty-list-mshi", base: "SQL/sql-not-in-null-empty-list" },
   { course: "MSHI", slug: "ethics-shared-credentials-mshi", screen: "session", profile: "professional-ethics", kind: "band", steps: "da-mshi-ethics-shared-credentials-mshi", base: "ISC2CC/cc-ethics-shared-credentials" },
   { course: "MSHI", slug: "phi-in-application-logs-mshi", screen: "board", profile: "cloud", kind: "band", steps: "da-mshi-phi-in-application-logs-mshi", base: "AWSDVA/phi-in-application-logs" },
@@ -60,6 +69,7 @@ export const DEPTH_ACADEMIC: readonly DepthAcademicEntry[] = [
   { course: "PCAP", slug: "packing-slips-mutable-default-pcap", screen: "data", profile: "data", kind: "band", steps: "da-pcap-packing-slips-mutable-default-pcap", base: "PYTHON/py-packing-slips-mutable-default" },
   { course: "PYTHON", slug: "seat-map-shared-rows-python", screen: "data", profile: "data", kind: "band", steps: "da-python-seat-map-shared-rows-python", base: "PCEP/pcep-seat-map-shared-rows" },
   { course: "PCAP", slug: "seat-map-shared-rows-pcap", screen: "data", profile: "data", kind: "band", steps: "da-pcap-seat-map-shared-rows-pcap", base: "PCEP/pcep-seat-map-shared-rows" },
+  { course: "MSHI", slug: "water-utility-rebalance-mshi", screen: "governance-board", profile: "governance", kind: "band", steps: "da-mshi-water-utility-rebalance-mshi", base: "PFMP/pfmp-water-utility-rebalance" },
 ];
 
 // The day this round read its sources; every document's first source carries it.
