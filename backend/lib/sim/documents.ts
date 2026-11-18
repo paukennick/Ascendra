@@ -716,6 +716,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("ABPTSONC", "thigh-pain-walking-breast-cancer-history"),
   entry("ABPTSPCS", "nicu-range-of-motion-sats-dropping"),
   entry("ABPTSPCS", "torticollis-visit-hip-clunk"),
+  entry("ABPTSPCS", "six-year-old-limp-after-soccer"),
   // ---- end REQ-334 ----
 ];
 
