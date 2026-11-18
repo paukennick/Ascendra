@@ -55,7 +55,7 @@
           "label": "Session 20117 (etl_svc)",
           "spokenLabel": "the load",
           "kind": "TRUNCATE shipments",
-          "status": "{harmed ? \"rolled back by the reboot\" : fixed ? \"load finished\" : \"waiting for AccessExclusiveLock\"}",
+          "status": "{harmed ? \"interrupted by the reboot\" : fixed ? \"load finished\" : \"waiting for AccessExclusiveLock\"}",
           "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
         },
         {
@@ -102,7 +102,7 @@
       "cite": "AWS re:Post Knowledge Center, 'Locks are blocking my queries in Amazon Redshift. How do I resolve this?'",
       "checkedAt": "2026-11-17",
       "url": "https://repost.aws/knowledge-center/prevent-locks-blocking-queries-redshift",
-      "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: 'AccessExclusiveLock blocks all other lock attempts' (DDL such as ALTER TABLE, DROP, TRUNCATE); 'AccessShareLock blocks only AccessExclusiveLock attempts' (SELECT, UNLOAD, UPDATE, DELETE); a waiting AccessExclusiveLock request 'blocks all subsequent lock requests on the same table'; a transaction started with BEGIN stays open until COMMIT and an idle one can keep holding locks; find the holder through SVV_TRANSACTIONS (granted = f means waiting); end it with PG_TERMINATE_BACKEND; for idle sessions that hold locks, adjust session_timeout with ALTER USER. The article does not mention rebooting; that a reboot ends every session and rolls back open transactions is general knowledge (to verify)."
+      "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: 'AccessExclusiveLock blocks all other lock attempts' (DDL such as ALTER TABLE, DROP, TRUNCATE); 'AccessShareLock blocks only AccessExclusiveLock attempts' (SELECT, UNLOAD, UPDATE, DELETE); a waiting AccessExclusiveLock request 'blocks all subsequent lock requests on the same table'; a transaction started with BEGIN stays open until COMMIT and an idle one can keep holding locks; find the holder through SVV_TRANSACTIONS (granted = f means waiting); end it with PG_TERMINATE_BACKEND; for idle sessions that hold locks, adjust session_timeout with ALTER USER. The article does not mention rebooting; the REBOOT_CLUSTER reference (read 2026-11-18) says a reboot interrupts in-progress transactions and queries, which the application must resubmit."
     }
   ],
   "brief": {
@@ -424,7 +424,7 @@
           "output": "data@cloudshell:~$ aws redshift reboot-cluster --cluster-identifier pellow-dw\nClusterStatus: rebooting"
         },
         {
-          "log": "A reboot ends every session, the 85-minute load included, which rolls back; the job must start again and takes 25 minutes after the cluster returns.",
+          "log": "A reboot interrupts every in-progress transaction, the 85-minute load included, which must be resubmitted; the job starts again and takes 25 minutes after the cluster returns.",
           "kind": "bad"
         },
         {
@@ -662,7 +662,7 @@
         {
           "label": "What",
           "criteria": "Ends only the idle holder, after checking and telling its owner.",
-          "modelAnswer": "sys_query_history showed only a BEGIN and a finished SELECT, so nothing was lost by ending it. I told the analyst and ran pg_terminate_backend(18842); a reboot would have rolled back the load as well."
+          "modelAnswer": "sys_query_history showed only a BEGIN and a finished SELECT, so nothing was lost by ending it. I told the analyst and ran pg_terminate_backend(18842); a reboot would have interrupted the load as well."
         },
         {
           "label": "Prevention",
@@ -700,17 +700,17 @@
         "cite": "AWS re:Post Knowledge Center, 'Locks are blocking my queries in Amazon Redshift. How do I resolve this?'",
         "checkedAt": "2026-11-17",
         "url": "https://repost.aws/knowledge-center/prevent-locks-blocking-queries-redshift",
-        "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: 'AccessExclusiveLock blocks all other lock attempts' (DDL such as ALTER TABLE, DROP, TRUNCATE); 'AccessShareLock blocks only AccessExclusiveLock attempts' (SELECT, UNLOAD, UPDATE, DELETE); a waiting AccessExclusiveLock request 'blocks all subsequent lock requests on the same table'; a transaction started with BEGIN stays open until COMMIT and an idle one can keep holding locks; find the holder through SVV_TRANSACTIONS (granted = f means waiting); end it with PG_TERMINATE_BACKEND; for idle sessions that hold locks, adjust session_timeout with ALTER USER. The article does not mention rebooting; that a reboot ends every session and rolls back open transactions is general knowledge (to verify)."
+        "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: 'AccessExclusiveLock blocks all other lock attempts' (DDL such as ALTER TABLE, DROP, TRUNCATE); 'AccessShareLock blocks only AccessExclusiveLock attempts' (SELECT, UNLOAD, UPDATE, DELETE); a waiting AccessExclusiveLock request 'blocks all subsequent lock requests on the same table'; a transaction started with BEGIN stays open until COMMIT and an idle one can keep holding locks; find the holder through SVV_TRANSACTIONS (granted = f means waiting); end it with PG_TERMINATE_BACKEND; for idle sessions that hold locks, adjust session_timeout with ALTER USER. The article does not mention rebooting; the REBOOT_CLUSTER reference (read 2026-11-18) says a reboot interrupts in-progress transactions and queries, which the application must resubmit."
       }
     }
   },
   "endings": {
     "rebooted": {
-      "label": "Cluster rebooted, load rolled back",
+      "label": "Cluster rebooted, load interrupted",
       "class": "harm",
       "terminal": true,
       "when": "documented and harmed",
-      "narrative": "The reboot ended the idle session and also the load, which rolled back and had to start over."
+      "narrative": "The reboot ended the idle transaction and also interrupted the load, which had to start over."
     },
     "reviewBlank": {
       "label": "Dashboards blank at the review",

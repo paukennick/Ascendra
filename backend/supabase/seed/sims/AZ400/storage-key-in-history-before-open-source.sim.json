@@ -81,13 +81,13 @@
       "cite": "Microsoft Learn, Study guide for Exam AZ-400: Designing and Implementing Microsoft DevOps Solutions (page last updated 2026-10-30): processes and communications 10-15%, source control strategy 10-15%, build and release pipelines 50-55%, security and compliance plan 10-15%, instrumentation strategy 5-10%",
       "checkedAt": "2026-11-17",
       "url": "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-400",
-      "note": "Read through a summarizing fetch on 2026-11-17. Bullets quoted there: 'Design a deployment strategy, including blue-green, canary, ring, progressive exposure, feature flags, and A/B testing'; 'Implement feature flags by using Azure App Configuration Feature Manager'; 'Plan for minimizing downtime during deployments by using load balancing, rolling deployments, and deployment slot usage and swap'. The objective wording is the course seed's. (read for this round by an earlier pass on 2026-11-17) (read for this round by an earlier pass on 2026-11-17)"
+      "note": "Read through a summarizing fetch on 2026-11-17. Bullets quoted there: 'Design a deployment strategy, including blue-green, canary, ring, progressive exposure, feature flags, and A/B testing'; 'Implement feature flags by using Azure App Configuration Feature Manager'; 'Plan for minimizing downtime during deployments by using load balancing, rolling deployments, and deployment slot usage and swap'. The objective wording is the course seed's. (read for this round by an earlier pass on 2026-11-17)"
     },
     {
       "cite": "git-filter-repo documentation (mintlify mirror of newren/git-filter-repo), Removing sensitive data",
       "checkedAt": "2026-11-17",
       "url": "https://www.mintlify.com/newren/git-filter-repo/use-cases/removing-sensitive-data",
-      "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: 'Rotate any exposed credentials immediately'; files are removed with git filter-repo --invert-paths --path <file> and strings redacted with --replace-text; 'Force pushing rewrites history. Coordinate with your team before doing this'; team members should re-clone: 'Do not use git pull - it will bring back the old history!'; contact the hosting provider for server-side cleanup if needed. That Azure Repos needs the 'Force push (rewrite history and delete branches)' permission and that storage account keys are regenerated one at a time (switch clients to key2, regenerate key1) are from memory of Microsoft Learn (to verify)."
+      "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: 'Rotate any exposed credentials immediately'; files are removed with git filter-repo --invert-paths --path <file> and strings redacted with --replace-text; 'Force pushing rewrites history. Coordinate with your team before doing this'; team members should re-clone: 'Do not use git pull - it will bring back the old history!'; contact the hosting provider for server-side cleanup if needed. The Azure Repos page 'Set Git repository permissions' (read 2026-11-18) lists 'Force push (rewrite history, delete branches and tags)', not set for any security group by default; the storage page 'Manage storage account access keys' (read 2026-11-18) gives the rotation order: point applications at the secondary key, regenerate the primary, update, then regenerate the secondary, and warns that regenerating a key affects every client using it."
     }
   ],
   "brief": {
@@ -326,7 +326,7 @@
           ]
         },
         {
-          "output": "devops@build01:~/carrier-sdk$ az devops security permission show --namespace-id <git> --subject devops@marlow --token repoV2/... | grep -i 'force push'\nForce push (rewrite history and delete branches): Not set (inherited deny)"
+          "output": "devops@build01:~/carrier-sdk$ az devops security permission show --namespace-id <git> --subject devops@marlow --token repoV2/... | grep -i 'force push'\nForce push (rewrite history, delete branches and tags): Not set"
         },
         {
           "finding": "A history rewrite needs force push, granted for this change and removed after."
@@ -685,7 +685,7 @@
         "cite": "git-filter-repo documentation (mintlify mirror of newren/git-filter-repo), Removing sensitive data",
         "checkedAt": "2026-11-17",
         "url": "https://www.mintlify.com/newren/git-filter-repo/use-cases/removing-sensitive-data",
-        "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: 'Rotate any exposed credentials immediately'; files are removed with git filter-repo --invert-paths --path <file> and strings redacted with --replace-text; 'Force pushing rewrites history. Coordinate with your team before doing this'; team members should re-clone: 'Do not use git pull - it will bring back the old history!'; contact the hosting provider for server-side cleanup if needed. That Azure Repos needs the 'Force push (rewrite history and delete branches)' permission and that storage account keys are regenerated one at a time (switch clients to key2, regenerate key1) are from memory of Microsoft Learn (to verify)."
+        "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: 'Rotate any exposed credentials immediately'; files are removed with git filter-repo --invert-paths --path <file> and strings redacted with --replace-text; 'Force pushing rewrites history. Coordinate with your team before doing this'; team members should re-clone: 'Do not use git pull - it will bring back the old history!'; contact the hosting provider for server-side cleanup if needed. The Azure Repos page 'Set Git repository permissions' (read 2026-11-18) lists 'Force push (rewrite history, delete branches and tags)', not set for any security group by default; the storage page 'Manage storage account access keys' (read 2026-11-18) gives the rotation order: point applications at the secondary key, regenerate the primary, update, then regenerate the secondary, and warns that regenerating a key affects every client using it."
       }
     }
   },

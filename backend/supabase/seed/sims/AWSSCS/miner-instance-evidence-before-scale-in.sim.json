@@ -47,7 +47,7 @@
           "label": "booking-asg",
           "spokenLabel": "the Auto Scaling group",
           "kind": "scale-in 6 to 3 at 22:00",
-          "status": "{fixed and not harmed ? \"i-0a7e in standby\" : \"will terminate i-0a7e\"}",
+          "status": "{fixed and not harmed ? \"i-0a7e detached\" : \"will terminate i-0a7e\"}",
           "tone": "fixed and not harmed ? \"up\" : \"down\""
         },
         {
@@ -65,7 +65,7 @@
           "from": "asg",
           "to": "inst",
           "label": "manages",
-          "status": "{fixed and not harmed ? \"standby, not terminated\" : \"next to scale in\"}",
+          "status": "{fixed and not harmed ? \"detached, not terminated\" : \"next to scale in\"}",
           "tone": "fixed and not harmed ? \"up\" : \"down\""
         }
       ]
@@ -81,13 +81,13 @@
       "cite": "AWS Certified Security - Specialty (SCS-C03) exam guide: Detection 16%, Incident Response 14%, Infrastructure Security 18%, Identity and Access Management 20%, Data Protection 18%, Security Foundations and Governance 14%",
       "checkedAt": "2026-11-17",
       "url": "https://docs.aws.amazon.com/aws-certification/latest/security-specialty-03/security-specialty-03.md",
-      "note": "Overview and the Domain 4 page read directly (markdown) on 2026-11-17. Domain weights as above; Skill 4.2.3 'Design, interpret, and implement IAM policies by following the principle of least privilege (for example, permission boundaries, session policies)'; 4.2.5 'Investigate and correct unintended permissions'. Domains 1, 3 and 5 wording is the course seed's; those pages were not re-read. (read for this round by an earlier pass on 2026-11-17) (read for this round by an earlier pass on 2026-11-17) (read for this round by an earlier pass on 2026-11-17)"
+      "note": "Overview and the Domain 4 page read directly (markdown) on 2026-11-17. Domain weights as above; Skill 4.2.3 'Design, interpret, and implement IAM policies by following the principle of least privilege (for example, permission boundaries, session policies)'; 4.2.5 'Investigate and correct unintended permissions'. Domains 1, 3 and 5 wording is the course seed's; those pages were not re-read. (read for this round by an earlier pass on 2026-11-17)"
     },
     {
       "cite": "AWS Security Blog, How to automate incident response in the AWS Cloud for EC2 instances",
       "checkedAt": "2026-11-17",
       "url": "https://aws.amazon.com/blogs/security/how-to-automate-incident-response-in-aws-cloud-for-ec2-instances",
-      "note": "Read through a summarizing fetch on 2026-11-17. The described order: capture the instance metadata to an S3 bucket before making changes; capture the console view; start snapshots of all EBS volumes; 'Set the Amazon EC2 termination protection flag on the instance'; detach the instance profile; if Systems Manager manages the instance, run OS-level gathering 'such as memory captures'; then 'Create a quarantine security group that lacks both ingress and egress rules' and move the instance into it; notify. The post does not cover Auto Scaling: that termination protection does not stop an Auto Scaling scale-in, and that standby or scale-in protection does, are from memory of the Amazon EC2 Auto Scaling user guide (to verify)."
+      "note": "Read through a summarizing fetch on 2026-11-17. The described order: capture the instance metadata to an S3 bucket before making changes; capture the console view; start snapshots of all EBS volumes; 'Set the Amazon EC2 termination protection flag on the instance'; detach the instance profile; if Systems Manager manages the instance, run OS-level gathering 'such as memory captures'; then 'Create a quarantine security group that lacks both ingress and egress rules' and move the instance into it; notify. The post does not cover Auto Scaling. The EC2 Auto Scaling user guide page 'Use instance scale-in protection to control instance termination' (read 2026-11-18) says EC2 termination protection 'does not prevent Amazon EC2 Auto Scaling from terminating instances'; the DetachInstances API reference (read 2026-11-18) says detached instances can be managed 'independent of the Auto Scaling group', are deregistered from attached target groups, and are not replaced when the desired capacity is decremented."
     }
   ],
   "brief": {
@@ -264,7 +264,7 @@
           ]
         },
         {
-          "output": "secops@ir-bastion:~$ aws autoscaling describe-scheduled-actions --auto-scaling-group-name booking-asg --query 'ScheduledUpdateGroupActions[].[StartTime,DesiredCapacity]' --output text; aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names booking-asg --query 'AutoScalingGroups[0].TerminationPolicies'\n{fixed and not harmed ? \"2026-11-17T22:00Z 3\n[OldestInstance]  (i-0a7e in Standby)\" : \"2026-11-17T22:00Z 3\n[OldestInstance]  (i-0a7e is the oldest)\"}"
+          "output": "secops@ir-bastion:~$ aws autoscaling describe-scheduled-actions --auto-scaling-group-name booking-asg --query 'ScheduledUpdateGroupActions[].[StartTime,DesiredCapacity]' --output text; aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names booking-asg --query 'AutoScalingGroups[0].TerminationPolicies'\n{fixed and not harmed ? \"2026-11-17T22:00Z 3\n[OldestInstance]  (i-0a7e no longer in the group)\" : \"2026-11-17T22:00Z 3\n[OldestInstance]  (i-0a7e is the oldest)\"}"
         },
         {
           "finding": "At 22:00 the group terminates the oldest instances, and i-0a7e is the oldest."
@@ -342,7 +342,7 @@
       ]
     },
     "preserve": {
-      "label": "Put i-0a7e in standby, turn on termination protection, capture memory and logs to the evidence bucket, snapshot both volumes, then move it to a quarantine security group",
+      "label": "Detach i-0a7e from the group (decrementing desired capacity), turn on termination protection, capture memory and logs to the evidence bucket, snapshot both volumes, then move it to a quarantine security group",
       "group": "Fix",
       "available": "not busy and (not fixed and not harmed)",
       "why": "Already done, or the system is down.",
@@ -352,10 +352,10 @@
           "to": "true"
         },
         {
-          "output": "secops@ir-bastion:~$ aws autoscaling enter-standby --auto-scaling-group-name booking-asg --instance-ids i-0a7e --should-decrement-desired-capacity\naws ec2 modify-instance-attribute --instance-id i-0a7e --disable-api-termination\naws ssm send-command ... (memory capture with AVML; tar of /var/log/nginx and /var/log/app; upload to s3://corran-ir-evidence/i-0a7e/)\naws ec2 create-snapshots --instance-specification InstanceId=i-0a7e --tag-specifications 'ResourceType=snapshot,Tags=[Key=case,Value=IR-0117]'\naws ec2 modify-instance-attribute --instance-id i-0a7e --groups sg-quarantine"
+          "output": "secops@ir-bastion:~$ aws autoscaling detach-instances --auto-scaling-group-name booking-asg --instance-ids i-0a7e --should-decrement-desired-capacity\naws ec2 modify-instance-attribute --instance-id i-0a7e --disable-api-termination\naws ssm send-command ... (memory capture with AVML; tar of /var/log/nginx and /var/log/app; upload to s3://corran-ir-evidence/i-0a7e/)\naws ec2 create-snapshots --instance-specification InstanceId=i-0a7e --tag-specifications 'ResourceType=snapshot,Tags=[Key=case,Value=IR-0117]'\naws ec2 modify-instance-attribute --instance-id i-0a7e --groups sg-quarantine"
         },
         {
-          "log": "The instance leaves the group's scale-in, cannot be terminated by accident, and its memory, logs and volumes are stored with hashes in an object-locked bucket before it is cut off from the network.",
+          "log": "The instance leaves the group (and its target group) and is managed on its own, cannot be terminated by accident, and its memory, logs and volumes are stored with hashes in an object-locked bucket before it is cut off from the network.",
           "kind": "good"
         },
         {
@@ -369,7 +369,7 @@
       ]
     },
     "ship": {
-      "label": "Ship the web tier's logs to CloudWatch Logs, and add a runbook step: on a compromise finding, standby before anything else",
+      "label": "Ship the web tier's logs to CloudWatch Logs, and add a runbook step: on a compromise finding, detach and protect before anything else",
       "group": "Fix",
       "available": "not busy and (not planned and not harmed)",
       "why": "Already done, or the system is down.",
@@ -379,7 +379,7 @@
           "to": "true"
         },
         {
-          "output": "secops@ir-bastion:~$ aws ssm send-command --document-name AmazonCloudWatch-ManageAgent ... (all booking-asg instances)\n(runbook IR-EC2: 1 standby + termination protection, 2 capture, 3 snapshot, 4 quarantine)"
+          "output": "secops@ir-bastion:~$ aws ssm send-command --document-name AmazonCloudWatch-ManageAgent ... (all booking-asg instances)\n(runbook IR-EC2: 1 detach + termination protection, 2 capture, 3 snapshot, 4 quarantine)"
         },
         {
           "log": "Logs no longer exist only on a disk that scale-in can delete, and the runbook puts preservation first.",
@@ -450,7 +450,7 @@
       ]
     },
     "verify": {
-      "label": "Check standby, protection, the evidence bucket and the quarantine",
+      "label": "Check the group membership, protection, the evidence bucket and the quarantine",
       "group": "Look",
       "available": "not busy",
       "why": "Wait for the running command to finish.",
@@ -465,7 +465,7 @@
           ]
         },
         {
-          "output": "secops@ir-bastion:~$ aws autoscaling describe-auto-scaling-instances --instance-ids i-0a7e --query 'AutoScalingInstances[0].LifecycleState'; aws s3 ls s3://corran-ir-evidence/i-0a7e/\n{harmed ? \"(instance not found)\n(empty)\" : fixed ? \"Standby\nmem.lime  nginx-logs.tgz  app-logs.tgz  sha256sums  (object lock: compliance)\" : \"InService\n(empty)\"}"
+          "output": "secops@ir-bastion:~$ aws autoscaling describe-auto-scaling-instances --instance-ids i-0a7e --query 'AutoScalingInstances[0].LifecycleState'; aws s3 ls s3://corran-ir-evidence/i-0a7e/\n{harmed ? \"(instance not found)\n(empty)\" : fixed ? \"(not in an Auto Scaling group: detached)\nmem.lime  nginx-logs.tgz  app-logs.tgz  sha256sums  (object lock: compliance)\" : \"InService\n(empty)\"}"
         },
         {
           "set": "busy",
@@ -642,7 +642,7 @@
         {
           "label": "Preserved",
           "criteria": "Before scale-in.",
-          "modelAnswer": "i-0a7e was the oldest instance and scale-in at 22:00 terminates the oldest; its access logs existed only on its disk. Standby and termination protection first, then memory, logs and snapshots to the object-locked evidence bucket with hashes."
+          "modelAnswer": "i-0a7e was the oldest instance and scale-in at 22:00 terminates the oldest; its access logs existed only on its disk. Detach from the group and termination protection first, then memory, logs and snapshots to the object-locked evidence bucket with hashes."
         },
         {
           "label": "Contained",
@@ -652,7 +652,7 @@
         {
           "label": "Changes",
           "criteria": "Logs and runbook.",
-          "modelAnswer": "The web tier now ships logs to CloudWatch Logs, and the runbook puts standby and capture before containment."
+          "modelAnswer": "The web tier now ships logs to CloudWatch Logs, and the runbook puts detaching and capture before containment."
         }
       ]
     }
@@ -685,7 +685,7 @@
         "cite": "AWS Security Blog, How to automate incident response in the AWS Cloud for EC2 instances",
         "checkedAt": "2026-11-17",
         "url": "https://aws.amazon.com/blogs/security/how-to-automate-incident-response-in-aws-cloud-for-ec2-instances",
-        "note": "Read through a summarizing fetch on 2026-11-17. The described order: capture the instance metadata to an S3 bucket before making changes; capture the console view; start snapshots of all EBS volumes; 'Set the Amazon EC2 termination protection flag on the instance'; detach the instance profile; if Systems Manager manages the instance, run OS-level gathering 'such as memory captures'; then 'Create a quarantine security group that lacks both ingress and egress rules' and move the instance into it; notify. The post does not cover Auto Scaling: that termination protection does not stop an Auto Scaling scale-in, and that standby or scale-in protection does, are from memory of the Amazon EC2 Auto Scaling user guide (to verify)."
+        "note": "Read through a summarizing fetch on 2026-11-17. The described order: capture the instance metadata to an S3 bucket before making changes; capture the console view; start snapshots of all EBS volumes; 'Set the Amazon EC2 termination protection flag on the instance'; detach the instance profile; if Systems Manager manages the instance, run OS-level gathering 'such as memory captures'; then 'Create a quarantine security group that lacks both ingress and egress rules' and move the instance into it; notify. The post does not cover Auto Scaling. The EC2 Auto Scaling user guide page 'Use instance scale-in protection to control instance termination' (read 2026-11-18) says EC2 termination protection 'does not prevent Amazon EC2 Auto Scaling from terminating instances'; the DetachInstances API reference (read 2026-11-18) says detached instances can be managed 'independent of the Auto Scaling group', are deregistered from attached target groups, and are not replaced when the desired capacity is decremented."
       }
     }
   },
@@ -709,7 +709,7 @@
       "class": "target",
       "terminal": true,
       "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(findingAt) and not isNull(schedAt) and not isNull(verifiedAt) and causeDoc == \"web\"",
-      "narrative": "The instance is in standby and quarantined, with memory, logs and snapshots in the evidence bucket."
+      "narrative": "The instance is detached and quarantined, with memory, logs and snapshots in the evidence bucket."
     },
     "gaps": {
       "label": "Held, with gaps",
@@ -842,11 +842,11 @@
       },
       {
         "at": "21:19-21:44",
-        "text": "Standby, termination protection, memory and logs, snapshots, quarantine; log shipping and runbook."
+        "text": "Detach, termination protection, memory and logs, snapshots, quarantine; log shipping and runbook."
       },
       {
         "at": "21:44-21:46",
-        "text": "Standby; evidence objects present under object lock."
+        "text": "Detached; evidence objects present under object lock."
       }
     ],
     "debrief": {
@@ -856,11 +856,11 @@
       },
       "scaledIn": {
         "headline": "Auto Scaling does not wait for forensics",
-        "body": "Take a compromised instance out of the group's control (standby or scale-in protection) before the next scaling event."
+        "body": "Take a compromised instance out of the group (detach it) before the next scaling event; EC2 termination protection alone does not stop Auto Scaling."
       },
       "preserved": {
         "headline": "Good: preserve first, then isolate",
-        "body": "You read the finding and the scale-in schedule, saw the logs existed only on the instance, took it out of scale-in, captured memory, logs and volumes, quarantined it, and fixed log shipping."
+        "body": "You read the finding and the scale-in schedule, saw the logs existed only on the instance, detached it from the group, captured memory, logs and volumes, quarantined it, and fixed log shipping."
       },
       "gaps": {
         "headline": "Held, with gaps",
@@ -871,6 +871,6 @@
         "body": "No record was written before the run's hard limit."
       }
     },
-    "modelReasoning": "GuardDuty points at one instance, which is the oldest in a group that scales in at 22:00, and the logs that show the entry point exist only on its disk. Put it in standby and turn on termination protection, capture memory and logs to the evidence bucket, snapshot the volumes, then quarantine it with an empty security group. Terminating destroys the evidence; a reboot wipes memory and the miner returns. Then ship the tier's logs and put preservation first in the runbook."
+    "modelReasoning": "GuardDuty points at one instance, which is the oldest in a group that scales in at 22:00, and the logs that show the entry point exist only on its disk. Detach it from the group and turn on termination protection, capture memory and logs to the evidence bucket, snapshot the volumes, then quarantine it with an empty security group. Terminating destroys the evidence; a reboot wipes memory and the miner returns. Then ship the tier's logs and put preservation first in the runbook."
   }
 }

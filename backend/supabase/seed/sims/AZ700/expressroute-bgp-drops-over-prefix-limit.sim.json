@@ -86,7 +86,7 @@
       "cite": "Microsoft Learn, ExpressRoute routing requirements",
       "checkedAt": "2026-11-17",
       "url": "https://learn.microsoft.com/azure/expressroute/expressroute-routing",
-      "note": "Read through a summarizing fetch on 2026-11-17. Quoted: 'ExpressRoute supports up to 4,000 IPv4 prefixes ... advertised to Microsoft through the Azure private peering' (10,000 with the premium add-on); 'The BGP session drops if the number of prefixes exceeds the limit'; advertising a default route into private peering 'block[s] the internet path from Azure' and 'breaks Windows and other VM license activation'. The page does not say when the session comes back after the count is reduced; that it re-establishes once the edge stops exceeding the limit, and the az CLI output, are from memory (to verify)."
+      "note": "Read through a summarizing fetch on 2026-11-17. Quoted: 'ExpressRoute supports up to 4,000 IPv4 prefixes ... advertised to Microsoft through the Azure private peering' (10,000 with the premium add-on); 'The BGP session drops if the number of prefixes exceeds the limit'; advertising a default route into private peering 'block[s] the internet path from Azure' and 'breaks Windows and other VM license activation'. The routing requirements page (read 2026-11-18): up to 4,000 IPv4 prefixes on private peering (10,000 with Premium) and 'The BGP session drops if the number of prefixes exceeds the limit'. It does not say whether the session returns on its own once the count drops, so the case has the DC team clear the sessions after fixing the advertisement. The az CLI output is an authored rendering."
     }
   ],
   "brief": {
@@ -351,10 +351,10 @@
           "to": "true"
         },
         {
-          "output": "neteng@cloudshell:~$ (DC team, CHG-4410 rollback: no redistribute ospf into bgp; outbound prefix-list AZURE-SUMMARIES on neighbors to Microsoft)\nneteng@cloudshell:~$ (watching) az network express-route list-route-tables ... | length -> 14"
+          "output": "neteng@cloudshell:~$ (DC team, CHG-4410 rollback: no redistribute ospf into bgp; outbound prefix-list AZURE-SUMMARIES on neighbors to Microsoft)\nneteng@cloudshell:~$ (DC team: clear the BGP sessions to Microsoft on both edges) az network express-route list-route-tables ... | length -> 14"
         },
         {
-          "log": "The advertised count falls back under the limit, both sessions re-establish, and Azure learns the summaries, which already cover every branch.",
+          "log": "The advertised count falls back under the limit, the cleared sessions re-establish, and Azure learns the summaries, which already cover every branch.",
           "kind": "good"
         },
         {
@@ -684,7 +684,7 @@
         "cite": "Microsoft Learn, ExpressRoute routing requirements",
         "checkedAt": "2026-11-17",
         "url": "https://learn.microsoft.com/azure/expressroute/expressroute-routing",
-        "note": "Read through a summarizing fetch on 2026-11-17. Quoted: 'ExpressRoute supports up to 4,000 IPv4 prefixes ... advertised to Microsoft through the Azure private peering' (10,000 with the premium add-on); 'The BGP session drops if the number of prefixes exceeds the limit'; advertising a default route into private peering 'block[s] the internet path from Azure' and 'breaks Windows and other VM license activation'. The page does not say when the session comes back after the count is reduced; that it re-establishes once the edge stops exceeding the limit, and the az CLI output, are from memory (to verify)."
+        "note": "Read through a summarizing fetch on 2026-11-17. Quoted: 'ExpressRoute supports up to 4,000 IPv4 prefixes ... advertised to Microsoft through the Azure private peering' (10,000 with the premium add-on); 'The BGP session drops if the number of prefixes exceeds the limit'; advertising a default route into private peering 'block[s] the internet path from Azure' and 'breaks Windows and other VM license activation'. The routing requirements page (read 2026-11-18): up to 4,000 IPv4 prefixes on private peering (10,000 with Premium) and 'The BGP session drops if the number of prefixes exceeds the limit'. It does not say whether the session returns on its own once the count drops, so the case has the DC team clear the sessions after fixing the advertisement. The az CLI output is an authored rendering."
       }
     }
   },
